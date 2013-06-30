@@ -1,13 +1,13 @@
 Introduction
-------------
+============
 Mcproxy is an IGMP/MLD Proxy daemon for Linux.
 
 IGMP/MLD proxies offer the possibility option to combine local 
 multicast networks with a larger multicast infrastructure. In contrast 
 to multicast routers, proxies are lightweight and do not require the 
-support of a multicast routing protocols such as PIM or DVMRP. A 
-common use case are local stub networks that interconnect with a 
-remote multicast routing domain, possible via a tunnel. Another usage 
+support of a multicast routing protocol such as PIM or DVMRP. A 
+common use case is a local stub networks that interconnects with a 
+remote multicast routing domain, e.g. via a tunnel. Another usage 
 example is in the Proxy Mobile IPv6 (PMIPv6 - RFC 5213) domains that 
 want to provide transparent multicast services for mobile nodes. The 
 mcproxy meets the requirements of the IGMP/MLD proxy standard 
@@ -15,47 +15,14 @@ mcproxy meets the requirements of the IGMP/MLD proxy standard
 be instantiated multiple times and is dynamically configurable at 
 runtime.
 
-Release History:
-----------------
- * Version 0.1.3
-    - Beta version
-    - Bug fix:
-        - replaced the virtual multiple routing table by the multiple multicast routing table of the linux kernel
-
- * Version 0.1.2
-    - Beta version
-    - Bug fix:
-        - supports sit tunnels
-        - ipv6 General Queries / Group Specific Queries send to all 
-              downstreams
-        - clean the kernel calls
-        - ignore additional ipv4 addresses for one interfaces returned 
-              by getifaddrs()
-
- * Version 0.1.1
-    - Beta version
-    - New Features:
-        - fully documented by Doxygen
-        - qmake generate a makefile depending on the system
-    - Bug fix:
-        - check for root privilegies on startup
-        - changed the default log level to LOG_ERROR_LVL
-
- * Version 0.1.0
-    - Beta version
-    - Support:
-        - IGMPv2/MLDv1
-        - multiple proxy instances
-        - dynamic management of downstream interfaces
-        - forwarding based on kernel routing tables
-
 
 Requirements
-------------
+============
 * To generate a makefile qmake, must be installed. This can be done with
 the following command:
   
-  apt-get install qt4-qmake
+  newer systems: apt-get install qt5-qmake
+  older systems: apt-get install qt4-qmake
 
 * To build the mcproxy, the libraries boost_threat, boost_date_time and 
 boost_system must be installed. This can be done with the following 
@@ -73,7 +40,7 @@ to  be configured and compiled with the experimental kernel feature
 For more Details go to the pojekt page.
 
 * To build the documentation, doxygen must be installed. This can be
-done with the folling command:
+done with the following command:
 
   apt-get install doxygen
 
@@ -81,38 +48,39 @@ done with the folling command:
 
 * A Linux kernel version greater than version 2.6.32 is required.
 
-Compilation
------------
 
-Build mcproxy
+Compilation
+===========
+Build mcproxy:
   
   qmake mcproxy.pro
   make
 
 
 Installation
-------------
+============
 To copy mcproxy to system directories, run (optional):
 
   make install
 
 
 Documentation
------------------
+=============
 Mcproxy includes a HTML documentation. The documentation will 
 be located in the docs/ directory after the execution of:
 
     make doc
 
+
 Directories
------------
+===========
 * doxygen/    - Example code and graphics used in the Doxygen
                 documentation
 * mcproxy/    - Makefile, Header and source code files of the mcproxy
 
 
 Contact
--------
+=======
 Website: http://mcproxy.realmv6.org/
 
 Mailing List: multicast-proxy@googlegroups.com
