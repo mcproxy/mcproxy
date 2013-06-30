@@ -1,0 +1,88 @@
+/**
+ * \mainpage mcproxy 
+ * 
+ * \section Author
+ * Sebastian Wölke <Sebastian.Woelke@haw-hamburg.de>
+ *
+ *
+ * \section Introduction
+ * Mcproxy is an IGMP/MLD Proxy daemon for Linux.
+ * 
+ * IGMP/MLD proxies offer the possibility to combine local
+ * multicast networks with a larger multicast infrastructure. In 
+ * contrast to multicast routers, proxies are lightweight and do 
+ * not require the support of a multicast routing protocols such as PIM or 
+ * DVMRP. A common use case are local stub networks that interconnect with a 
+ * remote multicast routing domain, possibly via a tunnel. Another usage
+ * example is in the Proxy Mobile IPv6 (PMIPv6 - RFC 5213) 
+ * domains that want to provide transparent multicast services for 
+ * mobile nodes. The mcproxy meets the requirements of the IGMP/MLD 
+ * proxy standard (RFC 4605) and has additional functionalities. The 
+ * multicast proxy can be instantiated multiple times and is dynamically 
+ * configurable at runtime.
+ *
+ * \section Overview Overview
+ *
+ * \par 
+ * The mcproxy is divided into the modules Receiver, Routing, Timer, 
+ * Sender and an  arbitrary number of Proxy-Instances.	
+ *
+ * \image html overview.png
+ *
+ * \par
+ * The module @ref mod_proxy reads the configuration file on startup. It then configures 
+ * and starts all other modules, acquire the mrt-flag on a socket for
+ * manipulating the multicast routing tables of the Linux kernel.
+ *
+ * \par
+ * A @ref mod_proxy_instance represents a full multicast proxy. Each instance 
+ * has access to the modules Receiver, Routing, Sender and Timer.
+ *
+ * \par
+ * The module @ref mod_sender generates and sends Membership Queries to the 
+ * downstreams and Membership Reports to the upstreams.
+ *
+ * \par
+ * The module @ref mod_receiver uses the socket with the mrt-flag to receive Membership 
+ * Reports and Cache Miss messages. Cache Miss messages are sent from the 
+ * Linux kernel in order to inform proxies about new multicast sources.
+ *
+ * \par
+ * The module @ref mod_routing sets and deletes virtual interfaces and multicast 
+ * forwarding rules.
+ * 
+ * \par
+ * The module @ref mod_timer organizes the temporal behavior of the Proxy-Instances.
+ * 
+ * \subsection Communication Communication between the modules
+ * 
+ * \image html interaction.png
+ * 
+ * \par
+ * The modules communicate via synchronized message queues with the Proxy-Instances.
+ *
+ * \par
+ * Proxy-Instances register their interfaces at the module Receiver. 
+ * If a Membership Report or a Cache Miss massage arrives at on of this 
+ * regestrated interafaces, the module Receiver  sends a message to the 
+ * relevant Proxy-Instance.
+ *
+ * \par
+ * Proxy-Instances add reminders to the module Timer. A reminder contains a time
+ * and a message. If the predefined time expires for a reminder, the module Timer 
+ * retun the reminder to the relevant Proxy-Instance. In this way, the temporal behavior
+ * of the Proxy-Instances is controlled.
+ *
+ * \par
+ * All other modules only waits for instructions from the Proxy-Instances.
+ *
+ * \subsection RFCs Related RFCs
+ * 
+ * \par
+ * \li <a href="http://tools.ietf.org/html/rfc2236">RFC 2236</a> - IGMPv2
+ * \li <a href="http://tools.ietf.org/html/rfc2710">RFC 2710</a> - MLDv1
+ * \li <a href="http://tools.ietf.org/html/rfc4605">RFC 4605</a> - IGMP/MLD Proxying
+ * \li <a href="http://tools.ietf.org/html/rfc6224">RFC 6224</a> - Multicast Listener Support in PMIPv6 Domains
+ *
+ */
+

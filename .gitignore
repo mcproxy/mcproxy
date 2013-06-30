@@ -11,3 +11,7 @@
 *.lai
 *.la
 *.a
+
+#qmake
+*.pro.user
+Makefile
