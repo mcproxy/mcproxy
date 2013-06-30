@@ -15,3 +15,8 @@
 #qmake
 *.pro.user
 Makefile
+mcproxy
+
+#editor
+*.~
+*.swp
