@@ -375,7 +375,7 @@ bool proxy::init(int arg_count, char* args[]){
 
 void proxy::help_output(){
     HC_LOG_TRACE("");
-    cout << "Mcproxy version 0.1.3" << endl;
+    cout << "Mcproxy version 0.1.5" << endl;
     cout << "Project page: http://mcproxy.realmv6.org/" << endl;
     cout << endl;
     cout << "Usage: mcproxy [-h] [-r] [-d] [-s] [-v [-v]] [-c <configfile>]" << endl;
