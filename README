@@ -32,7 +32,7 @@ command:
 
 * To use the IPv6 functionality the kernel has to be configured and 
 compiled with the experimental kernel feature <IPv6: multicast routing>.
-For more Details go to the projekt page.
+For more Details go to the project page (http://mcproxy.realmv6.org).
 
 * To use more then one proxy instance for IPv4 and IPv6 the kernel has
 to  be configured and compiled with the experimental kernel feature
@@ -79,10 +79,26 @@ Directories
 * mcproxy/    - Makefile, Header and source code files of the mcproxy
 
 
+Startup
+=======
+To run the mcproxy you first need to create a valid configuration
+file. There is an example in the project folder (mcproxy.conf).
+
+* To run the mcproxy in the background type the following command:
+
+    sudo nohup mcproxy -c <path/to/config_file> &
+
+* To run the mcprocy with all available status messages run:
+
+    sudo mcproxy -dsvv -c <path/to/config_file>
+
+For more information see 'mcproxy -h' or visit our project page.
+
+
 Contact
 =======
-Website: http://mcproxy.realmv6.org/
+Project page: http://mcproxy.realmv6.org/
 
-Mailing List: multicast-proxy@googlegroups.com
+Mailing list: multicast-proxy@googlegroups.com
 
 /* vim: set tw=72 sts=2 sw=2 ts=2 expandtab: */
