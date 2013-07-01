@@ -375,14 +375,17 @@ bool proxy::init(int arg_count, char* args[]){
 
 void proxy::help_output(){
     HC_LOG_TRACE("");
-    cout <<"Usage: mcproxy [-h] [-r] [-d] [-s] [-v [-v]] [-c <configfile>]" << endl;
+    cout << "Mcproxy version 0.1.3" << endl;
+    cout << "Project page: http://mcproxy.realmv6.org/" << endl;
+    cout << endl;
+    cout << "Usage: mcproxy [-h] [-r] [-d] [-s] [-v [-v]] [-c <configfile>]" << endl;
     cout << endl;
     cout << "\t-h" << endl;
     cout << "\t\tDisplay this help screen." << endl;
 
     cout << "\t-r" << endl;
     cout << "\t\tReset the reverse path filter flag, to accept data from" << endl;
-    cout << "\t\tforeign Subnets." << endl;
+    cout << "\t\tforeign subnets." << endl;
 
     cout << "\t-d" << endl;
     cout << "\t\tRun in debug mode. Output all log messages on thread[X]" << endl;
