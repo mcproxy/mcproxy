@@ -1,7 +1,8 @@
 TARGET = mcproxy
 
 #CONFIG += release    
-#CONFIG += debug   
+CONFIG += debug   
+QMAKE_CXXFLAGS_DEBUG -= -g 
 
 CONFIG -= qt
 QMAKE_CXXFLAGS += -ggdb 
