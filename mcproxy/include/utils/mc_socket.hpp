@@ -107,15 +107,21 @@ protected:
       */
      bool m_own_socket;
 
-     /**
-      * @brief Mc_socket mustnt be copied because its contain an unique socket.
-      */
-     mc_socket(const mc_socket &copy);
 public:
      /**
       * @brief Create a multicast socket.
       */
      mc_socket();
+
+     /**
+      * @brief Mc_socket mustnt be copied because its contain an unique socket.
+      */
+     mc_socket(const mc_socket &copy) = delete;
+
+     /**
+      * @brief Mc_socket mustnt be assigned because its contain an unique socket.
+      */
+     mc_socket& operator=(const mc_socket &copy) = delete;
 
      /**
       * @brief Close the internal datagram socket.

@@ -39,8 +39,6 @@
 class mroute_socket: public mc_socket
 {
 private:
-     mroute_socket(const mroute_socket &copy);
-
      //not used
      bool create_udp_ipv4_socket(){
           return false;
@@ -57,6 +55,17 @@ public:
       * @brief Create a mroute_socket.
       */
      mroute_socket();
+
+     /**
+      * @brief Mroute_socket mustnt be copied because its contain an unique socket.
+      */
+     mroute_socket(const mroute_socket &copy) = delete;
+
+     /**
+      * @brief Mroute_socket mustnt be assigned because its contain an unique socket.
+      */
+     mroute_socket& operator=(const mroute_socket &copy) = delete;
+
 
      /**
      * @brief Close raw socket.
