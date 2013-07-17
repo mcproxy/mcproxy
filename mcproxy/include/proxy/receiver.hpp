@@ -163,7 +163,7 @@ public:
      /**
       * @brief Release all resources.
       */
-     ~receiver();
+     virtual ~receiver();
 
      /**
       * @brief Initialize the receiver.

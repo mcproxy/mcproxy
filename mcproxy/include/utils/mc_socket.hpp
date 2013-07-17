@@ -81,7 +81,7 @@ public:
     save_free(F fun, V val): m_fun(fun), m_val(val){
     }
 
-    ~save_free(){
+    virtual ~save_free(){
         (*m_fun)(m_val);
     }
 };

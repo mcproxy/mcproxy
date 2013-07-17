@@ -275,7 +275,7 @@ public:
     /**
      * @brief Release all resources.
      */
-    ~proxy_instance();
+    virtual ~proxy_instance();
 
 
     /**

@@ -67,7 +67,7 @@ public:
       */
      worker(int max_msg);
 
-     ~worker();
+     virtual ~worker();
 
      /**
       * @brief Add a message to the job queue.
