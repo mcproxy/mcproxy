@@ -369,7 +369,7 @@ void proxy_instance::handle_clock(struct clock_msg* c){
     state_table_map::iterator iter_table;
     g_state_map::iterator iter_state;
     src_state_map::iterator iter_src;
-    src_group_state_pair* sgs_pair = NULL;
+    src_group_state_pair* sgs_pair = nullptr;
 
 
     switch(c->type){
@@ -652,7 +652,7 @@ void proxy_instance::handle_config(struct config_msg* c){
 
         state_table_map::iterator iter_table;
         g_state_map::iterator iter_state;
-        src_group_state_pair* sgs_pair = NULL;
+        src_group_state_pair* sgs_pair = nullptr;
         src_state_map::iterator iter_src;
 
         iter_table =m_state_table.find(c->if_index);

@@ -245,7 +245,7 @@ bool mc_socket::send_packet(const char* addr, int port, const unsigned char* dat
         return false;
     }
 
-    struct addrinfo *grp = NULL;
+    struct addrinfo *grp = nullptr;
     struct addrinfo hints;
     int rc=0;
 
@@ -406,7 +406,7 @@ bool mc_socket::choose_if(int if_index){
         struct ifreq ifreq;
 
         if( if_index > 0){
-            if (if_indextoname(if_index, ifreq.ifr_name) == NULL) {
+            if (if_indextoname(if_index, ifreq.ifr_name) == nullptr) {
                 HC_LOG_ERROR("failed to get interface name! if_index:" << if_index << "! Error: " << strerror(errno)  << " errno: " << errno);
                 return false;
             }
@@ -482,7 +482,7 @@ bool mc_socket::join_group(const char* addr, int if_index) {
     }
 
     struct group_req req;
-    struct addrinfo *grp = NULL;
+    struct addrinfo *grp = nullptr;
     struct addrinfo hints;
     int rc=0;
 
@@ -527,7 +527,7 @@ bool mc_socket::leave_group(const char* addr, int if_index) {
     }
 
     struct group_req req;
-    struct addrinfo *grp = NULL;
+    struct addrinfo *grp = nullptr;
     struct addrinfo hints;
     int rc=0;
 

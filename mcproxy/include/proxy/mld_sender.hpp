@@ -57,7 +57,7 @@ private:
      bool choose_if(int if_index);
      int get_msg_min_size();
      bool add_hbh_opt_header();
-     bool create_mc_query(msg_type type, unsigned char* buf,const addr_storage* g_addr=NULL);
+     bool create_mc_query(msg_type type, unsigned char* buf,const addr_storage* g_addr=nullptr);
 
 public:
      /**

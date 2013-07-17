@@ -350,7 +350,7 @@ bool mroute_socket::set_mrt_flag(bool enable){
             return false;
         }
 
-        rc = setsockopt(m_sock,proto, mrt_cmd, NULL, 0);
+        rc = setsockopt(m_sock,proto, mrt_cmd, nullptr, 0);
 
         if(rc == -1){
             HC_LOG_ERROR("failed to reset MRT flag! Error: " << strerror(errno) << " errno: " << errno);
@@ -390,7 +390,7 @@ bool mroute_socket::add_vif(int vifNum, const char* ifName, const char* ipTunnel
         vc.vifc_rate_limit = MROUTE_RATE_LIMIT_ENDLESS;
         vc.vifc_lcl_ifindex =index;
 
-        if(ipTunnelRemoteAddr != NULL){
+        if(ipTunnelRemoteAddr != nullptr){
             if(!inet_pton(AF_INET, ipTunnelRemoteAddr, (void*)&vc.vifc_rmt_addr)>0){
                 HC_LOG_ERROR("cannot convert ipTunnelRemoteAddr: " << ipTunnelRemoteAddr);
             }
@@ -708,7 +708,7 @@ bool mroute_socket::get_vif_stats(int vif_index, struct sioc_vif_req* req_v4, st
     int rc;
 
     if(m_addrFamily == AF_INET){
-        if(req_v4 != NULL){
+        if(req_v4 != nullptr){
 
             req_v4->vifi = vif_index;
 
@@ -725,7 +725,7 @@ bool mroute_socket::get_vif_stats(int vif_index, struct sioc_vif_req* req_v4, st
             return false;
         }
     }else if(m_addrFamily == AF_INET6){
-        if(req_v6 != NULL){
+        if(req_v6 != nullptr){
 
             req_v6->mifi = vif_index;
 
@@ -759,7 +759,7 @@ bool mroute_socket::get_mroute_stats(const char* source_addr, const char* group_
     int rc;
 
     if(m_addrFamily == AF_INET){
-        if(sgreq_v4 != NULL){
+        if(sgreq_v4 != nullptr){
 
             if(!inet_pton(m_addrFamily, source_addr, &sgreq_v4->src)>0){
                 HC_LOG_ERROR("cannot convert source_addr: " << source_addr);
@@ -784,7 +784,7 @@ bool mroute_socket::get_mroute_stats(const char* source_addr, const char* group_
             return false;
         }
     }else if(m_addrFamily == AF_INET6){
-        if(sgreq_v6 != NULL){
+        if(sgreq_v6 != nullptr){
 
             memset(sgreq_v6,0,sizeof(struct sioc_sg_req6));
 
@@ -824,7 +824,7 @@ void mroute_socket::print_vif_stats(int vif_index){
 
     if(m_addrFamily == AF_INET){
         sioc_vif_req req;
-        if(!get_vif_stats(vif_index, &req, NULL)){
+        if(!get_vif_stats(vif_index, &req, nullptr)){
             cout << "failed to get vif stats" << endl;
             return;
         }
@@ -834,7 +834,7 @@ void mroute_socket::print_vif_stats(int vif_index){
 
     }else if(m_addrFamily == AF_INET6){
         struct sioc_mif_req6 req;
-        if(!get_vif_stats(vif_index, NULL, &req)){
+        if(!get_vif_stats(vif_index, nullptr, &req)){
             cout << "failed to get vif stats" << endl;
             return;
         }
@@ -856,7 +856,7 @@ void mroute_socket::print_mroute_stats(const char* source_addr, const char* grou
 
     if(m_addrFamily == AF_INET){
         struct sioc_sg_req req;
-        if(!get_mroute_stats(source_addr, group_addr, &req, NULL)){
+        if(!get_mroute_stats(source_addr, group_addr, &req, nullptr)){
             cout << "failed to get mroute stats" << endl;
             return;
         }
@@ -866,7 +866,7 @@ void mroute_socket::print_mroute_stats(const char* source_addr, const char* grou
 
     }else if(m_addrFamily == AF_INET6){
         struct sioc_sg_req6 req;
-        if(!get_mroute_stats(source_addr, group_addr, NULL, &req)){
+        if(!get_mroute_stats(source_addr, group_addr, nullptr, &req)){
             cout << "failed to get mroute stats" << endl;
             return;
         }
@@ -1055,13 +1055,13 @@ void mroute_socket::test_add_vifs(mroute_socket* m){
 
 
     cout << "-- addVIFs test --" << endl;
-    if(m->add_vif(if_one, str_if_one.c_str(),NULL)){
+    if(m->add_vif(if_one, str_if_one.c_str(),nullptr)){
         cout << "addVIF " << str_if_one << " OK!" << endl;
     }else{
         cout << "addVIF " << str_if_one << " FAILED!" << endl;
     }
 
-    if(m->add_vif(if_two, str_if_two.c_str(),NULL)){
+    if(m->add_vif(if_two, str_if_two.c_str(),nullptr)){
         cout << "addVIF " << str_if_two << " OK!" << endl;
     }else{
         cout << "addVIF " << str_if_two << " FAILED!" << endl;

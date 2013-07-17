@@ -39,7 +39,7 @@ private:
           GENERAL_QUERY, GROUP_SPECIFIC_QUERY
      };
 
-     bool create_mc_query(msg_type type, unsigned char* buf,const addr_storage* g_addr=NULL);
+     bool create_mc_query(msg_type type, unsigned char* buf,const addr_storage* g_addr=nullptr);
      int get_msg_min_size();
 public:
      /**

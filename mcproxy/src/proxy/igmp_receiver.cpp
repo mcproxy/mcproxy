@@ -80,7 +80,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int info_size){
                if((if_index = get_if_index(igmpctl->im_vif)) == 0) return;
                HC_LOG_DEBUG("\tif_index: " << if_index);
 
-               if((pr_i = get_proxy_instance(if_index)) == NULL) return;
+               if((pr_i = get_proxy_instance(if_index)) == nullptr) return;
 
                proxy_msg m;
                m.type = proxy_msg::RECEIVER_MSG;
@@ -105,7 +105,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int info_size){
                if((if_index = this->map_ip2if_index(src_addr)) == 0) return;
                HC_LOG_DEBUG("\tif_index: " << if_index);
 
-               if((pr_i= this->get_proxy_instance(if_index))== NULL) return;
+               if((pr_i= this->get_proxy_instance(if_index))== nullptr) return;
 
                proxy_msg m;
                m.type = proxy_msg::RECEIVER_MSG;
@@ -123,7 +123,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int info_size){
                if((if_index = this->map_ip2if_index(src_addr))== 0) return ;
                HC_LOG_DEBUG("\tif_index: " << if_index);
 
-               if((pr_i=this->get_proxy_instance(if_index)) ==NULL) return;
+               if((pr_i=this->get_proxy_instance(if_index)) == nullptr) return;
 
                proxy_msg m;
                m.type = proxy_msg::RECEIVER_MSG;
@@ -156,7 +156,7 @@ int igmp_receiver::map_ip2if_index(const addr_storage& src_addr){
                string if_name(if_indextoname(it->first, cstr));
 
                item = m_if_property.get_ip4_if(if_name);
-               if(item == NULL) return 0;
+               if(item == nullptr) return 0;
 
                own_addr = *(item->ifa_addr);
                tmp_mask = *(item->ifa_netmask);

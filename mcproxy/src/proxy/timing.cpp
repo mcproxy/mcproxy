@@ -53,7 +53,7 @@ void timing::worker_thread(timing* t){
           usleep(TIME_POLL_INTERVAL);
 
           struct timeval current_timeval;
-          gettimeofday(&current_timeval, NULL);
+          gettimeofday(&current_timeval, nullptr);
 
           t->m_global_lock.lock();
 
@@ -86,7 +86,7 @@ void timing::add_time(int msec, proxy_instance* m_pr_i, proxy_msg& pr_msg){
      HC_LOG_TRACE("");
 
      struct timeval t;
-     gettimeofday(&t, NULL);
+     gettimeofday(&t, nullptr);
      t.tv_sec += msec/1000;
      t.tv_usec += 1000 * (msec % 1000);;
 
@@ -142,7 +142,7 @@ void timing::test_timing(){
      p_msg.msg =  new struct test_msg(4);
 
      t->start();
-     t->add_time(10000,NULL,p_msg);
+     t->add_time(10000,nullptr,p_msg);
      /*t->add_time(2000,NULL,p_msg);
      t->add_time(3000,NULL,p_msg);
      t->add_time(4000,NULL,p_msg);

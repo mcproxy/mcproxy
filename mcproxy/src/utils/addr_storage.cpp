@@ -326,7 +326,7 @@ std::string addr_storage::to_string() const{
     if(af == AF_INET){
         char addressBuffer[INET_ADDRSTRLEN];
 
-        if(inet_ntop(af,(const void*)&(((const struct sockaddr_in*)(&m_addr))->sin_addr),addressBuffer, sizeof(addressBuffer)) == NULL){
+        if(inet_ntop(af,(const void*)&(((const struct sockaddr_in*)(&m_addr))->sin_addr),addressBuffer, sizeof(addressBuffer)) == nullptr){
             HC_LOG_ERROR("failed to convert sockaddr_storage");
             return std::string();
         }else{
@@ -334,7 +334,7 @@ std::string addr_storage::to_string() const{
         }
     }else if(af == AF_INET6){
         char addressBuffer[INET6_ADDRSTRLEN];
-        if(inet_ntop(af,(const void*)&(((const struct sockaddr_in6*)(&m_addr))->sin6_addr),addressBuffer, sizeof(addressBuffer)) == NULL){
+        if(inet_ntop(af,(const void*)&(((const struct sockaddr_in6*)(&m_addr))->sin6_addr),addressBuffer, sizeof(addressBuffer)) == nullptr){
             HC_LOG_ERROR("failed to convert sockaddr_storage");
             return std::string();
         }else{

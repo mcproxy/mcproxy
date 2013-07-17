@@ -11,6 +11,5 @@ create a Ncurses based multicast test tool
 
 c++11
 =====
-nullptr
 override
 delete, default

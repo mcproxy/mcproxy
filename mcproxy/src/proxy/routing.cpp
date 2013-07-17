@@ -56,16 +56,16 @@ bool routing::add_vif(int if_index, int vif){
     HC_LOG_TRACE("");
 
     char cstr[IF_NAMESIZE];
-    const struct ifaddrs* item=NULL;
+    const struct ifaddrs* item= nullptr;
     string if_name(if_indextoname(if_index,cstr));
 
     if(m_addr_family == AF_INET){
-        if((item = m_if_prop.get_ip4_if(if_name))== NULL){
+        if((item = m_if_prop.get_ip4_if(if_name))== nullptr){
             HC_LOG_ERROR("interface not found: " << if_name);
             return false;
         }
     }else if(m_addr_family == AF_INET6){
-        if((item = m_if_prop.get_ip6_if(if_name)->front()) == NULL){
+        if((item = m_if_prop.get_ip6_if(if_name)->front()) == nullptr){
             HC_LOG_ERROR("interface not found: " << if_name);
             return false;
         }
@@ -74,7 +74,7 @@ bool routing::add_vif(int if_index, int vif){
         return false;
     }
 
-    if((item->ifa_flags & IFF_POINTOPOINT) && (item->ifa_dstaddr != NULL)) { //tunnel
+    if((item->ifa_flags & IFF_POINTOPOINT) && (item->ifa_dstaddr != nullptr)) { //tunnel
 
         addr_storage p2p_addr(*(item->ifa_dstaddr));
 
@@ -83,7 +83,7 @@ bool routing::add_vif(int if_index, int vif){
         }
 
     }else{ //phyint
-        if(!m_mrt_sock->add_vif(vif,if_name.c_str(), NULL)){
+        if(!m_mrt_sock->add_vif(vif,if_name.c_str(), nullptr)){
             return false;
         }
 

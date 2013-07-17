@@ -81,7 +81,7 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int info_size){
                int if_index;
                if((if_index = get_if_index(mldctl->im6_mif)) == 0) return;
 
-               if((pr_i = get_proxy_instance(if_index)) == NULL) return;
+               if((pr_i = get_proxy_instance(if_index)) == nullptr) return;
 
                proxy_msg m;
                m.type = proxy_msg::RECEIVER_MSG;
@@ -93,16 +93,16 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int info_size){
                HC_LOG_WARN("unknown kernel message");
           }
      }else if(hdr->mld_type == MLD_LISTENER_REPORT || hdr->mld_type == MLD_LISTENER_REDUCTION){ //join
-          struct in6_pktinfo* packet_info = NULL;
+          struct in6_pktinfo* packet_info = nullptr;
 
-          for (struct cmsghdr* cmsgptr = CMSG_FIRSTHDR(msg); cmsgptr != NULL; cmsgptr = CMSG_NXTHDR(msg, cmsgptr)) {
+          for (struct cmsghdr* cmsgptr = CMSG_FIRSTHDR(msg); cmsgptr != nullptr; cmsgptr = CMSG_NXTHDR(msg, cmsgptr)) {
                if (cmsgptr->cmsg_len > 0 &&cmsgptr->cmsg_level == IPPROTO_IPV6 && cmsgptr->cmsg_type == IPV6_PKTINFO ) {
                     packet_info = (struct in6_pktinfo*)CMSG_DATA(cmsgptr);
                }
           }
-          if(packet_info == NULL) return;
+          if(packet_info == nullptr) return;
 
-          if((pr_i = this->get_proxy_instance(packet_info->ipi6_ifindex))== NULL) return; //?is ifindex registratet
+          if((pr_i = this->get_proxy_instance(packet_info->ipi6_ifindex))== nullptr) return; //?is ifindex registratet
           g_addr = hdr->mld_addr;
 
           proxy_msg m;

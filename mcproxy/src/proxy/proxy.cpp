@@ -283,7 +283,7 @@ bool proxy::check_double_used_if(const vector<int>* new_interfaces)
     vector<int> interface_list = all_if_to_list();
 
     //add new if_list to interface_list
-    if (new_interfaces != NULL) {
+    if (new_interfaces != nullptr) {
         for (unsigned int i = 0; i < new_interfaces->size(); i++) {
             interface_list.push_back((*new_interfaces)[i]);
         }
@@ -380,7 +380,7 @@ bool proxy::init(int arg_count, char* args[])
         return false;
     }
 
-    if (!check_double_used_if(NULL)) {
+    if (!check_double_used_if(nullptr)) {
         HC_LOG_ERROR("found double used interface");
         return false;
     }
@@ -597,7 +597,7 @@ bool proxy::check_and_set_flags(vector<int>& interface_list)
         }
 
         if (m_addr_family == AF_INET) {
-            if (iter->second.ip4_addr != NULL) {
+            if (iter->second.ip4_addr != nullptr) {
                 ifaddr = iter->second.ip4_addr;
             } else {
                 HC_LOG_ERROR("interface " << if_name << " don't support ipv4");

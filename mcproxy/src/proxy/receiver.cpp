@@ -73,7 +73,7 @@ proxy_instance* receiver::get_proxy_instance(int if_index){
     if(it != m_if_proxy_map.end()){
         return it->second;
     }else{
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -125,7 +125,7 @@ void receiver::worker_thread(void* arg){
 
     //create msghdr
     struct msghdr msg;
-    msg.msg_name = NULL;
+    msg.msg_name = nullptr;
     msg.msg_namelen = 0;
 
     msg.msg_iov = &iov;

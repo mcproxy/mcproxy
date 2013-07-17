@@ -74,7 +74,7 @@ bool check_source::is_src_unused(int vif, addr_storage src_addr, addr_storage g_
     //--kernel
     if(m_addr_family == AF_INET){
         struct sioc_sg_req tmp_stat;
-        if(m_sock->get_mroute_stats(src_addr.to_string().c_str(), g_addr.to_string().c_str(), &tmp_stat, NULL)){
+        if(m_sock->get_mroute_stats(src_addr.to_string().c_str(), g_addr.to_string().c_str(), &tmp_stat, nullptr)){
             current_pkt_cnt = tmp_stat.pktcnt;
             HC_LOG_DEBUG(" src_addr: " << src_addr << " g_addr: " << g_addr << " vif: " << vif);
             HC_LOG_DEBUG(" -packets[" << tmp_stat.bytecnt << " bytes]:" << tmp_stat.pktcnt);
@@ -84,7 +84,7 @@ bool check_source::is_src_unused(int vif, addr_storage src_addr, addr_storage g_
         }
     }else if(m_addr_family == AF_INET6){
         struct sioc_sg_req6 tmp_stat;
-        if(m_sock->get_mroute_stats(src_addr.to_string().c_str(), g_addr.to_string().c_str(), NULL, &tmp_stat)){
+        if(m_sock->get_mroute_stats(src_addr.to_string().c_str(), g_addr.to_string().c_str(), nullptr, &tmp_stat)){
             current_pkt_cnt = tmp_stat.pktcnt;
             HC_LOG_DEBUG(" src_addr: " << src_addr << " g_addr: " << g_addr << " vif: " << vif);
             HC_LOG_DEBUG(" -packets[" << tmp_stat.bytecnt << " bytes]:" << tmp_stat.pktcnt);

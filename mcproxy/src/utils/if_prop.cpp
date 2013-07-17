@@ -56,9 +56,9 @@ bool if_prop::refresh_network_interfaces(){
           return false;
      }
 
-     struct ifaddrs* ifEntry=NULL;
-     for(ifEntry=m_if_addrs; ifEntry!=NULL; ifEntry=ifEntry->ifa_next) {
-          if(ifEntry->ifa_addr->sa_data == NULL) {
+     struct ifaddrs* ifEntry=nullptr;
+     for(ifEntry=m_if_addrs; ifEntry!=nullptr; ifEntry=ifEntry->ifa_next) {
+          if(ifEntry->ifa_addr->sa_data == nullptr) {
                continue;
           }
 
@@ -66,7 +66,7 @@ bool if_prop::refresh_network_interfaces(){
           if(ifEntry->ifa_addr->sa_family==AF_INET) {
                if_prop_map::iterator iter = m_if_map.find(ifEntry->ifa_name);
                if(iter != m_if_map.end()){ //existing interface
-                    if(iter->second.ip4_addr != NULL){
+                    if(iter->second.ip4_addr != nullptr){
                         HC_LOG_WARN("more than one ipv4 address for one interface configurated! used:" << addr_storage(*(iter->second.ip4_addr->ifa_addr)) << "; don't used:" << addr_storage(*(ifEntry->ifa_addr)) << ";");
                         //return false;
                     }else{
@@ -83,7 +83,7 @@ bool if_prop::refresh_network_interfaces(){
                }else{ //new interface
                     list<const struct ifaddrs*> l;
                     l.push_back(ifEntry);
-                    m_if_map.insert(if_prop_pair(ifEntry->ifa_name, ipv4_6_pair(NULL,l)));
+                    m_if_map.insert(if_prop_pair(ifEntry->ifa_name, ipv4_6_pair(nullptr,l)));
                }
           } else {
                //It isn't IPv4 or IPv6
@@ -99,7 +99,7 @@ const if_prop_map* if_prop::get_if_props() const{
 
      if (!is_getaddrs_valid()) {
           HC_LOG_ERROR("data invalid");
-          return NULL;
+          return nullptr;
      }
 
      return &m_if_map;
@@ -110,11 +110,11 @@ const struct ifaddrs* if_prop::get_ip4_if(const string &if_name) const{
 
      if (!is_getaddrs_valid()) {
           HC_LOG_ERROR("data invalid");
-          return NULL;
+          return nullptr;
      }
 
      if_prop_map::const_iterator if_prop_iter = m_if_map.find(if_name);
-     if(if_prop_iter == m_if_map.end()) return NULL;
+     if(if_prop_iter == m_if_map.end()) return nullptr;
 
      return if_prop_iter->second.ip4_addr;
 }
@@ -124,11 +124,11 @@ const list<const struct ifaddrs*>* if_prop::get_ip6_if(const string &if_name) co
 
      if (!is_getaddrs_valid()) {
           HC_LOG_ERROR("data invalid");
-          return NULL;
+          return nullptr;
      }
 
      if_prop_map::const_iterator if_prop_iter = m_if_map.find(if_name);
-     if(if_prop_iter == m_if_map.end()) return NULL;
+     if(if_prop_iter == m_if_map.end()) return nullptr;
 
      return &(if_prop_iter->second.ip6_addr);
 }
@@ -151,7 +151,7 @@ void if_prop::print_if_addr(const struct ifaddrs* if_p) const{
      cout << endl;
 
      if(if_p->ifa_flags & IFF_POINTOPOINT){
-          if(if_p->ifa_dstaddr != NULL){
+          if(if_p->ifa_dstaddr != nullptr){
                cout << "\t- dstaddr: " << addr_storage(*if_p->ifa_dstaddr) << endl;
           }
      }else if(if_p->ifa_addr->sa_family == AF_INET){ //broadcast addr
@@ -168,7 +168,7 @@ void if_prop::print_if_info() const{
      }
 
      const if_prop_map* prop = get_if_props();
-     if(prop == NULL){
+     if(prop == nullptr){
           HC_LOG_ERROR("data struct not found");
           return;
      }
@@ -179,7 +179,7 @@ void if_prop::print_if_info() const{
      cout << "##-- IPv4 [count:" << prop->size() << "]--##" << endl;
      for(if_prop_map::const_iterator iter = prop->begin(); iter != prop->end(); iter++){
           if_p = get_ip4_if(iter->first);
-          if(if_p == NULL){
+          if(if_p == nullptr){
                HC_LOG_ERROR("interface name not found: " << iter->first);
                continue;
           }
@@ -191,7 +191,7 @@ void if_prop::print_if_info() const{
      for(if_prop_map::const_iterator iter = prop->begin(); iter != prop->end(); iter++){
           if_p_list = get_ip6_if(iter->first);
 
-          if(if_p_list == NULL){
+          if(if_p_list == nullptr){
                HC_LOG_ERROR("interface name not found: " << iter->first);
                continue;
           }
