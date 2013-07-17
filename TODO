@@ -11,5 +11,5 @@ create a Ncurses based multicast test tool
 
 c++11
 =====
-override
 delete, default
+check uncopyable

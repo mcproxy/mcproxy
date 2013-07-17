@@ -109,6 +109,7 @@ public:
       */
      virtual bool send_leave(int if_index, const addr_storage& g_addr)=0;
 
+     virtual ~sender() = default;
 };
 
 

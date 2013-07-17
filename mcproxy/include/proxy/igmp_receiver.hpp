@@ -46,9 +46,9 @@
 class igmp_receiver : public receiver {
 private:
 
-     int get_ctrl_min_size();
-     int get_iov_min_size();
-     void analyse_packet(struct msghdr* msg, int info_size);
+     int get_ctrl_min_size() override;
+     int get_iov_min_size() override;
+     void analyse_packet(struct msghdr* msg, int info_size) override;
 
      //return the interface index to addr, on error return 0
      int map_ip2if_index(const addr_storage& src_addr);

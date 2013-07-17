@@ -47,12 +47,12 @@ public:
       */
     igmp_sender();
 
-    bool init(int addr_family, int version);
+    bool init(int addr_family, int version) override;
 
-    bool send_general_query(int if_index);
-    bool send_group_specific_query(int if_index, const addr_storage& g_addr);
-    bool send_report(int if_index, const addr_storage& g_addr);
-    bool send_leave(int if_index, const addr_storage& g_addr);
+    bool send_general_query(int if_index) override;
+    bool send_group_specific_query(int if_index, const addr_storage& g_addr) override;
+    bool send_report(int if_index, const addr_storage& g_addr) override;
+    bool send_leave(int if_index, const addr_storage& g_addr) override;
 };
 
 #endif // IGMP_SENDER_HPP
