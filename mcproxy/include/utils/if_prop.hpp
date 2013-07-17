@@ -24,9 +24,11 @@
 #ifndef IF_PROP_NEW_HPP
 #define IF_PROP_NEW_HPP
 
+#include <string>
 #include <list>
 #include <map>
 #include <ifaddrs.h>
+
 using namespace std;
 
 //typedef pair<struct ifaddrs*, list<struct ifaddrs*> > ipv4_6_pair;
@@ -96,13 +98,13 @@ public:
     /**
      * @brief Release all allocated resources.
      */
-    ~if_prop();
+    virtual ~if_prop();
 
     /**
      * @brief Check for a valid data structure.
      */
     bool is_getaddrs_valid() const{
-         return m_if_addrs > 0;
+         return m_if_addrs != 0;
     }
 
     /**

@@ -185,7 +185,7 @@ public:
      /**
       * @brief Release all resources and restore reverse path flags if changed.
       */
-     ~proxy();
+     virtual ~proxy();
 
      /**
       * @brief Return readable state table information.

@@ -1104,7 +1104,7 @@ void mroute_socket::test_add_route(mroute_socket* m){
     const char* g_addr;
     int if_one = MROUTE_SOCKET_IF_NUM_ONE;
     string str_if_one = MROUTE_SOCKET_IF_STR_ONE;
-    int if_two = MROUTE_SOCKET_IF_NUM_TWO;
+    unsigned int if_two = MROUTE_SOCKET_IF_NUM_TWO;
     string str_if_two = MROUTE_SOCKET_IF_STR_TWO;
 
     //int if_three = MROUTE_SOCKET_IF_NUM_THREE;

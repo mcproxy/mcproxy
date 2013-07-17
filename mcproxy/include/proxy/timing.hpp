@@ -64,7 +64,7 @@ private:
      timing();
      timing(const timing&);
      timing& operator=(const timing&);
-     ~timing();
+     virtual ~timing();
 public:
      /**
       * @brief Get an instance of the Routing module (GOF singleton).

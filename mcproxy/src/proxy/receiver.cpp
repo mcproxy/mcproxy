@@ -114,6 +114,7 @@ void receiver::worker_thread(void* arg){
     //########################
     //create msg
     //iov
+    //unsigned char iov_buf[r->get_iov_min_size()];
     unsigned char iov_buf[r->get_iov_min_size()];
     struct iovec iov;
     iov.iov_base = iov_buf;

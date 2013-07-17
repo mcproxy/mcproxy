@@ -135,7 +135,7 @@ struct test_msg: public intrusive_message{
           HC_LOG_TRACE("");
      }
 
-     ~test_msg(){
+     virtual ~test_msg(){
           HC_LOG_TRACE("");
      }
 
@@ -187,7 +187,7 @@ struct clock_msg: public intrusive_message{
           this->type = type;
      }
 
-     ~clock_msg(){
+     virtual ~clock_msg(){
           HC_LOG_TRACE("");
      }
 
@@ -248,7 +248,7 @@ struct receiver_msg: public intrusive_message{
           HC_LOG_TRACE("");
      }
 
-     ~receiver_msg(){
+     virtual ~receiver_msg(){
           HC_LOG_TRACE("");
      }
 
@@ -302,7 +302,7 @@ struct config_msg: public intrusive_message{
           HC_LOG_TRACE("");
      }
 
-     ~config_msg(){
+     virtual ~config_msg(){
           HC_LOG_TRACE("");
      }
 
@@ -350,7 +350,7 @@ public:
           HC_LOG_DEBUG("counter: " << m_counter);
      }
 
-     ~debug_msg(){
+     virtual ~debug_msg(){
           HC_LOG_TRACE("");
      }
 
