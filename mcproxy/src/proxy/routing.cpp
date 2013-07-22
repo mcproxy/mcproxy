@@ -99,7 +99,7 @@ bool routing::add_vif(int if_index, int vif){
     return true;
 }
 
-bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr, const std::list<int>& output_vif){
+bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr, const std::list<unsigned int>& output_vif){
     HC_LOG_TRACE("");
 
     if(m_addr_family == AF_INET){
@@ -111,15 +111,15 @@ bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_st
         return false;
     }
 
-    list<int>::const_iterator iter_out;
-    unsigned int out_vif[output_vif.size()];
+    //list<int>::const_iterator iter_out;
+    //unsigned int out_vif[output_vif.size()];
 
-    int i=0;
-    for(iter_out = output_vif.begin(); iter_out != output_vif.end(); iter_out++){
-        out_vif[i++] = *iter_out;
-    }
+    //int i=0;
+    //for(iter_out = output_vif.begin(); iter_out != output_vif.end(); iter_out++){
+        //out_vif[i++] = *iter_out;
+    //}
 
-    if(!m_mrt_sock->add_mroute(input_vif, src_addr.to_string().c_str(), g_addr.to_string().c_str(), out_vif, output_vif.size())){
+    if(!m_mrt_sock->add_mroute(input_vif, src_addr.to_string().c_str(), g_addr.to_string().c_str(), output_vif)){
         return false;
     }
 

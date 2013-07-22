@@ -28,6 +28,8 @@
 #include <netinet/icmp6.h>
 #include <netinet/ip6.h>
 
+#include <memory>
+
 mld_sender::mld_sender(){
      HC_LOG_TRACE("");
 
@@ -55,10 +57,11 @@ bool mld_sender::send_general_query(int if_index){
 
      if(!m_sock.choose_if(if_index)) return false;
 
-     unsigned char buf[size];
-     if(!create_mc_query(GENERAL_QUERY, buf)) return false;
+     unique_ptr<unsigned char[]> buf {new unsigned char[size] };
+     //unsigned char buf[size];
+     if(!create_mc_query(GENERAL_QUERY, buf.get())) return false;
 
-     return m_sock.send_packet(IPV6_ALL_NODES_ADDR,0,buf,sizeof(buf));
+     return m_sock.send_packet(IPV6_ALL_NODES_ADDR,0,buf.get(),size);
 }
 
 bool mld_sender::send_group_specific_query(int if_index, const addr_storage& g_addr){
@@ -69,10 +72,11 @@ bool mld_sender::send_group_specific_query(int if_index, const addr_storage& g_a
 
      if(!m_sock.choose_if(if_index)) return false;
 
-     unsigned char buf[size];
-     if(!create_mc_query(MC_ADDR_SPECIFIC_QUERY, buf, &g_addr)) return false;
+     unique_ptr<unsigned char[]> buf {new unsigned char[size] };
+     //unsigned char buf[size];
+     if(!create_mc_query(MC_ADDR_SPECIFIC_QUERY, buf.get(), &g_addr)) return false;
 
-     return m_sock.send_packet(g_addr.to_string().c_str(),0,buf,sizeof(buf));
+     return m_sock.send_packet(g_addr.to_string().c_str(),0,buf.get(),size);
 }
 
 int mld_sender::get_msg_min_size(){

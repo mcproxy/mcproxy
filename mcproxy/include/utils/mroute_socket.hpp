@@ -27,6 +27,8 @@
 #include "include/utils/mc_socket.hpp"
 #include <sys/types.h>
 
+#include <list>
+
 #define MROUTE_RATE_LIMIT_ENDLESS 0
 #define MROUTE_TTL_THRESHOLD 1
 #define MROUTE_DEFAULT_TTL 1
@@ -195,7 +197,7 @@ public:
       * @param output_vifNum_size size of the interface indexes
       * @return Return true on success.
       */
-     bool add_mroute(int input_vifNum, const char* source_addr, const char* group_addr, unsigned int* output_vifNum, unsigned int output_vifNum_size);
+     bool add_mroute(int input_vifNum, const char* source_addr, const char* group_addr, const std::list<unsigned int>& output_vif);
 
      /**
       * @brief Delete a multicast route.

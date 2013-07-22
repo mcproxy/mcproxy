@@ -29,6 +29,8 @@
 #include <netinet/ip.h>
 #include <net/if.h>
 
+#include <memory>
+
 igmp_sender::igmp_sender(){
     HC_LOG_TRACE("");
 
@@ -51,12 +53,14 @@ bool igmp_sender::send_general_query(int if_index){
 
     int size = get_msg_min_size();
     if(size <0) return false;
-    unsigned char buf[size];
+    
+    unique_ptr<unsigned char[]> buf { new unsigned char[size] };     
+    //unsigned char buf[size];
 
     if(!m_sock.choose_if(if_index)) return false;
-    if(!create_mc_query(GENERAL_QUERY, buf)) return false;
+    if(!create_mc_query(GENERAL_QUERY, buf.get())) return false;
 
-    return m_sock.send_packet(IPV4_ALL_HOST_ADDR,0,buf,sizeof(buf));
+    return m_sock.send_packet(IPV4_ALL_HOST_ADDR,0,buf.get(),size);
 }
 
 bool igmp_sender::send_group_specific_query(int if_index, const addr_storage& g_addr){
@@ -64,12 +68,14 @@ bool igmp_sender::send_group_specific_query(int if_index, const addr_storage& g_
 
     int size = get_msg_min_size();
     if(size <0) return false;
-    unsigned char buf[size];
+
+    unique_ptr<unsigned char[]> buf { new unsigned char[size] };
+    //unsigned char buf[size];
 
     if(!m_sock.choose_if(if_index)) return false;
-    if(!create_mc_query(GROUP_SPECIFIC_QUERY, buf, &g_addr)) return false;
+    if(!create_mc_query(GROUP_SPECIFIC_QUERY, buf.get(), &g_addr)) return false;
 
-    return m_sock.send_packet(g_addr.to_string().c_str(),0,buf,sizeof(buf));
+    return m_sock.send_packet(g_addr.to_string().c_str(),0,buf.get(),size);
 }
 
 bool igmp_sender::send_report(int if_index, const addr_storage& g_addr){

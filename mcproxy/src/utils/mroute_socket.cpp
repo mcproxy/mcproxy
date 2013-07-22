@@ -550,7 +550,10 @@ bool mroute_socket::unbind_vif_form_table(const char* ifName, int table){
 
 //source_addr is the source address of the received multicast packet
 //group_addr group address of the received multicast packet
-bool mroute_socket::add_mroute(int input_vifNum, const char* source_addr, const char* group_addr, unsigned int* output_vifTTL, unsigned int output_vifTTL_Ncount){
+bool mroute_socket::add_mroute(int input_vifNum, const char* source_addr, const char* group_addr, const std::list<unsigned int>& output_vif){ 
+
+//unsigned int* output_vifTTL, unsigned int output_vifTTL_Ncount){
+
     HC_LOG_TRACE("");
 
     if (!is_udp_valid()) {
@@ -576,14 +579,22 @@ bool mroute_socket::add_mroute(int input_vifNum, const char* source_addr, const 
 
         mc.mfcc_parent = input_vifNum;
 
-        if(output_vifTTL_Ncount >= MAXVIFS){
-            HC_LOG_ERROR("output_vifNum_size to large: " << output_vifTTL_Ncount);
+        //if(output_vifTTL_Ncount >= MAXVIFS){
+            //HC_LOG_ERROR("output_vifNum_size to large: " << output_vifTTL_Ncount);
+            //return false;
+        //}
+        if(output_vif.size() > MAXVIFS){
+            HC_LOG_ERROR("output_vifNum_size to large: " << output_vif.size());
             return false;
         }
+ 
+        //for (unsigned int i = 0; i < output_vifTTL_Ncount; i++){
+            //mc.mfcc_ttls[output_vifTTL[i]] = MROUTE_DEFAULT_TTL;
+        //}
+        for(auto e: output_vif){
+            mc.mfcc_ttls[e] = MROUTE_DEFAULT_TTL;            
+        } 
 
-        for (unsigned int i = 0; i < output_vifTTL_Ncount; i++){
-            mc.mfcc_ttls[output_vifTTL[i]] = MROUTE_DEFAULT_TTL;
-        }
 
         rc = setsockopt(m_sock, IPPROTO_IP, MRT_ADD_MFC,(void *)&mc, sizeof(mc));
         if (rc == -1) {
@@ -609,14 +620,22 @@ bool mroute_socket::add_mroute(int input_vifNum, const char* source_addr, const 
 
         mc.mf6cc_parent = input_vifNum;
 
-        if(output_vifTTL_Ncount >= MAXMIFS){
-            HC_LOG_ERROR("output_vifNum_size to large: " << output_vifTTL_Ncount);
+        //if(output_vifTTL_Ncount >= MAXMIFS){
+            //HC_LOG_ERROR("output_vifNum_size to large: " << output_vifTTL_Ncount);
+            //return false;
+        //}
+        if(output_vif.size() > MAXMIFS){
+            HC_LOG_ERROR("output_vifNum_size to large: " << output_vif.size());
             return false;
         }
+ 
+        //for (unsigned int i = 0; i < output_vifTTL_Ncount; i++){
+            //IF_SET(output_vifTTL[i],&mc.mf6cc_ifset);
+        //}
+        for(auto e: output_vif){
+            IF_SET(e,&mc.mf6cc_ifset);
+        } 
 
-        for (unsigned int i = 0; i < output_vifTTL_Ncount; i++){
-            IF_SET(output_vifTTL[i],&mc.mf6cc_ifset);
-        }
 
         rc = setsockopt(m_sock, IPPROTO_IPV6, MRT6_ADD_MFC, (void*)&mc, sizeof(mc));
         if (rc == -1) {
@@ -1102,10 +1121,10 @@ void mroute_socket::test_add_route(mroute_socket* m){
 
     const char* src_addr;
     const char* g_addr;
-    int if_one = MROUTE_SOCKET_IF_NUM_ONE;
-    string str_if_one = MROUTE_SOCKET_IF_STR_ONE;
-    unsigned int if_two = MROUTE_SOCKET_IF_NUM_TWO;
-    string str_if_two = MROUTE_SOCKET_IF_STR_TWO;
+    const int if_one = MROUTE_SOCKET_IF_NUM_ONE;
+    const string str_if_one = MROUTE_SOCKET_IF_STR_ONE;
+    const unsigned int if_two = MROUTE_SOCKET_IF_NUM_TWO;
+    const string str_if_two = MROUTE_SOCKET_IF_STR_TWO;
 
     //int if_three = MROUTE_SOCKET_IF_NUM_THREE;
 
@@ -1121,8 +1140,9 @@ void mroute_socket::test_add_route(mroute_socket* m){
     }
 
     cout << "-- addRoute test --" << endl;
-    unsigned int output_vifs[]={/*if_three,*/ if_two}; //if_two
-    if(m->add_mroute(if_one, src_addr, g_addr ,output_vifs, sizeof(output_vifs)/sizeof(output_vifs[0]))){
+    //unsigned int output_vifs[]={[>if_three,<] if_two}; //if_two
+    list<unsigned int> output_vifs = { if_two };
+    if(m->add_mroute(if_one, src_addr, g_addr ,output_vifs)){
         cout << "addRoute (" << str_if_one << " ==> " << str_if_two << ") OK!" << endl;
     }else{
         cout << "addRoute (" << str_if_one << " ==> " << str_if_two << ") FAILED!" << endl;

@@ -24,6 +24,7 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/receiver.hpp"
 
+#include <memory>
 #include <iostream>
 using namespace std;
 
@@ -114,14 +115,16 @@ void receiver::worker_thread(void* arg){
     //########################
     //create msg
     //iov
+
+    unique_ptr<unsigned char[]> iov_buf{ new unsigned char[r->get_iov_min_size()] };
     //unsigned char iov_buf[r->get_iov_min_size()];
-    unsigned char iov_buf[r->get_iov_min_size()];
     struct iovec iov;
-    iov.iov_base = iov_buf;
-    iov.iov_len = sizeof(iov_buf);
+    iov.iov_base = iov_buf.get();
+    iov.iov_len = r->get_iov_min_size(); //sizeof(iov_buf);
 
     //control
-    unsigned char ctrl[r->get_ctrl_min_size()];
+    unique_ptr<unsigned char[]> ctrl{ new unsigned char[r->get_ctrl_min_size()] }; 
+    //unsigned char ctrl[r->get_ctrl_min_size()];
 
     //create msghdr
     struct msghdr msg;
@@ -131,8 +134,8 @@ void receiver::worker_thread(void* arg){
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
 
-    msg.msg_control = ctrl;
-    msg.msg_controllen = sizeof(ctrl);
+    msg.msg_control = ctrl.get();
+    msg.msg_controllen = r->get_iov_min_size(); //sizeof(ctrl);
 
     msg.msg_flags = 0;
     //########################

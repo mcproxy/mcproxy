@@ -262,7 +262,7 @@ private:
 
     //fill vif_list with downstream vifs who has the same g_addr
     //without_if_index will be ignored
-    void add_all_group_vifs_to_list(std::list<int>* vif_list, int without_if_index, addr_storage g_addr);
+    void add_all_group_vifs_to_list(std::list<unsigned int>& vif_list, int without_if_index, addr_storage g_addr);
 
 
     void close();

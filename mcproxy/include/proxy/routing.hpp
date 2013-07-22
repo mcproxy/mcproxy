@@ -68,7 +68,7 @@ public:
       * @brief Add a multicast route to the linux kernel table.
       * @return Return true on success.
       */
-    bool add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr, const std::list<int>& output_vif);
+    bool add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr, const std::list<unsigned int>& output_vif);
 
     /**
       * @brief Delete a multicast route from the linux kernel table.

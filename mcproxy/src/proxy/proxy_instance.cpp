@@ -840,7 +840,7 @@ bool proxy_instance::send_gq_to_all(){
 bool proxy_instance::split_traffic(int if_index, const addr_storage& g_addr, const addr_storage& src_addr){
     HC_LOG_TRACE("");
     proxy_msg msg;
-    std::list<int> vif_list;
+    std::list<unsigned int> vif_list;
 
     vif_map::iterator it_vif_map = m_vif_map.find(if_index);
     if(it_vif_map == m_vif_map.end()){
@@ -851,7 +851,7 @@ bool proxy_instance::split_traffic(int if_index, const addr_storage& g_addr, con
     //cout << "vif vom source interface: " << vif << endl;
 
     //find all downstream interaces who join this group and if if_index is not a upstream add upstream vif
-    add_all_group_vifs_to_list(&vif_list, if_index, g_addr);
+    add_all_group_vifs_to_list(vif_list, if_index, g_addr);
     //cout << "split_traffic: haben wieviele vifs gefunden: " << vif_list.size() << endl;
     if(vif_list.size() == 0) return false; //if nobody join this group ignore
 
@@ -949,7 +949,7 @@ void proxy_instance::refresh_all_traffic(int if_index, const addr_storage& g_add
     }
 }
 
-void proxy_instance::add_all_group_vifs_to_list(std::list<int>* vif_list, int without_if_index, addr_storage g_addr){
+void proxy_instance::add_all_group_vifs_to_list(std::list<unsigned int>& vif_list, int without_if_index, addr_storage g_addr){
 
     vif_map::iterator it_vif_map;
 
@@ -964,7 +964,7 @@ void proxy_instance::add_all_group_vifs_to_list(std::list<int>* vif_list, int wi
             HC_LOG_ERROR("cant find vif to if_index:" << m_upstream);
             return;
         }
-        vif_list->push_back(it_vif_map->second);
+        vif_list.push_back(it_vif_map->second);
         //cout << "add_all_group_vifs_to_list: upstream gefunden und gesetzt. if_index: " << m_upstream << " vif: " << it_vif_map->second << endl;
     }
 
@@ -984,7 +984,7 @@ void proxy_instance::add_all_group_vifs_to_list(std::list<int>* vif_list, int wi
                         HC_LOG_ERROR("cant find vif to if_index:" << iter_table->first);
                         return;
                     }
-                    vif_list->push_back(it_vif_map->second);
+                    vif_list.push_back(it_vif_map->second);
                 }
             }
 

@@ -65,3 +65,4 @@ HEADERS += include/hamcast_logging.h \
 LIBS += -L/usr/lib -lboost_thread \
         -lboost_date_time \
         -lboost_system
+
