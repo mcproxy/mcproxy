@@ -1,0 +1,27 @@
+Introduction
+============
+Here you find a few tools to debug and test the mcproxy.
+
+
+Create tap devices
+==================
+An easy way to test the mcproxy without physical hardware is 
+to create tap devices.
+
+Compilation
+-----------
+Build create_tap_device:
+
+    cd create_tap_device
+    qmake
+    make
+
+Usage
+-----
+Create a tap device
+
+    sudo ./tap.sh create tap_name add 192.168.33.1 netmask 255.255.255.255
+
+Delete a tap device
+
+    sudo ./tap.sh delete tap_name
