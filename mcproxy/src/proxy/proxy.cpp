@@ -229,7 +229,7 @@ int proxy::get_free_vif_number()
         HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
         return -1;
     }
-    vector<int> vifs; //[vifs_elements]; //index interpreted as vifnumber, contains interpreted as interface index
+    vector<int> vifs; //[vifs_elements]; //index interpreted as vifnumber, containt interpreted as interface index
 
     //clean the vif memory
     //memset(vifs,0, sizeof(vifs));

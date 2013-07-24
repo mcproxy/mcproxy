@@ -2,13 +2,15 @@ TARGET = mcproxy
 
 #CONFIG += release    
 CONFIG += debug   
+CONFIG -= qt
+
 QMAKE_CXXFLAGS_DEBUG -= -g 
 QMAKE_CXXFLAGS_DEBUG += -std=c++11
+QMAKE_CXXFLAGS_DEBUG += -ggdb 
+QMAKE_CXXFLAGS_DEBUG += -pedantic 
 
-CONFIG -= qt
-QMAKE_CXXFLAGS += -ggdb 
-QMAKE_CXXFLAGS += -pedantic 
-#QMAKE_CXXFLAGS += -ansi
+QMAKE_CXXFLAGS_RELEASE += -std=c++11
+
 
 target.path = /usr/local/bin
 INSTALLS += target
