@@ -229,10 +229,8 @@ int proxy::get_free_vif_number()
         HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
         return -1;
     }
-    vector<int> vifs; //[vifs_elements]; //index interpreted as vifnumber, containt interpreted as interface index
 
-    //clean the vif memory
-    //memset(vifs,0, sizeof(vifs));
+    vector<int> vifs(vifs_elements,0); //[vifs_elements]; //index interpreted as vifnumber, containt interpreted as interface index
 
     //fill vif list
     vif_map::iterator iter;
@@ -554,6 +552,9 @@ bool proxy::start_proxy_instances()
             }
             downstream_vif = it_vif->second;
             msg.msg = new config_msg(config_msg::ADD_DOWNSTREAM, tmp_down_vector[i], downstream_vif);
+
+            HC_LOG_DEBUG("add a new downstream interface; pointer: " << msg.msg);
+
             p->add_msg(msg);
             m_interface_map.insert(interface_pair(tmp_down_vector[i], m_proxy_instances.size() - 1));
         }
@@ -752,7 +753,7 @@ bool proxy::start()
         alive_time += 1;
 
         if (m_print_status) {
-            debug_msg::lod lod;
+            debug_msg::lod lod = debug_msg::NORMAL;
             if (m_verbose_lvl == 0) {
                 lod = debug_msg::NORMAL;
             } else if (m_verbose_lvl == 1) {

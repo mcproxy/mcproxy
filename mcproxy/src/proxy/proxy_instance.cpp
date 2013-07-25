@@ -153,6 +153,9 @@ void proxy_instance::worker_thread(){
     m.type = proxy_msg::CLOCK_MSG;
     m.msg = new struct clock_msg(clock_msg::SEND_GQ_TO_ALL);
     m_timing->add_time(MC_TV_QUERY_INTERVAL*1000 /*msec*/,this,m);
+    
+    //DEBUG output
+    HC_LOG_DEBUG("initiate GQ timer; pointer: " << m.msg);
 
     //##-- thread working loop --##
     while(m_running){

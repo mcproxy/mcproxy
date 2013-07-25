@@ -39,12 +39,11 @@
 #include <sstream>
 #include <boost/thread.hpp>
 
-
 /**
  * @brief Message container implements an intrusive pointer to save a
  * pointer of a message with a reference counter.
  */
-struct intrusive_message{
+struct intrusive_message {
      intrusive_message(): refs(0) {}
 
 private:
@@ -55,11 +54,11 @@ private:
       * @brief Release the memory space of the message if no one refer to this message.
       */
      friend inline void intrusive_ptr_release(struct intrusive_message* p){
-          HC_LOG_TRACE("");
+          HC_LOG_TRACE("pointer: " << p);
 
           p->m_global_lock.lock();
           if(--p->refs == 0 ) {
-               HC_LOG_DEBUG("del element");
+               HC_LOG_DEBUG("del element (pointer: " << p << ")");
                p->m_global_lock.unlock();
                delete p;
                return;
@@ -72,7 +71,7 @@ private:
       * @brief Increment the reference counter if
       */
      friend inline void intrusive_ptr_add_ref(struct intrusive_message* p){
-          HC_LOG_TRACE("");
+          HC_LOG_TRACE("pointer: " << p);
 
           boost::lock_guard<boost::mutex> lock(p->m_global_lock);
           p->refs++;
@@ -84,6 +83,7 @@ private:
 /**
  * @brief Generic message for the #message_queue.
  */
+
 typedef struct {
 
      /**

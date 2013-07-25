@@ -18,10 +18,14 @@ Build create_tap_device:
 
 Usage
 -----
-Create a tap device
+Create tap devices
 
-    sudo ./tap.sh create tap_name add 192.168.33.1 netmask 255.255.255.255
+    ./tap.sh create tap_name add 192.168.33.1 netmask 255.255.255.255
+    or
+    ./auto_tap.sh create 10 #interfaces
 
-Delete a tap device
+Delete tap devices
 
-    sudo ./tap.sh delete tap_name
+    ./tap.sh delete tap_name
+    or
+    ./auto_tap.sh delete 10 #interfaces
