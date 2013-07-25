@@ -554,7 +554,8 @@ bool proxy::start_proxy_instances()
             msg.msg = new config_msg(config_msg::ADD_DOWNSTREAM, tmp_down_vector[i], downstream_vif);
 
             HC_LOG_DEBUG("add a new downstream interface; pointer: " << msg.msg);
-
+            cout << "add a new downstream interface" << endl;
+            cout << "proxy.cpp: msg.msg: " << msg.msg << " msg.msg.get(): " << msg.msg.get() << endl; 
             p->add_msg(msg);
             m_interface_map.insert(interface_pair(tmp_down_vector[i], m_proxy_instances.size() - 1));
         }
@@ -762,7 +763,7 @@ bool proxy::start()
                 lod = debug_msg::MORE_MORE;
             }
 
-            cout << "alvie time: " << alive_time << endl;
+            cout << "alive time: " << alive_time << endl;
 
             msg.type = proxy_msg::DEBUG_MSG;
             msg.msg = new debug_msg(lod, m_proxy_instances.size(), PROXY_DEBUG_MSG_TIMEOUT);

@@ -60,6 +60,7 @@ private:
           if(--p->refs == 0 ) {
                HC_LOG_DEBUG("del element (pointer: " << p << ")");
                p->m_global_lock.unlock();
+               cout <<  "del element (pointer: " << p << ")" << endl;
                delete p;
                return;
           }
