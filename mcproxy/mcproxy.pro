@@ -66,6 +66,6 @@ LIBS += -L/usr/lib -lboost_thread \
         -lboost_date_time \
         -lboost_system
 
-QMAKE_CLEAN += mcproxy
+QMAKE_CLEAN += $$TARGET
 QMAKE_CLEAN += thread* 
   
