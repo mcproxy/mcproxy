@@ -48,7 +48,7 @@ int igmp_receiver::get_ctrl_min_size(){
      return 0;
 }
 
-void igmp_receiver::analyse_packet(struct msghdr* msg, int info_size){
+void igmp_receiver::analyse_packet(struct msghdr* msg, int){
      HC_LOG_TRACE("");
 
      struct ip* ip_hdr = (struct ip*)msg->msg_iov->iov_base;

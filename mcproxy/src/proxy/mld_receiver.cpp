@@ -62,7 +62,7 @@ int mld_receiver::get_ctrl_min_size(){
      //return 400;
 }
 
-void mld_receiver::analyse_packet(struct msghdr* msg, int info_size){
+void mld_receiver::analyse_packet(struct msghdr* msg, int){
      HC_LOG_TRACE("");
 
 

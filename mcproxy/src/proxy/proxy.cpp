@@ -820,7 +820,7 @@ bool proxy::start()
     return true;
 }
 
-void proxy::signal_handler(int sig)
+void proxy::signal_handler(int)
 {
     HC_LOG_TRACE("");
 

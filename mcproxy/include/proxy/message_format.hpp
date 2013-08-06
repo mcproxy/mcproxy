@@ -44,7 +44,11 @@
  * pointer of a message with a reference counter.
  */
 struct intrusive_message {
-     intrusive_message(): refs(0) {}
+    intrusive_message(): refs(0) {}
+
+    virtual ~intrusive_message(){
+          HC_LOG_TRACE("");
+    }
 
 private:
      int refs;
@@ -58,9 +62,7 @@ private:
 
           p->m_global_lock.lock();
           if(--p->refs == 0 ) {
-               HC_LOG_DEBUG("del element (pointer: " << p << ")");
                p->m_global_lock.unlock();
-               cout <<  "del element (pointer: " << p << ")" << endl;
                delete p;
                return;
           }
