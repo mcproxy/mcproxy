@@ -1,4 +1,5 @@
 /*
+ * 
  * This file is part of mcproxy.
  *
  * This program is free software; you can redistribute it and/or
@@ -85,7 +86,7 @@ bool proxy::load_config(string path)
         while (!file.eof()) {
             stringstream strline;
             string comp_str;
-            strline << cstr;
+            strline << string(cstr).erase(string(cstr).find_last_not_of(' ')+1); //trim all spaces at the end of the string
 
             int tmp_upstream_if = -1;
             int tmp_downstream_if = -1;
@@ -138,9 +139,10 @@ bool proxy::load_config(string path)
                         } else if (state == 0) {
                             tmp_upstream_if = if_nametoindex(comp_str.c_str());
 
-                            if (tmp_upstream_if > 0) {
-                                state = 1;
-                            } else {
+                            if(tmp_upstream_if >0){
+                                state=1;
+                                HC_LOG_DEBUG("upstream_if: " << comp_str << " (if_index=" << tmp_upstream_if << ")");
+                            }else{
                                 HC_LOG_ERROR("upstream interface not found: " << comp_str << " <line " << linecount << ">");
                                 return false;
                             }
@@ -157,7 +159,7 @@ bool proxy::load_config(string path)
                             if (tmp_downstream_if > 0) {
                                 state = 3;
                                 tmp_down_vector.push_back(tmp_downstream_if);
-                            } else {
+                            }else{
                                 HC_LOG_ERROR("downstream interface not found: " << comp_str << " <line " << linecount << ">");
                                 return false;
                             }

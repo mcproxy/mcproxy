@@ -26,8 +26,8 @@
 
 //-- igmp and mld --
 #define MC_TV_ROBUSTNESS_VARIABLE                 2//2
-#define MC_TV_QUERY_INTERVAL                      30//125 //sec
-#define MC_TV_QUERY_RESPONSE_INTERVAL             1//10 //sec
+#define MC_TV_QUERY_INTERVAL                      125//125 //sec
+#define MC_TV_QUERY_RESPONSE_INTERVAL             10//10 //sec
 #define MC_TV_OTHER_QUERIER_PRESENT_INTERVAL      (MC_TV_ROBUSTNESS_VARIABLE*MC_TV_QUERY_RESPONSE_INTERVAL) //sec
 #define MC_TV_STARTUP_QUERY_INTERVAL              (MC_TV_QUERY_INTERVAL/4)
 #define MC_TV_STARTUP_QUERY_COUNT                 MC_TV_ROBUSTNESS_VARIABLE

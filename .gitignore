@@ -16,6 +16,7 @@
 *.pro.user
 Makefile
 mcproxy
+create_tap_device
 
 #editor
 *.~
