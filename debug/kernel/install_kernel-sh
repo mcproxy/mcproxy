@@ -1,0 +1,54 @@
+#!/bin/bash
+# reference http://wiki.ubuntuusers.de/Kernel/Kompilierung
+
+if [ "$1" = "all" ]; then
+  ./config-sh 1
+  ./config-sh 2
+  ./config-sh 3
+  ./config-sh 4
+  ./config-sh 5
+elif [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "" ]; then
+
+  echo "This script download, configure, compile and install a linux kernel."
+  echo "You can run this script step-by-step ($0 1, $0 2, ...)"
+  echo "or you can run it all at once ($0 all)"
+  echo ""
+  echo -e "\t$0 1: download all kernel sources and essential programms" 
+  echo -e "\t$0 2: unpack all kernel sources"
+  echo -e "\t$0 3: configure the kernel modules with a ncurses based programm"
+  echo -e "\t$0 4: compile the kernel source"
+  echo -e "\t$0 5: install the kernel with a ncurses based programm"
+  echo "tested with Ubuntu 13.04 with kernel 3.8.13.4 x86_64"
+
+else 
+
+  if [ "$1" = "1" ]; then
+    sudo apt-get install linux-source build-essential kernel-package 
+  fi
+
+  if [ "$1" = "2" ]; then
+    mkdir kernel
+    cd kernel
+    tar xfvj /usr/src/linux-*tar.bz2
+  fi
+
+  if [ "$1" = "3" ]; then
+    cd kernel/
+    cd *
+    cp /boot/config-`uname -r` .config
+    yes "" | make oldconfig  
+    make menuconfig
+  fi
+
+  if [ "$1" = "4" ]; then
+    cd kernel
+    cd *
+    make-kpkg -j4 --initrd buildpackage 
+  fi
+
+  if [ "$1" = "5" ]; then
+    sudo dpkg -i $(ls | grep linux-image.*\.deb | grep -v dbg)
+    echo "Reboot your system to adopt changes!!" 
+  fi
+
+fi 

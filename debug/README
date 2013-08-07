@@ -1,9 +1,9 @@
 Introduction
-============
+==================
 Here you find a few tools to debug and test the mcproxy.
 
 
-Create tap devices
+Tap devices
 ==================
 An easy way to test the mcproxy without physical hardware is 
 to create tap devices.
@@ -12,7 +12,7 @@ Compilation
 -----------
 Build create_tap_device:
 
-    cd create_tap_device
+    cd tap_device
     qmake
     make
 
@@ -29,3 +29,15 @@ Delete tap devices
     ./tap.sh delete tap_name
     or
     ./auto_tap.sh delete 10 #interfaces
+
+
+Kernel
+==================
+If you miss a kernel module you have to build your own kernel.
+The script ./kernel/install_kernel-sh download, configure, 
+compile and install one for you.
+
+Usage
+-----
+see ./kernel/install_kernel-sh help
+
