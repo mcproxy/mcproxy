@@ -21,3 +21,4 @@ create_tap_device
 #editor
 *.~
 *.swp
+*.log

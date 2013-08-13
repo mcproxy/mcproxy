@@ -3,32 +3,20 @@ Introduction
 Here you find a few tools to debug and test the mcproxy.
 
 
-Tap devices
+Dummy interface
 ==================
 An easy way to test the mcproxy without physical hardware is 
-to create tap devices.
-
-Compilation
------------
-Build create_tap_device:
-
-    cd tap_device
-    qmake
-    make
+to create dummy network interfaces.
 
 Usage
 -----
-Create tap devices
+create 12 dummy interfaces
 
-    ./tap.sh create tap_name add 192.168.33.1 netmask 255.255.255.255
-    or
-    ./auto_tap.sh create 10 #interfaces
+    sudo dummy_interfaces/auto_dummy.sh create 12
 
-Delete tap devices
+delete all dummy interface
 
-    ./tap.sh delete tap_name
-    or
-    ./auto_tap.sh delete 10 #interfaces
+    sudo dummy_interfaces/auto_dummy.sh delete
 
 
 Kernel
