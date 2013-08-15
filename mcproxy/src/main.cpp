@@ -30,7 +30,6 @@
 #include "include/proxy/check_if.hpp"
 #include "include/utils/if_prop.hpp"
 
-
 #include <iostream>
 using namespace std;
 
@@ -69,12 +68,12 @@ void test_mcproxy(int arg_count, char* args[]){
 
     proxy p;
     if(p.init(arg_count, args)){
-        cout << "mcproxy started" << endl;
+        cout << "Mcproxy started." << endl;
         cout << p.get_state_table() << endl;
         p.start();
         p.stop();
     }else{
-        cout << "mcproxy stopped! For more informations see log files." << endl;
+        cout << "Mcproxy stopped! For more informations see log files if it had run in debug mode." << endl;
     }
 }
 

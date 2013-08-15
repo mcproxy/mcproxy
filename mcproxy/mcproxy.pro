@@ -1,7 +1,14 @@
 TARGET = mcproxy
 
-#CONFIG += release    
-CONFIG += debug   
+CONFIG(debug, debug|release) {
+    message("debug mode")
+    DEFINES += DEBUG_MODE
+}
+
+CONFIG(release, debug|release) {
+    message("release mode")
+}
+
 CONFIG -= qt
 QMAKE_CXXFLAGS += -std=c++11
 

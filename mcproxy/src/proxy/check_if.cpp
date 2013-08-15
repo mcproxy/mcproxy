@@ -55,6 +55,9 @@ std::vector<int> check_if::init(vector<int>& check_lst, int addr_family){
         }else if(m_addr_family == AF_INET6){
             const list<const struct ifaddrs*>* ipv6_if_list = m_current_prop->get_ip6_if(if_name);
             prop = *(ipv6_if_list->begin());
+        }else{
+            HC_LOG_ERROR("wrong address family: " << addr_family);
+            return result;  
         }
 
         if(!(prop->ifa_flags & IFF_RUNNING)){ //down

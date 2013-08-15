@@ -1,8 +1,7 @@
 TODO list
 =========
 
-check ram consumption
 check the current functionality 
 create a Ncurses based multicast test tool 
-
+update README, specify kernel versions and kernel modules
 ...

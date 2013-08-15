@@ -413,9 +413,16 @@ void proxy::help_output()
 {
     HC_LOG_TRACE("");
     cout << "Mcproxy version 0.1.5" << endl;
+
+#ifdef DEBUG_MODE
+    cout << " - Compiled in debug mode." << endl;
+#else
+    cout << " - Compiled in release mode." << endl;
+#endif
+
     cout << "Project page: http://mcproxy.realmv6.org/" << endl;
     cout << endl;
-    cout << "Usage: mcproxy [-h] [-r] [-d] [-s] [-v [-v]] [-c <configfile>]" << endl;
+    cout << "Usage: mcproxy [-h] [-r] [-d] [-s] [-v [-v]] [-c <config file>]" << endl;
     cout << endl;
     cout << "\t-h" << endl;
     cout << "\t\tDisplay this help screen." << endl;
@@ -425,8 +432,8 @@ void proxy::help_output()
     cout << "\t\tforeign subnets." << endl;
 
     cout << "\t-d" << endl;
-    cout << "\t\tRun in debug mode. Output all log messages on thread[X]" << endl;
-    cout << "\t\tfile." << endl;
+    cout << "\t\tRun in debug mode if possible. Output all log messages" << endl;
+    cout << "\t\tin thread[X] files." << endl;
 
     cout << "\t-s" << endl;
     cout << "\t\tPrint proxy status information." << endl;
@@ -436,7 +443,6 @@ void proxy::help_output()
 
     cout << "\t-c" << endl;
     cout << "\t\tTo specify the configuration file." << endl;
-
 }
 
 bool proxy::prozess_commandline_args(int arg_count, char* args[])

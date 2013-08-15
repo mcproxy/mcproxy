@@ -51,9 +51,16 @@ done with the following command:
 
 Compilation
 ===========
-Build mcproxy:
-  
-  qmake mcproxy.pro
+Build mcproxy in release mode:
+
+  cd mcproxy/
+  qmake 
+  make
+
+Build mcproxy in debug mode:
+
+  cd mcproxy/
+  qmake CONFIG+=debug
   make
 
 
@@ -74,9 +81,9 @@ be located in the docs/ directory after the execution of:
 
 Directories
 ===========
-* doxygen/    - Example code and graphics used in the Doxygen
+doxygen/    - Example code and graphics used in the Doxygen
                 documentation
-* mcproxy/    - Makefile, Header and source code files of the mcproxy
+mcproxy/    - Makefile, Header and source code files of the mcproxy
 
 
 Startup
