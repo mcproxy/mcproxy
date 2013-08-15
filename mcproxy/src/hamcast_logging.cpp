@@ -203,3 +203,4 @@ extern "C" int hc_logging_enabled()
 }
 
 #endif // ifndef DEBUG_MODE
+
