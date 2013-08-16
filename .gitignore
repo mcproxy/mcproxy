@@ -13,13 +13,12 @@
 *.a
 
 #qmake
-*.pro.user
 Makefile
-mcproxy
-create_tap_device
+/mcproxy/mcproxy
 
 #editor
 *.~
 *.swp
 *.orig
 *.log
+*.pyc

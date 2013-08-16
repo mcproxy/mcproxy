@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * This file is part of mcproxy.
  *
  * This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@
 #include "include/proxy/mld_receiver.hpp"
 #include "include/proxy/timing.hpp"
 #include "include/proxy/check_if.hpp"
+#include "include/proxy/check_kernel.hpp"
 
 #include <linux/mroute.h>
 #include <linux/mroute6.h>
@@ -86,7 +87,7 @@ bool proxy::load_config(string path)
         while (!file.eof()) {
             stringstream strline;
             string comp_str;
-            strline << string(cstr).erase(string(cstr).find_last_not_of(' ')+1); //trim all spaces at the end of the string
+            strline << string(cstr).erase(string(cstr).find_last_not_of(' ') + 1); //trim all spaces at the end of the string
 
             int tmp_upstream_if = -1;
             int tmp_downstream_if = -1;
@@ -139,10 +140,10 @@ bool proxy::load_config(string path)
                         } else if (state == 0) {
                             tmp_upstream_if = if_nametoindex(comp_str.c_str());
 
-                            if(tmp_upstream_if >0){
-                                state=1;
+                            if (tmp_upstream_if > 0) {
+                                state = 1;
                                 HC_LOG_DEBUG("upstream_if: " << comp_str << " (if_index=" << tmp_upstream_if << ")");
-                            }else{
+                            } else {
                                 HC_LOG_ERROR("upstream interface not found: " << comp_str << " <line " << linecount << ">");
                                 return false;
                             }
@@ -159,7 +160,7 @@ bool proxy::load_config(string path)
                             if (tmp_downstream_if > 0) {
                                 state = 3;
                                 tmp_down_vector.push_back(tmp_downstream_if);
-                            }else{
+                            } else {
                                 HC_LOG_ERROR("downstream interface not found: " << comp_str << " <line " << linecount << ">");
                                 return false;
                             }
@@ -232,7 +233,8 @@ int proxy::get_free_vif_number()
         return -1;
     }
 
-    vector<int> vifs(vifs_elements,0); //[vifs_elements]; //index interpreted as vifnumber, containt interpreted as interface index
+    vector<int> vifs(vifs_elements,
+                     0); //[vifs_elements]; //index interpreted as vifnumber, containt interpreted as interface index
 
     //fill vif list
     vif_map::iterator iter;
@@ -422,7 +424,10 @@ void proxy::help_output()
 
     cout << "Project page: http://mcproxy.realmv6.org/" << endl;
     cout << endl;
-    cout << "Usage: mcproxy [-h] [-r] [-d] [-s] [-v [-v]] [-c <config file>]" << endl;
+    cout << "Usage:" << endl;
+    cout << "  mcproxy [-h]" << endl;
+    cout << "  mcproxy [-c]" << endl;
+    cout << "  mcproxy [-r] [-d] [-s] [-v [-v]] [-f <config file>]" << endl;
     cout << endl;
     cout << "\t-h" << endl;
     cout << "\t\tDisplay this help screen." << endl;
@@ -436,35 +441,42 @@ void proxy::help_output()
     cout << "\t\tin thread[X] files." << endl;
 
     cout << "\t-s" << endl;
-    cout << "\t\tPrint proxy status information." << endl;
+    cout << "\t\tPrint proxy status information repeatedly." << endl;
 
     cout << "\t-v" << endl;
     cout << "\t\tBe verbose. Give twice to see even more messages" << endl;
 
-    cout << "\t-c" << endl;
+    cout << "\t-f" << endl;
     cout << "\t\tTo specify the configuration file." << endl;
+
+    cout << "\t-c" << endl;
+    cout << "\t\tCheck the currently available kernel features." << endl;
 }
 
 bool proxy::prozess_commandline_args(int arg_count, char* args[])
 {
     HC_LOG_TRACE("");
 
-    bool logging = false;
+    bool is_logging = false;
+    bool is_check_kernel = false;
 
     if (arg_count == 1) {
 
     } else {
-        for (int c; (c = getopt(arg_count, args, "hrdsvc")) != -1;) {
+        for (int c; (c = getopt(arg_count, args, "hrdsvcf")) != -1;) {
             switch (c) {
             case 'h':
                 help_output();
                 return false;
                 break;
+            case 'c':
+                is_check_kernel = true;
+                break;
             case 'r':
                 m_rest_rp_filter = true;
                 break;
             case 'd':
-                logging = true;
+                is_logging = true;
                 break;
             case 's':
                 m_print_status = true;
@@ -472,7 +484,7 @@ bool proxy::prozess_commandline_args(int arg_count, char* args[])
             case 'v':
                 m_verbose_lvl++;
                 break;
-            case 'c':
+            case 'f':
                 if (args[optind][0] != '-') {
                     m_config_path = string(args[optind]);
                 } else {
@@ -491,7 +503,7 @@ bool proxy::prozess_commandline_args(int arg_count, char* args[])
     }
 
 
-    if (!logging) {
+    if (!is_logging) {
         hc_set_default_log_fun(HC_LOG_ERROR_LVL); //no fatal logs defined
     } else {
         if (m_verbose_lvl == 0) {
@@ -502,6 +514,12 @@ bool proxy::prozess_commandline_args(int arg_count, char* args[])
             HC_LOG_ERROR("Unknown verbose level: " << m_verbose_lvl);
             return false;
         }
+    }
+
+    if (is_check_kernel) {
+        check_kernel ck;
+        ck.check_kernel_features();
+        return false;
     }
 
     return true;
@@ -563,7 +581,7 @@ bool proxy::start_proxy_instances()
 
             HC_LOG_DEBUG("add a new downstream interface; pointer: " << msg.msg);
             cout << "add a new downstream interface" << endl;
-            cout << "proxy.cpp: msg.msg: " << msg.msg << " msg.msg.get(): " << msg.msg.get() << endl; 
+            cout << "proxy.cpp: msg.msg: " << msg.msg << " msg.msg.get(): " << msg.msg.get() << endl;
             p->add_msg(msg);
             m_interface_map.insert(interface_pair(tmp_down_vector[i], m_proxy_instances.size() - 1));
         }

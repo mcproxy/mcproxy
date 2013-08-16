@@ -29,3 +29,24 @@ Usage
 -----
 see ./kernel/install_kernel-sh help
 
+Kernel Configuration Options
+----------------------------
+The following options should be enabled:
+    IP_MULTICAST=y
+    IP_MROUTE=y
+    IP_MROUTE_MULTIPLE_TABLES=y
+
+    IPV6=y
+    IPV6_MROUTE=y
+    IPV6_MROUTE_MULTIPLE_TABLES=y
+
+Locations:
++-> Networking support
+|-+-> Networking options
+  |-+-> TCP/IP networking
+    |  
+    |====> IP: multicast routing
+    |
+    |-+-> The IPv6 protocol
+      |
+      |====> IPv6: multicast routing

@@ -18,7 +18,7 @@ runtime.
 
 Requirements
 ============
-* To generate a makefile qmake, must be installed. This can be done with
+* To generate a makefile, qmake must be installed. This can be done with
 the following command:
   
   newer systems: apt-get install qt5-qmake
@@ -88,16 +88,25 @@ mcproxy/    - Makefile, Header and source code files of the mcproxy
 
 Startup
 =======
-To run the mcproxy you first need to create a valid configuration
-file. There is an example in the project folder (mcproxy.conf).
+At first you should check the available kernel features of our
+system. Type the following command:
+
+    sudo mcproxy -c
+   
+If a kernel feature you need failed you have to reconfigure and
+recompile your linux kernel. In the debug folder is a README file 
+which could help you with this problem.
+
+To run the mcproxy you need to create a valid configuration file.
+There is an example in the project folder (mcproxy.conf).
 
 * To run the mcproxy in the background type the following command:
 
-    sudo nohup mcproxy -c <path/to/config_file> &
+    sudo nohup mcproxy -f <path/to/config_file> &
 
-* To run the mcprocy with all available status messages run:
+* To run the mcprocy with all available status and debug messages:
 
-    sudo mcproxy -dsvv -c <path/to/config_file>
+    sudo mcproxy -dsvv -f <path/to/config_file>
 
 For more information see 'mcproxy -h' or visit our project page.
 
