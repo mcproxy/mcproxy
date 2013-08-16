@@ -32,12 +32,12 @@ command:
 
 * To use the IPv6 functionality the kernel has to be configured and 
 compiled with the experimental kernel feature <IPv6: multicast routing>.
-For more Details go to chapter <Startup>.
+For more details go to chapter <Startup>.
 
 * To use more then one proxy instance for IPv4 and IPv6 the kernel has
 to  be configured and compiled with the experimental kernel feature
 <IP: multicast policy routing> and <IPv6: multicast policy routing>. 
-For more Details go to chapter <Startup>.
+For more details go to chapter <Startup>.
 
 * To build the documentation, doxygen must be installed. This can be
 done with the following command:
