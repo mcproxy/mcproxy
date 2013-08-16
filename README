@@ -32,12 +32,12 @@ command:
 
 * To use the IPv6 functionality the kernel has to be configured and 
 compiled with the experimental kernel feature <IPv6: multicast routing>.
-For more Details go to the project page (http://mcproxy.realmv6.org).
+For more Details go to chapter <Startup>.
 
 * To use more then one proxy instance for IPv4 and IPv6 the kernel has
 to  be configured and compiled with the experimental kernel feature
 <IP: multicast policy routing> and <IPv6: multicast policy routing>. 
-For more Details go to the pojekt page.
+For more Details go to chapter <Startup>.
 
 * To build the documentation, doxygen must be installed. This can be
 done with the following command:
@@ -66,7 +66,7 @@ Build mcproxy in debug mode:
 
 Installation
 ============
-To copy mcproxy to system directories, run (optional):
+To copy mcproxy to the system directory, run (optional):
 
   make install
 
@@ -88,7 +88,7 @@ mcproxy/    - Makefile, Header and source code files of the mcproxy
 
 Startup
 =======
-At first you should check the available kernel features of our
+At first you should check the available kernel features of your
 system. Type the following command:
 
     sudo mcproxy -c
