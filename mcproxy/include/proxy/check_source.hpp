@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -61,7 +61,8 @@ typedef std::pair<src_grp_pair, int> pkt_cnt_pair;
  * @brief Monitored the forwarding rules in the Linux kernel table. If a source is unused for
  * a long time when it can be removed.
  */
-class check_source{
+class check_source
+{
 private:
     int m_addr_family;
 

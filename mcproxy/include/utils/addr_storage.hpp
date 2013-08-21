@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -38,9 +38,9 @@ using namespace std;
 class addr_storage
 {
 private:
-     struct sockaddr_storage m_addr;
-     inline void clean();
-     inline int get_addr_len(int addr_family) const;
+    struct sockaddr_storage m_addr;
+    inline void clean();
+    inline int get_addr_len(int addr_family) const;
 public:
     /**
      * @brief Create a zero addr_storage.

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -39,20 +39,22 @@ void test_MC_TestTool();
 void test_mcproxy(int arg_count, char* args[]);
 void test_test();
 
-int main(int arg_count, char* args[]) {
+int main(int arg_count, char* args[])
+{
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
 
     //test_MC_Tables();
     //test_MC_TestTool();
 
-   test_mcproxy(arg_count,args);
+    test_mcproxy(arg_count, args);
 
 
     //test_test();
     return 0;
 }
 
-void test_log(){
+void test_log()
+{
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
     HC_LOG_TRACE("");
 
@@ -63,21 +65,23 @@ void test_log(){
     HC_LOG_FATAL("HC_LOG_FATAL");
 }
 
-void test_mcproxy(int arg_count, char* args[]){
+void test_mcproxy(int arg_count, char* args[])
+{
     hc_set_default_log_fun(HC_LOG_ERROR_LVL);
 
     proxy p;
-    if(p.init(arg_count, args)){
+    if (p.init(arg_count, args)) {
         cout << "Mcproxy started." << endl;
         cout << p.get_state_table() << endl;
         p.start();
         p.stop();
-    }else{
+    } else {
         cout << "Mcproxy stopped! For more informations see log files if it had run in debug mode." << endl;
     }
 }
 
-void test_test(){
+void test_test()
+{
     addr_storage::test_addr_storage();
 
 }

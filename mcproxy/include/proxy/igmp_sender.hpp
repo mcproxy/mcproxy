@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -33,18 +33,19 @@
 /**
  * @brief Generates IGMP messages.
  */
-class igmp_sender : public sender{
+class igmp_sender : public sender
+{
 private:
-     enum msg_type { //for intern type handling
-          GENERAL_QUERY, GROUP_SPECIFIC_QUERY
-     };
+    enum msg_type { //for intern type handling
+        GENERAL_QUERY, GROUP_SPECIFIC_QUERY
+    };
 
-     bool create_mc_query(msg_type type, unsigned char* buf,const addr_storage* g_addr=nullptr);
-     int get_msg_min_size();
+    bool create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr = nullptr);
+    int get_msg_min_size();
 public:
-     /**
-      * @brief Create an igmp_sender.
-      */
+    /**
+     * @brief Create an igmp_sender.
+     */
     igmp_sender();
 
     bool init(int addr_family, int version) override;

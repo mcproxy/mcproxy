@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -38,15 +38,16 @@
 /**
  * @brief Receive MLD messages.
  */
-class mld_receiver : public receiver {
+class mld_receiver : public receiver
+{
 private:
-     int get_ctrl_min_size() override; //size in byte
-     int get_iov_min_size() override; //size in byte
-     void analyse_packet(struct msghdr* msg, int info_size) override;
+    int get_ctrl_min_size() override; //size in byte
+    int get_iov_min_size() override; //size in byte
+    void analyse_packet(struct msghdr* msg, int info_size) override;
 public:
-     bool init(int addr_family, int version, mroute_socket* mrt_sock);
+    bool init(int addr_family, int version, mroute_socket* mrt_sock);
 
-     mld_receiver();
+    mld_receiver();
 };
 
 #endif // MLD_RECEIVER_HPP

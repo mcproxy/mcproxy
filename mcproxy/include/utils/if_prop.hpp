@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -33,13 +33,13 @@ using namespace std;
 
 //typedef pair<struct ifaddrs*, list<struct ifaddrs*> > ipv4_6_pair;
 
-struct ipv4_6_pair{
+struct ipv4_6_pair {
 
 
     const struct ifaddrs* ip4_addr;
     list<const struct ifaddrs*> ip6_addr;
 
-    ipv4_6_pair(const struct ifaddrs* ip4_addr, list<const struct ifaddrs*> ip6_addr){
+    ipv4_6_pair(const struct ifaddrs* ip4_addr, list<const struct ifaddrs*> ip6_addr) {
         this->ip4_addr = ip4_addr;
         this->ip6_addr = ip6_addr;
     }
@@ -53,10 +53,11 @@ typedef pair<string, ipv4_6_pair >if_prop_pair;
 /**
  * @brief Prepare and organized the interface properties to a map data structure.
  */
-class if_prop{
+class if_prop
+{
 private:
-     if_prop_map m_if_map;
-     struct ifaddrs* m_if_addrs;
+    if_prop_map m_if_map;
+    struct ifaddrs* m_if_addrs;
 public:
     /**
      * @brief Create the class if_prop.
@@ -77,12 +78,12 @@ public:
     /**
      * @brief Get the ipv4 interface properties for a specific interface name.
      */
-    const struct ifaddrs* get_ip4_if(const string &if_name) const;
+    const struct ifaddrs* get_ip4_if(const string& if_name) const;
 
     /**
      * @brief Get the ipv6 interface properties for a specific interface name.
      */
-    const list<const struct ifaddrs* >* get_ip6_if(const string &if_name) const;
+    const list<const struct ifaddrs* >* get_ip6_if(const string& if_name) const;
 
     /**
      * @brief Print all available network interface information.
@@ -103,8 +104,8 @@ public:
     /**
      * @brief Check for a valid data structure.
      */
-    bool is_getaddrs_valid() const{
-         return m_if_addrs != 0;
+    bool is_getaddrs_valid() const {
+        return m_if_addrs != 0;
     }
 
     /**

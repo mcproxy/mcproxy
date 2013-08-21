@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -90,14 +90,14 @@ typedef pair<int, down_vector > up_down_pair;
  * @param first interface index
  * @param second proxyinstance index based on arbitrary vector
  */
-typedef map<int,int > interface_map; //map< interface, proxyinstance_index>
+typedef map<int, int > interface_map; //map< interface, proxyinstance_index>
 
 /**
  * @brief Pair for #interface_map
  * @param first interface index
  * @param second proxyinstance index based on arbitrary vector
  */
-typedef pair<int,int> interface_pair;
+typedef pair<int, int> interface_pair;
 
 //--------------------------------------------------
 /**
@@ -123,111 +123,112 @@ typedef pair<int,int> interface_pair;
 /**
   * @brief Instanced the multicast proxy
   */
-class proxy{
+class proxy
+{
 private:
-     //control data
-     static bool m_running;
-     bool m_is_single_instance;
-     int m_verbose_lvl;
-     bool m_print_status;
+    //control data
+    static bool m_running;
+    bool m_is_single_instance;
+    int m_verbose_lvl;
+    bool m_print_status;
 
-     bool m_rest_rp_filter;
-     vector<string> m_restore_rp_filter_vector; //save interfaces wiche musst set to true after before terminating
+    bool m_rest_rp_filter;
+    vector<string> m_restore_rp_filter_vector; //save interfaces wiche musst set to true after before terminating
 
-     string m_config_path;
-     int m_addr_family; //AF_INET or AF_INET6
-     int m_version; //for AF_INET (1,2,3) to use IGMPv1/2/3, for AF_INET6 (1,2) to use MLDv1/2
+    string m_config_path;
+    int m_addr_family; //AF_INET or AF_INET6
+    int m_version; //for AF_INET (1,2,3) to use IGMPv1/2/3, for AF_INET6 (1,2) to use MLDv1/2
 
-     //--
-     vector<proxy_instance*> m_proxy_instances;
-     interface_map m_interface_map;
-     up_down_map m_up_down_map;
-     vif_map m_vif_map;
+    //--
+    vector<proxy_instance*> m_proxy_instances;
+    interface_map m_interface_map;
+    up_down_map m_up_down_map;
+    vif_map m_vif_map;
 
-     if_prop m_if_prop;
+    if_prop m_if_prop;
 
-     int get_free_vif_number();
+    int get_free_vif_number();
 
-     vector<int> all_if_to_list();
+    vector<int> all_if_to_list();
 
-     //##############
-     //##-- Init --##
-     //##############
+    //##############
+    //##-- Init --##
+    //##############
 
-     bool prozess_commandline_args(int arg_count, char* args[]);
-     void help_output();
-     bool get_rp_filter(string interface);
-     bool set_rp_filter(string interface, bool to);
-     bool restore_rp_filter();
+    bool prozess_commandline_args(int arg_count, char* args[]);
+    void help_output();
+    bool get_rp_filter(string interface);
+    bool set_rp_filter(string interface, bool to);
+    bool restore_rp_filter();
 
-     bool load_config(string path); //load the config file and add the interfaces to state_table
-
-
-     //check the state_table for valid input, interfaces can only used on time ==> true = check ok, false = double interfaces
-     bool check_double_used_if(const vector<int>* new_interfaces);
-     bool init_vif_map();
-     bool init_if_prop();
-     bool check_and_set_flags(vector<int>& interface_list); //check up and running flag, set multicast and allMulti flag
-     bool start_proxy_instances();
+    bool load_config(string path); //load the config file and add the interfaces to state_table
 
 
-     //bool init_routing_table(); //add all interfaces from state_table to ip_mr_vif (phyint or tunnel) , allocate memory for m_vif
-     static void signal_handler(int sig);
-     void close();
+    //check the state_table for valid input, interfaces can only used on time ==> true = check ok, false = double interfaces
+    bool check_double_used_if(const vector<int>* new_interfaces);
+    bool init_vif_map();
+    bool init_if_prop();
+    bool check_and_set_flags(vector<int>& interface_list); //check up and running flag, set multicast and allMulti flag
+    bool start_proxy_instances();
+
+
+    //bool init_routing_table(); //add all interfaces from state_table to ip_mr_vif (phyint or tunnel) , allocate memory for m_vif
+    static void signal_handler(int sig);
+    void close();
 
 
 public:
-     /**
-      * @brief Set default values of the class members and add signal handlers for the signal SIGINT and SIGTERM.
-      */
-     proxy();
+    /**
+     * @brief Set default values of the class members and add signal handlers for the signal SIGINT and SIGTERM.
+     */
+    proxy();
 
-     /**
-      * @brief Release all resources and restore reverse path flags if changed.
-      */
-     virtual ~proxy();
+    /**
+     * @brief Release all resources and restore reverse path flags if changed.
+     */
+    virtual ~proxy();
 
-     /**
-      * @brief Return readable state table information.
-      */
-     string get_state_table();
+    /**
+     * @brief Return readable state table information.
+     */
+    string get_state_table();
 
-     /**
-      * @brief initialize the proxy
-      * @param arg_count Number of passed parameter.
-      * @param args Passed parameter
-      *
-      *     Usage: mcproxy [-h] [-f] [-d] [-s] [-v [-v]] [-c <configfile>]
-      *
-      *         -h
-      *              Display this help screen.
-      *         -f
-      *              Reset the reverse path filter flag, to accept data from
-      *              foreign Subnets.
-      *         -d
-      *              Run in debug mode. Output all log messages on thread[X]
-      *              file.
-      *         -s
-      *              Print proxy status information.
-      *         -v
-      *              Be verbose. Give twice to see even more messages
-      *         -c
-      *              To specify the configuration file.
-      *
-      * @return Return true on success.
-      */
-     bool init(int arg_count, char* args[]);
+    /**
+     * @brief initialize the proxy
+     * @param arg_count Number of passed parameter.
+     * @param args Passed parameter
+     *
+     *     Usage: mcproxy [-h] [-f] [-d] [-s] [-v [-v]] [-c <configfile>]
+     *
+     *         -h
+     *              Display this help screen.
+     *         -f
+     *              Reset the reverse path filter flag, to accept data from
+     *              foreign Subnets.
+     *         -d
+     *              Run in debug mode. Output all log messages on thread[X]
+     *              file.
+     *         -s
+     *              Print proxy status information.
+     *         -v
+     *              Be verbose. Give twice to see even more messages
+     *         -c
+     *              To specify the configuration file.
+     *
+     * @return Return true on success.
+     */
+    bool init(int arg_count, char* args[]);
 
-     /**
-      * @brief Start the proxy.
-      * @return Return true on success.
-      */
-     bool start();
+    /**
+     * @brief Start the proxy.
+     * @return Return true on success.
+     */
+    bool start();
 
-     /**
-      * @brief Stop the proxy.
-      */
-     void stop();
+    /**
+     * @brief Stop the proxy.
+     */
+    void stop();
 };
 
 #endif // PROXY_HPP

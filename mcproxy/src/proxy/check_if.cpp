@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -35,7 +35,8 @@ check_if::check_if()
     HC_LOG_TRACE("");
 }
 
-std::vector<int> check_if::init(vector<int>& check_lst, int addr_family){
+std::vector<int> check_if::init(vector<int>& check_lst, int addr_family)
+{
     HC_LOG_TRACE("");
 
     this->m_check_lst = check_lst;
@@ -45,22 +46,22 @@ std::vector<int> check_if::init(vector<int>& check_lst, int addr_family){
     m_if_property_a.refresh_network_interfaces();
     m_current_prop = &m_if_property_a;
 
-    for(vector<int>::iterator i= m_check_lst.begin(); i != m_check_lst.end(); i++){
+    for (vector<int>::iterator i = m_check_lst.begin(); i != m_check_lst.end(); i++) {
         char cstr[IF_NAMESIZE];
-        string if_name(if_indextoname(*i,cstr));
+        string if_name(if_indextoname(*i, cstr));
 
         const struct ifaddrs* prop;
-        if(m_addr_family == AF_INET){
+        if (m_addr_family == AF_INET) {
             prop = m_current_prop->get_ip4_if(if_name);
-        }else if(m_addr_family == AF_INET6){
+        } else if (m_addr_family == AF_INET6) {
             const list<const struct ifaddrs*>* ipv6_if_list = m_current_prop->get_ip6_if(if_name);
             prop = *(ipv6_if_list->begin());
-        }else{
+        } else {
             HC_LOG_ERROR("wrong address family: " << addr_family);
-            return result;  
+            return result;
         }
 
-        if(!(prop->ifa_flags & IFF_RUNNING)){ //down
+        if (!(prop->ifa_flags & IFF_RUNNING)) { //down
             result.push_back(*i);
         }
     }
@@ -68,7 +69,8 @@ std::vector<int> check_if::init(vector<int>& check_lst, int addr_family){
     return result;
 }
 
-bool check_if::check(){
+bool check_if::check()
+{
     HC_LOG_TRACE("");
 
     m_swap_to_up.clear();
@@ -76,28 +78,28 @@ bool check_if::check(){
 
     if_prop* if_property_old = m_current_prop;
 
-    if(m_current_prop == &m_if_property_a){
+    if (m_current_prop == &m_if_property_a) {
         m_current_prop = &m_if_property_b;
-    }else if(m_current_prop == &m_if_property_b){
+    } else if (m_current_prop == &m_if_property_b) {
         m_current_prop = &m_if_property_a;
-    }else{
+    } else {
         HC_LOG_ERROR("unknown pointer");
         return false;
     }
 
     m_current_prop->refresh_network_interfaces();
 
-    for(vector<int>::iterator i= m_check_lst.begin(); i != m_check_lst.end(); i++){
+    for (vector<int>::iterator i = m_check_lst.begin(); i != m_check_lst.end(); i++) {
         char cstr[IF_NAMESIZE];
-        string if_name(if_indextoname(*i,cstr));
+        string if_name(if_indextoname(*i, cstr));
 
         const struct ifaddrs* prop_new = m_current_prop->get_ip4_if(if_name);
         const struct ifaddrs* prop_old = if_property_old->get_ip4_if(if_name);
 
-        if(m_addr_family == AF_INET){
-             prop_new = m_current_prop->get_ip4_if(if_name);
-             prop_old = if_property_old->get_ip4_if(if_name);
-        }else if(m_addr_family == AF_INET6){
+        if (m_addr_family == AF_INET) {
+            prop_new = m_current_prop->get_ip4_if(if_name);
+            prop_old = if_property_old->get_ip4_if(if_name);
+        } else if (m_addr_family == AF_INET6) {
             const list<const struct ifaddrs*>* ipv6_if_list_new = m_current_prop->get_ip6_if(if_name);
             const list<const struct ifaddrs*>* ipv6_if_list_old = if_property_old->get_ip6_if(if_name);
 
@@ -105,10 +107,10 @@ bool check_if::check(){
             prop_old = *(ipv6_if_list_old->begin());
         }
 
-        if(((prop_new->ifa_flags ^ prop_old->ifa_flags) & IFF_RUNNING)){ //IFF_RUNNING changed
-            if(prop_new->ifa_flags & IFF_RUNNING){ //up
+        if (((prop_new->ifa_flags ^ prop_old->ifa_flags) & IFF_RUNNING)) { //IFF_RUNNING changed
+            if (prop_new->ifa_flags & IFF_RUNNING) { //up
                 m_swap_to_up.push_back(*i);
-            }else{ //down
+            } else { //down
                 m_swap_to_down.push_back(*i);
             }
         }
@@ -117,32 +119,35 @@ bool check_if::check(){
     return true;
 }
 
-std::vector<int> check_if::swap_to_up(){
+std::vector<int> check_if::swap_to_up()
+{
     HC_LOG_TRACE("");
     return m_swap_to_up;
 
 }
 
-std::vector<int> check_if::swap_to_down(){
+std::vector<int> check_if::swap_to_down()
+{
     HC_LOG_TRACE("");
     return m_swap_to_down;
 }
 
-void check_if::test_check_if(){
+void check_if::test_check_if()
+{
     HC_LOG_TRACE("");
 
     check_if c;
     if_prop prop;
     vector<int> if_list_tmp;
     char cstr[IF_NAMESIZE];
-    int sleeptime= 0;
+    int sleeptime = 0;
 
     //fill if_list_tmp
     prop.refresh_network_interfaces();
     const if_prop_map* if_prop_map_p = prop.get_if_props();
     cout << "available interfaces under test:" << endl;
-    for(if_prop_map::const_iterator i= if_prop_map_p->begin(); i != if_prop_map_p->end(); i++){
-        cout << i->first <<" ";
+    for (if_prop_map::const_iterator i = if_prop_map_p->begin(); i != if_prop_map_p->end(); i++) {
+        cout << i->first << " ";
         if_list_tmp.push_back(if_nametoindex(i->first.c_str()));
     }
     cout << endl;
@@ -150,29 +155,29 @@ void check_if::test_check_if(){
     //init status
     if_list_tmp = c.init(if_list_tmp, AF_INET);
     cout << "this interfaces are down:" << endl;
-    for(vector<int>::iterator i= if_list_tmp.begin(); i != if_list_tmp.end(); i++){
-        cout << if_indextoname(*i,cstr) << " ";
+    for (vector<int>::iterator i = if_list_tmp.begin(); i != if_list_tmp.end(); i++) {
+        cout << if_indextoname(*i, cstr) << " ";
     }
     cout << endl;
 
-    while(sleeptime< 1000){
+    while (sleeptime < 1000) {
         usleep(1000000);
         cout << "sleeptime: " << sleeptime << endl;
         c.check();
         if_list_tmp = c.swap_to_down();
-        if(if_list_tmp.size() >0){
+        if (if_list_tmp.size() > 0) {
             cout << "this interfaces switch to down: " << endl;
-            for(vector<int>::iterator i= if_list_tmp.begin(); i < if_list_tmp.end(); i++){
-                cout << if_indextoname(*i,cstr) << " ";
+            for (vector<int>::iterator i = if_list_tmp.begin(); i < if_list_tmp.end(); i++) {
+                cout << if_indextoname(*i, cstr) << " ";
             }
             cout << endl;
         }
 
         if_list_tmp = c.swap_to_up();
-        if(if_list_tmp.size() >0){
+        if (if_list_tmp.size() > 0) {
             cout << "this interfaces switch to up: " << endl;
-            for(vector<int>::iterator i= if_list_tmp.begin(); i < if_list_tmp.end(); i++){
-                cout << if_indextoname(*i,cstr) << " ";
+            for (vector<int>::iterator i = if_list_tmp.begin(); i < if_list_tmp.end(); i++) {
+                cout << if_indextoname(*i, cstr) << " ";
             }
             cout << endl;
         }

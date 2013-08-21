@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -59,9 +59,9 @@ using namespace std;
  * @brief Data structure to save multicast sources/groups and there states.
  */
 struct src_state {
-     /**
-      * @brief Represents the possible states of a multicast source/group
-      */
+    /**
+     * @brief Represents the possible states of a multicast source/group
+     */
     enum state {
         INIT            /** unused state to create this structure */,
         RUNNING         /** group is joined */,
@@ -74,16 +74,23 @@ struct src_state {
     /**
      * @brief Convert the current state to  a string.
      */
-    std::string state_type_to_string(){
+    std::string state_type_to_string() {
         HC_LOG_TRACE("");
-        switch(flag){
-        case INIT: return "INIT";
-        case RUNNING: return "RUNNING";
-        case RESPONSE_STATE: return "RESPONSE_STATE";
-        case WAIT_FOR_DEL: return "WAIT_FOR_DEL";
-        case UNUSED_SRC: return "UNUSED_SRC";
-        case CACHED_SRC: return "CACHED_SRC";
-        default: return "ERROR";
+        switch (flag) {
+        case INIT:
+            return "INIT";
+        case RUNNING:
+            return "RUNNING";
+        case RESPONSE_STATE:
+            return "RESPONSE_STATE";
+        case WAIT_FOR_DEL:
+            return "WAIT_FOR_DEL";
+        case UNUSED_SRC:
+            return "UNUSED_SRC";
+        case CACHED_SRC:
+            return "CACHED_SRC";
+        default:
+            return "ERROR";
         }
     }
 
@@ -195,7 +202,8 @@ typedef pair< int, g_state_map > state_tabel_pair;
 /**
  * @brief Represent a multicast Proxy
  */
-class proxy_instance: public worker{
+class proxy_instance: public worker
+{
 private:
     bool m_is_single_instance;
     int m_table_number;
@@ -286,9 +294,10 @@ public:
      * @param upstream_vif virtual interface index of the upstream
      * @param downstream_index  interface index of the downstream
      * @param downstram_vif virtual interface index of the downstream
-     * @param receiver* pointer to the modul @ref mod_receiver 
+     * @param receiver* pointer to the modul @ref mod_receiver
      */
-    bool init(int addr_family, int version, int upstream_index, int upstream_vif, int downstream_index, int downstram_vif, bool single_instance);
+    bool init(int addr_family, int version, int upstream_index, int upstream_vif, int downstream_index, int downstram_vif,
+              bool single_instance);
 };
 
 #endif // PROXY_INSTANCE_HPP

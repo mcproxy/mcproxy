@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -39,7 +39,8 @@ using namespace std;
  * @brief Fixed sized synchronised job queue.
  */
 template< typename T>
-class message_queue{
+class message_queue
+{
 private:
     message_queue();
 
@@ -83,12 +84,14 @@ public:
 };
 
 template< typename T>
-message_queue<T>::message_queue(int size){
+message_queue<T>::message_queue(int size)
+{
     m_size = size;
 }
 
 template< typename T>
-bool message_queue<T>::is_empty(){
+bool message_queue<T>::is_empty()
+{
     boost::lock_guard<boost::mutex> lock(m_global_lock);
 
     return m_q.empty();
@@ -96,22 +99,25 @@ bool message_queue<T>::is_empty(){
 
 
 template< typename T>
-unsigned int message_queue<T>::current_size(){
+unsigned int message_queue<T>::current_size()
+{
     boost::lock_guard<boost::mutex> lock(m_global_lock);
 
     return m_q.size();
 }
 
 template< typename T>
-int message_queue<T>::max_size(){
+int message_queue<T>::max_size()
+{
     return m_size;
 }
 
 template< typename T>
-void message_queue<T>::enqueue(T t){
+void message_queue<T>::enqueue(T t)
+{
     {
         boost::unique_lock<boost::mutex> lock(m_global_lock);
-        while(m_q.size() >= m_size){
+        while (m_q.size() >= m_size) {
             cond_full.wait(lock);
         }
 
@@ -121,15 +127,16 @@ void message_queue<T>::enqueue(T t){
 }
 
 template< typename T>
-T message_queue<T>::dequeue(void){
+T message_queue<T>::dequeue(void)
+{
     T t;
     {
         boost::unique_lock<boost::mutex> lock(m_global_lock);
-        while(m_q.size() == 0){
+        while (m_q.size() == 0) {
             cond_empty.wait(lock);
         }
 
-        t= m_q.front();
+        t = m_q.front();
         m_q.pop();
     }
     cond_full.notify_one();

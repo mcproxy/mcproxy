@@ -210,22 +210,22 @@ int hc_logging_enabled();
         hc_log( loglvl , HC_FUN , scoped_osss.c_str());                        \
     } ((void) 0)
 
-namespace {
-template<int m_lvl>
-struct HC_trace_helper
+namespace
 {
+template<int m_lvl>
+struct HC_trace_helper {
     const char* m_fun;
-    HC_trace_helper(const char* fun, const std::string& initmsg) : m_fun(fun)
-    {
+    HC_trace_helper(const char* fun, const std::string& initmsg) : m_fun(fun) {
         std::string msg = "ENTER";
-        if (!initmsg.empty())
-        {
+        if (!initmsg.empty()) {
             msg += ": ";
             msg += initmsg;
         }
         hc_log(m_lvl, m_fun, msg.c_str());
     }
-    ~HC_trace_helper() { hc_log(m_lvl, m_fun, "LEAVE"); }
+    ~HC_trace_helper() {
+        hc_log(m_lvl, m_fun, "LEAVE");
+    }
 };
 }
 

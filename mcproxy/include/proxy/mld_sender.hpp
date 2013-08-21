@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -48,29 +48,30 @@ typedef u_int16_t pad2 ; //padding
 /**
  * @brief Generates MLD messages.
  */
-class mld_sender: public sender{
+class mld_sender: public sender
+{
 private:
-     enum msg_type { //for intern type handling
-          GENERAL_QUERY, MC_ADDR_SPECIFIC_QUERY
-     };
+    enum msg_type { //for intern type handling
+        GENERAL_QUERY, MC_ADDR_SPECIFIC_QUERY
+    };
 
-     bool choose_if(int if_index);
-     int get_msg_min_size();
-     bool add_hbh_opt_header();
-     bool create_mc_query(msg_type type, unsigned char* buf,const addr_storage* g_addr=nullptr);
+    bool choose_if(int if_index);
+    int get_msg_min_size();
+    bool add_hbh_opt_header();
+    bool create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr = nullptr);
 
 public:
-     /**
-      * @brief Create an mld_sender.
-      */
-     mld_sender();
+    /**
+     * @brief Create an mld_sender.
+     */
+    mld_sender();
 
-     bool init(int addr_family, int version) override;
+    bool init(int addr_family, int version) override;
 
-     bool send_general_query(int if_index) override;
-     bool send_group_specific_query(int if_index, const addr_storage& g_addr) override;
-     bool send_report(int if_index, const addr_storage& g_addr) override;
-     bool send_leave(int if_index, const addr_storage& g_addr) override;
+    bool send_general_query(int if_index) override;
+    bool send_group_specific_query(int if_index, const addr_storage& g_addr) override;
+    bool send_report(int if_index, const addr_storage& g_addr) override;
+    bool send_leave(int if_index, const addr_storage& g_addr) override;
 };
 
 #endif // MLD_SENDER_HPP

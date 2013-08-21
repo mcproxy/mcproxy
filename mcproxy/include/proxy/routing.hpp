@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -38,7 +38,8 @@
 /**
  * @brief Set and delete virtual interfaces and forwarding rules in the Linux kernel.
  */
-class routing{
+class routing
+{
 private:
     bool m_is_single_instance;
     int m_table_number;
@@ -68,7 +69,8 @@ public:
       * @brief Add a multicast route to the linux kernel table.
       * @return Return true on success.
       */
-    bool add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr, const std::list<unsigned int>& output_vif);
+    bool add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr,
+                   const std::list<unsigned int>& output_vif);
 
     /**
       * @brief Delete a multicast route from the linux kernel table.

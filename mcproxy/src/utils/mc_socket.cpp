@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -39,24 +39,25 @@
 
 using namespace std;
 
-string ipAddrResolver(string ipAddr){
-    string str[][2]={
+string ipAddrResolver(string ipAddr)
+{
+    string str[][2] = {
         {IPV4_IGMPV3_ADDR, "IPV4_IGMPV3_ADDR"},
-        {IPV4_ALL_HOST_ADDR,"IPV4_ALL_HOST_ADDR"},
+        {IPV4_ALL_HOST_ADDR, "IPV4_ALL_HOST_ADDR"},
         {IPV4_ALL_IGMP_ROUTERS_ADDR, "IPV4_ALL_ROUTERS_ADDR"},
-        {IPV4_PIMv2_ADDR,"IPV4_PIMv2_ADDR"},
+        {IPV4_PIMv2_ADDR, "IPV4_PIMv2_ADDR"},
         {IPV4_MCAST_DNS_ADDR, "IPV4_MCAST_DNS_ADDR"},
         {IPV6_ALL_MLDv2_CAPABLE_ROUTERS, "IPV6_ALL_MLDv2_CAPABLE_ROUTERS"},
-        {IPV6_ALL_NODES_ADDR,"IPV6_ALL_NODES_ADDR"},
+        {IPV6_ALL_NODES_ADDR, "IPV6_ALL_NODES_ADDR"},
         {IPV6_ALL_LINK_LOCAL_ROUTER, "IPV6_ALL_LINK_LOCAL_ROUTER"},
-        {IPV6_ALL_SITE_LOCAL_ROUTER,"IPV6_ALL_SITE_LOCAL_ROUTER"},
+        {IPV6_ALL_SITE_LOCAL_ROUTER, "IPV6_ALL_SITE_LOCAL_ROUTER"},
         {IPV6_ALL_PIM_ROUTERS, "IPV6_ALL_PIM_ROUTERS"}
     };
 
     unsigned int nCount = 9;
 
-    for(unsigned int i=0; i< nCount; i++){
-        if(ipAddr.compare(str[i][0])==0){
+    for (unsigned int i = 0; i < nCount; i++) {
+        if (ipAddr.compare(str[i][0]) == 0) {
             return str[i][1];
         }
     }
@@ -77,18 +78,20 @@ int family_to_level(int family)
 }
 
 mc_socket::mc_socket() :
-    m_sock(0), m_addrFamily(-1), m_own_socket(true) {
+    m_sock(0), m_addrFamily(-1), m_own_socket(true)
+{
     HC_LOG_TRACE("");
 }
 
-bool mc_socket::create_udp_ipv4_socket() {
+bool mc_socket::create_udp_ipv4_socket()
+{
     HC_LOG_TRACE("");
 
     if (is_udp_valid()) {
         close(m_sock);
     }
 
-    //			IP-Protokollv4, UDP,	Protokoll
+    //          IP-Protokollv4, UDP,    Protokoll
     m_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP); //SOCK_DGRAM //IPPROTO_IP
     if (m_sock < 0) {
         HC_LOG_ERROR("failed to create! Error: " << strerror(errno) << " errno: " << errno);
@@ -102,14 +105,15 @@ bool mc_socket::create_udp_ipv4_socket() {
 
 }
 
-bool mc_socket::create_udp_ipv6_socket() {
+bool mc_socket::create_udp_ipv6_socket()
+{
     HC_LOG_TRACE("");
 
     if (is_udp_valid()) {
         close(m_sock);
     }
 
-    //			IP-Protokollv6, UDP,	Protokoll
+    //          IP-Protokollv6, UDP,    Protokoll
     m_sock = socket(AF_INET6, SOCK_DGRAM, IPPROTO_IP); //SOCK_DGRAM //IPPROTO_IP
     if (m_sock < 0) {
         HC_LOG_ERROR("failed to create! Error: " << strerror(errno) << " errno: " << errno);
@@ -122,7 +126,8 @@ bool mc_socket::create_udp_ipv6_socket() {
     }
 }
 
-bool mc_socket::set_own_socket(int sck, int addr_family){
+bool mc_socket::set_own_socket(int sck, int addr_family)
+{
     HC_LOG_TRACE("");
 
     if (is_udp_valid()) {
@@ -133,11 +138,11 @@ bool mc_socket::set_own_socket(int sck, int addr_family){
         HC_LOG_ERROR("wrong socket discriptor! socket: " << sck);
         return false; // failed
     } else {
-        if(addr_family == AF_INET || addr_family == AF_INET6){
-            m_sock= sck;
+        if (addr_family == AF_INET || addr_family == AF_INET6) {
+            m_sock = sck;
             m_addrFamily = addr_family;
             m_own_socket = false;
-        }else{
+        } else {
             HC_LOG_ERROR("wrong address family: " << addr_family);
             return false; // failed
         }
@@ -145,11 +150,13 @@ bool mc_socket::set_own_socket(int sck, int addr_family){
     }
 }
 
-int mc_socket::get_addr_family(){
+int mc_socket::get_addr_family()
+{
     return m_addrFamily;
 }
 
-bool mc_socket::bind_udp_socket(int port) {
+bool mc_socket::bind_udp_socket(int port)
+{
     HC_LOG_TRACE("");
 
     if (!is_udp_valid()) {
@@ -164,20 +171,20 @@ bool mc_socket::bind_udp_socket(int port) {
     int size;
     int rc;
 
-    if(m_addrFamily==AF_INET){
+    if (m_addrFamily == AF_INET) {
         m_addr_v4.sin_family = AF_INET;
         m_addr_v4.sin_addr.s_addr = INADDR_ANY;
         m_addr_v4.sin_port = htons(port);
         m_addr = (sockaddr*) &m_addr_v4;
         size = sizeof(m_addr_v4);
-    }else if(m_addrFamily==AF_INET6){
+    } else if (m_addrFamily == AF_INET6) {
         m_addr_v6.sin6_family = AF_INET6;
         m_addr_v6.sin6_flowinfo = 0;
         m_addr_v6.sin6_port =  htons(port);
         m_addr_v6.sin6_addr = in6addr_any;
         m_addr = (sockaddr*) &m_addr_v6;
         size = sizeof(m_addr_v6);
-    }else{
+    } else {
         HC_LOG_ERROR("Unknown Errno");
         return false;
     }
@@ -192,7 +199,8 @@ bool mc_socket::bind_udp_socket(int port) {
     }
 }
 
-bool mc_socket::set_loop_back(bool enable) {
+bool mc_socket::set_loop_back(bool enable)
+{
     HC_LOG_TRACE("");
 
     if (!is_udp_valid()) {
@@ -212,13 +220,13 @@ bool mc_socket::set_loop_back(bool enable) {
         loop = 0;
     }
 
-    if(m_addrFamily == AF_INET){
+    if (m_addrFamily == AF_INET) {
         level = IPPROTO_IP;
         loopArg = IP_MULTICAST_LOOP;
-    }else if(m_addrFamily == AF_INET6){
+    } else if (m_addrFamily == AF_INET6) {
         level = IPPROTO_IPV6;
         loopArg = IPV6_MULTICAST_LOOP;
-    }else{
+    } else {
         HC_LOG_ERROR("wrong address family");
         return false;
     }
@@ -233,11 +241,13 @@ bool mc_socket::set_loop_back(bool enable) {
     }
 }
 
-bool mc_socket::send_packet(const char* addr, int port, string data){
-    return send_packet(addr,port, (unsigned char*)data.c_str(),data.size());
+bool mc_socket::send_packet(const char* addr, int port, string data)
+{
+    return send_packet(addr, port, (unsigned char*)data.c_str(), data.size());
 }
 
-bool mc_socket::send_packet(const char* addr, int port, const unsigned char* data, unsigned int data_size) {
+bool mc_socket::send_packet(const char* addr, int port, const unsigned char* data, unsigned int data_size)
+{
     HC_LOG_TRACE("");
 
     if (!is_udp_valid()) {
@@ -247,7 +257,7 @@ bool mc_socket::send_packet(const char* addr, int port, const unsigned char* dat
 
     struct addrinfo *grp = nullptr;
     struct addrinfo hints;
-    int rc=0;
+    int rc = 0;
 
     memset (&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
@@ -259,9 +269,9 @@ bool mc_socket::send_packet(const char* addr, int port, const unsigned char* dat
         HC_LOG_ERROR("failed to generate addrinfo:" << gai_strerror(rc));
         return false;
     }
-    save_free<free_fun,struct addrinfo*> free(&freeaddrinfo,grp);
+    save_free<free_fun, struct addrinfo*> free(&freeaddrinfo, grp);
 
-    rc = sendto(m_sock, data, data_size, 0,grp->ai_addr, grp->ai_addrlen);
+    rc = sendto(m_sock, data, data_size, 0, grp->ai_addr, grp->ai_addrlen);
 
     if (rc == -1) {
         HC_LOG_ERROR("failed to send! Error: " << strerror(errno)  << " errno: " << errno);
@@ -271,7 +281,8 @@ bool mc_socket::send_packet(const char* addr, int port, const unsigned char* dat
     }
 }
 
-bool mc_socket::receive_packet(unsigned char* buf, int sizeOfBuf, int &sizeOfInfo) {
+bool mc_socket::receive_packet(unsigned char* buf, int sizeOfBuf, int& sizeOfInfo)
+{
     HC_LOG_TRACE("");
 
     if (!is_udp_valid()) {
@@ -283,10 +294,10 @@ bool mc_socket::receive_packet(unsigned char* buf, int sizeOfBuf, int &sizeOfInf
     rc = recv(m_sock, buf, sizeOfBuf, 0);
     sizeOfInfo = rc;
     if (rc == -1) {
-        if(errno == EAGAIN || errno == EWOULDBLOCK){
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
             sizeOfInfo = 0;
             return true;
-        }else{
+        } else {
             HC_LOG_ERROR("failed to receive Error: " << strerror(errno)  << " errno: " << errno);
             return false;
         }
@@ -295,7 +306,8 @@ bool mc_socket::receive_packet(unsigned char* buf, int sizeOfBuf, int &sizeOfInf
     }
 }
 
-bool mc_socket::receive_msg(struct msghdr* msg, int &sizeOfInfo){
+bool mc_socket::receive_msg(struct msghdr* msg, int& sizeOfInfo)
+{
     HC_LOG_TRACE("");
 
     if (!is_udp_valid()) {
@@ -307,10 +319,10 @@ bool mc_socket::receive_msg(struct msghdr* msg, int &sizeOfInfo){
     rc = recvmsg(m_sock, msg, 0);
     sizeOfInfo = rc;
     if (rc == -1) {
-        if(errno == EAGAIN || errno == EWOULDBLOCK){
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
             sizeOfInfo = 0;
             return true;
-        }else{
+        } else {
             HC_LOG_ERROR("failed to receive msg Error: " << strerror(errno)  << " errno: " << errno);
             return false;
         }
@@ -371,7 +383,8 @@ bool mc_socket::receive_msg(struct msghdr* msg, int &sizeOfInfo){
     //     //#######################
 }
 
-bool mc_socket::set_receive_timeout(long msec){
+bool mc_socket::set_receive_timeout(long msec)
+{
     HC_LOG_TRACE("");
 
     if (!is_udp_valid()) {
@@ -380,10 +393,10 @@ bool mc_socket::set_receive_timeout(long msec){
     }
 
     struct timeval t;
-    t.tv_sec = msec/1000;
+    t.tv_sec = msec / 1000;
     t.tv_usec = 1000 * (msec % 1000);;
 
-    int rc= setsockopt(m_sock, SOL_SOCKET, SO_RCVTIMEO, &t, sizeof(t));
+    int rc = setsockopt(m_sock, SOL_SOCKET, SO_RCVTIMEO, &t, sizeof(t));
 
     if (rc == -1) {
         HC_LOG_ERROR("failed to set timeout! Error: " << strerror(errno)  << " errno: " << errno);
@@ -393,7 +406,8 @@ bool mc_socket::set_receive_timeout(long msec){
     }
 }
 
-bool mc_socket::choose_if(int if_index){
+bool mc_socket::choose_if(int if_index)
+{
     HC_LOG_TRACE("");
 
     if (!is_udp_valid()) {
@@ -401,27 +415,28 @@ bool mc_socket::choose_if(int if_index){
         return false;
     }
 
-    if(m_addrFamily == AF_INET){
+    if (m_addrFamily == AF_INET) {
         struct in_addr inaddr;
         struct ifreq ifreq;
 
-        if( if_index > 0){
+        if ( if_index > 0) {
             if (if_indextoname(if_index, ifreq.ifr_name) == nullptr) {
-                HC_LOG_ERROR("failed to get interface name! if_index:" << if_index << "! Error: " << strerror(errno)  << " errno: " << errno);
+                HC_LOG_ERROR("failed to get interface name! if_index:" << if_index << "! Error: " << strerror(
+                                 errno)  << " errno: " << errno);
                 return false;
             }
 
-            if (ioctl(m_sock, SIOCGIFADDR, &ifreq) < 0){
+            if (ioctl(m_sock, SIOCGIFADDR, &ifreq) < 0) {
                 HC_LOG_ERROR("failed to get interface address! if_name: " << ifreq.ifr_name);
                 return false;
             }
 
             memcpy(&inaddr, &((struct sockaddr_in *) &ifreq.ifr_addr)->sin_addr, sizeof(struct in_addr));
-        }else{
+        } else {
             inaddr.s_addr = htonl(INADDR_ANY);
         }
 
-        int rc= setsockopt(m_sock, IPPROTO_IP, IP_MULTICAST_IF, &inaddr, sizeof(struct in_addr));
+        int rc = setsockopt(m_sock, IPPROTO_IP, IP_MULTICAST_IF, &inaddr, sizeof(struct in_addr));
 
         if (rc == -1) {
             HC_LOG_ERROR("failed to choose_if! Error: " << strerror(errno)  << " errno: " << errno);
@@ -429,8 +444,8 @@ bool mc_socket::choose_if(int if_index){
         } else {
             return true;
         }
-    }else if(m_addrFamily == AF_INET6){
-        int rc= setsockopt(m_sock, IPPROTO_IPV6, IPV6_MULTICAST_IF, &if_index, sizeof(if_index));
+    } else if (m_addrFamily == AF_INET6) {
+        int rc = setsockopt(m_sock, IPPROTO_IPV6, IPV6_MULTICAST_IF, &if_index, sizeof(if_index));
 
         if (rc == -1) {
             HC_LOG_ERROR("failed to choose_if! Error: " << strerror(errno)  << " errno: " << errno);
@@ -438,53 +453,55 @@ bool mc_socket::choose_if(int if_index){
         } else {
             return true;
         }
-    }else{
+    } else {
         HC_LOG_ERROR("wrong address family");
         return false;
     }
 }
 
-bool mc_socket::set_ttl(int ttl){
-     HC_LOG_TRACE("");
+bool mc_socket::set_ttl(int ttl)
+{
+    HC_LOG_TRACE("");
 
-     if (!is_udp_valid()) {
-          HC_LOG_ERROR("udp_socket invalid");
-          return false;
-     }
+    if (!is_udp_valid()) {
+        HC_LOG_ERROR("udp_socket invalid");
+        return false;
+    }
 
-     int rc;
+    int rc;
 
-     if(m_addrFamily == AF_INET){
-          rc = setsockopt(m_sock, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
-     }else if(m_addrFamily == AF_INET6){
-          rc = setsockopt(m_sock, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &ttl, sizeof(ttl));
-     }else{
-          HC_LOG_ERROR("wrong address family");
-          return false;
-     }
+    if (m_addrFamily == AF_INET) {
+        rc = setsockopt(m_sock, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+    } else if (m_addrFamily == AF_INET6) {
+        rc = setsockopt(m_sock, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &ttl, sizeof(ttl));
+    } else {
+        HC_LOG_ERROR("wrong address family");
+        return false;
+    }
 
-     if (rc == -1) {
-          HC_LOG_ERROR("failed to set ttl: "<< ttl << "! Error: " << strerror(errno));
-          return false;
-     } else {
-          return true;
-     }
+    if (rc == -1) {
+        HC_LOG_ERROR("failed to set ttl: " << ttl << "! Error: " << strerror(errno));
+        return false;
+    } else {
+        return true;
+    }
 }
 
-bool mc_socket::join_group(const char* addr, int if_index) {
+bool mc_socket::join_group(const char* addr, int if_index)
+{
     HC_LOG_TRACE("g_addr: " << addr << " if_index: " << if_index);
 
     if (!is_udp_valid()) {
         HC_LOG_ERROR("udp_socket invalid");
         return false;
-    }else{
+    } else {
         HC_LOG_DEBUG("use socket discriptor number: " << m_sock);
     }
 
     struct group_req req;
     struct addrinfo *grp = nullptr;
     struct addrinfo hints;
-    int rc=0;
+    int rc = 0;
 
     memset (&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
@@ -494,7 +511,7 @@ bool mc_socket::join_group(const char* addr, int if_index) {
         HC_LOG_ERROR("failed to generate addrinfo:" << gai_strerror(rc));
         return false;
     }
-    save_free<free_fun,struct addrinfo*> free(&freeaddrinfo,grp);
+    save_free<free_fun, struct addrinfo*> free(&freeaddrinfo, grp);
 
     if (grp->ai_addrlen > sizeof (req.gr_group)) {
         HC_LOG_ERROR("wrong addrlen");
@@ -516,20 +533,21 @@ bool mc_socket::join_group(const char* addr, int if_index) {
 }
 
 //!! interface: IPv4 ==> InterfaceIpAddress , IPv6 ==> InterfaceName
-bool mc_socket::leave_group(const char* addr, int if_index) {
+bool mc_socket::leave_group(const char* addr, int if_index)
+{
     HC_LOG_TRACE("g_addr: " << addr << " if_index: " << if_index);
 
     if (!is_udp_valid()) {
         HC_LOG_ERROR("udp_socket invalid");
         return false;
-    }else{
+    } else {
         HC_LOG_DEBUG("use socket discriptor number: " << m_sock);
     }
 
     struct group_req req;
     struct addrinfo *grp = nullptr;
     struct addrinfo hints;
-    int rc=0;
+    int rc = 0;
 
     memset (&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
@@ -539,7 +557,7 @@ bool mc_socket::leave_group(const char* addr, int if_index) {
         HC_LOG_ERROR("failed to generate addrinfo:" << gai_strerror(rc));
         return false;
     }
-    save_free<free_fun,struct addrinfo*> free(&freeaddrinfo,grp);
+    save_free<free_fun, struct addrinfo*> free(&freeaddrinfo, grp);
 
     req.gr_interface = if_index;
 
@@ -560,7 +578,8 @@ bool mc_socket::leave_group(const char* addr, int if_index) {
 
 }
 
-void mc_socket::test_join_leave_send(){
+void mc_socket::test_join_leave_send()
+{
     HC_LOG_TRACE("");
 
     int sleepTime = 1;
@@ -569,30 +588,30 @@ void mc_socket::test_join_leave_send(){
 
     cout << "--<1> Join and leave ipv4 --" << endl;
     m.create_udp_ipv4_socket();
-    if(m.join_group("238.99.99.99",if_nametoindex("eth0"))){
+    if (m.join_group("238.99.99.99", if_nametoindex("eth0"))) {
         cout << "join OK!" << endl;
-    }else{
+    } else {
         cout << "join FAILED!" << endl;
     }
     sleep(sleepTime);
-    if(m.leave_group("238.99.99.99",if_nametoindex("eth0"))){
+    if (m.leave_group("238.99.99.99", if_nametoindex("eth0"))) {
         cout << "leave OK!" << endl;
-    }else{
+    } else {
         cout << "leave FAILED!" << endl;
     }
     sleep(sleepTime);
 
     cout << "--<2> Join and leave ipv6 --" << endl;
     m.create_udp_ipv6_socket();
-    if(m.join_group("FF02:0:0:0:99:99:99:99",if_nametoindex("eth0"))){
+    if (m.join_group("FF02:0:0:0:99:99:99:99", if_nametoindex("eth0"))) {
         cout << "join OK!" << endl;
-    }else{
+    } else {
         cout << "join FAILED!" << endl;
     }
     sleep(sleepTime);
-    if(m.leave_group("FF02:0:0:0:99:99:99:99",if_nametoindex("eth0"))){
+    if (m.leave_group("FF02:0:0:0:99:99:99:99", if_nametoindex("eth0"))) {
         cout << "leave OK!" << endl;
-    }else{
+    } else {
         cout << "leave FAILED!" << endl;
     }
 
@@ -600,15 +619,15 @@ void mc_socket::test_join_leave_send(){
     cout << "--<3> send Data IPv4 --" << endl;
     m.create_udp_ipv4_socket();
 
-    if(m.choose_if(if_nametoindex("eth0"))){
+    if (m.choose_if(if_nametoindex("eth0"))) {
         cout << "choose if (eth0) OK! " << endl;
-    }else{
+    } else {
         cout << "choose if (eth0) FAILED! " << endl;
     }
 
-    if(m.send_packet("238.99.99.99",9845,msg)){
+    if (m.send_packet("238.99.99.99", 9845, msg)) {
         cout << "send OK! Hello at addr:238.99.99.99 with port 9845" << endl;
-    }else{
+    } else {
         cout << "send FAILED!" << endl;
     }
 
@@ -617,20 +636,21 @@ void mc_socket::test_join_leave_send(){
     cout << "--<4> send Data IPv6 --" << endl;
     m.create_udp_ipv6_socket();
 
-    if(m.choose_if(if_nametoindex("eth0"))){
+    if (m.choose_if(if_nametoindex("eth0"))) {
         cout << "choose if (eth0) OK! " << endl;
-    }else{
+    } else {
         cout << "choose if (eth0) FAILED! " << endl;
     }
 
-    if(m.send_packet("FF02:0:0:0:99:99:99:99",9845,msg)){
+    if (m.send_packet("FF02:0:0:0:99:99:99:99", 9845, msg)) {
         cout << "send OK! Hello at addr:FF02:0:0:0:99:99:99:99 with port 9845" << endl;
-    }else{
+    } else {
         cout << "send FAILED!" << endl;
     }
 }
 
-mc_socket::~mc_socket() {
+mc_socket::~mc_socket()
+{
     HC_LOG_TRACE("");
 
     if (is_udp_valid() && m_own_socket) {

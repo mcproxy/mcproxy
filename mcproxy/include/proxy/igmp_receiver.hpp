@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
@@ -43,19 +43,20 @@
 /**
  * @brief Receive IGMP messages.
  */
-class igmp_receiver : public receiver {
+class igmp_receiver : public receiver
+{
 private:
 
-     int get_ctrl_min_size() override;
-     int get_iov_min_size() override;
-     void analyse_packet(struct msghdr* msg, int info_size) override;
+    int get_ctrl_min_size() override;
+    int get_iov_min_size() override;
+    void analyse_packet(struct msghdr* msg, int info_size) override;
 
-     //return the interface index to addr, on error return 0
-     int map_ip2if_index(const addr_storage& src_addr);
+    //return the interface index to addr, on error return 0
+    int map_ip2if_index(const addr_storage& src_addr);
 public:
-     /**
-      * @brief Create an igmp_receiver.
-      */
+    /**
+     * @brief Create an igmp_receiver.
+     */
     igmp_receiver();
 };
 

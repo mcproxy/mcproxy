@@ -1,7 +1,17 @@
 TODO list
 =========
 
+update mroute with ssm functionality
+
 check the current functionality 
+
 create a Ncurses based multicast test tool 
-update README, specify kernel versions and kernel modules
-...
+
+Could change or modify the behavior of the mcproxy:
+ - http://tools.ietf.org/html/draft-ietf-multimob-pmipv6-source-04
+ - http://tools.ietf.org/html/rfc6224
+ - draft-zhang-pim-multi-upstream-igmp-mld-proxy-01
+ - draft-asaeda-pim-mldproxy-multif-01
+ - http://tools.ietf.org/html/rfc6636
+ - http://tools.ietf.org/html/draft-ietf-multimob-handover-optimization-03
+ - http://tools.ietf.org/html/draft-contreras-multimob-multiple-upstreams-01 
