@@ -92,6 +92,8 @@ public:
  */
 class mc_socket
 {
+private:
+    bool generic_group_sockopt(const char* addr, int if_index, int optname);
 protected:
     /**
      * @brief Used socket descriptor
@@ -221,17 +223,51 @@ public:
 
     /**
      * @brief Join a multicast group on a specific network interface.
-     * @param addr group to join in clear text
+     * @param addr clear text multicast group 
+     * @param if_index define related interface 
      * @return Return true on success.
      */
     bool join_group(const char* addr, int if_index);
 
     /**
      * @brief Leave a multicast group on a specific network interface.
-     * @param addr group to join in clear text
+     * @param addr clear text multicast group 
+     * @param if_index define related interface 
      * @return Return true on success.
      */
     bool leave_group(const char* addr, int if_index);
+
+    /**
+     * @brief Block a source on a specific network interface.
+     * @param addr clear text multicast group 
+     * @param if_index define related interface 
+     * @return Return true on success.
+     */
+    bool block_source(const char* addr, int if_index);
+
+    /**
+     * @brief Unblock a source on a specific network interface.
+     * @param addr clear text multicast group 
+     * @param if_index define related interface 
+     * @return Return true on success.
+     */
+    bool unblock_source(const char* addr, int if_index);
+
+    /**
+     * @brief Join a source on a specific network interface.
+     * @param addr clear text multicast group 
+     * @param if_index define related interface 
+     * @return Return true on success.
+     */
+    bool join_source_group(const char* addr, int if_index);
+
+    /**
+     * @brief Leave a source on a specific network interface.
+     * @param addr clear text multicast group 
+     * @param if_index define related interface 
+     * @return Return true on success.
+     */
+    bool leave_source_group(const char* addr, int if_index);
 
     /**
      * @brief Check for valid socket descriptor.
@@ -241,9 +277,19 @@ public:
     }
 
     /**
-     * @brief Test the class mc_socket.
+     * @brief Test a part of the class mc_socket.
+     * @param ipverion "AF_INET" or "AF_INET6"
+     * @param msg any message is allowed
+     * @param interface for example "eth0" or "lo"
+     * @param gaddr multicast address for example "239.99.99.99" or "FF02:0:0:0:99:99:99:99"
+     * @param port define a port 
      */
-    static void test_join_leave_send();
+    static void test_mc_goup_functions(string ipversion, string msg, string interface, string gaddr, int port);
+
+    /**
+     * @brief Test a part of the class mc_socket.
+     */
+    static void test_mc_source_functions(string ipversion, string interface, string saddr);
 
 };
 

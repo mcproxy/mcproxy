@@ -491,52 +491,215 @@ bool mc_socket::join_group(const char* addr, int if_index)
 {
     HC_LOG_TRACE("g_addr: " << addr << " if_index: " << if_index);
 
-    if (!is_udp_valid()) {
-        HC_LOG_ERROR("udp_socket invalid");
-        return false;
-    } else {
-        HC_LOG_DEBUG("use socket discriptor number: " << m_sock);
-    }
+    //if (!is_udp_valid()) {
+    //HC_LOG_ERROR("udp_socket invalid");
+    //return false;
+    //} else {
+    //HC_LOG_DEBUG("use socket discriptor number: " << m_sock);
+    //}
 
-    struct group_req req;
-    struct addrinfo *grp = nullptr;
-    struct addrinfo hints;
-    int rc = 0;
+    //struct group_req req;
+    //struct addrinfo *grp = nullptr;
+    //struct addrinfo hints;
+    //int rc = 0;
 
-    memset (&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_DGRAM;
+    //memset (&hints, 0, sizeof(hints));
+    //hints.ai_family = AF_UNSPEC;
+    //hints.ai_socktype = SOCK_DGRAM;
 
-    if ((rc = getaddrinfo (addr, 0, &hints, &grp)) != 0) {
-        HC_LOG_ERROR("failed to generate addrinfo:" << gai_strerror(rc));
-        return false;
-    }
-    save_free<free_fun, struct addrinfo*> free(&freeaddrinfo, grp);
+    //if ((rc = getaddrinfo (addr, 0, &hints, &grp)) != 0) {
+    //HC_LOG_ERROR("failed to generate addrinfo:" << gai_strerror(rc));
+    //return false;
+    //}
+    //save_free<free_fun, struct addrinfo*> free(&freeaddrinfo, grp);
 
-    if (grp->ai_addrlen > sizeof (req.gr_group)) {
-        HC_LOG_ERROR("wrong addrlen");
-        return false;
-    }
+    //if (grp->ai_addrlen > sizeof (req.gr_group)) {
+    //HC_LOG_ERROR("wrong addrlen");
+    //return false;
+    //}
 
-    req.gr_interface = if_index;
-    memcpy (&req.gr_group, grp->ai_addr, grp->ai_addrlen);
+    //req.gr_interface = if_index;
+    //memcpy (&req.gr_group, grp->ai_addr, grp->ai_addrlen);
 
-    rc = setsockopt (m_sock, family_to_level(grp->ai_family), MCAST_JOIN_GROUP, &req, sizeof(req));
+    //rc = setsockopt (m_sock, family_to_level(grp->ai_family), MCAST_JOIN_GROUP, &req, sizeof(req));
 
-    if (rc == -1) {
-        HC_LOG_ERROR("failed to join! Error: " << strerror(errno) << " errno: " << errno);
-        return false;
-    } else {
-        return true;
-    }
+    //if (rc == -1) {
+    //HC_LOG_ERROR("failed to join! Error: " << strerror(errno) << " errno: " << errno);
+    //return false;
+    //} else {
+    //return true;
+    //}
 
+    return generic_group_sockopt(addr, if_index, MCAST_JOIN_GROUP);
 }
 
-//!! interface: IPv4 ==> InterfaceIpAddress , IPv6 ==> InterfaceName
+//bool mc_socket::join_group(const char* addr, int if_index, const char* src)
+//{
+//HC_LOG_TRACE("g_addr: " << addr << " if_index: " << if_index << " src: " << src);
+////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//#ifdef MCAST_JOIN_SOURCE_GROUP
+//struct group_source_req req;
+//if (m_if_index > 0) {
+//req.gsr_interface = m_if_index;
+//} else if (!m_if_name.empty()) {
+//if ( (req.gsr_interface = if_nametoindex(m_if_name.c_str())) == 0) {
+//errno = ENXIO;  [> if name not found <]
+//return (-1);
+//}
+//} else
+//req.gsr_interface = 0;
+//if (grplen > sizeof(req.gsr_group) ||
+//srclen > sizeof(req.gsr_source)) {
+//errno = EINVAL;
+//return -1;
+//}
+//memcpy(&req.gsr_group, grp, grplen);
+//memcpy(&req.gsr_source, src, srclen);
+
+//int family = -1;
+//switch (grp->sa_family) {
+//case AF_INET:
+//family = IPPROTO_IP;
+//break;
+//case AF_INET6:
+//family = IPPROTO_IPV6;
+//break;
+//default:
+//family = -1;
+//return (-1);
+//}
+
+//return (setsockopt(m_sockfd, family, MCAST_JOIN_SOURCE_GROUP, &req, sizeof(req)));
+//#else
+//switch (grp->sa_family) {
+//#ifdef IP_ADD_SOURCE_MEMBERSHIP
+//case AF_INET: {
+//struct ip_mreq_source   mreq;
+//struct ifreq            ifreq;
+
+//memcpy(&mreq.imr_multiaddr,
+//&((struct sockaddr_in *) grp)->sin_addr,
+//sizeof(struct in_addr));
+//memcpy(&mreq.imr_sourceaddr,
+//&((struct sockaddr_in *) src)->sin_addr,
+//sizeof(struct in_addr));
+
+//if (m_if_index > 0) {
+//if (if_indextoname(m_if_index, ifreq.ifr_name) == NULL) {
+//errno = ENXIO;  [> i/f index not found <]
+//return(-1);
+//}
+//goto doioctl;
+//} else if (!m_if_name.empty()) {
+//strncpy(ifreq.ifr_name, m_if_name.c_str(), IFNAMSIZ);
+//doioctl:
+//if (ioctl(sockfd, SIOCGIFADDR, &ifreq) < 0)
+//return(-1);
+//memcpy(&mreq.imr_interface,
+//&((struct sockaddr_in *) &ifreq.ifr_addr)->sin_addr,
+//sizeof(struct in_addr));
+//} else
+//mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+
+//return(setsockopt(m_sockfd, IPPROTO_IP, IP_ADD_SOURCE_MEMBERSHIP,
+//&mreq, sizeof(mreq)));
+//}
+//#endif
+//case AF_INET6: [> IPv6 source-specific API is
+//MCAST_JOIN_SOURCE_GROUP */
+//default:
+//errno = EAFNOSUPPORT;
+//return (-1);
+//}
+//#endif
+////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+//return false;
+//}
+
 bool mc_socket::leave_group(const char* addr, int if_index)
 {
     HC_LOG_TRACE("g_addr: " << addr << " if_index: " << if_index);
 
+    //if (!is_udp_valid()) {
+    //HC_LOG_ERROR("udp_socket invalid");
+    //return false;
+    //} else {
+    //HC_LOG_DEBUG("use socket discriptor number: " << m_sock);
+    //}
+
+    //struct group_req req;
+    //struct addrinfo *grp = nullptr;
+    //struct addrinfo hints;
+    //int rc = 0;
+
+    //memset (&hints, 0, sizeof(hints));
+    //hints.ai_family = AF_UNSPEC;
+    //hints.ai_socktype = SOCK_DGRAM;
+
+    //if ((rc = getaddrinfo (addr, 0, &hints, &grp)) != 0) {
+    //HC_LOG_ERROR("failed to generate addrinfo:" << gai_strerror(rc));
+    //return false;
+    //}
+    //save_free<free_fun, struct addrinfo*> free(&freeaddrinfo, grp);
+
+    //req.gr_interface = if_index;
+
+    //if (grp->ai_addrlen > sizeof (req.gr_group)) {
+    //HC_LOG_ERROR("wrong addrlen");
+    //return false;
+    //}
+
+    //memcpy (&req.gr_group, grp->ai_addr, grp->ai_addrlen);
+    //rc = setsockopt (m_sock, family_to_level(grp->ai_family), MCAST_LEAVE_GROUP, &req, sizeof(req));
+
+    //if (rc == -1) {
+    //HC_LOG_ERROR("failed to join! Error: " << strerror(errno) << " errno: " << errno);
+    //return false;
+    //} else {
+    //return true;
+    //}
+
+    return generic_group_sockopt(addr, if_index, MCAST_LEAVE_GROUP);
+}
+
+bool mc_socket::block_source(const char* addr, int if_index)
+{
+    HC_LOG_TRACE("g_addr: " << addr << " if_index: " << if_index << " optname: MCAST_BLOCK_SOURCE(" << MCAST_BLOCK_SOURCE << ")");
+
+    return generic_group_sockopt(addr, if_index, MCAST_BLOCK_SOURCE);
+}
+
+
+bool mc_socket::unblock_source(const char* addr, int if_index)
+{
+    HC_LOG_TRACE("g_addr: " << addr << " if_index: " << if_index << " optname: MCAST_UNBLOCK_SOURCE(" << MCAST_UNBLOCK_SOURCE << ")");
+    return generic_group_sockopt(addr, if_index, MCAST_UNBLOCK_SOURCE);
+}
+
+
+bool mc_socket::join_source_group(const char* addr, int if_index)
+{
+    HC_LOG_TRACE("g_addr: " << addr << " if_index: " << if_index << " optname: MCAST_JOIN_SOURCE_GROUP(" << MCAST_JOIN_SOURCE_GROUP << ")");
+
+    return generic_group_sockopt(addr, if_index, MCAST_JOIN_SOURCE_GROUP);
+}
+
+
+bool mc_socket::leave_source_group(const char* addr, int if_index)
+{
+    HC_LOG_TRACE("g_addr: " << addr << " if_index: " << if_index << " optname: MCAST_LEAVE_SOURCE_GROUP(" << MCAST_LEAVE_SOURCE_GROUP << ")");
+
+    return generic_group_sockopt(addr, if_index, MCAST_LEAVE_SOURCE_GROUP);
+}
+
+
+bool mc_socket::generic_group_sockopt(const char* addr, int if_index, int optname)
+{
+    HC_LOG_TRACE("g_addr: " << addr << " if_index: " << if_index << " optname: " << optname);
+
     if (!is_udp_valid()) {
         HC_LOG_ERROR("udp_socket invalid");
         return false;
@@ -567,7 +730,7 @@ bool mc_socket::leave_group(const char* addr, int if_index)
     }
 
     memcpy (&req.gr_group, grp->ai_addr, grp->ai_addrlen);
-    rc = setsockopt (m_sock, family_to_level(grp->ai_family), MCAST_LEAVE_GROUP, &req, sizeof(req));
+    rc = setsockopt (m_sock, family_to_level(grp->ai_family), optname, &req, sizeof(req));
 
     if (rc == -1) {
         HC_LOG_ERROR("failed to join! Error: " << strerror(errno) << " errno: " << errno);
@@ -576,77 +739,140 @@ bool mc_socket::leave_group(const char* addr, int if_index)
         return true;
     }
 
+
+
 }
 
-void mc_socket::test_join_leave_send()
+void mc_socket::test_mc_goup_functions(string ipversion, string msg, string interface, string gaddr, int port)
+{
+    HC_LOG_TRACE("");
+    cout << "##-- Test multicast group managment funktions --##" << endl;
+    mc_socket m;
+    int count = 0;
+    int sleepTime = 1;
+    //string msg = "Hallo";
+    //string interface = "eth0";
+    //int port =9845;
+    //string gaddr = "238.99.99.99";
+    //string gaddr_v4 = "238.99.99.99";
+    //string gaddr_v6 = "FF02:0:0:0:99:99:99:99";
+
+    cout << "--<" << count++ << "> Create an udp " << ipversion << " socket --" << endl;
+    if (ipversion.compare("AF_INET") == 0) {
+        if (m.create_udp_ipv4_socket()) {
+            cout << "create socket OK!" << endl;
+        } else {
+            cout << "cerate socket FAILED!" << endl;
+        }
+    } else if (ipversion.compare("AF_INET6") == 0) {
+        if (m.create_udp_ipv6_socket()) {
+            cout << "create socket OK!" << endl;
+        } else {
+            cout << "cerate socket FAILED!" << endl;
+        }
+    } else {
+        cout << "Unknown ip version: " << ipversion << endl;
+        return;
+    }
+
+    cout << "--<" << count++ << "> Join and leave --" << endl;
+    if (m.join_group(gaddr.c_str(), if_nametoindex(interface.c_str()))) {
+        cout << "join OK!" << endl;
+    } else {
+        cout << "join FAILED!" << endl;
+    }
+    sleep(sleepTime);
+    if (m.leave_group(gaddr.c_str(), if_nametoindex(interface.c_str()))) {
+        cout << "leave OK!" << endl;
+    } else {
+        cout << "leave FAILED!" << endl;
+    }
+    sleep(sleepTime);
+
+    cout << "--<" << count++ << "> Send Data --" << endl;
+    if (m.choose_if(if_nametoindex(interface.c_str()))) {
+        cout << "choose if (" << interface << ") OK! " << endl;
+    } else {
+        cout << "choose if (" << interface << ") FAILED! " << endl;
+    }
+
+    if (m.send_packet(gaddr.c_str(), port, msg)) {
+        cout << "send OK! " << msg << " at addr:" << gaddr << " with port " << port << endl;
+    } else {
+        cout << "send FAILED!" << endl;
+    }
+
+}
+
+
+void mc_socket::test_mc_source_functions(string ipversion, string interface, string saddr)
 {
     HC_LOG_TRACE("");
 
-    int sleepTime = 1;
+    cout << "##-- Test multicast source managment funktions --##" << endl;
     mc_socket m;
-    string msg = "Hallo";
+    int count = 0;
+    int sleepTime = 1;
+    //string msg = "Hallo";
+    //string interface = "eth0";
+    //int port =9845;
+    //string gaddr = "238.99.99.99";
+    //string gaddr_v4 = "238.99.99.99";
+    //string gaddr_v6 = "FF02:0:0:0:99:99:99:99";
 
-    cout << "--<1> Join and leave ipv4 --" << endl;
-    m.create_udp_ipv4_socket();
-    if (m.join_group("238.99.99.99", if_nametoindex("eth0"))) {
+
+    //m.block_source();
+    //m.unblock_source();
+    //m.join_source_group();
+    //m.leave_source_group();
+
+
+
+    cout << "--<" << count++ << "> Create an udp " << ipversion << " socket --" << endl;
+    if (ipversion.compare("AF_INET") == 0) {
+        if (m.create_udp_ipv4_socket()) {
+            cout << "create socket OK!" << endl;
+        } else {
+            cout << "cerate socket FAILED!" << endl;
+        }
+    } else if (ipversion.compare("AF_INET6") == 0) {
+        if (m.create_udp_ipv6_socket()) {
+            cout << "create socket OK!" << endl;
+        } else {
+            cout << "cerate socket FAILED!" << endl;
+        }
+    } else {
+        cout << "Unknown ip version: " << ipversion << endl;
+        return;
+    }
+
+    cout << "--<" << count++ << "> Block and unblock a source --" << endl;
+    if (m.block_source(saddr.c_str(), if_nametoindex(interface.c_str()))) {
+        cout << "block OK!" << endl;
+    } else {
+        cout << "block FAILED!" << endl;
+    }
+    sleep(sleepTime);
+    if (m.unblock_source(saddr.c_str(), if_nametoindex(interface.c_str()))) {
+        cout << "unblock OK!" << endl;
+    } else {
+        cout << "unblock FAILED!" << endl;
+    }
+    sleep(sleepTime);
+
+    cout << "--<" << count++ << "> Join and leave a source --" << endl;
+    if (m.join_source_group(saddr.c_str(), if_nametoindex(interface.c_str()))) {
         cout << "join OK!" << endl;
     } else {
         cout << "join FAILED!" << endl;
     }
     sleep(sleepTime);
-    if (m.leave_group("238.99.99.99", if_nametoindex("eth0"))) {
-        cout << "leave OK!" << endl;
-    } else {
-        cout << "leave FAILED!" << endl;
-    }
-    sleep(sleepTime);
-
-    cout << "--<2> Join and leave ipv6 --" << endl;
-    m.create_udp_ipv6_socket();
-    if (m.join_group("FF02:0:0:0:99:99:99:99", if_nametoindex("eth0"))) {
-        cout << "join OK!" << endl;
-    } else {
-        cout << "join FAILED!" << endl;
-    }
-    sleep(sleepTime);
-    if (m.leave_group("FF02:0:0:0:99:99:99:99", if_nametoindex("eth0"))) {
+    if (m.leave_source_group(saddr.c_str(), if_nametoindex(interface.c_str()))) {
         cout << "leave OK!" << endl;
     } else {
         cout << "leave FAILED!" << endl;
     }
 
-    sleep(sleepTime);
-    cout << "--<3> send Data IPv4 --" << endl;
-    m.create_udp_ipv4_socket();
-
-    if (m.choose_if(if_nametoindex("eth0"))) {
-        cout << "choose if (eth0) OK! " << endl;
-    } else {
-        cout << "choose if (eth0) FAILED! " << endl;
-    }
-
-    if (m.send_packet("238.99.99.99", 9845, msg)) {
-        cout << "send OK! Hello at addr:238.99.99.99 with port 9845" << endl;
-    } else {
-        cout << "send FAILED!" << endl;
-    }
-
-    sleep(sleepTime);
-
-    cout << "--<4> send Data IPv6 --" << endl;
-    m.create_udp_ipv6_socket();
-
-    if (m.choose_if(if_nametoindex("eth0"))) {
-        cout << "choose if (eth0) OK! " << endl;
-    } else {
-        cout << "choose if (eth0) FAILED! " << endl;
-    }
-
-    if (m.send_packet("FF02:0:0:0:99:99:99:99", 9845, msg)) {
-        cout << "send OK! Hello at addr:FF02:0:0:0:99:99:99:99 with port 9845" << endl;
-    } else {
-        cout << "send FAILED!" << endl;
-    }
 }
 
 mc_socket::~mc_socket()

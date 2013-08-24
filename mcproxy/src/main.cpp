@@ -46,10 +46,10 @@ int main(int arg_count, char* args[])
     //test_MC_Tables();
     //test_MC_TestTool();
 
-    test_mcproxy(arg_count, args);
+    //test_mcproxy(arg_count, args);
 
 
-    //test_test();
+    test_test();
     return 0;
 }
 
@@ -82,6 +82,9 @@ void test_mcproxy(int arg_count, char* args[])
 
 void test_test()
 {
-    addr_storage::test_addr_storage();
-
+    //addr_storage::test_addr_storage();
+    //mc_socket::test_mc_goup_functions("AF_INET", "Hallo", "eth0", "239.99.99.99", 9845);
+    //mc_socket::test_mc_goup_functions("AF_INET6", "Hallo", "eth0", "FF02:0:0:0:99:99:99:99",9845);
+    mc_socket::test_mc_source_functions("AF_INET", "eth0", "141.22.0.1");
+    //mc_socket::test_mc_source_functions("AF_INET6", "eth0", "fe80::5e26::2");
 }
