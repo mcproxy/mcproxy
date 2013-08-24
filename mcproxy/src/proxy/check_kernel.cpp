@@ -25,7 +25,6 @@
 #include "include/proxy/check_kernel.hpp"
 #include "include/utils/mroute_socket.hpp"
 
-
 #include <iostream>
 #include <unistd.h>
 
@@ -67,8 +66,8 @@ void check_kernel::check_kernel_features()
         cout << " - ipv6 multicast: Ok!" << endl;
     }
     check_routing_tables(ms, "ipv6");
-
 }
+
 
 void check_kernel::check_routing_tables(mroute_socket& ms, std::string version)
 {
@@ -92,5 +91,4 @@ void check_kernel::check_routing_tables(mroute_socket& ms, std::string version)
     }
 
 }
-
 
