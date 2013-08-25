@@ -100,14 +100,14 @@ bool igmp_sender::send_report(int if_index, const addr_storage& g_addr)
 {
     HC_LOG_TRACE("");
 
-    return m_sock.join_group(g_addr.to_string().c_str(), if_index);
+    return m_sock.join_group(g_addr.get_sockaddr_storage(), if_index);
 }
 
 bool igmp_sender::send_leave(int if_index, const addr_storage& g_addr)
 {
     HC_LOG_TRACE("");
 
-    return m_sock.leave_group(g_addr.to_string().c_str(), if_index);
+    return m_sock.leave_group(g_addr.get_sockaddr_storage(), if_index);
 }
 
 int igmp_sender::get_msg_min_size()

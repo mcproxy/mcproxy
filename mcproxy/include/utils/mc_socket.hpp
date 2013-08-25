@@ -93,7 +93,8 @@ public:
 class mc_socket
 {
 private:
-    bool generic_group_sockopt(const char* addr, int if_index, int optname);
+    bool generic_source_sockopt(const addr_storage& gaddr, const addr_storage& saddr, int if_index, int optname);
+    bool generic_group_sockopt(const addr_storage& gaddr, int if_index, int optname);
 protected:
     /**
      * @brief Used socket descriptor
@@ -227,7 +228,7 @@ public:
      * @param if_index define related interface 
      * @return Return true on success.
      */
-    bool join_group(const char* addr, int if_index);
+    bool join_group(const addr_storage& gaddr, int if_index);
 
     /**
      * @brief Leave a multicast group on a specific network interface.
@@ -235,7 +236,7 @@ public:
      * @param if_index define related interface 
      * @return Return true on success.
      */
-    bool leave_group(const char* addr, int if_index);
+    bool leave_group(const addr_storage& gaddr, int if_index);
 
     /**
      * @brief Block a source on a specific network interface.
@@ -243,7 +244,7 @@ public:
      * @param if_index define related interface 
      * @return Return true on success.
      */
-    bool block_source(const char* addr, int if_index);
+    bool block_source(const addr_storage& gaddr, const addr_storage& saddr, int if_index);
 
     /**
      * @brief Unblock a source on a specific network interface.
@@ -251,7 +252,7 @@ public:
      * @param if_index define related interface 
      * @return Return true on success.
      */
-    bool unblock_source(const char* addr, int if_index);
+    bool unblock_source(const addr_storage& gaddr, const addr_storage& saddr, int if_index);
 
     /**
      * @brief Join a source on a specific network interface.
@@ -259,7 +260,7 @@ public:
      * @param if_index define related interface 
      * @return Return true on success.
      */
-    bool join_source_group(const char* addr, int if_index);
+    bool join_source_group(const addr_storage& gaddr, const addr_storage& saddr, int if_index);
 
     /**
      * @brief Leave a source on a specific network interface.
@@ -267,7 +268,7 @@ public:
      * @param if_index define related interface 
      * @return Return true on success.
      */
-    bool leave_source_group(const char* addr, int if_index);
+    bool leave_source_group(const addr_storage& gaddr, const addr_storage& saddr, int if_index);
 
     /**
      * @brief Check for valid socket descriptor.
@@ -289,7 +290,7 @@ public:
     /**
      * @brief Test a part of the class mc_socket.
      */
-    static void test_mc_source_functions(string ipversion, string interface, string saddr);
+    static void test_mc_source_functions(string ipversion, string interface, string gaddr, string saddr_a, string saddr_b);
 
 };
 
