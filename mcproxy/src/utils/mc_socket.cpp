@@ -241,37 +241,23 @@ bool mc_socket::set_loop_back(bool enable)
     }
 }
 
-bool mc_socket::send_packet(const char* addr, int port, string data)
+bool mc_socket::send_packet(const addr_storage& addr, string data)
 {
-    return send_packet(addr, port, (unsigned char*)data.c_str(), data.size());
+    return send_packet(addr, reinterpret_cast<const unsigned char*>(data.c_str()), data.size());
 }
 
-bool mc_socket::send_packet(const char* addr, int port, const unsigned char* data, unsigned int data_size)
+bool mc_socket::send_packet(const addr_storage& addr, const unsigned char* data, unsigned int data_size)
 {
-    HC_LOG_TRACE("");
+    HC_LOG_TRACE("addr: " << addr << " port: " << addr.get_port() << " data_size: "<< data_size);
 
     if (!is_udp_valid()) {
         HC_LOG_ERROR("udp_socket invalid");
         return false;
     }
 
-    struct addrinfo *grp = nullptr;
-    struct addrinfo hints;
     int rc = 0;
 
-    memset (&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_DGRAM;
-
-    string str_port = boost::lexical_cast<string>( port );
-
-    if ((rc = getaddrinfo(addr, str_port.c_str(), &hints, &grp)) != 0) {
-        HC_LOG_ERROR("failed to generate addrinfo:" << gai_strerror(rc));
-        return false;
-    }
-    save_free<free_fun, struct addrinfo*> free(&freeaddrinfo, grp);
-
-    rc = sendto(m_sock, data, data_size, 0, grp->ai_addr, grp->ai_addrlen);
+    rc = sendto(m_sock, data, data_size, 0, &addr.get_sockaddr() ,addr.get_addr_len());
 
     if (rc == -1) {
         HC_LOG_ERROR("failed to send! Error: " << strerror(errno)  << " errno: " << errno);
@@ -590,16 +576,10 @@ bool mc_socket::generic_source_sockopt(const addr_storage& gaddr, const addr_sto
 void mc_socket::test_mc_goup_functions(string ipversion, string msg, string interface, string gaddr, int port)
 {
     HC_LOG_TRACE("");
-    cout << "##-- Test multicast group managment funktions --##" << endl;
+    cout << "##-- Test multicast group managment functions --##" << endl;
     mc_socket m;
     int count = 0;
     int sleepTime = 1;
-    //string msg = "Hallo";
-    //string interface = "eth0";
-    //int port =9845;
-    //string gaddr = "238.99.99.99";
-    //string gaddr_v4 = "238.99.99.99";
-    //string gaddr_v6 = "FF02:0:0:0:99:99:99:99";
 
     cout << "--<" << count++ << "> Create an udp " << ipversion << " socket --" << endl;
     if (ipversion.compare("AF_INET") == 0) {
@@ -620,13 +600,13 @@ void mc_socket::test_mc_goup_functions(string ipversion, string msg, string inte
     }
 
     cout << "--<" << count++ << "> Join and leave --" << endl;
-    if (m.join_group(addr_storage(gaddr).get_sockaddr_storage(), if_nametoindex(interface.c_str()))) {
+    if (m.join_group(addr_storage(gaddr), if_nametoindex(interface.c_str()))) {
         cout << "join OK!" << endl;
     } else {
         cout << "join FAILED!" << endl;
     }
     sleep(sleepTime);
-    if (m.leave_group(addr_storage(gaddr).get_sockaddr_storage(), if_nametoindex(interface.c_str()))) {
+    if (m.leave_group(addr_storage(gaddr), if_nametoindex(interface.c_str()))) {
         cout << "leave OK!" << endl;
     } else {
         cout << "leave FAILED!" << endl;
@@ -640,7 +620,7 @@ void mc_socket::test_mc_goup_functions(string ipversion, string msg, string inte
         cout << "choose if (" << interface << ") FAILED! " << endl;
     }
 
-    if (m.send_packet(gaddr.c_str(), port, msg)) {
+    if (m.send_packet(addr_storage(gaddr).set_port(port),  msg)) {
         cout << "send OK! " << msg << " at addr:" << gaddr << " with port " << port << endl;
     } else {
         cout << "send FAILED!" << endl;
@@ -653,24 +633,10 @@ void mc_socket::test_mc_source_functions(string ipversion, string interface, str
 {
     HC_LOG_TRACE("");
 
-    cout << "##-- Test multicast source managment funktions --##" << endl;
+    cout << "##-- Test multicast source managment functions --##" << endl;
     mc_socket m;
     int count = 0;
     int sleepTime = 4;
-    //string msg = "Hallo";
-    //string interface = "eth0";
-    //int port =9845;
-    //string gaddr = "238.99.99.99";
-    //string gaddr_v4 = "238.99.99.99";
-    //string gaddr_v6 = "FF02:0:0:0:99:99:99:99";
-
-
-    //m.block_source();
-    //m.unblock_source();
-    //m.join_source_group();
-    //m.leave_source_group();
-
-
 
     cout << "--<" << count++ << "> Create an udp " << ipversion << " socket --" << endl;
     if (ipversion.compare("AF_INET") == 0) {
@@ -691,7 +657,7 @@ void mc_socket::test_mc_source_functions(string ipversion, string interface, str
     }
 
     cout << "--<" << count++ << "> Join group " << gaddr << " --" << endl;
-    if (m.join_group(addr_storage(gaddr).get_sockaddr_storage(), if_nametoindex(interface.c_str()))) {
+    if (m.join_group(addr_storage(gaddr), if_nametoindex(interface.c_str()))) {
         cout << "join OK!" << endl;
     } else {
         cout << "join FAILED!" << endl;
@@ -700,7 +666,7 @@ void mc_socket::test_mc_source_functions(string ipversion, string interface, str
     sleep(sleepTime);
 
     cout << "--<" << count++ << "> Block source " << saddr_a << " --" << endl;
-    if (m.block_source(addr_storage(gaddr).get_sockaddr_storage(), addr_storage(saddr_a).get_sockaddr_storage(), if_nametoindex(interface.c_str()))) {
+    if (m.block_source(addr_storage(gaddr), addr_storage(saddr_a), if_nametoindex(interface.c_str()))) {
         cout << "block OK!" << endl;
     } else {
         cout << "block FAILED!" << endl;
@@ -709,7 +675,7 @@ void mc_socket::test_mc_source_functions(string ipversion, string interface, str
     sleep(sleepTime);
 
     cout << "--<" << count++ << "> Block source " << saddr_b << " --" << endl;
-    if (m.block_source(addr_storage(gaddr).get_sockaddr_storage(), addr_storage(saddr_b).get_sockaddr_storage(), if_nametoindex(interface.c_str()))) {
+    if (m.block_source(addr_storage(gaddr), addr_storage(saddr_b), if_nametoindex(interface.c_str()))) {
         cout << "block OK!" << endl;
     } else {
         cout << "block FAILED!" << endl;
@@ -718,7 +684,7 @@ void mc_socket::test_mc_source_functions(string ipversion, string interface, str
     sleep(sleepTime);
     
     cout << "--<" << count++ << "> Unblock source " << saddr_a << " --" << endl;
-    if (m.unblock_source(addr_storage(gaddr).get_sockaddr_storage(), addr_storage(saddr_a).get_sockaddr_storage(), if_nametoindex(interface.c_str()))) {
+    if (m.unblock_source(addr_storage(gaddr), addr_storage(saddr_a), if_nametoindex(interface.c_str()))) {
         cout << "unblock OK!" << endl;
     } else {
         cout << "unblock FAILED!" << endl;
@@ -726,7 +692,7 @@ void mc_socket::test_mc_source_functions(string ipversion, string interface, str
     sleep(sleepTime);
     
     cout << "--<" << count++ << "> Join source " << saddr_b << " --" << endl;
-    if (m.join_source_group(addr_storage(gaddr).get_sockaddr_storage(), addr_storage(saddr_b).get_sockaddr_storage(), if_nametoindex(interface.c_str()))) {
+    if (m.join_source_group(addr_storage(gaddr), addr_storage(saddr_b), if_nametoindex(interface.c_str()))) {
         cout << "join OK!" << endl;
     } else {
         cout << "join FAILED!" << endl;
@@ -734,7 +700,7 @@ void mc_socket::test_mc_source_functions(string ipversion, string interface, str
     sleep(sleepTime);
 
     cout << "--<" << count++ << "> Leave source " << saddr_b << " --" << endl;
-    if (m.leave_source_group(addr_storage(gaddr).get_sockaddr_storage(), addr_storage(saddr_b).get_sockaddr_storage(), if_nametoindex(interface.c_str()))) {
+    if (m.leave_source_group(addr_storage(gaddr), addr_storage(saddr_b), if_nametoindex(interface.c_str()))) {
         cout << "leave OK!" << endl;
     } else {
         cout << "leave FAILED!" << endl;
@@ -743,6 +709,23 @@ void mc_socket::test_mc_source_functions(string ipversion, string interface, str
     sleep(sleepTime);
 }
 
+void mc_socket::test_all(){
+    HC_LOG_TRACE("");
+
+    addr_storage gaddr_v4("239.99.99.99");
+    addr_storage gaddr_v6("FF02::99:99:99:99");
+    addr_storage saddr_v4_a("141.22.0.1");
+    addr_storage saddr_v4_b("141.22.0.2");
+    addr_storage saddr_v6_a("FE80:5E26::2");
+    addr_storage saddr_v6_b("FE80:5E26::3");
+    string if_name("dummy0");
+    int port = 9845; 
+
+    mc_socket::test_mc_goup_functions("AF_INET", "Hallo", if_name, gaddr_v4.to_string(), port);
+    mc_socket::test_mc_goup_functions("AF_INET6", "Hallo", if_name, gaddr_v6.to_string(),port);
+    mc_socket::test_mc_source_functions("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4_a.to_string(), saddr_v4_b.to_string());
+    mc_socket::test_mc_source_functions("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6_a.to_string(), saddr_v6_b.to_string());
+}
 mc_socket::~mc_socket()
 {
     HC_LOG_TRACE("");

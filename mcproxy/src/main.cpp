@@ -46,10 +46,10 @@ int main(int arg_count, char* args[])
     //test_MC_Tables();
     //test_MC_TestTool();
 
-    //test_mcproxy(arg_count, args);
+    test_mcproxy(arg_count, args);
 
 
-    test_test();
+    //test_test();
     return 0;
 }
 
@@ -82,16 +82,7 @@ void test_mcproxy(int arg_count, char* args[])
 
 void test_test()
 {
-    addr_storage gaddr_v4("239.99.99.99");
-    addr_storage gaddr_v6("FF02::99:99:99:99");
-    addr_storage saddr_v4_a("141.22.0.1");
-    addr_storage saddr_v4_b("141.22.0.2");
-    addr_storage saddr_v6_a("FE80:5E26::2");
-    addr_storage saddr_v6_b("FE80:5E26::3");
-    string if_name("dummy0");
-    
-    mc_socket::test_mc_goup_functions("AF_INET", "Hallo", if_name, gaddr_v4.to_string(), 9845);
-    mc_socket::test_mc_goup_functions("AF_INET6", "Hallo", if_name, gaddr_v6.to_string(),9845);
-    mc_socket::test_mc_source_functions("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4_a.to_string(), saddr_v4_b.to_string());
-    mc_socket::test_mc_source_functions("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6_a.to_string(), saddr_v6_b.to_string());
+    mc_socket::test_all();
+    //addr_storage::test_addr_storage_a();
+    //addr_storage::test_addr_storage_b();
 }

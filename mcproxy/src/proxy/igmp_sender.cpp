@@ -71,7 +71,7 @@ bool igmp_sender::send_general_query(int if_index)
         return false;
     }
 
-    return m_sock.send_packet(IPV4_ALL_HOST_ADDR, 0, buf.get(), size);
+    return m_sock.send_packet(addr_storage(IPV4_ALL_HOST_ADDR), buf.get(), size);
 }
 
 bool igmp_sender::send_group_specific_query(int if_index, const addr_storage& g_addr)
@@ -93,21 +93,21 @@ bool igmp_sender::send_group_specific_query(int if_index, const addr_storage& g_
         return false;
     }
 
-    return m_sock.send_packet(g_addr.to_string().c_str(), 0, buf.get(), size);
+    return m_sock.send_packet(addr_storage(g_addr), buf.get(), size);
 }
 
 bool igmp_sender::send_report(int if_index, const addr_storage& g_addr)
 {
     HC_LOG_TRACE("");
 
-    return m_sock.join_group(g_addr.get_sockaddr_storage(), if_index);
+    return m_sock.join_group(g_addr, if_index);
 }
 
 bool igmp_sender::send_leave(int if_index, const addr_storage& g_addr)
 {
     HC_LOG_TRACE("");
 
-    return m_sock.leave_group(g_addr.get_sockaddr_storage(), if_index);
+    return m_sock.leave_group(g_addr, if_index);
 }
 
 int igmp_sender::get_msg_min_size()

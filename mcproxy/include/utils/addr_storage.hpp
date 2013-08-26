@@ -48,49 +48,49 @@ public:
     addr_storage();
 
     /**
-     * @brief Create a zero address specific storage.
-     */
-    addr_storage(int addr_family);
-
-    /**
-     * @brief Create an addr_storage based on a clear text ip.
-     */
-    addr_storage(const std::string& addr);
-
-    /**
-     * @brief Create an addr_storage based on the struct sockaddr_storage.
-     */
-    addr_storage(const struct sockaddr_storage& addr);
-
-    /**
      * @brief Copy constructor
      */
     addr_storage(const addr_storage& addr);
 
     /**
+     * @brief Create a zero address specific storage.
+     */
+    explicit addr_storage(int addr_family);
+
+    /**
+     * @brief Create an addr_storage based on a clear text ip.
+     */
+    explicit addr_storage(const std::string& addr);
+
+    /**
+     * @brief Create an addr_storage based on the struct sockaddr_storage.
+     */
+    explicit addr_storage(const struct sockaddr_storage& addr);
+
+    /**
      * @brief Create an addr_storage based on struct in_add.
      */
-    addr_storage(const struct in_addr& addr);
+    explicit addr_storage(const struct in_addr& addr);
 
     /**
      * @brief Create an addr_storage based on struct in6_addr.
      */
-    addr_storage(const struct in6_addr& addr);
+    explicit addr_storage(const struct in6_addr& addr);
 
     /**
      * @brief Create an addr_storage based on struct sockaddr.
      */
-    addr_storage(const struct sockaddr& addr);
+    explicit addr_storage(const struct sockaddr& addr);
 
     /**
      * @brief Create an addr_storage based on struct sockaddr_in.
      */
-    addr_storage(const struct sockaddr_in& addr);
+    explicit addr_storage(const struct sockaddr_in& addr);
 
     /**
      * @brief Create an addr_storage based on struct sockaddr_in6.
      */
-    addr_storage(const struct sockaddr_in6& addr);
+    explicit addr_storage(const struct sockaddr_in6& addr);
 
 //-----------------------------------------------------------
 
@@ -164,14 +164,14 @@ public:
     int get_addr_family() const;
 
     /**
-     * @brief return current port or return 0 if no port exist
+     * @brief return current port in host bye order or return 0 if no port exist
      */
     int get_port() const;
 
     /**
-     * @brief return current port or return 0 if no port exist
+     * @brief set a port in host byte order
      */
-    addr_storage& set_port(int port);
+    addr_storage& set_port(uint16_t port);
 
     /**
      * @brief return current port or return 0 if no port exist
@@ -230,8 +230,8 @@ public:
     /**
      * @brief simple test output
      */
-    static void test_addr_storage_old();
-    static void test_addr_storage();
+    static void test_addr_storage_a();
+    static void test_addr_storage_b();
 };
 
 

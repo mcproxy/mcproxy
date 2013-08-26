@@ -74,6 +74,7 @@ addr_storage::addr_storage(int addr_family)
 addr_storage::addr_storage(const std::string& addr)
 {
     HC_LOG_TRACE("");
+    
     *this = addr;
 }
 
@@ -286,14 +287,14 @@ int addr_storage::get_port() const
 {
     HC_LOG_TRACE("");
 
-    return ((sockaddr_in*)&m_addr)->sin_port;
+    return ntohs(((sockaddr_in*)&m_addr)->sin_port);
 }
 
-addr_storage& addr_storage::set_port(int port)
+addr_storage& addr_storage::set_port(uint16_t port)
 {
     HC_LOG_TRACE("");
 
-    ((sockaddr_in*)&m_addr)->sin_port = port;
+    ((sockaddr_in*)&m_addr)->sin_port = htons(port);
     return *this;
 }
 
@@ -301,7 +302,7 @@ addr_storage& addr_storage::set_port(const string& port)
 {
     HC_LOG_TRACE("");
 
-    set_port(atoi(port.c_str()));
+    set_port(stoi(port.c_str()));
     return *this;
 }
 
@@ -395,7 +396,7 @@ addr_storage& addr_storage::mask(const addr_storage& s)
     return *this;
 }
 
-void addr_storage::test_addr_storage_old()
+void addr_storage::test_addr_storage_a()
 {
     HC_LOG_TRACE("");
 
@@ -497,7 +498,7 @@ void addr_storage::test_addr_storage_old()
 
 }
 
-void addr_storage::test_addr_storage()
+void addr_storage::test_addr_storage_b()
 {
     HC_LOG_TRACE("");
 
@@ -513,6 +514,11 @@ void addr_storage::test_addr_storage()
     const string s6("1:2:3::4");
     const addr_storage a4(s4);
     const addr_storage a6(s6);
+    const string sport = "123";
+    const int iport = 123;
+
+    addr_storage a4a;
+    addr_storage a6a;
 
     cout << "const string s4(\"1.2.3.4\");" << endl;
     cout << "const string s6(\"1:2:3::4\");" << endl;
@@ -581,19 +587,18 @@ void addr_storage::test_addr_storage()
     cout << "addr_storage a6a(s6);" << endl;
     cout << "const int port = 123;" << endl;
 
-    addr_storage a4a(s4);
-    addr_storage a6a(s6);
-    const int port = 123;
+    a4a = s4;
+    a6a = s6;
 
-    cout << "a4a.set_port(port).get_port()  == port ==> ";
-    if (a4a.set_port(port).get_port() == port) {
+    cout << "a4a.set_port(iport).get_port() == iport ==> ";
+    if (a4a.set_port(iport).get_port() == iport) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;
     }
 
-    cout << "a6a.set_port(port).get_port()  == port ==> ";
-    if (a6a.set_port(port).get_port() == port) {
+    cout << "a6a.set_port(iport).get_port() == iport ==> ";
+    if (a6a.set_port(iport).get_port() == iport) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;
@@ -607,39 +612,6 @@ void addr_storage::test_addr_storage()
     }
 
     cout << "a6.to_string().compare(s6) ==> ";
-    if (a6a.to_string().compare(s6) == 0) {
-        cout << "OK!" << endl;
-    } else {
-        cout << "FAILED!" << endl;
-    }
-
-    cout << "-------------------------------" << endl;
-    cout << "const int bad_port = 0xFFFFFF;" << endl;
-    const int bad_port = 0xFFFFFF;
-
-
-    cout << "a4a.set_port(bad_port).get_port()  != bad_port ==> ";
-    if (a4a.set_port(bad_port).get_port() != bad_port) {
-        cout << "OK!" << endl;
-    } else {
-        cout << "FAILED!" << endl;
-    }
-
-    cout << "a6a.set_port(port).get_port()  != port ==> ";
-    if (a6a.set_port(bad_port).get_port() != bad_port) {
-        cout << "OK!" << endl;
-    } else {
-        cout << "FAILED!" << endl;
-    }
-
-    cout << "a4a.to_string().compare(s4) ==> ";
-    if (a4a.to_string().compare(s4) == 0) {
-        cout << "OK!" << endl;
-    } else {
-        cout << "FAILED!" << endl;
-    }
-
-    cout << "a6a.to_string().compare(s6) ==> ";
     if (a6a.to_string().compare(s6) == 0) {
         cout << "OK!" << endl;
     } else {
@@ -651,17 +623,15 @@ void addr_storage::test_addr_storage()
     a4a = s4;
     a6a = s6;
 
-    const string sport = "123";
-
-    cout << "a4a.set_port(port).get_port()  == port ==> ";
-    if (a4a.set_port(port).get_port() == port) {
+    cout << "a4a.set_port(iport).get_port() == iport ==> ";
+    if (a4a.set_port(iport).get_port() == iport) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;
     }
 
-    cout << "a6a.set_port(port).get_port()  == port ==> ";
-    if (a6a.set_port(port).get_port() == port) {
+    cout << "a6a.set_port(iport).get_port() == iport ==> ";
+    if (a6a.set_port(iport).get_port() == iport) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;
@@ -681,5 +651,42 @@ void addr_storage::test_addr_storage()
         cout << "FAILED!" << endl;
     }
 
+    cout << "-------------------------------" << endl;
+    a4a =  a4;
+    a6a =  a6;
+    cout << "addr_storage(a4a.set_port(iport).get_sockaddr_in()).get_port() == iport ==> ";
+    if(addr_storage(a4a.set_port(iport).get_sockaddr_in()).get_port() == iport){
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+   
+    cout << "addr_storage(a6a.set_port(iport).get_sockaddr_in6()).get_port() == iport ==> ";
+    if(addr_storage(a6a.set_port(iport).get_sockaddr_in6()).get_port() == iport){
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(a4a.set_port(iport).get_in_addr()).get_port()) == 0 ==> ";
+    if(addr_storage(a4a.set_port(iport).get_in_addr()).get_port() == 0){
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+   
+    cout << "a6a.set_port(iport).get_sockaddr_in().sin_port == iport ==> ";
+    if(a4a.set_port(iport).get_sockaddr_in().sin_port == iport){
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "a6a.set_port(iport).get_sockaddr_in6().sin6_port == iport ==> ";
+    if(a6a.set_port(iport).get_sockaddr_in6().sin6_port == iport){
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
 }
 

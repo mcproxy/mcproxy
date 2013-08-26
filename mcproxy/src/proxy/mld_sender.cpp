@@ -76,7 +76,7 @@ bool mld_sender::send_general_query(int if_index)
         return false;
     }
 
-    return m_sock.send_packet(IPV6_ALL_NODES_ADDR, 0, buf.get(), size);
+    return m_sock.send_packet(addr_storage(IPV6_ALL_NODES_ADDR), buf.get(), size);
 }
 
 bool mld_sender::send_group_specific_query(int if_index, const addr_storage& g_addr)
@@ -98,7 +98,7 @@ bool mld_sender::send_group_specific_query(int if_index, const addr_storage& g_a
         return false;
     }
 
-    return m_sock.send_packet(g_addr.to_string().c_str(), 0, buf.get(), size);
+    return m_sock.send_packet(g_addr, buf.get(), size);
 }
 
 int mld_sender::get_msg_min_size()
@@ -117,14 +117,14 @@ bool mld_sender::send_report(int if_index, const addr_storage& g_addr)
 {
     HC_LOG_TRACE("");
 
-    return m_sock.join_group(g_addr.get_sockaddr_storage(), if_index);
+    return m_sock.join_group(g_addr, if_index);
 }
 
 bool mld_sender::send_leave(int if_index, const addr_storage& g_addr)
 {
     HC_LOG_TRACE("");
 
-    return m_sock.leave_group(g_addr.get_sockaddr_storage(), if_index);
+    return m_sock.leave_group(g_addr, if_index);
 }
 
 bool mld_sender::create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr)

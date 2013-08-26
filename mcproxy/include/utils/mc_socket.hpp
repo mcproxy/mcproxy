@@ -68,23 +68,23 @@ using namespace std;
 #define IPV6_ALL_MLDv2_CAPABLE_ROUTERS            "ff02::16"      //All MLDv2-capable routers [RFC3810]
 #define IPV6_ALL_PIM_ROUTERS                      "ff02::d"       //All PIM Routers
 
-string ipAddrResolver(string ipAddr);
+//string ipAddrResolver(string ipAddr);
 
-typedef void (*free_fun) (struct addrinfo*);
+//typedef void (*free_fun) (struct addrinfo*);
 
-template< typename F, typename V>
-struct save_free {
-private:
-    F m_fun;
-    V m_val;
-public:
-    save_free(F fun, V val): m_fun(fun), m_val(val) {
-    }
+//template< typename F, typename V>
+//struct save_free {
+//private:
+    //F m_fun;
+    //V m_val;
+//public:
+    //save_free(F fun, V val): m_fun(fun), m_val(val) {
+    //}
 
-    virtual ~save_free() {
-        (*m_fun)(m_val);
-    }
-};
+    //virtual ~save_free() {
+        //(*m_fun)(m_val);
+    //}
+//};
 
 //Multicast Socket
 /**
@@ -169,22 +169,20 @@ public:
 
     /**
      * @brief Send a string to a specific ip address and to a specific port.
-     * @param addr destination address of packet in clear text
-     * @param port destination port
+     * @param addr destination address of packet and the destination prot 
      * @param data message to send
      * @return Return true on success.
      */
-    bool send_packet(const char* addr, int port, string data);
+    bool send_packet(const addr_storage& addr, string data);
 
     /**
      * @brief Send data to a specific ip address and to a specific port.
-     * @param addr destination address of the packet in clear text
-     * @param port destination port
+     * @param addr destination address of packet and the destination prot 
      * @param data data to send
      * @param data_size size of the data
      * @return Return true on success.
      */
-    bool send_packet(const char* addr, int port, const unsigned char* data, unsigned int data_size);
+    bool send_packet(const addr_storage& addr, const unsigned char* data, unsigned int data_size);
 
     /**
      * @brief Receive a datagram
@@ -224,7 +222,7 @@ public:
 
     /**
      * @brief Join a multicast group on a specific network interface.
-     * @param addr clear text multicast group 
+     * @param addr multicast group 
      * @param if_index define related interface 
      * @return Return true on success.
      */
@@ -232,7 +230,7 @@ public:
 
     /**
      * @brief Leave a multicast group on a specific network interface.
-     * @param addr clear text multicast group 
+     * @param addr multicast group 
      * @param if_index define related interface 
      * @return Return true on success.
      */
@@ -240,7 +238,7 @@ public:
 
     /**
      * @brief Block a source on a specific network interface.
-     * @param addr clear text multicast group 
+     * @param addr multicast group 
      * @param if_index define related interface 
      * @return Return true on success.
      */
@@ -248,7 +246,7 @@ public:
 
     /**
      * @brief Unblock a source on a specific network interface.
-     * @param addr clear text multicast group 
+     * @param addr multicast group 
      * @param if_index define related interface 
      * @return Return true on success.
      */
@@ -256,7 +254,7 @@ public:
 
     /**
      * @brief Join a source on a specific network interface.
-     * @param addr clear text multicast group 
+     * @param addr multicast group 
      * @param if_index define related interface 
      * @return Return true on success.
      */
@@ -264,7 +262,7 @@ public:
 
     /**
      * @brief Leave a source on a specific network interface.
-     * @param addr clear text multicast group 
+     * @param addr multicast group 
      * @param if_index define related interface 
      * @return Return true on success.
      */
@@ -292,6 +290,7 @@ public:
      */
     static void test_mc_source_functions(string ipversion, string interface, string gaddr, string saddr_a, string saddr_b);
 
+    static void test_all();
 };
 
 #endif /* MCSOCKET_H_ */
