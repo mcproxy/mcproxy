@@ -375,7 +375,7 @@ bool mroute_socket::set_mrt_flag(bool enable)
 
 //vifNum musst the same uniqueName  on delVIF (0 > vifNum < MAXVIF ==32)
 //iff_register = true if used for PIM Register encap/decap
-bool mroute_socket::add_vif(int vifNum, const char* ifName, const char* ipTunnelRemoteAddr)
+bool mroute_socket::add_vif(int vifNum, int if_index, const addr_storage& ip_tunnel_remote_addr)
 {
     HC_LOG_TRACE("");
 
@@ -388,7 +388,6 @@ bool mroute_socket::add_vif(int vifNum, const char* ifName, const char* ipTunnel
 
     if (m_addrFamily == AF_INET) {
         struct vifctl vc;
-        vifi_t index = if_nametoindex(ifName);
 
         //VIFF_TUNNEL   /* vif represents a tunnel end-point */
         //VIFF_SRCRT    /* tunnel uses IP src routing */
@@ -401,12 +400,10 @@ bool mroute_socket::add_vif(int vifNum, const char* ifName, const char* ipTunnel
         vc.vifc_flags = flags;
         vc.vifc_threshold = MROUTE_TTL_THRESHOLD;
         vc.vifc_rate_limit = MROUTE_RATE_LIMIT_ENDLESS;
-        vc.vifc_lcl_ifindex = index;
+        vc.vifc_lcl_ifindex = if_index;
 
-        if (ipTunnelRemoteAddr != nullptr) {
-            if (!inet_pton(AF_INET, ipTunnelRemoteAddr, (void*)&vc.vifc_rmt_addr) > 0) {
-                HC_LOG_ERROR("cannot convert ipTunnelRemoteAddr: " << ipTunnelRemoteAddr);
-            }
+        if (ip_tunnel_remote_addr.is_valid()) {
+            vc.vifc_rmt_addr = ip_tunnel_remote_addr.get_in_addr();
         }
 
         rc = setsockopt(m_sock, IPPROTO_IP, MRT_ADD_VIF, (void *)&vc, sizeof(vc));
@@ -419,7 +416,6 @@ bool mroute_socket::add_vif(int vifNum, const char* ifName, const char* ipTunnel
 
     } else if (m_addrFamily == AF_INET6) {
         struct mif6ctl mc;
-        mifi_t index = if_nametoindex(ifName);
 
         unsigned char flags;
         flags = 0;
@@ -429,7 +425,7 @@ bool mroute_socket::add_vif(int vifNum, const char* ifName, const char* ipTunnel
         mc.mif6c_flags = flags;
         mc.vifc_rate_limit = MROUTE_RATE_LIMIT_ENDLESS;
         mc.vifc_threshold = MROUTE_TTL_THRESHOLD;
-        mc.mif6c_pifi = index;
+        mc.mif6c_pifi = if_index;
 
         rc = setsockopt(m_sock, IPPROTO_IPV6, MRT6_ADD_MIF, (void *)&mc, sizeof(mc));
         if (rc == -1) {
@@ -486,7 +482,7 @@ bool mroute_socket::del_vif(int vifNum)
     }
 }
 
-bool mroute_socket::bind_vif_to_table(const char* ifName, int table)
+bool mroute_socket::bind_vif_to_table(int if_index, int table)
 {
     HC_LOG_TRACE("");
 
@@ -508,8 +504,13 @@ bool mroute_socket::bind_vif_to_table(const char* ifName, int table)
         return false;
     }
 
-    oss_in << cmd << " add iif " << ifName << " lookup " << table;
-    oss_out << cmd << " add oif " << ifName << " lookup " << table;
+    char if_name[IF_NAMESIZE];
+    if (if_indextoname(if_index, if_name) == nullptr) {
+        HC_LOG_ERROR("failed to convert if_index to name! Error: " << strerror(errno) << " errno: " << errno);
+    }
+
+    oss_in << cmd << " add iif " << if_name << " lookup " << table;
+    oss_out << cmd << " add oif " << if_name << " lookup " << table;
 
     if (system(oss_in.str().c_str()) != 0 ) {
         HC_LOG_ERROR("failed to bind vif to table! Error on cmd: " << oss_in.str());
@@ -525,7 +526,7 @@ bool mroute_socket::bind_vif_to_table(const char* ifName, int table)
 }
 
 
-bool mroute_socket::unbind_vif_form_table(const char* ifName, int table)
+bool mroute_socket::unbind_vif_form_table(int if_index, int table)
 {
     HC_LOG_TRACE("");
 
@@ -547,8 +548,13 @@ bool mroute_socket::unbind_vif_form_table(const char* ifName, int table)
         return false;
     }
 
-    oss_in << cmd << " del iif " << ifName << " lookup " << table;
-    oss_out << cmd << " del oif " << ifName << " lookup " << table;
+    char if_name[IF_NAMESIZE];
+    if (if_indextoname(if_index, if_name) == nullptr) {
+        HC_LOG_ERROR("failed to convert if_index to name! Error: " << strerror(errno) << " errno: " << errno);
+    }
+
+    oss_in << cmd << " del iif " << if_name << " lookup " << table;
+    oss_out << cmd << " del oif " << if_name << " lookup " << table;
 
     if (system(oss_in.str().c_str()) != 0 ) {
         HC_LOG_ERROR("failed to unbind vif from table! Error on cmd: " << oss_in.str());
@@ -566,8 +572,7 @@ bool mroute_socket::unbind_vif_form_table(const char* ifName, int table)
 
 //source_addr is the source address of the received multicast packet
 //group_addr group address of the received multicast packet
-bool mroute_socket::add_mroute(int input_vifNum, const char* source_addr, const char* group_addr,
-                               const std::list<unsigned int>& output_vif)
+bool mroute_socket::add_mroute(int input_vifNum, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif)
 {
 
 //unsigned int* output_vifTTL, unsigned int output_vifTTL_Ncount){
@@ -585,30 +590,15 @@ bool mroute_socket::add_mroute(int input_vifNum, const char* source_addr, const 
         struct mfcctl mc;
         memset(&mc, 0, sizeof(mc));
 
-        if (!inet_pton(m_addrFamily, source_addr, &mc.mfcc_origin) > 0) {
-            HC_LOG_ERROR("cannot convert source_addr: " << source_addr);
-            return false;
-        }
-
-        if (!inet_pton(m_addrFamily, group_addr, &mc.mfcc_mcastgrp) > 0) {
-            HC_LOG_ERROR("cannot convert group_addr: " << group_addr);
-            return false;
-        }
-
+        mc.mfcc_origin = source_addr.get_in_addr();
+        mc.mfcc_mcastgrp = group_addr.get_in_addr();
         mc.mfcc_parent = input_vifNum;
 
-        //if(output_vifTTL_Ncount >= MAXVIFS){
-        //HC_LOG_ERROR("output_vifNum_size to large: " << output_vifTTL_Ncount);
-        //return false;
-        //}
         if (output_vif.size() > MAXVIFS) {
             HC_LOG_ERROR("output_vifNum_size to large: " << output_vif.size());
             return false;
         }
 
-        //for (unsigned int i = 0; i < output_vifTTL_Ncount; i++){
-        //mc.mfcc_ttls[output_vifTTL[i]] = MROUTE_DEFAULT_TTL;
-        //}
         for (auto e : output_vif) {
             mc.mfcc_ttls[e] = MROUTE_DEFAULT_TTL;
         }
@@ -626,34 +616,18 @@ bool mroute_socket::add_mroute(int input_vifNum, const char* source_addr, const 
         struct mf6cctl mc;
         memset(&mc, 0, sizeof(mc));
 
-        if (!inet_pton(m_addrFamily, source_addr, &mc.mf6cc_origin.sin6_addr) > 0) {
-            HC_LOG_ERROR("cannot convert source_addr: " << source_addr);
-            return false;
-        }
-
-        if (!inet_pton(m_addrFamily, group_addr, &mc.mf6cc_mcastgrp.sin6_addr) > 0) {
-            HC_LOG_ERROR("cannot convert group_addr: " << group_addr);
-            return false;
-        }
-
+        mc.mf6cc_origin.sin6_addr = source_addr.get_in6_addr();
+        mc.mf6cc_mcastgrp.sin6_addr = group_addr.get_in6_addr();
         mc.mf6cc_parent = input_vifNum;
 
-        //if(output_vifTTL_Ncount >= MAXMIFS){
-        //HC_LOG_ERROR("output_vifNum_size to large: " << output_vifTTL_Ncount);
-        //return false;
-        //}
         if (output_vif.size() > MAXMIFS) {
             HC_LOG_ERROR("output_vifNum_size to large: " << output_vif.size());
             return false;
         }
 
-        //for (unsigned int i = 0; i < output_vifTTL_Ncount; i++){
-        //IF_SET(output_vifTTL[i],&mc.mf6cc_ifset);
-        //}
         for (auto e : output_vif) {
             IF_SET(e, &mc.mf6cc_ifset);
         }
-
 
         rc = setsockopt(m_sock, IPPROTO_IPV6, MRT6_ADD_MFC, (void*)&mc, sizeof(mc));
         if (rc == -1) {
@@ -670,7 +644,7 @@ bool mroute_socket::add_mroute(int input_vifNum, const char* source_addr, const 
 
 }
 
-bool mroute_socket::del_mroute(int input_vifNum, const char* source_addr, const char* group_addr)
+bool mroute_socket::del_mroute(int input_vifNum, const addr_storage& source_addr, const addr_storage& group_addr)
 {
     HC_LOG_TRACE("");
 
@@ -685,16 +659,8 @@ bool mroute_socket::del_mroute(int input_vifNum, const char* source_addr, const 
         struct mfcctl mc;
         memset(&mc, 0, sizeof(mc));
 
-        if (!inet_pton(m_addrFamily, source_addr, &mc.mfcc_origin) > 0) {
-            HC_LOG_ERROR("cannot convert source_addr: " << source_addr);
-            return false;
-        }
-
-        if (!inet_pton(m_addrFamily, group_addr, &mc.mfcc_mcastgrp) > 0) {
-            HC_LOG_ERROR("cannot convert group_addr: " << group_addr);
-            return false;
-        }
-
+        mc.mfcc_origin = source_addr.get_in_addr();
+        mc.mfcc_mcastgrp = group_addr.get_in_addr();
         mc.mfcc_parent = input_vifNum;
 
         rc = setsockopt(m_sock, IPPROTO_IP, MRT_DEL_MFC, (void *)&mc, sizeof(mc));
@@ -709,16 +675,8 @@ bool mroute_socket::del_mroute(int input_vifNum, const char* source_addr, const 
         struct mf6cctl mc;
         memset(&mc, 0, sizeof(mc));
 
-        if (!inet_pton(m_addrFamily, source_addr, &mc.mf6cc_origin.sin6_addr) > 0) {
-            HC_LOG_ERROR("cannot convert source_addr: " << source_addr);
-            return false;
-        }
-
-        if (!inet_pton(m_addrFamily, group_addr, &mc.mf6cc_mcastgrp.sin6_addr) > 0) {
-            HC_LOG_ERROR("cannot convert group_addr: " << group_addr);
-            return false;
-        }
-
+        mc.mf6cc_origin.sin6_addr = source_addr.get_in6_addr();
+        mc.mf6cc_mcastgrp.sin6_addr = group_addr.get_in6_addr();
         mc.mf6cc_parent = input_vifNum;
 
         rc = setsockopt(m_sock, IPPROTO_IPV6, MRT6_DEL_MFC, (void *)&mc, sizeof(mc));
@@ -787,8 +745,7 @@ bool mroute_socket::get_vif_stats(int vif_index, struct sioc_vif_req* req_v4, st
     return false;
 }
 
-bool mroute_socket::get_mroute_stats(const char* source_addr, const char* group_addr, struct sioc_sg_req* sgreq_v4,
-                                     struct sioc_sg_req6* sgreq_v6)
+bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr, struct sioc_sg_req* sgreq_v4, struct sioc_sg_req6* sgreq_v6)
 {
     HC_LOG_TRACE("");
 
@@ -802,15 +759,10 @@ bool mroute_socket::get_mroute_stats(const char* source_addr, const char* group_
     if (m_addrFamily == AF_INET) {
         if (sgreq_v4 != nullptr) {
 
-            if (!inet_pton(m_addrFamily, source_addr, &sgreq_v4->src) > 0) {
-                HC_LOG_ERROR("cannot convert source_addr: " << source_addr);
-                return false;
-            }
+            memset(sgreq_v4, 0, sizeof(struct sioc_sg_req));
 
-            if (!inet_pton(m_addrFamily, group_addr, &sgreq_v4->grp) > 0) {
-                HC_LOG_ERROR("cannot convert group_addr: " << group_addr);
-                return false;
-            }
+            sgreq_v4->src = source_addr.get_in_addr();
+            sgreq_v4->grp = group_addr.get_in_addr();
 
             rc = ioctl(m_sock, SIOCGETSGCNT, sgreq_v4);;
             if (rc == -1) {
@@ -829,15 +781,8 @@ bool mroute_socket::get_mroute_stats(const char* source_addr, const char* group_
 
             memset(sgreq_v6, 0, sizeof(struct sioc_sg_req6));
 
-            if (!inet_pton(m_addrFamily, source_addr, &sgreq_v6->src.sin6_addr) > 0) {
-                HC_LOG_ERROR("cannot convert source_addr: " << source_addr);
-                return false;
-            }
-
-            if (!inet_pton(m_addrFamily, group_addr, &sgreq_v6->grp.sin6_addr) > 0) {
-                HC_LOG_ERROR("cannot convert group_addr: " << group_addr);
-                return false;
-            }
+            sgreq_v6->src.sin6_addr = source_addr.get_in6_addr();
+            sgreq_v6->grp.sin6_addr = group_addr.get_in6_addr();
 
             rc = ioctl(m_sock, SIOCGETSGCNT_IN6, sgreq_v6);
             if (rc == -1) {
@@ -890,7 +835,7 @@ void mroute_socket::print_vif_stats(int vif_index)
     }
 }
 
-void mroute_socket::print_mroute_stats(const char* source_addr, const char* group_addr)
+void mroute_socket::print_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr)
 {
     HC_LOG_TRACE("");
 
@@ -1103,16 +1048,16 @@ void mroute_socket::test_add_vifs(mroute_socket* m)
 
 
     cout << "-- addVIFs test --" << endl;
-    if (m->add_vif(if_one, str_if_one.c_str(), nullptr)) {
+    if (m->add_vif(if_one, if_nametoindex(str_if_one.c_str()), addr_storage())) {
         cout << "addVIF " << str_if_one << " OK!" << endl;
     } else {
         cout << "addVIF " << str_if_one << " FAILED!" << endl;
     }
 
-    if (m->add_vif(if_two, str_if_two.c_str(), nullptr)) {
+    if (m->add_vif(if_two, if_nametoindex(str_if_two.c_str()), addr_storage())) {
         cout << "addVIF " << str_if_two << " OK!" << endl;
     } else {
-        cout << "addVIF " << str_if_two << " FAILED!" << endl;
+        //cout << "addVIF " << str_if_two << " FAILED!" << end;
     }
 
 
@@ -1150,8 +1095,8 @@ void mroute_socket::test_add_route(mroute_socket* m)
 {
     HC_LOG_TRACE("");
 
-    const char* src_addr;
-    const char* g_addr;
+    addr_storage src_addr;
+    addr_storage g_addr;
     const int if_one = MROUTE_SOCKET_IF_NUM_ONE;
     const string str_if_one = MROUTE_SOCKET_IF_STR_ONE;
     const unsigned int if_two = MROUTE_SOCKET_IF_NUM_TWO;
@@ -1184,8 +1129,8 @@ void mroute_socket::test_del_route(mroute_socket* m)
 {
     HC_LOG_TRACE("");
 
-    const char* src_addr;
-    const char* g_addr;
+    addr_storage src_addr;
+    addr_storage g_addr;
     int if_one = MROUTE_SOCKET_IF_NUM_ONE;
     string str_if_one = MROUTE_SOCKET_IF_STR_ONE;
     string str_if_two = MROUTE_SOCKET_IF_STR_TWO;

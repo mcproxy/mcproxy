@@ -156,27 +156,27 @@ public:
      *        - /proc/net$ cat ip_mr_vif displays the added interface
      *
      * @param vifNum musst the same unique number as delVIF (0 > uniqueNumber < MAXVIF ==32)
-     * @param ifName is the interface name e. g. "eth0"
-     * @param ipTunnelRemoteAddr if the interface is a tunnel interface the remote address has to set else it has to be NULL
+     * @param if_index is the interface index      
+     * @param ip_tunnel_remote_addr if the interface is a tunnel interface the remote address has to set else it has to be an empty addr_storage
      * @return Return true on success.
      */
-    bool add_vif(int vifNum, const char* ifName, const char* ipTunnelRemoteAddr);
+    bool add_vif(int vifNum, int if_index, const addr_storage& ip_tunnel_remote_addr);
 
     /**
-     * @brief Bind the virtual interface to a spezific table as output and input interface
-     * @param vifNum is the virtual interface index
+     * @brief Bind the interface to a spezific table as output and input interface
+     * @param if_index is the interface index
      * @param table is the spezific table
      * @return Return true on success.
      */
-    bool bind_vif_to_table(const char* ifName, int table);
+    bool bind_vif_to_table(int if_index, int table);
 
     /**
-     * @brief unbind the virtual interface from a spezific table as output and input interface
-     * @param vifNum is the virtual interface index
+     * @brief unbind the interface from a spezific table as output and input interface
+     * @param if_index is the interface index
      * @param table is the spezific table
      * @return Return true on success.
      */
-    bool unbind_vif_form_table(const char* ifName, int table);
+    bool unbind_vif_form_table(int if_index, int table);
 
 
     /**
@@ -197,8 +197,7 @@ public:
      * @param output_vifNum_size size of the interface indexes
      * @return Return true on success.
      */
-    bool add_mroute(int input_vifNum, const char* source_addr, const char* group_addr,
-                    const std::list<unsigned int>& output_vif);
+    bool add_mroute(int input_vifNum, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif);
 
     /**
      * @brief Delete a multicast route.
@@ -207,7 +206,7 @@ public:
      * @param group_addr from the receiving packet
      * @return Return true on success.
      */
-    bool del_mroute(int input_vifNum, const char* source_addr, const char* group_addr);
+    bool del_mroute(int input_vifNum, const addr_storage& source_addr, const addr_storage& group_addr);
 
     /**
      * @brief Get various statistics per interface.
@@ -226,8 +225,7 @@ public:
      * @param sgreq_v6 musst point to a sioc_sg_req6 struct and will filled by this function when ipv6 is used
      * @return Return true on success.
      */
-    bool get_mroute_stats(const char* source_addr, const char* group_addr, struct sioc_sg_req* sgreq_v4,
-                          struct sioc_sg_req6* sgreq_v6);
+    bool get_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr, struct sioc_sg_req* sgreq_v4, struct sioc_sg_req6* sgreq_v6);
 
     /**
      * @brief simple test outputs
@@ -245,7 +243,7 @@ public:
 #define  MROUTE_SOCKET_IF_STR_THREE "tun0"
 
     void print_vif_stats(int vif_index);
-    void print_mroute_stats(const char* source_addr, const char* group_addr);
+    void print_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr);
 
     static void print_struct_mf6cctl(struct mf6cctl* mc);
     static void test_mcrouter_mrt_flag();

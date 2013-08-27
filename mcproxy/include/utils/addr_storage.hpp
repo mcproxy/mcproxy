@@ -43,7 +43,7 @@ private:
     inline int get_addr_len(int addr_family) const;
 public:
     /**
-     * @brief Create a zero addr_storage.
+     * @brief Create an empty and invalid addr_storage.
      */
     addr_storage();
 
@@ -154,7 +154,7 @@ public:
     /**
      * @brief mask an addr with a netmask
      */
-    addr_storage& mask(const addr_storage& s);
+    addr_storage& mask_ipv4(const addr_storage& s);
 
     //-----------------------------------------------------------
 
@@ -224,6 +224,13 @@ public:
      * @brief cout output operator
      */
     friend std::ostream& operator <<(std::ostream& s, const addr_storage a);
+
+    //-----------------------------------------------------------
+   
+    bool is_valid() const; 
+
+    void set_invalid();
+
 
     //-----------------------------------------------------------
 

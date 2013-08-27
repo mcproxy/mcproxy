@@ -164,11 +164,13 @@ addr_storage& addr_storage::operator=(const std::string& s)
         m_addr.ss_family = AF_INET;
         if (inet_pton(m_addr.ss_family, s.c_str(), (void*) & (((struct sockaddr_in*)(&m_addr))->sin_addr)) < 1) {
             HC_LOG_ERROR("failed to convert string to sockaddr_storage:" << s);
+            set_invalid();
         }
     } else { //==> IPv6
         m_addr.ss_family = AF_INET6;
         if (inet_pton(m_addr.ss_family, s.c_str(), (void*) & (((struct sockaddr_in6*)(&m_addr))->sin6_addr)) < 1) {
             HC_LOG_ERROR("failed to convert string to sockaddr_storage:" << s);
+            set_invalid();
         }
     }
 
@@ -382,7 +384,7 @@ std::string addr_storage::to_string() const
 
 }
 
-addr_storage& addr_storage::mask(const addr_storage& s)
+addr_storage& addr_storage::mask_ipv4(const addr_storage& s)
 {
     HC_LOG_TRACE("");
 
@@ -394,6 +396,20 @@ addr_storage& addr_storage::mask(const addr_storage& s)
     }
 
     return *this;
+}
+
+bool addr_storage::is_valid() const
+{
+    HC_LOG_TRACE("");
+
+    return get_addr_family() != AF_UNSPEC;
+} 
+
+void addr_storage::set_invalid()
+{
+    HC_LOG_TRACE("");
+
+    clean();
 }
 
 void addr_storage::test_addr_storage_a()
@@ -469,17 +485,17 @@ void addr_storage::test_addr_storage_a()
     s4 = "141.22.26.249";
     s6 = "255.255.254.0";
     s4_tmp = s4;
-    s4_tmp.mask(s6);
+    s4_tmp.mask_ipv4(s6);
     cout << s4 << " mask with " << s6 << " ==> " << s4_tmp << " ==>"  << (s4_tmp == s6_tmp ? "OK!" : "FAILED!") << endl;
     s4 = "141.22.27.155";
     s6 = "255.255.254.0";
     s4_tmp = s4;
-    s4_tmp.mask(s6);
+    s4_tmp.mask_ipv4(s6);
     cout << s4 << " mask with " << s6 << " ==> " << s4_tmp << " ==>"  << (s4_tmp == s6_tmp ? "OK!" : "FAILED!") << endl;
     s4 = "141.22.27.142";
     s6 = "255.255.254.0";
     s4_tmp = s4;
-    s4_tmp.mask(s6);
+    s4_tmp.mask_ipv4(s6);
     cout << s4 << " mask with " << s6 << " ==> " << s4_tmp << " ==>"  << (s4_tmp == s6_tmp ? "OK!" : "FAILED!") << endl;
 
     cout << "-- less then --" << endl;
@@ -501,14 +517,6 @@ void addr_storage::test_addr_storage_a()
 void addr_storage::test_addr_storage_b()
 {
     HC_LOG_TRACE("");
-
-    //string
-    //sockaddr_storage
-    //in_addr
-    //in6_addr
-    //sockaddr
-    //sockaddr_in
-    //sockaddr_in6
 
     const string s4("1.2.3.4");
     const string s6("1:2:3::4");

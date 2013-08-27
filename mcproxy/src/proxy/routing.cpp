@@ -83,21 +83,21 @@ bool routing::add_vif(int if_index, int vif)
 
     if ((item->ifa_flags & IFF_POINTOPOINT) && (item->ifa_dstaddr != nullptr)) { //tunnel
 
-        addr_storage p2p_addr(*(item->ifa_dstaddr));
+        //addr_storage p2p_addr(*(item->ifa_dstaddr));
 
-        if (!m_mrt_sock->add_vif(vif, if_name.c_str(), p2p_addr.to_string().c_str())) {
+        if (!m_mrt_sock->add_vif(vif, if_index, addr_storage(*(item->ifa_dstaddr)))) {
             return false;
         }
 
     } else { //phyint
-        if (!m_mrt_sock->add_vif(vif, if_name.c_str(), nullptr)) {
+        if (!m_mrt_sock->add_vif(vif, if_index, addr_storage())) {
             return false;
         }
 
     }
 
     if (!m_is_single_instance) {
-        if (!m_mrt_sock->bind_vif_to_table(if_name.c_str(), m_table_number)) {
+        if (!m_mrt_sock->bind_vif_to_table(if_index, m_table_number)) {
             return false;
         }
     }
@@ -132,7 +132,7 @@ bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_st
     //out_vif[i++] = *iter_out;
     //}
 
-    if (!m_mrt_sock->add_mroute(input_vif, src_addr.to_string().c_str(), g_addr.to_string().c_str(), output_vif)) {
+    if (!m_mrt_sock->add_mroute(input_vif, src_addr, g_addr, output_vif)) {
         return false;
     }
 
@@ -143,7 +143,7 @@ bool routing::del_route(int vif, const addr_storage& g_addr, const addr_storage&
 {
     HC_LOG_TRACE("");
 
-    if (!m_mrt_sock->del_mroute(vif, src_addr.to_string().c_str(), g_addr.to_string().c_str())) {
+    if (!m_mrt_sock->del_mroute(vif, src_addr, g_addr)) {
         return false;
     }
 
@@ -159,10 +159,7 @@ bool routing::del_vif(int if_index, int vif)
     }
 
     if (!m_is_single_instance) {
-        char cstr[IF_NAMESIZE];
-        if_indextoname(if_index, cstr);
-
-        if (!m_mrt_sock->unbind_vif_form_table(cstr, m_table_number)) {
+        if (!m_mrt_sock->unbind_vif_form_table(if_index, m_table_number)) {
             return false;
         }
     }

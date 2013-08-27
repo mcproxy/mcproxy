@@ -180,9 +180,9 @@ int igmp_receiver::map_ip2if_index(const addr_storage& src_addr)
             own_addr = *(item->ifa_addr);
             tmp_mask = *(item->ifa_netmask);
 
-            comp_addr = own_addr.mask(tmp_mask);
+            comp_addr = own_addr.mask_ipv4(tmp_mask);
 
-            if (comp_addr == tmp_mask.mask(src_addr)) {
+            if (comp_addr == tmp_mask.mask_ipv4(src_addr)) {
                 return it->first;
             }
 
