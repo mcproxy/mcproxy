@@ -38,9 +38,9 @@ using namespace std;
 class addr_storage
 {
 private:
-    struct sockaddr_storage m_addr;
+    sockaddr_storage m_addr;
     inline void clean();
-    inline int get_addr_len(int addr_family) const;
+    inline socklen_t get_addr_len(int addr_family) const;
 public:
     /**
      * @brief Create an empty and invalid addr_storage.
@@ -63,34 +63,34 @@ public:
     explicit addr_storage(const std::string& addr);
 
     /**
-     * @brief Create an addr_storage based on the struct sockaddr_storage.
+     * @brief Create an addr_storage based on the sockaddr_storage.
      */
-    explicit addr_storage(const struct sockaddr_storage& addr);
+    explicit addr_storage(const sockaddr_storage& addr);
 
     /**
-     * @brief Create an addr_storage based on struct in_add.
+     * @brief Create an addr_storage based on in_add.
      */
-    explicit addr_storage(const struct in_addr& addr);
+    explicit addr_storage(const in_addr& addr);
 
     /**
-     * @brief Create an addr_storage based on struct in6_addr.
+     * @brief Create an addr_storage based on in6_addr.
      */
-    explicit addr_storage(const struct in6_addr& addr);
+    explicit addr_storage(const in6_addr& addr);
 
     /**
-     * @brief Create an addr_storage based on struct sockaddr.
+     * @brief Create an addr_storage based on sockaddr.
      */
-    explicit addr_storage(const struct sockaddr& addr);
+    explicit addr_storage(const sockaddr& addr);
 
     /**
-     * @brief Create an addr_storage based on struct sockaddr_in.
+     * @brief Create an addr_storage based on sockaddr_in.
      */
-    explicit addr_storage(const struct sockaddr_in& addr);
+    explicit addr_storage(const sockaddr_in& addr);
 
     /**
-     * @brief Create an addr_storage based on struct sockaddr_in6.
+     * @brief Create an addr_storage based on sockaddr_in6.
      */
-    explicit addr_storage(const struct sockaddr_in6& addr);
+    explicit addr_storage(const sockaddr_in6& addr);
 
 //-----------------------------------------------------------
 
@@ -100,9 +100,9 @@ public:
     addr_storage& operator=(const addr_storage& s);
 
     /**
-     * @brief copy operator struct sockaddr_storage to class addr_storage
+     * @brief copy operator sockaddr_storage to class addr_storage
      */
-    addr_storage& operator=(const struct sockaddr_storage& s);
+    addr_storage& operator=(const sockaddr_storage& s);
 
     /**
      * @brief copy operator string to class addr_storage
@@ -110,29 +110,29 @@ public:
     addr_storage& operator=(const std::string& s);
 
     /**
-     * @brief copy operator struct in_addr to class addr_storage
+     * @brief copy operator in_addr to class addr_storage
      */
-    addr_storage& operator=(const struct in_addr& s);
+    addr_storage& operator=(const in_addr& s);
 
     /**
-     * @brief copy operator struct in6_addr to class addr_storage
+     * @brief copy operator in6_addr to class addr_storage
      */
-    addr_storage& operator=(const struct in6_addr& s);
+    addr_storage& operator=(const in6_addr& s);
 
     /**
-     * @brief copy operator struct sockaddr to class addr_storage
+     * @brief copy operator sockaddr to class addr_storage
      */
-    addr_storage& operator=(const struct sockaddr& s);
+    addr_storage& operator=(const sockaddr& s);
 
     /**
-     * @brief copy operator struct sockaddr_in to class addr_storage
+     * @brief copy operator sockaddr_in to class addr_storage
      */
-    addr_storage& operator=(const struct sockaddr_in& s);
+    addr_storage& operator=(const sockaddr_in& s);
 
     /**
-     * @brief copy operator struct sockaddr_in6 to class addr_storage
+     * @brief copy operator sockaddr_in6 to class addr_storage
      */
-    addr_storage& operator=(const struct sockaddr_in6& s);
+    addr_storage& operator=(const sockaddr_in6& s);
 
     //-----------------------------------------------------------
 
@@ -166,7 +166,7 @@ public:
     /**
      * @brief return current port in host bye order or return 0 if no port exist
      */
-    int get_port() const;
+    in_port_t get_port() const;
 
     /**
      * @brief set a port in host byte order
@@ -181,37 +181,37 @@ public:
     /**
      * @brief return length of the address in byte or return 0 if no address family is available
      */
-    int get_addr_len() const;
+    socklen_t get_addr_len() const;
 
     /**
      * @brief return a sockaddr_storage struct
      */
-    const struct sockaddr_storage& get_sockaddr_storage() const;
+    const sockaddr_storage& get_sockaddr_storage() const;
 
     /**
      * @brief return a in_addr struct
      */
-    const struct in_addr& get_in_addr() const;
+    const in_addr& get_in_addr() const;
 
     /**
      * @brief return a in6_addr struct
      */
-    const struct in6_addr& get_in6_addr() const;
+    const in6_addr& get_in6_addr() const;
 
     /**
      * @brief return a sockaddr struct
      */
-    const struct sockaddr& get_sockaddr() const;
+    const sockaddr& get_sockaddr() const;
 
     /**
      * @brief return a sockaddr_in struct
      */
-    const struct sockaddr_in& get_sockaddr_in() const;
+    const sockaddr_in& get_sockaddr_in() const;
 
     /**
      * @brief return a sockaddr_in6 struct
      */
-    const struct sockaddr_in6& get_sockaddr_in6() const;
+    const sockaddr_in6& get_sockaddr_in6() const;
 
     //-----------------------------------------------------------
 

@@ -25,7 +25,6 @@ elif [ "$1" = "create" ] && [ "$2" ] && [ "$2" -lt 255 ]; then
         fi
     done   
     
-        echo "delete old dummies"
         echo "create new dummies"
         echo "set ipv4 and ipv6 address" 
 

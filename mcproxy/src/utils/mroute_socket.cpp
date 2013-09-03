@@ -30,8 +30,6 @@
 #include <net/if.h>
 #include <errno.h>
 #include <arpa/inet.h>
-#include <linux/mroute.h>
-#include <linux/mroute6.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
@@ -375,7 +373,7 @@ bool mroute_socket::set_mrt_flag(bool enable)
 
 //vifNum musst the same uniqueName  on delVIF (0 > vifNum < MAXVIF ==32)
 //iff_register = true if used for PIM Register encap/decap
-bool mroute_socket::add_vif(int vifNum, int if_index, const addr_storage& ip_tunnel_remote_addr)
+bool mroute_socket::add_vif(int vifNum, uint32_t if_index, const addr_storage& ip_tunnel_remote_addr)
 {
     HC_LOG_TRACE("");
 
@@ -441,7 +439,7 @@ bool mroute_socket::add_vif(int vifNum, int if_index, const addr_storage& ip_tun
     }
 }
 
-bool mroute_socket::del_vif(int vifNum)
+bool mroute_socket::del_vif(vifi_t vif_index)
 {
     HC_LOG_TRACE("");
 
@@ -456,7 +454,7 @@ bool mroute_socket::del_vif(int vifNum)
         struct vifctl vifc;
         memset(&vifc, 0, sizeof(vifc));
 
-        vifc.vifc_vifi = vifNum;
+        vifc.vifc_vifi = vif_index;
         rc = setsockopt(m_sock, IPPROTO_IP, MRT_DEL_VIF, (char *)&vifc, sizeof(vifc));
         if (rc == -1) {
             HC_LOG_ERROR("failed to del VIF! Error: " << strerror(errno) << " errno: " << errno);
@@ -468,7 +466,7 @@ bool mroute_socket::del_vif(int vifNum)
         struct mif6ctl mc;
         memset(&mc, 0, sizeof(mc));
 
-        mc.mif6c_mifi = vifNum;
+        mc.mif6c_mifi = vif_index;
         rc = setsockopt(m_sock, IPPROTO_IPV6, MRT6_DEL_MIF, (char *)&mc, sizeof(mc));
         if (rc == -1) {
             HC_LOG_ERROR("failed to del VIF! Error: " << strerror(errno) << " errno: " << errno);
@@ -482,7 +480,7 @@ bool mroute_socket::del_vif(int vifNum)
     }
 }
 
-bool mroute_socket::bind_vif_to_table(int if_index, int table)
+bool mroute_socket::bind_vif_to_table(uint32_t if_index, int table)
 {
     HC_LOG_TRACE("");
 
@@ -526,7 +524,7 @@ bool mroute_socket::bind_vif_to_table(int if_index, int table)
 }
 
 
-bool mroute_socket::unbind_vif_form_table(int if_index, int table)
+bool mroute_socket::unbind_vif_form_table(uint32_t if_index, int table)
 {
     HC_LOG_TRACE("");
 
@@ -572,7 +570,7 @@ bool mroute_socket::unbind_vif_form_table(int if_index, int table)
 
 //source_addr is the source address of the received multicast packet
 //group_addr group address of the received multicast packet
-bool mroute_socket::add_mroute(int input_vifNum, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif)
+bool mroute_socket::add_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif)
 {
 
 //unsigned int* output_vifTTL, unsigned int output_vifTTL_Ncount){
@@ -592,7 +590,7 @@ bool mroute_socket::add_mroute(int input_vifNum, const addr_storage& source_addr
 
         mc.mfcc_origin = source_addr.get_in_addr();
         mc.mfcc_mcastgrp = group_addr.get_in_addr();
-        mc.mfcc_parent = input_vifNum;
+        mc.mfcc_parent = vif_index;
 
         if (output_vif.size() > MAXVIFS) {
             HC_LOG_ERROR("output_vifNum_size to large: " << output_vif.size());
@@ -618,7 +616,7 @@ bool mroute_socket::add_mroute(int input_vifNum, const addr_storage& source_addr
 
         mc.mf6cc_origin.sin6_addr = source_addr.get_in6_addr();
         mc.mf6cc_mcastgrp.sin6_addr = group_addr.get_in6_addr();
-        mc.mf6cc_parent = input_vifNum;
+        mc.mf6cc_parent = vif_index;
 
         if (output_vif.size() > MAXMIFS) {
             HC_LOG_ERROR("output_vifNum_size to large: " << output_vif.size());
@@ -644,7 +642,7 @@ bool mroute_socket::add_mroute(int input_vifNum, const addr_storage& source_addr
 
 }
 
-bool mroute_socket::del_mroute(int input_vifNum, const addr_storage& source_addr, const addr_storage& group_addr)
+bool mroute_socket::del_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr)
 {
     HC_LOG_TRACE("");
 
@@ -661,7 +659,7 @@ bool mroute_socket::del_mroute(int input_vifNum, const addr_storage& source_addr
 
         mc.mfcc_origin = source_addr.get_in_addr();
         mc.mfcc_mcastgrp = group_addr.get_in_addr();
-        mc.mfcc_parent = input_vifNum;
+        mc.mfcc_parent = vif_index;
 
         rc = setsockopt(m_sock, IPPROTO_IP, MRT_DEL_MFC, (void *)&mc, sizeof(mc));
         if (rc == -1) {
@@ -677,7 +675,7 @@ bool mroute_socket::del_mroute(int input_vifNum, const addr_storage& source_addr
 
         mc.mf6cc_origin.sin6_addr = source_addr.get_in6_addr();
         mc.mf6cc_mcastgrp.sin6_addr = group_addr.get_in6_addr();
-        mc.mf6cc_parent = input_vifNum;
+        mc.mf6cc_parent = vif_index;
 
         rc = setsockopt(m_sock, IPPROTO_IPV6, MRT6_DEL_MFC, (void *)&mc, sizeof(mc));
         if (rc == -1) {
@@ -693,7 +691,7 @@ bool mroute_socket::del_mroute(int input_vifNum, const addr_storage& source_addr
     return false;
 }
 
-bool mroute_socket::get_vif_stats(int vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6)
+bool mroute_socket::get_vif_stats(vifi_t vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6)
 {
     HC_LOG_TRACE("");
 
@@ -802,7 +800,7 @@ bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr
     return false;
 }
 
-void mroute_socket::print_vif_stats(int vif_index)
+void mroute_socket::print_vif_stats(vifi_t vif_index)
 {
     HC_LOG_TRACE("");
 

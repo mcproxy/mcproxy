@@ -35,21 +35,21 @@ void addr_storage::clean()
     HC_LOG_TRACE("");
 
     //memset(&m_addr,0, sizeof(m_addr));
-    ((struct sockaddr_in6*)&m_addr)->sin6_family = AF_UNSPEC;
-    ((struct sockaddr_in6*)&m_addr)->sin6_port = 0;
-    ((struct sockaddr_in6*)&m_addr)->sin6_flowinfo = 0;
-    ((struct sockaddr_in6*)&m_addr)->sin6_scope_id = 0;
+    (( sockaddr_in6*)&m_addr)->sin6_family = AF_UNSPEC;
+    (( sockaddr_in6*)&m_addr)->sin6_port = 0;
+    (( sockaddr_in6*)&m_addr)->sin6_flowinfo = 0;
+    (( sockaddr_in6*)&m_addr)->sin6_scope_id = 0;
 }
 
-int addr_storage::get_addr_len(int addr_family) const
+socklen_t addr_storage::get_addr_len(int addr_family) const
 {
     HC_LOG_TRACE("");
 
     switch (addr_family) {
     case AF_INET:
-        return sizeof(struct sockaddr_in);
+        return sizeof( sockaddr_in);
     case AF_INET6:
-        return sizeof(struct sockaddr_in6);
+        return sizeof( sockaddr_in6);
     default:
         HC_LOG_ERROR("Unknown address family");
         return 0;
@@ -74,11 +74,11 @@ addr_storage::addr_storage(int addr_family)
 addr_storage::addr_storage(const std::string& addr)
 {
     HC_LOG_TRACE("");
-    
+
     *this = addr;
 }
 
-addr_storage::addr_storage(const struct sockaddr_storage& addr)
+addr_storage::addr_storage(const  sockaddr_storage& addr)
 {
     HC_LOG_TRACE("");
 
@@ -92,35 +92,35 @@ addr_storage::addr_storage(const addr_storage& addr)
     *this = addr;
 }
 
-addr_storage::addr_storage(const struct in_addr& addr)
+addr_storage::addr_storage(const  in_addr& addr)
 {
     HC_LOG_TRACE("");
 
     *this = addr;
 }
 
-addr_storage::addr_storage(const struct in6_addr& addr)
+addr_storage::addr_storage(const  in6_addr& addr)
 {
     HC_LOG_TRACE("");
 
     *this = addr;
 }
 
-addr_storage::addr_storage(const struct sockaddr& addr)
+addr_storage::addr_storage(const  sockaddr& addr)
 {
     HC_LOG_TRACE("");
 
     *this = addr;
 }
 
-addr_storage::addr_storage(const struct sockaddr_in6& addr)
+addr_storage::addr_storage(const  sockaddr_in6& addr)
 {
     HC_LOG_TRACE("");
 
     *this = addr;
 }
 
-addr_storage::addr_storage(const struct sockaddr_in& addr)
+addr_storage::addr_storage(const  sockaddr_in& addr)
 {
     HC_LOG_TRACE("");
 
@@ -146,7 +146,7 @@ addr_storage& addr_storage::operator=(const addr_storage& s)
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const struct sockaddr_storage& s)
+addr_storage& addr_storage::operator=(const  sockaddr_storage& s)
 {
     HC_LOG_TRACE("");
 
@@ -162,13 +162,13 @@ addr_storage& addr_storage::operator=(const std::string& s)
 
     if (s.find_first_of(':') == std::string::npos) { //==> IPv4
         m_addr.ss_family = AF_INET;
-        if (inet_pton(m_addr.ss_family, s.c_str(), (void*) & (((struct sockaddr_in*)(&m_addr))->sin_addr)) < 1) {
+        if (inet_pton(m_addr.ss_family, s.c_str(), (void*) & ((( sockaddr_in*)(&m_addr))->sin_addr)) < 1) {
             HC_LOG_ERROR("failed to convert string to sockaddr_storage:" << s);
             set_invalid();
         }
     } else { //==> IPv6
         m_addr.ss_family = AF_INET6;
-        if (inet_pton(m_addr.ss_family, s.c_str(), (void*) & (((struct sockaddr_in6*)(&m_addr))->sin6_addr)) < 1) {
+        if (inet_pton(m_addr.ss_family, s.c_str(), (void*) & ((( sockaddr_in6*)(&m_addr))->sin6_addr)) < 1) {
             HC_LOG_ERROR("failed to convert string to sockaddr_storage:" << s);
             set_invalid();
         }
@@ -177,7 +177,7 @@ addr_storage& addr_storage::operator=(const std::string& s)
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const struct in_addr& s)
+addr_storage& addr_storage::operator=(const  in_addr& s)
 {
     HC_LOG_TRACE("");
 
@@ -188,7 +188,7 @@ addr_storage& addr_storage::operator=(const struct in_addr& s)
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const struct in6_addr& s)
+addr_storage& addr_storage::operator=(const  in6_addr& s)
 {
     HC_LOG_TRACE("");
 
@@ -199,7 +199,7 @@ addr_storage& addr_storage::operator=(const struct in6_addr& s)
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const struct sockaddr& s)
+addr_storage& addr_storage::operator=(const  sockaddr& s)
 {
     HC_LOG_TRACE("");
 
@@ -209,23 +209,23 @@ addr_storage& addr_storage::operator=(const struct sockaddr& s)
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const struct sockaddr_in& s)
+addr_storage& addr_storage::operator=(const  sockaddr_in& s)
 {
     HC_LOG_TRACE("");
 
     clean();
 
-    *this = *(const struct sockaddr*)&s;
+    *this = *(const  sockaddr*)&s;
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const struct sockaddr_in6& s)
+addr_storage& addr_storage::operator=(const  sockaddr_in6& s)
 {
     HC_LOG_TRACE("");
 
     clean();
 
-    *this = *(const struct sockaddr_in*)&s;
+    *this = *(const  sockaddr_in*)&s;
     return *this;
 }
 
@@ -264,7 +264,7 @@ bool operator< (const addr_storage& addr1, const addr_storage& addr2)
         const uint8_t* a1 = ((const sockaddr_in6*)&addr1.m_addr)->sin6_addr.s6_addr;
         const uint8_t* a2 = ((const sockaddr_in6*)&addr2.m_addr)->sin6_addr.s6_addr;
 
-        for (unsigned int i = 0; i < sizeof(struct in6_addr) / sizeof(uint8_t); i++) {
+        for (unsigned int i = 0; i < sizeof( in6_addr) / sizeof(uint8_t); i++) {
             if (a1[i] > a2[i]) {
                 return false;
             } else if (a1[i] < a2[i]) {
@@ -285,7 +285,7 @@ int addr_storage::get_addr_family() const
     return this->m_addr.ss_family;
 }
 
-int addr_storage::get_port() const
+in_port_t addr_storage::get_port() const
 {
     HC_LOG_TRACE("");
 
@@ -308,47 +308,47 @@ addr_storage& addr_storage::set_port(const string& port)
     return *this;
 }
 
-int addr_storage::get_addr_len() const
+socklen_t addr_storage::get_addr_len() const
 {
     HC_LOG_TRACE("");
 
     return get_addr_len(get_addr_family());
 }
 
-const struct sockaddr_storage& addr_storage::get_sockaddr_storage() const {
+const  sockaddr_storage& addr_storage::get_sockaddr_storage() const {
     HC_LOG_TRACE("");
 
     return m_addr;
 }
 
-const struct in_addr& addr_storage::get_in_addr() const {
+const  in_addr& addr_storage::get_in_addr() const {
     HC_LOG_TRACE("");
 
-    return ((const struct sockaddr_in*)(&m_addr))->sin_addr;
+    return ((const  sockaddr_in*)(&m_addr))->sin_addr;
 }
 
-const struct in6_addr& addr_storage::get_in6_addr() const {
+const  in6_addr& addr_storage::get_in6_addr() const {
     HC_LOG_TRACE("");
 
-    return ((const struct sockaddr_in6*)(&m_addr))->sin6_addr;
+    return ((const  sockaddr_in6*)(&m_addr))->sin6_addr;
 }
 
-const struct sockaddr& addr_storage::get_sockaddr() const {
+const  sockaddr& addr_storage::get_sockaddr() const {
     HC_LOG_TRACE("");
 
-    return *((const struct sockaddr*)&m_addr);
+    return *((const  sockaddr*)&m_addr);
 }
 
-const struct sockaddr_in& addr_storage::get_sockaddr_in() const {
+const  sockaddr_in& addr_storage::get_sockaddr_in() const {
     HC_LOG_TRACE("");
 
-    return *((const struct sockaddr_in*)(&m_addr));
+    return *((const  sockaddr_in*)(&m_addr));
 }
 
-const struct sockaddr_in6& addr_storage::get_sockaddr_in6() const {
+const  sockaddr_in6& addr_storage::get_sockaddr_in6() const {
     HC_LOG_TRACE("");
 
-    return *((const struct sockaddr_in6*)(&m_addr));
+    return *((const  sockaddr_in6*)(&m_addr));
 }
 
 
@@ -360,7 +360,7 @@ std::string addr_storage::to_string() const
     if (af == AF_INET) {
         char addressBuffer[INET_ADDRSTRLEN];
 
-        if (inet_ntop(af, (const void*) & (((const struct sockaddr_in*)(&m_addr))->sin_addr), addressBuffer,
+        if (inet_ntop(af, (const void*) & (((const  sockaddr_in*)(&m_addr))->sin_addr), addressBuffer,
                       sizeof(addressBuffer)) == nullptr) {
             HC_LOG_ERROR("failed to convert sockaddr_storage");
             return std::string();
@@ -369,7 +369,7 @@ std::string addr_storage::to_string() const
         }
     } else if (af == AF_INET6) {
         char addressBuffer[INET6_ADDRSTRLEN];
-        if (inet_ntop(af, (const void*) & (((const struct sockaddr_in6*)(&m_addr))->sin6_addr), addressBuffer,
+        if (inet_ntop(af, (const void*) & (((const  sockaddr_in6*)(&m_addr))->sin6_addr), addressBuffer,
                       sizeof(addressBuffer)) == nullptr) {
             HC_LOG_ERROR("failed to convert sockaddr_storage");
             return std::string();
@@ -403,7 +403,7 @@ bool addr_storage::is_valid() const
     HC_LOG_TRACE("");
 
     return get_addr_family() != AF_UNSPEC;
-} 
+}
 
 void addr_storage::set_invalid()
 {
@@ -420,11 +420,11 @@ void addr_storage::test_addr_storage_a()
     std::string addr4 = "251.0.0.224";
     std::string addr6 = "ff02:231:abc::1";
 
-    struct sockaddr_storage sockaddr4;
-    struct sockaddr_storage sockaddr6;
-    struct in_addr in_addr4;
-    struct in6_addr in_addr6;
-    struct in6_addr in_addr6tmp;
+     sockaddr_storage sockaddr4;
+     sockaddr_storage sockaddr6;
+     in_addr in_addr4;
+     in6_addr in_addr6;
+     in6_addr in_addr6tmp;
 
     addr_storage s4;
     addr_storage s6;
@@ -463,7 +463,7 @@ void addr_storage::test_addr_storage_a()
     cout << "s6_1: str<" << s6_1 << "> s6_1<" << s6_1 << "> ==>" << (s6_1 == s6_1 ? "OK!" : "FAILED!") << endl;
 
 
-    cout << "-- struct in_addr and in6_addr --" << endl;
+    cout << "--  in_addr and in6_addr --" << endl;
     in_addr4 = s4.get_in_addr();
     in_addr6 = s6.get_in6_addr();
 
@@ -471,13 +471,13 @@ void addr_storage::test_addr_storage_a()
         cout << "Error convert " << addr6 << " to in6_addr FAILED! " << endl;
     }
 
-    cout << "addr_storage to struct in_addr ==>" << (in_addr4.s_addr == inet_addr(addr4.c_str()) ? "OK!" : "FAILED!") <<
+    cout << "addr_storage to  in_addr ==>" << (in_addr4.s_addr == inet_addr(addr4.c_str()) ? "OK!" : "FAILED!") <<
          endl;
-    cout << "addr_storage to struct in6_addr ==>" << (IN6_ARE_ADDR_EQUAL(&in_addr6,
+    cout << "addr_storage to  in6_addr ==>" << (IN6_ARE_ADDR_EQUAL(&in_addr6,
             &in_addr6tmp) ? "OK!" : "FAILED!") << endl;
-    cout << "struct in_addr to addr_storage ==>" << ((addr_storage(in_addr4).to_string().compare(
+    cout << " in_addr to addr_storage ==>" << ((addr_storage(in_addr4).to_string().compare(
                 addr4) == 0) ? "OK!" : "FAILED!") << endl;
-    cout << "struct in6_addr to addr_storage ==>" << ((addr_storage(in_addr6).to_string().compare(
+    cout << " in6_addr to addr_storage ==>" << ((addr_storage(in_addr6).to_string().compare(
                 addr6) == 0) ? "OK!" : "FAILED!") << endl;
 
     cout << "-- ipv4 mask --" << endl;
@@ -663,35 +663,35 @@ void addr_storage::test_addr_storage_b()
     a4a =  a4;
     a6a =  a6;
     cout << "addr_storage(a4a.set_port(iport).get_sockaddr_in()).get_port() == iport ==> ";
-    if(addr_storage(a4a.set_port(iport).get_sockaddr_in()).get_port() == iport){
+    if (addr_storage(a4a.set_port(iport).get_sockaddr_in()).get_port() == iport) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;
     }
-   
+
     cout << "addr_storage(a6a.set_port(iport).get_sockaddr_in6()).get_port() == iport ==> ";
-    if(addr_storage(a6a.set_port(iport).get_sockaddr_in6()).get_port() == iport){
+    if (addr_storage(a6a.set_port(iport).get_sockaddr_in6()).get_port() == iport) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;
     }
 
     cout << "addr_storage(a4a.set_port(iport).get_in_addr()).get_port()) == 0 ==> ";
-    if(addr_storage(a4a.set_port(iport).get_in_addr()).get_port() == 0){
+    if (addr_storage(a4a.set_port(iport).get_in_addr()).get_port() == 0) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;
     }
-   
+
     cout << "a6a.set_port(iport).get_sockaddr_in().sin_port == iport ==> ";
-    if(a4a.set_port(iport).get_sockaddr_in().sin_port == iport){
+    if (a4a.set_port(iport).get_sockaddr_in().sin_port == iport) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;
     }
 
     cout << "a6a.set_port(iport).get_sockaddr_in6().sin6_port == iport ==> ";
-    if(a6a.set_port(iport).get_sockaddr_in6().sin6_port == iport){
+    if (a6a.set_port(iport).get_sockaddr_in6().sin6_port == iport) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;

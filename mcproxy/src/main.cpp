@@ -46,10 +46,10 @@ int main(int arg_count, char* args[])
     //test_MC_Tables();
     //test_MC_TestTool();
 
-    test_mcproxy(arg_count, args);
+    //test_mcproxy(arg_count, args);
 
 
-    //test_test();
+    test_test();
     return 0;
 }
 

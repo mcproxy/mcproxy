@@ -28,6 +28,7 @@
 #include <netpacket/packet.h>
 #include <cstring> //memset
 #include <iostream>
+#include <memory> //unique_ptr
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -155,7 +156,7 @@ int mc_socket::get_addr_family()
     return m_addrFamily;
 }
 
-bool mc_socket::bind_udp_socket(int port)
+bool mc_socket::bind_udp_socket(in_port_t port)
 {
     HC_LOG_TRACE("");
 
@@ -248,7 +249,7 @@ bool mc_socket::send_packet(const addr_storage& addr, string data)
 
 bool mc_socket::send_packet(const addr_storage& addr, const unsigned char* data, unsigned int data_size)
 {
-    HC_LOG_TRACE("addr: " << addr << " port: " << addr.get_port() << " data_size: "<< data_size);
+    HC_LOG_TRACE("addr: " << addr << " port: " << addr.get_port() << " data_size: " << data_size);
 
     if (!is_udp_valid()) {
         HC_LOG_ERROR("udp_socket invalid");
@@ -257,7 +258,7 @@ bool mc_socket::send_packet(const addr_storage& addr, const unsigned char* data,
 
     int rc = 0;
 
-    rc = sendto(m_sock, data, data_size, 0, &addr.get_sockaddr() ,addr.get_addr_len());
+    rc = sendto(m_sock, data, data_size, 0, &addr.get_sockaddr() , addr.get_addr_len());
 
     if (rc == -1) {
         HC_LOG_ERROR("failed to send! Error: " << strerror(errno)  << " errno: " << errno);
@@ -392,7 +393,7 @@ bool mc_socket::set_receive_timeout(long msec)
     }
 }
 
-bool mc_socket::choose_if(int if_index)
+bool mc_socket::choose_if(uint32_t if_index)
 {
     HC_LOG_TRACE("");
 
@@ -473,21 +474,21 @@ bool mc_socket::set_ttl(int ttl)
     }
 }
 
-bool mc_socket::join_group(const addr_storage& gaddr, int if_index)
+bool mc_socket::join_group(const addr_storage& gaddr, uint32_t if_index)
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " if_index: " << if_index);
 
     return generic_group_sockopt(gaddr, if_index, MCAST_JOIN_GROUP);
 }
 
-bool mc_socket::leave_group(const addr_storage& gaddr, int if_index)
+bool mc_socket::leave_group(const addr_storage& gaddr, uint32_t if_index)
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " if_index: " << if_index);
 
     return generic_group_sockopt(gaddr, if_index, MCAST_LEAVE_GROUP);
 }
 
-bool mc_socket::block_source(const addr_storage& gaddr, const addr_storage& saddr, int if_index)
+bool mc_socket::block_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index)
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " saddr: " << saddr << " if_index: " << if_index << " optname: MCAST_BLOCK_SOURCE(" << MCAST_BLOCK_SOURCE << ")");
 
@@ -495,7 +496,7 @@ bool mc_socket::block_source(const addr_storage& gaddr, const addr_storage& sadd
 }
 
 
-bool mc_socket::unblock_source(const addr_storage& gaddr, const addr_storage& saddr, int if_index)
+bool mc_socket::unblock_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index)
 {
     HC_LOG_TRACE("gaddr: " << gaddr <<  " saddr: " << saddr << " if_index: " << if_index << " optname: MCAST_UNBLOCK_SOURCE(" << MCAST_UNBLOCK_SOURCE << ")");
 
@@ -503,14 +504,14 @@ bool mc_socket::unblock_source(const addr_storage& gaddr, const addr_storage& sa
 }
 
 
-bool mc_socket::join_source_group(const addr_storage& gaddr, const addr_storage& saddr, int if_index)
+bool mc_socket::join_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index)
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " saddr: " << saddr << " if_index: " << if_index << " optname: MCAST_JOIN_SOURCE_GROUP(" << MCAST_JOIN_SOURCE_GROUP << ")");
 
     return generic_source_sockopt(gaddr, saddr, if_index, MCAST_JOIN_SOURCE_GROUP);
 }
 
-bool mc_socket::leave_source_group(const addr_storage& gaddr, const addr_storage& saddr, int if_index)
+bool mc_socket::leave_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index)
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " saddr: " << saddr << " if_index: " << if_index << " optname: MCAST_LEAVE_SOURCE_GROUP(" << MCAST_LEAVE_SOURCE_GROUP << ")");
 
@@ -518,7 +519,7 @@ bool mc_socket::leave_source_group(const addr_storage& gaddr, const addr_storage
 }
 
 
-bool mc_socket::generic_group_sockopt(const addr_storage& gaddr, int if_index, int optname)
+bool mc_socket::generic_group_sockopt(const addr_storage& gaddr, uint32_t if_index, int optname)
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " if_index: " << if_index << " optname: " << optname);
 
@@ -546,7 +547,7 @@ bool mc_socket::generic_group_sockopt(const addr_storage& gaddr, int if_index, i
 
 }
 
-bool mc_socket::generic_source_sockopt(const addr_storage& gaddr, const addr_storage& saddr, int if_index, int optname)
+bool mc_socket::generic_source_sockopt(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index, int optname)
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " saddr: " << saddr << " if_index: " << if_index << " optname: " << optname);
 
@@ -573,7 +574,116 @@ bool mc_socket::generic_source_sockopt(const addr_storage& gaddr, const addr_sto
     }
 
 }
-void mc_socket::test_mc_goup_functions(string ipversion, string msg, string interface, string gaddr, int port)
+
+bool mc_socket::set_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t filter_mode, const std::list<addr_storage>& src_list)
+{
+    HC_LOG_TRACE("if_index: " << if_index << " gaddr: " << gaddr << " filter_mode: " << filter_mode << " src_list: " << std::accumulate(src_list.begin(), src_list.end(), std::string() , [](const std::string & res, const addr_storage & b) {
+        return res + b.to_string() + " ";
+    }));
+
+    if (!is_udp_valid()) {
+        HC_LOG_ERROR("udp_socket invalid");
+        return false;
+    }
+
+    int rc;
+    std::unique_ptr<struct sockaddr_storage[]> slist(new struct sockaddr_storage[src_list.size()]);
+
+    int i = 0;
+    for (auto & e : src_list ) {
+        slist[i++] = e.get_sockaddr_storage();
+    }
+
+    rc = setsourcefilter(m_sock, if_index, &gaddr.get_sockaddr(), gaddr.get_addr_len(), filter_mode, src_list.size(), slist.get());
+    if (rc == -1) {
+        HC_LOG_ERROR("failed to set source filter! Error: " << strerror(errno) << " errno: " << errno);
+        return false;
+    } else {
+        return true;
+    }
+
+    return false;
+}
+
+bool mc_socket::get_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t& filter_mode, std::list<addr_storage>& src_list)
+{
+    HC_LOG_TRACE("");
+
+    if (!is_udp_valid()) {
+        HC_LOG_ERROR("udp_socket invalid");
+        return false;
+    }
+
+    int rc;
+    uint32_t old_numsrc = 0;
+    uint32_t new_numsrc;
+    //get the the number of sources
+    rc = getsourcefilter(m_sock, if_index, &gaddr.get_sockaddr(), gaddr.get_addr_len(), &filter_mode, &old_numsrc, nullptr);
+    if (rc == -1) {
+        HC_LOG_ERROR("failed to get current number of sources! Error: " << strerror(errno) << " errno: " << errno);
+        return false;
+    } else if (old_numsrc == 0) {
+        return true;
+    }
+
+    new_numsrc = old_numsrc;
+    std::unique_ptr<struct sockaddr_storage[]> slist(new struct sockaddr_storage[old_numsrc]);
+
+    //get a source list
+    rc = getsourcefilter(m_sock, if_index, &gaddr.get_sockaddr(), gaddr.get_addr_len(), &filter_mode, &new_numsrc, slist.get());
+    if (rc == -1) {
+        HC_LOG_ERROR("failed to get source filter! Error: " << strerror(errno) << " errno: " << errno);
+        return false;
+    } else {
+        for (uint32_t i = 0; i < old_numsrc; i++) {
+            src_list.push_back(addr_storage(slist[i]));
+        }
+        return true;
+    }
+}
+
+void mc_socket::print_source_filter(uint32_t if_index, const addr_storage& gaddr)
+{
+    HC_LOG_TRACE("");
+    char if_name[IF_NAMESIZE];
+    if_indextoname(if_index, if_name);
+    std::list<addr_storage> src_list;
+    uint32_t filter_mode = MCAST_EXCLUDE; //99;
+
+    cout << "##-- source filter status --##" << endl;
+    cout << " -if_name: " << if_name << endl;
+    cout << " -if_index: " << if_index << endl;
+    cout << " -gaddr: " << gaddr << endl;
+
+    if (!this->get_source_filter(if_index, gaddr, filter_mode, src_list)) {
+        cout << "failed to get source filter list" << endl;
+        return;
+    }
+
+    //MCAST_INCLUDE or MCAST_EXCLUDE
+    cout << " -filter_mode: ";
+    if ( filter_mode == MCAST_INCLUDE) {
+        cout << filter_mode << " (MCAST_INCLUDE)"  << endl;
+    } else if ( filter_mode == MCAST_EXCLUDE) {
+        cout << filter_mode << " (MCAST_EXCLUDE)"  << endl;
+    } else {
+        cout << filter_mode << " (unknown filter mode)" << endl;
+    }
+
+    int i = 0;
+    cout << " -source-list: ";
+    for (auto & e : src_list) {
+        if (i % 5 == 0) {
+            cout << endl <<  "  ";
+        }
+        cout << e << " ";
+        i++;
+    }
+    cout << endl;
+
+}
+
+void mc_socket::test_mc_group_functions(string ipversion, string msg, string interface, string gaddr, in_port_t port)
 {
     HC_LOG_TRACE("");
     cout << "##-- Test multicast group managment functions --##" << endl;
@@ -606,6 +716,7 @@ void mc_socket::test_mc_goup_functions(string ipversion, string msg, string inte
         cout << "join FAILED!" << endl;
     }
     sleep(sleepTime);
+
     if (m.leave_group(addr_storage(gaddr), if_nametoindex(interface.c_str()))) {
         cout << "leave OK!" << endl;
     } else {
@@ -628,12 +739,11 @@ void mc_socket::test_mc_goup_functions(string ipversion, string msg, string inte
 
 }
 
-
-void mc_socket::test_mc_source_functions(string ipversion, string interface, string gaddr, string saddr_a, string saddr_b)
+void mc_socket::test_mc_source_delta_based_api(string ipversion, string interface, string gaddr, string saddr)
 {
     HC_LOG_TRACE("");
 
-    cout << "##-- Test multicast source managment functions --##" << endl;
+    cout << "##-- Test multicast source delta based api --##" << endl;
     mc_socket m;
     int count = 0;
     int sleepTime = 4;
@@ -665,67 +775,153 @@ void mc_socket::test_mc_source_functions(string ipversion, string interface, str
 
     sleep(sleepTime);
 
-    cout << "--<" << count++ << "> Block source " << saddr_a << " --" << endl;
-    if (m.block_source(addr_storage(gaddr), addr_storage(saddr_a), if_nametoindex(interface.c_str()))) {
+    cout << "--<" << count++ << "> Block source " << saddr << " --" << endl;
+    if (m.block_source(addr_storage(gaddr), addr_storage(saddr), if_nametoindex(interface.c_str()))) {
         cout << "block OK!" << endl;
     } else {
         cout << "block FAILED!" << endl;
     }
-
     sleep(sleepTime);
 
-    cout << "--<" << count++ << "> Block source " << saddr_b << " --" << endl;
-    if (m.block_source(addr_storage(gaddr), addr_storage(saddr_b), if_nametoindex(interface.c_str()))) {
-        cout << "block OK!" << endl;
-    } else {
-        cout << "block FAILED!" << endl;
-    }
-
-    sleep(sleepTime);
-    
-    cout << "--<" << count++ << "> Unblock source " << saddr_a << " --" << endl;
-    if (m.unblock_source(addr_storage(gaddr), addr_storage(saddr_a), if_nametoindex(interface.c_str()))) {
+    cout << "--<" << count++ << "> Unblock source " << saddr << " --" << endl;
+    if (m.unblock_source(addr_storage(gaddr), addr_storage(saddr), if_nametoindex(interface.c_str()))) {
         cout << "unblock OK!" << endl;
     } else {
         cout << "unblock FAILED!" << endl;
     }
     sleep(sleepTime);
-    
-    cout << "--<" << count++ << "> Join source " << saddr_b << " --" << endl;
-    if (m.join_source_group(addr_storage(gaddr), addr_storage(saddr_b), if_nametoindex(interface.c_str()))) {
+
+    cout << "--<" << count++ << "> Leave group " << gaddr << " --" << endl;
+    if (m.leave_group(addr_storage(gaddr), if_nametoindex(interface.c_str()))) {
+        cout << "leave OK!" << endl;
+    } else {
+        cout << "leave FAILED!" << endl;
+    }
+
+    cout << "--<" << count++ << "> Join group " << gaddr << " with source " << saddr << " --" << endl;
+    if (m.join_source_group(addr_storage(gaddr), addr_storage(saddr), if_nametoindex(interface.c_str()))) {
         cout << "join OK!" << endl;
     } else {
         cout << "join FAILED!" << endl;
     }
     sleep(sleepTime);
 
-    cout << "--<" << count++ << "> Leave source " << saddr_b << " --" << endl;
-    if (m.leave_source_group(addr_storage(gaddr), addr_storage(saddr_b), if_nametoindex(interface.c_str()))) {
+    cout << "--<" << count++ << "> Leave group " << gaddr << "with source " << saddr << " --" << endl;
+    if (m.leave_source_group(addr_storage(gaddr), addr_storage(saddr), if_nametoindex(interface.c_str()))) {
         cout << "leave OK!" << endl;
     } else {
         cout << "leave FAILED!" << endl;
     }
-
     sleep(sleepTime);
 }
 
-void mc_socket::test_all(){
+void mc_socket::test_mc_source_advanced_api(string ipversion, string interface, string gaddr, string saddr_a, string saddr_b)
+{
+    HC_LOG_TRACE("");
+
+    cout << "##-- Test multicast source advanced api --##" << endl;
+    mc_socket m;
+    int count = 0;
+    int sleepTime = 2;
+
+    cout << "--<" << count++ << "> Create an udp " << ipversion << " socket --" << endl;
+    if (ipversion.compare("AF_INET") == 0) {
+        if (m.create_udp_ipv4_socket()) {
+            cout << "create socket OK!" << endl;
+        } else {
+            cout << "cerate socket FAILED!" << endl;
+        }
+    } else if (ipversion.compare("AF_INET6") == 0) {
+        if (m.create_udp_ipv6_socket()) {
+            cout << "create socket OK!" << endl;
+        } else {
+            cout << "cerate socket FAILED!" << endl;
+        }
+    } else {
+        cout << "Unknown ip version: " << ipversion << endl;
+        return;
+    }
+
+    cout << "--<" << count++ << "> Join group " << gaddr << " --" << endl;
+    if (m.join_group(addr_storage(gaddr), if_nametoindex(interface.c_str()))) {
+    cout << "join OK!" << endl;
+    } else {
+    cout << "join FAILED!" << endl;
+    }
+    
+    //---------------------------------------------------------------------------------------
+    cout << "--<" << count++ << "> Set source filter MCAST_INCLUDE on interface " << interface << " with group addr " << gaddr << " --" << endl;
+    if (m.set_source_filter(if_nametoindex(interface.c_str()), addr_storage(gaddr), MCAST_INCLUDE , std::list<addr_storage> {addr_storage(saddr_a), addr_storage(saddr_b)})) {
+        cout << "set source filter OK!" << endl;
+    }
+    else {
+        cout << "set source filter FAILED!" << endl;
+    }
+    sleep(sleepTime);
+
+    cout << "--<" << count++ << "> Print source filter list --" << endl;
+    m.print_source_filter(if_nametoindex(interface.c_str()), addr_storage(gaddr));
+    sleep(sleepTime);
+
+    //---------------------------------------------------------------------------------------
+    cout << "--<" << count++ << "> Set source filter MCAST_EXCLUDE on interface " << interface << " with group addr " << gaddr << " --" << endl;
+    if (m.set_source_filter(if_nametoindex(interface.c_str()), addr_storage(gaddr), MCAST_EXCLUDE, std::list<addr_storage> {addr_storage(saddr_b)})) {
+        cout << "set source filter OK!" << endl;
+    }
+    else {
+        cout << "set source filter FAILED!" << endl;
+    }
+    sleep(sleepTime);
+
+    cout << "--<" << count++ << "> Print source filter list --" << endl;
+    m.print_source_filter(if_nametoindex(interface.c_str()), addr_storage(gaddr));
+    sleep(sleepTime);
+
+    //---------------------------------------------------------------------------------------
+    cout << "--<" << count++ << "> Set source filter MCAST_INCLUDE on interface " << interface << " with group addr " << gaddr << " --" << endl;
+    if (m.set_source_filter(if_nametoindex(interface.c_str()), addr_storage(gaddr), MCAST_INCLUDE, std::list<addr_storage> {addr_storage(saddr_b)})) {
+        cout << "set source filter OK!" << endl;
+    }
+    else {
+        cout << "set source filter FAILED!" << endl;
+    }
+    sleep(sleepTime);
+
+    cout << "--<" << count++ << "> Print source filter list --" << endl;
+    m.print_source_filter(if_nametoindex(interface.c_str()), addr_storage(gaddr));
+    sleep(sleepTime);
+    //---------------------------------------------------------------------------------------
+    
+    cout << "--<" << count++ << "> Leave group " << gaddr << " --" << endl;
+    if (m.leave_group(addr_storage(gaddr), if_nametoindex(interface.c_str()))) {
+        cout << "leave OK!" << endl;
+    } else {
+        cout << "leave FAILED!" << endl;
+    }
+}
+
+void mc_socket::test_all()
+{
     HC_LOG_TRACE("");
 
     addr_storage gaddr_v4("239.99.99.99");
     addr_storage gaddr_v6("FF02::99:99:99:99");
-    addr_storage saddr_v4_a("141.22.0.1");
-    addr_storage saddr_v4_b("141.22.0.2");
-    addr_storage saddr_v6_a("FE80:5E26::2");
-    addr_storage saddr_v6_b("FE80:5E26::3");
+    addr_storage saddr_v4("141.22.0.1");
+    addr_storage saddr_v4a("141.22.0.2");
+    addr_storage saddr_v6("FE80:5E26::1");
+    addr_storage saddr_v6a("FE80:5E26::2");
     string if_name("dummy0");
-    int port = 9845; 
 
-    mc_socket::test_mc_goup_functions("AF_INET", "Hallo", if_name, gaddr_v4.to_string(), port);
-    mc_socket::test_mc_goup_functions("AF_INET6", "Hallo", if_name, gaddr_v6.to_string(),port);
-    mc_socket::test_mc_source_functions("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4_a.to_string(), saddr_v4_b.to_string());
-    mc_socket::test_mc_source_functions("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6_a.to_string(), saddr_v6_b.to_string());
+    int port = 9845;
+
+    mc_socket::test_mc_group_functions("AF_INET", "Hallo", if_name, gaddr_v4.to_string(), port);
+    mc_socket::test_mc_group_functions("AF_INET6", "Hallo", if_name, gaddr_v6.to_string(), port);
+    mc_socket::test_mc_source_delta_based_api("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4.to_string());
+    mc_socket::test_mc_source_delta_based_api("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6.to_string());
+    test_mc_source_advanced_api("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4.to_string(), saddr_v4a.to_string());
+    test_mc_source_advanced_api("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6.to_string(), saddr_v6a.to_string());
 }
+
 mc_socket::~mc_socket()
 {
     HC_LOG_TRACE("");
@@ -734,3 +930,5 @@ mc_socket::~mc_socket()
         close(m_sock);
     }
 }
+
+

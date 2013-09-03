@@ -1,10 +1,6 @@
 TODO list
 =========
 
-update mroute with ssm functionality
-
-check the current functionality 
-
 create a Ncurses based multicast test tool 
 
 Could change or modify the behavior of the mcproxy:

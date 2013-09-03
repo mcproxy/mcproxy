@@ -25,6 +25,7 @@
 #define MCSOCKET_H_
 
 #include "include/utils/addr_storage.hpp"
+#include <list>
 #include <time.h>
 #include <string>
 using namespace std;
@@ -68,33 +69,14 @@ using namespace std;
 #define IPV6_ALL_MLDv2_CAPABLE_ROUTERS            "ff02::16"      //All MLDv2-capable routers [RFC3810]
 #define IPV6_ALL_PIM_ROUTERS                      "ff02::d"       //All PIM Routers
 
-//string ipAddrResolver(string ipAddr);
-
-//typedef void (*free_fun) (struct addrinfo*);
-
-//template< typename F, typename V>
-//struct save_free {
-//private:
-    //F m_fun;
-    //V m_val;
-//public:
-    //save_free(F fun, V val): m_fun(fun), m_val(val) {
-    //}
-
-    //virtual ~save_free() {
-        //(*m_fun)(m_val);
-    //}
-//};
-
-//Multicast Socket
 /**
  * @brief Wrapper for a multicast socket.
  */
 class mc_socket
 {
 private:
-    bool generic_source_sockopt(const addr_storage& gaddr, const addr_storage& saddr, int if_index, int optname);
-    bool generic_group_sockopt(const addr_storage& gaddr, int if_index, int optname);
+    bool generic_source_sockopt(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index, int optname);
+    bool generic_group_sockopt(const addr_storage& gaddr, uint32_t if_index, int optname);
 protected:
     /**
      * @brief Used socket descriptor
@@ -159,7 +141,7 @@ public:
      * @brief Bind IPv4 or IPv6 socket to a specific port.
      * @return Return true on success.
      */
-    bool bind_udp_socket(int port);
+    bool bind_udp_socket(in_port_t port);
 
     /**
      * @brief Enable or disable multicast loopback.
@@ -169,7 +151,7 @@ public:
 
     /**
      * @brief Send a string to a specific ip address and to a specific port.
-     * @param addr destination address of packet and the destination prot 
+     * @param addr destination address of packet and the destination prot
      * @param data message to send
      * @return Return true on success.
      */
@@ -177,7 +159,7 @@ public:
 
     /**
      * @brief Send data to a specific ip address and to a specific port.
-     * @param addr destination address of packet and the destination prot 
+     * @param addr destination address of packet and the destination prot
      * @param data data to send
      * @param data_size size of the data
      * @return Return true on success.
@@ -212,7 +194,7 @@ public:
      * @brief Choose a specific network interface
      * @return Return true on success.
      */
-    bool choose_if(int if_index);
+    bool choose_if(uint32_t if_index);
 
     /**
      * @brief set the ttl
@@ -222,51 +204,74 @@ public:
 
     /**
      * @brief Join a multicast group on a specific network interface.
-     * @param addr multicast group 
-     * @param if_index define related interface 
+     * @param gaddr multicast group
+     * @param if_index define related interface
      * @return Return true on success.
      */
-    bool join_group(const addr_storage& gaddr, int if_index);
+    bool join_group(const addr_storage& gaddr, uint32_t if_index);
 
     /**
      * @brief Leave a multicast group on a specific network interface.
-     * @param addr multicast group 
-     * @param if_index define related interface 
+     * @param gaddr multicast group
+     * @param if_index define related interface
      * @return Return true on success.
      */
-    bool leave_group(const addr_storage& gaddr, int if_index);
+    bool leave_group(const addr_storage& gaddr, uint32_t if_index);
 
     /**
-     * @brief Block a source on a specific network interface.
-     * @param addr multicast group 
-     * @param if_index define related interface 
+     * @brief Block a source for a specific network interface and a group address. The function uses the delta based api (RFC3678).
+     * @param gaddr multicast group
+     * @param saddr source address
+     * @param if_index define related interface
      * @return Return true on success.
      */
-    bool block_source(const addr_storage& gaddr, const addr_storage& saddr, int if_index);
+    bool block_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index);
 
     /**
-     * @brief Unblock a source on a specific network interface.
-     * @param addr multicast group 
-     * @param if_index define related interface 
+     * @brief Unblock a source for a specific network interface and a group address. The function uses the delta based api (RFC3678).
+     * @param gaddr multicast group
+     * @param saddr source address
+     * @param if_index define related interface
      * @return Return true on success.
      */
-    bool unblock_source(const addr_storage& gaddr, const addr_storage& saddr, int if_index);
+    bool unblock_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index);
 
     /**
-     * @brief Join a source on a specific network interface.
-     * @param addr multicast group 
-     * @param if_index define related interface 
+     * @brief Join a source for a specific network interface and a group address. The function uses the delta based api (RFC3678).
+     * @param addr multicast group
+     * @param saddr source address
+     * @param if_index define related interface
      * @return Return true on success.
      */
-    bool join_source_group(const addr_storage& gaddr, const addr_storage& saddr, int if_index);
+    bool join_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index);
 
     /**
-     * @brief Leave a source on a specific network interface.
-     * @param addr multicast group 
-     * @param if_index define related interface 
+     * @brief Leave a source on a specific network interface. The function uses the delta based api (RFC3678).
+     * @param addr multicast group
+     * @param if_index define related interface
      * @return Return true on success.
      */
-    bool leave_source_group(const addr_storage& gaddr, const addr_storage& saddr, int if_index);
+    bool leave_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index);
+
+    /**
+     * @brief Set an include or an exlcude source filter list for a specific interface and a specific multicast group. The function uses the advanced (full-state) api (RFC3678).
+     * @param if_index define related interface
+     * @param gaddr multicast group
+     * @param filter_mode MCAST_INCLUDE or MCAST_EXCLUDE
+     * @param src_list source filter list
+     * @return Return true on success.
+     */
+    bool set_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t filter_mode, const std::list<addr_storage>& src_list);
+
+    /**
+     * @brief Get an include or an exlcude source filter list for a specific interface and a specific multicast group. The function uses the advanced (full-state) api (RFC3678).
+     * @param if_index define related interface
+     * @param gaddr multicast group
+     * @param filter_mode MCAST_INCLUDE or MCAST_EXCLUDE
+     * @param src_list source filter list
+     * @return Return true on success.
+     */
+    bool get_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t& filter_mode, std::list<addr_storage>& src_list);
 
     /**
      * @brief Check for valid socket descriptor.
@@ -275,22 +280,26 @@ public:
         return m_sock > 0;
     }
 
+
+    void print_source_filter(uint32_t if_index, const addr_storage& gaddr);
+
     /**
      * @brief Test a part of the class mc_socket.
      * @param ipverion "AF_INET" or "AF_INET6"
      * @param msg any message is allowed
      * @param interface for example "eth0" or "lo"
      * @param gaddr multicast address for example "239.99.99.99" or "FF02:0:0:0:99:99:99:99"
-     * @param port define a port 
+     * @param port define a port
      */
-    static void test_mc_goup_functions(string ipversion, string msg, string interface, string gaddr, int port);
+    static void test_mc_group_functions(string ipversion, string msg, string interface, string gaddr, in_port_t port);
 
-    /**
-     * @brief Test a part of the class mc_socket.
-     */
-    static void test_mc_source_functions(string ipversion, string interface, string gaddr, string saddr_a, string saddr_b);
+    static void test_mc_source_delta_based_api(string ipversion, string interface, string gaddr, string saddr);
 
+    static void test_mc_source_advanced_api(string ipversion, string interface, string gaddr, string saddr_a, string saddr_b);
+
+    //static void test_mc_source_advanced_api_ipv4(string ipversion, string if_addr, string interface_name, string gaddr, uint32_t filter_mode, string saddr_a, string saddr_b);
     static void test_all();
 };
 
-#endif /* MCSOCKET_H_ */
+#endif
+

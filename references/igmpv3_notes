@@ -1,0 +1,74 @@
+##-- RFC 3376 Zusammenfassung --##
+webseite: http://tools.ietf.org/html/rfc3376
+
+##Section 1 - Introduction
+ - funktioniert genau wie mldv2
+
+##section 2 - The Serice Interface for Requesting IP Multicast Reception 
+Die Socketabstraction sollte so aussehen:
+IPMulticastListen ( socket, interface, multicast-address, filter-mode, source-list )
+ - source-list MUSS mindestens 64 adressen enthalten können
+ - es git immer nur ein filter-mode der sich aber durch ein request änderen kann (INCLUDE, EXLCUDE)
+   - jeder request ersetzt jeden vorherigen request    
+
+   abwerskompatiblität:
+   - IPMulticastListen ( socket, interface, multicast-address, EXCLUDE, {} )
+#
+   - IPMulticastListen ( socket, interface, multicast-address, INCLUDE, {} )
+
+    für die genaue socket api siehe RFC 3678
+
+    #RFC3678
+    - beschreibt die socket options für multicsat filter für
+    - Appendix A beschreibt das auslesen der MulticastFilter Zustände über ioctl
+     int getipv4sourcefilter(int s, struct in_addr interface,
+                             struct in_addr group, uint32_t *fmode,
+                             uint32_t *numsrc, struct in_addr *slist);              
+    - Es werden zwei arten von APIS beschreiben:
+       - diese varianten existieren in der IP4 specific variante wie auch in der protocol unabhängigen variante. 
+         aber nicht in der reinen ip6 variante (weil unnötig)
+       - alles zu finden in #include <netinet/in.h> 
+       - Basic (Delta-based) für ipv4 und single sources
+          - ist die any-source socket variante mit:
+               IP_ADD_MEMBERSHIP         struct ip_mreq
+               IP_BLOCK_SOURCE           struct ip_mreq_source
+               IP_UNBLOCK_SOURCE         struct ip_mreq_source
+               IP_DROP_MEMBERSHIP        struct ip_mreq
+                - zum gruppe abonieren, und spezifische quellen blocken
+          - ist die ssm socket variante mit:
+               IP_ADD_SOURCE_MEMBERSHIP  struct ip_mreq_source
+               IP_DROP_SOURCE_MEMBERSHIP struct ip_mreq_source
+               IP_DROP_MEMBERSHIP        struct ip_mreq
+
+       - Advanced (Full-state) für ipv4
+               int setipv4sourcefilter(int s, struct in_addr interface,
+                                     struct in_addr group, uint32_t fmode,
+                                     uint32_t numsrc, struct in_addr *slist);
+
+               int getipv4sourcefilter(int s, struct in_addr interface,
+                                     struct in_addr group, uint32_t *fmode,
+                                     uint32_t *numsrc, struct in_addr *slist);              
+
+       - Basic (Delta-based) für ipv4/ipv6
+         - ist die any-source socket variante mit:
+               MCAST_JOIN_GROUP            struct group_req
+               MCAST_BLOCK_SOURCE          struct group_source_req
+               MCAST_UNBLOCK_SOURCE        struct group_source_req
+               MCAST_LEAVE_GROUP           struct group_req
+         - ist die ssm socket variante mit
+               MCAST_JOIN_SOURCE_GROUP     struct group_source_req
+               MCAST_LEAVE_SOURCE_GROUP    struct group_source_req
+               MCAST_LEAVE_GROUP           struct group_req
+
+       - Advanced (Full-state) für ipv4/ipv6
+             int setsourcefilter(int s, uint32_t interface,
+                                 struct sockaddr *group, socklen_t grouplen,
+                                 uint32_t fmode, uint_t numsrc,
+                                 struct sockaddr_storage *slist);
+
+             int getsourcefilter(int s, uint32_t interface,
+                                 struct sockaddr *group, socklen_t grouplen,
+                                 uint32_t fmode, uint_t *numsrc,
+                                 struct sockaddr_storage *slist);
+
+

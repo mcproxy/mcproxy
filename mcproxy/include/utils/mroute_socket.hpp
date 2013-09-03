@@ -26,6 +26,8 @@
 
 #include "include/utils/mc_socket.hpp"
 #include <sys/types.h>
+#include <linux/mroute.h>
+#include <linux/mroute6.h>
 
 #include <list>
 
@@ -160,7 +162,7 @@ public:
      * @param ip_tunnel_remote_addr if the interface is a tunnel interface the remote address has to set else it has to be an empty addr_storage
      * @return Return true on success.
      */
-    bool add_vif(int vifNum, int if_index, const addr_storage& ip_tunnel_remote_addr);
+    bool add_vif(int vifNum, uint32_t if_index, const addr_storage& ip_tunnel_remote_addr);
 
     /**
      * @brief Bind the interface to a spezific table as output and input interface
@@ -168,7 +170,7 @@ public:
      * @param table is the spezific table
      * @return Return true on success.
      */
-    bool bind_vif_to_table(int if_index, int table);
+    bool bind_vif_to_table(uint32_t if_index, int table);
 
     /**
      * @brief unbind the interface from a spezific table as output and input interface
@@ -176,37 +178,37 @@ public:
      * @param table is the spezific table
      * @return Return true on success.
      */
-    bool unbind_vif_form_table(int if_index, int table);
+    bool unbind_vif_form_table(uint32_t if_index, int table);
 
 
     /**
      * @brief Delete the virtual interface from the multicast routing table.
-     * @param vifNum virtual index of the interface
+     * @param vif_index virtual index of the interface
      * @return Return true on success.
      */
-    bool del_vif(int vifNum);
+    bool del_vif(vifi_t vif_index);
 
     /**
      * @brief Adds a multicast route to the kernel.
      *        /proc/net$ cat ip_mr_cache display the route
      *
-     * @param input_vifNum have to be the same value as in addVIF set
+     * @param vif_index have to be the same value as in addVIF set
      * @param source_addr from the receiving packet
      * @param group_addr from the receiving packet
      * @param output_vifNum forward to this virtual interface indexes
      * @param output_vifNum_size size of the interface indexes
      * @return Return true on success.
      */
-    bool add_mroute(int input_vifNum, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif);
+    bool add_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif);
 
     /**
      * @brief Delete a multicast route.
-     * @param input_vifNum have to be the same value as in addVIF set
+     * @param vif_index have to be the same value as in addVIF set
      * @param source_addr from the receiving packet
      * @param group_addr from the receiving packet
      * @return Return true on success.
      */
-    bool del_mroute(int input_vifNum, const addr_storage& source_addr, const addr_storage& group_addr);
+    bool del_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr);
 
     /**
      * @brief Get various statistics per interface.
@@ -215,7 +217,7 @@ public:
      * @param req_v6 musst point to a sioc_mif_req6 struct and will filled by this function when ipv6 is used
      * @return Return true on success.
      */
-    bool get_vif_stats(int vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6);
+    bool get_vif_stats(vifi_t vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6);
 
     /**
      * @brief Get various statistics per multicast route.
@@ -242,7 +244,7 @@ public:
 #define  MROUTE_SOCKET_IF_STR_TWO "wlan0"
 #define  MROUTE_SOCKET_IF_STR_THREE "tun0"
 
-    void print_vif_stats(int vif_index);
+    void print_vif_stats(vifi_t vif_index);
     void print_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr);
 
     static void print_struct_mf6cctl(struct mf6cctl* mc);
