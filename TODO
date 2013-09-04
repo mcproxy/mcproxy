@@ -12,3 +12,17 @@ Could change or modify the behavior of the mcproxy:
  - http://tools.ietf.org/html/draft-ietf-multimob-handover-optimization-03
  - http://tools.ietf.org/html/draft-contreras-multimob-multiple-upstreams-01 
 
+ - Timer should settable per-interface
+
+ - add und delete mroute optimisation 
+struct mfcctl {
+	struct in_addr mfcc_origin;		/* Origin of mcast	*/
+	struct in_addr mfcc_mcastgrp;		/* Group in question	*/
+	vifi_t	mfcc_parent;			/* Where it arrived	*/
+	unsigned char mfcc_ttls[MAXVIFS];	/* Where it is going	*/
+	unsigned int mfcc_pkt_cnt;		/* pkt count for src-grp */
+	unsigned int mfcc_byte_cnt;
+	unsigned int mfcc_wrong_if;
+	int	     mfcc_expire; <======== the kernel could delete its rules by itself 
+};
+

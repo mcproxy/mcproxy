@@ -746,7 +746,7 @@ void mc_socket::test_mc_source_delta_based_api(string ipversion, string interfac
     cout << "##-- Test multicast source delta based api --##" << endl;
     mc_socket m;
     int count = 0;
-    int sleepTime = 4;
+    int sleepTime = 2;
 
     cout << "--<" << count++ << "> Create an udp " << ipversion << " socket --" << endl;
     if (ipversion.compare("AF_INET") == 0) {
@@ -806,7 +806,7 @@ void mc_socket::test_mc_source_delta_based_api(string ipversion, string interfac
     }
     sleep(sleepTime);
 
-    cout << "--<" << count++ << "> Leave group " << gaddr << "with source " << saddr << " --" << endl;
+    cout << "--<" << count++ << "> Leave group " << gaddr << " with source " << saddr << " --" << endl;
     if (m.leave_source_group(addr_storage(gaddr), addr_storage(saddr), if_nametoindex(interface.c_str()))) {
         cout << "leave OK!" << endl;
     } else {

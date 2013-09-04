@@ -297,7 +297,6 @@ public:
 
     static void test_mc_source_advanced_api(string ipversion, string interface, string gaddr, string saddr_a, string saddr_b);
 
-    //static void test_mc_source_advanced_api_ipv4(string ipversion, string if_addr, string interface_name, string gaddr, uint32_t filter_mode, string saddr_a, string saddr_b);
     static void test_all();
 };
 

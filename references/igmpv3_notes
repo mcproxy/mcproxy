@@ -71,4 +71,33 @@ IPMulticastListen ( socket, interface, multicast-address, filter-mode, source-li
                                  uint32_t fmode, uint_t *numsrc,
                                  struct sockaddr_storage *slist);
 
+##Section 3 - Multicast Reception state Maintained by System
+ - Es wird folgender socket status gespeichert
+   - (interface, multicast-address, filter-mode, source-list)
+ - Ausßerdem wird pro interface auch die zustände gepseichert, welche vom socket status abgeleitet sind, aber nicht identisch sein müssen
+   - z.B. INCLUDE
+     IPMulticastListen ( s1, i, m, INCLUDE, {a, b, c} ) )
+     IPMulticastListen ( s2, i, m, INCLUDE, {b, c, d} ) )
+     ==> interface state (i, m, INCLUDE, {a, b, c, d})      ==> OR 
+
+     z.B. EXCLUDE  
+     IPMulticastListen ( s1, i, m, EXCLUDE, {a, b, c} ) )
+     IPMulticastListen ( s2, i, m, EXCLUDE, {b, c, d} ) )
+     ==> interface state (i, m, EXCLUDE, {b, c, d})         ==> AND
+
+     z.B. EXCLUDE and INCLUDE
+     IPMulticastListen ( i, m, EXCLUDE, {a, b, c, d} ) )       
+     IPMulticastListen ( i, m, EXCLUDE, {b, c, d, e} ) ) bcd    AND
+     IPMulticastListen ( i, m, INCLUDE, {d, e, f} ) )    def    A ohne (A AND B) 
+     ==> interface state (i m, EXCLUDE, {b, c}) ==> immer EXCLUDE mode
+
+##Section 4 - Message Foramts
+ - sieh auch file IGMP_Message_notes
+ - alle nachrichten haben eine TTL von 1
+ - + router alert header
+   0x11     Membership Query
+   0x22     Version 3 Membership Report
+   0x12     Version 1 Membership Report
+   0x16     Version 2 Membership Report
+   0x17     Version 2 Leave Group
 

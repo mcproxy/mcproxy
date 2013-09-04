@@ -1,0 +1,46 @@
+##-- RFC 3810 Zusammenfassung --##
+webseite: http://tools.ietf.org/html/rfc3810
+
+##Section 1 - Inroduction
+wie igmpv3 Section 1
+
+##Section 2 - Protocol Overview
+ - Es existieren bei MLDv2 drei Arten von queries: General Queries, Multicast Address Specific Queries und Multicast Address and Source Specific Queries
+ - Multicast Address Specific Query ==> Falls ein Node eine Gruppe verlässt
+ - Multicast Address and Source Specific Query ==> Falls ein Node eine bestimmt source filtert, muss er fragen ob noch andere Nodes an dieser source interessiert sind
+ - es gibt einen State Change Report und einen Current State Report, nur beim ersten wird mit Queries geantwortet um den berechnungsaufwand zu verringern, unterscheiden durch ein flag
+ - alle nachrichten bis auf den GQ werden zur Robustness Zwecken periodisch wiederholt.
+###Section 2.3 - Buidling Multicast address Listener State on Multicast Routers
+ - Multicast routers that implement MLDv2 keep state per multicast address per attached link.  This multicast address listener state consists of:
+   - Filter Mode,
+   - Filter Timer
+   - Source List, with a timer associated to each source from the list.
+   
+   - Wenn der router in der EXCLUDE mode ist:
+     ==> EXCLUDE (X,Y) 
+      - X = Requested List
+      - Y = Exclude List
+      - Y wird weitergeleitet
+      - X muss vom router gewartet werden um
+        - einen fließenden übergang von EXCLUDE in den INCLUDE mode zu ermöglichen
+
+
+
+##Section 3 - The Service Interface for Requesting IP Multicast Reception
+wie igmpv3 Section 2 
+
+##Section 4 - Multicast Listining State Maintained by Nodes
+wie igmpv3 Section 3
+
+##Section 5 - Mesage Formates
+ - siehe auch file MLD_Message_notes
+ - MLD wie auch ICMPv6 Header haben im IP Header den next Header wert von IPv6
+ - link-local Ipv6 source address
+ - Hop limit von 1
+ - + router alert
+    130     Multicast Listener Query
+    143     Version 2 Multicast Listener Report 
+    131     Version 1 Multicast Listener Report
+    132     Version 1 Multicast Listener Done
+
+lese section 5.1.13 Query Variants  
