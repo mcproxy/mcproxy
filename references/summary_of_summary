@@ -1,0 +1,48 @@
+##-- summary of summaries --##
+
+#Datenstruktur
+interface
+    -> Compatible Mode variable
+    -> is Querier 
+    -> multicast address
+        -> filter mode 
+        -> filter timer
+        -> source list
+            -> Include List/Requested List
+                -> Source Timer
+            -> Exclude       
+                -> Source Timer
+
+    - query werden in hohe des Listner query Counts wiederholt und das im abstand vom Last Listener Query interval 
+    - neue und anstehende Queries der selben gruppe müssen gemerged werden
+
+#Nachrichten
+Queries
+    -> General Query
+    -> Multicast Address Specific Query
+    -> Mulitcast Address and Source Specific Query
+Group Records
+    -> Current-State Record
+        -> MODE_IS_INCLUDE
+        -> MODE_IS_EXCLUDE
+    -> Filter Mode Change Record
+        -> CHANGE_TO_INCLUDE_MODE
+        -> CHANGE_TO_EXCLUDE_MODE
+    -> Source List Change Record
+        -> ALLOW_NEW_SOURCES
+        -> BLOCK_OLD_SOURCES
+
+#Stuff to Do
+MLDv2/IGMPv3-capable routers abonnieren      
+
+#Suppress Router-Side Processing
+über den Suppress mechanismus syncronisieren sich die Multicast Router (Querier und non-querier), nur so ist es möglich folgende Timer zu setzten:
+
+   Query       Action
+   -----       ------
+   Q(MA,A)     Source Timers for sources in A are lowered to LLQT
+   Q(MA)       Filter Timer is lowered to LLQT
+
+    - es werden immer 2 queries versendet. Bei dem einen ist das flag gesetzt(enthält alle sourcen mit timer größer als LLQT), bei dem anderen nicht(enthält alle sourcen mit timer kleiner gleich LLQT)  
+  
+    wie merge ich jetzt nochmal queries???

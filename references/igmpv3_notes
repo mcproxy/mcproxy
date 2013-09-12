@@ -4,7 +4,7 @@ webseite: http://tools.ietf.org/html/rfc3376
 ##Section 1 - Introduction
  - funktioniert genau wie mldv2
 
-##section 2 - The Serice Interface for Requesting IP Multicast Reception 
+##section 2 - The Service Interface for Requesting IP Multicast Reception 
 Die Socketabstraction sollte so aussehen:
 IPMulticastListen ( socket, interface, multicast-address, filter-mode, source-list )
  - source-list MUSS mindestens 64 adressen enthalten können
@@ -38,7 +38,7 @@ IPMulticastListen ( socket, interface, multicast-address, filter-mode, source-li
           - ist die ssm socket variante mit:
                IP_ADD_SOURCE_MEMBERSHIP  struct ip_mreq_source
                IP_DROP_SOURCE_MEMBERSHIP struct ip_mreq_source
-               IP_DROP_MEMBERSHIP        struct ip_mreq
+               IP_DROP_MEMBERSHIP        otruct ip_mreq
 
        - Advanced (Full-state) für ipv4
                int setipv4sourcefilter(int s, struct in_addr interface,
@@ -88,16 +88,69 @@ IPMulticastListen ( socket, interface, multicast-address, filter-mode, source-li
      z.B. EXCLUDE and INCLUDE
      IPMulticastListen ( i, m, EXCLUDE, {a, b, c, d} ) )       
      IPMulticastListen ( i, m, EXCLUDE, {b, c, d, e} ) ) bcd    AND
-     IPMulticastListen ( i, m, INCLUDE, {d, e, f} ) )    def    A ohne (A AND B) 
-     ==> interface state (i m, EXCLUDE, {b, c}) ==> immer EXCLUDE mode
+ IPMulticastListen ( i, m, INCLUDE, {d, e, f} ) )    def    A ohne (A AND B) 
+ ==> interface state (i m, EXCLUDE, {®3®P­Ob, c:9> ==> immer EXCLUDE mode
 
 ##Section 4 - Message Foramts
- - sieh auch file IGMP_Message_notes
- - alle nachrichten haben eine TTL von 1
- - + router alert header
-   0x11     Membership Query
-   0x22     Version 3 Membership Report
-   0x12     Version 1 Membership Report
-   0x16     Version 2 Membership Report
-   0x17     Version 2 Leave Group
+- siehe auch file IGMP_Message_notes
+- alle nachrichten haben eine TTL von 1
+- + router alert header
+0x11     Membership Query
+0x22     Version 3 Membership Report
+0x12     Version 1 Membership Report
+0x16     Version 2 Membership Report
+0x17     Version 2 Leave Group
 
+- Query Variants
+- General Query (Multicast Address field and Number of sources field is zero) send to all-system addr (224.0.0.1)
+- Multicast Address Specific Query (Number of sources field is zero) wird an die jeweilige multicast addresse gesendet
+- Group-and-source-Specific Query wird an die jeweilige multicast addresse gesendet
+
+read 4.2. Version 3 Membership Report Message
+
+#Section 4.2.12 Group Record Types
+- Current-State Record
+   - to response to a Query
+     1 MODE_IS_INCLUDE
+     2 MODE_IS_EXCLUDE  
+ - Filter-Mode-Change Record
+     3 CHANGE_TO_INCLUDE_MODE
+     4 CHANGE_TO_EXCLUDE_MODE
+ - Source-List-Change Record
+     5 ALLOW_NEW_SOURCES (beim Server in INCLUDE mode wird die zugehörige lsite hinzugefügt, sonst gelöscht) 
+     6 BLOCK_OLD_SOURCES (beim Server in INCLUDE mode wird die zugehörige Liste gelöscht sonst umgedreht)
+
+#Section 4.2.14. IP Destination Addresses for Reports
+ - destination address . 224.0.0.22 (IGMPv3-capable multicast routers list)
+
+#Section 4.2.15. Notation for Group Records
+ - A+B (union)
+ - A*B (intersection - Schnitmenge)
+ - A-B (A ohne B)
+
+  IS_IN ( x )  -  Type MODE_IS_INCLUDE, source addresses x
+  IS_EX ( x )  -  Type MODE_IS_EXCLUDE, source addresses x
+  TO_IN ( x )  -  Type CHANGE_TO_INCLUDE_MODE, source addresses x
+  TO_EX ( x )  -  Type CHANGE_TO_EXCLUDE_MODE, source addresses x
+  ALLOW ( x )  -  Type ALLOW_NEW_SOURCES, source addresses x
+  BLOCK ( x )  -  Type BLOCK_OLD_SOURCES, source addresses x 
+
+##Section 5. Description of the Protocol for Group Members
+ - Change of Interface State
+   - initialer zustand ist INCLUDE({}) 
+
+     Old State         New State         State-Change Record Sent
+     ---------         ---------         ------------------------
+     INCLUDE (A)       INCLUDE (B)       ALLOW (B-A), BLOCK (A-B)
+     EXCLUDE (A)       EXCLUDE (B)       ALLOW (A-B), BLOCK (B-A)
+     INCLUDE (A)       EXCLUDE (B)       TO_EX (B)
+     EXCLUDE (A)       INCLUDE (B)       TO_IN (B)
+
+ - ein Rekord wird sofort nach jeder zustands änderung verschickt wird kurz hintereinander der zustand geändert wird der alte Record mit dem neuen verrechnet und es wird vom neuen mehrere in höhe der Robustness Variable -1 versendet. Dabei muss jede source nur in höher der Robustness variable vershickt werden.
+
+#Section 5.2 Action on reception of a Query
+ - kompliziert stuff  
+
+##Section 6. Description of the Protocol for Multicast Routers
+ - diese gruppe muss abonniert werden: 224.0.0.22
+ - siehe mldv2_notes 

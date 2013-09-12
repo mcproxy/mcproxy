@@ -44,7 +44,8 @@ SOURCES += src/main.cpp \
            src/proxy/timing.cpp \
            src/proxy/check_if.cpp \
            src/proxy/check_source.cpp \
-           src/proxy/check_kernel.cpp
+           src/proxy/check_kernel.cpp \
+           src/proxy/membership_db.cpp 
 
 HEADERS += include/hamcast_logging.h \
                 #utils
@@ -69,7 +70,8 @@ HEADERS += include/hamcast_logging.h \
            include/proxy/timing.hpp \
            include/proxy/check_if.hpp \
            include/proxy/check_source.hpp \
-           include/proc/check_kernel.hpp
+           include/proc/check_kernel.hpp \
+           include/proc/membership_db.hpp
 
 LIBS += -L/usr/lib -lboost_thread \
         -lboost_date_time \

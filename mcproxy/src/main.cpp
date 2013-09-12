@@ -29,6 +29,7 @@
 #include "include/proxy/timing.hpp"
 #include "include/proxy/check_if.hpp"
 #include "include/utils/if_prop.hpp"
+#include "include/proxy/membership_db.hpp"
 
 #include <iostream>
 using namespace std;
@@ -46,10 +47,10 @@ int main(int arg_count, char* args[])
     //test_MC_Tables();
     //test_MC_TestTool();
 
-    test_mcproxy(arg_count, args);
+    //test_mcproxy(arg_count, args);
 
 
-    //test_test();
+    test_test();
     return 0;
 }
 
@@ -82,7 +83,8 @@ void test_mcproxy(int arg_count, char* args[])
 
 void test_test()
 {
-    mc_socket::test_all();
+    //mc_socket::test_all();
     //addr_storage::test_addr_storage_a();
-    //addr_storage::test_addr_storage_b();
+    //addr_storage::test_addr_sto_b();
+    membership_db::test_arithmetic(); 
 }

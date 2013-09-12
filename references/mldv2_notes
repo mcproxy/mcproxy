@@ -43,4 +43,204 @@ wie igmpv3 Section 3
     131     Version 1 Multicast Listener Report
     132     Version 1 Multicast Listener Done
 
-lese section 5.1.13 Query Variants  
+ - Query Variants (siehe igmpv3 notes)
+   - all nodes addr (FF02::1) 
+
+#Section 5.2.14. Destination Addresses for Reports
+ - FF02::16 (MLDv2-capable multicast routers)
+
+##Section 6. Protocol Description for Multicast Address Listeners
+ - komplizierter stuff
+ 
+##Section 7. Description of the Protocol for Multicast Routers
+ - diese gruppe muss abonniert werden: MLDv2-capable routers
+
+#Section 7.1.  Conditions for MLD Queries
+ - ein Multicast Router sendet periodisch Muliticast Queries
+   - MNodes antworten darauf mit current-State Group Records
+ - verlässt ein MNode eine gruppe oder ist an einer Gruppe nicht mehr interessiert muss der MRouter mit einem Multicast Address Specific Query erfragen ob weiter MNodes interesse an einer Gruppe oder Source haben
+ - Multicast Address and source Specific queries versendet der router nur bei nach einem State Change Record um zu erfragen ob es noch MNodes gibt dieinteresse an bestimmten resourcen haben. 
+
+#Section 7.2. MLD State Maintained by Multiast Rotuers
+ - speichert zustand pro interface und multicast address ==> X
+ - X = IPv6 multicast address, Filter Timer, Router Filter Mode, (soruce records)
+ - source record = (IPv6 source address, source timer)   
+    
+#Section 7.2.1. Definition of Router Filter Mode     
+ - INCLUDE mode
+   - wenn alle Nodes in INCLUDE mode
+ - EXCLUDE mode
+   - wenn mindestens ein Node in EXCLUDE mode
+   - läuft der Filter Timer ab wechselt der mode to INCLUDE 
+   - EXLCUDE (X,Y) 
+     - X = Requested List (keine auswirkung auf das forwarding)
+     - Y = Exclude List
+     
+#Section 7.2.2. Definition of Filter Timers
+ - wird nur für Router Filter Mode EXCLUDE benötigt
+ - wird durch Membership Records upgedated
+  
+     Router          Filter     
+   Filter Mode     Timer Value    Actions/Comments
+   -----------  ----------------  ----------------
+     INCLUDE        Not Used      All listeners in INCLUDE mode.
+
+     EXCLUDE        Timer > 0     At least one listener in EXCLUDE mode.
+
+     EXCLUDE        Timer == 0    Kein Node ist mehr im EXLCUDE mode
+                                  die Requested List wird dann als neue 
+                                  Include List benutzt
+
+#Section 7.2.3. Definition of Source Timers
+ - Abkürzungen
+   - MALI = Multicast Address Listening Interval
+     - time out Zeit für multicast Adressen
+   - LLQT = Last Listener Query Time
+     - ist die zeit die ein router nach einem nach seinem ersten query auf ein Report wartet (leave latency von dem versenden des listener state change und die anpassung der Routingeinträge). In der Zeit wird der Query [Last Member Query Count]-1 mal wiederholt. 
+
+ - im INCLUDE mode, wenn der timer von einer Source abläuft kann die Source gelöscht werden, wenn alle sourcen gelöscht sind kann die Multicast Gruppe gelöscht werden (soft leave mechannism)
+    - wird die source "verlassen" wird der timer auf LLQT milliseconds gesetzt, dann sendet der query ein Multicast Address and Source Specific Query (wird der query wiederholt????, alle queries außerdem GQ werden wiederholt)  
+    - im EXCLUDE mode, die Requested List Source timer laufen (und werden natürlich geforwardet), timer der Sources der Exclude list sind auf null gesetzt( und werden natürlich geblockt), wenn ein timer der Reqeusted List abläuft kommt die Source auf die Exclude List. 
+    - befor eine neue Source geblockt wird sie mit einer LLQT zeit in die Requested list geschrieben und mit einem Multicast Address and Source Specific Query geprüft. 
+
+#Section 7.3. MLDv2 Source Specific Forwarding Rules
+     Router
+   Filter Mode      Source Timer Value           Action
+   -----------      ------------------           ------
+
+    INCLUDE            TIMER > 0         Suggest to forward traffic
+                                         from source
+
+
+    INCLUDE            TIMER == 0        Suggest to stop forwarding
+                                         traffic from source and
+                                         remove source record.  If
+                                         there are no more source
+                                         records, delete multicast
+                                         address record
+
+    EXCLUDE            TIMER > 0         Suggest to forward traffic
+                                         from source
+
+    EXCLUDE            TIMER == 0        Suggest to not forward
+                                         traffic from source.  Move
+                                         the source from the
+                                         Requested List to the
+                                         Exclude List (DO NOT remove
+                                         source record)
+
+    EXCLUDE         No Source Element    Suggest to forward traffic
+                                         from all sources
+
+#Section 7.4. Action on Reception of Reports
+ - (A)=J ==> die Timer des Source sets A wird auf die Zeit J gestellt
+ - Delete (A) ==>  die Sourcen in A sollten gelöscht werden
+ - Filter timer = J  ==> der multicast adress filter timer wird auf die Zeit J gesetzt
+
+   Router State   Report Received  New Router State   Actions
+   ------------   ---------------  ----------------   -------
+
+   INCLUDE (A)       IS_IN (B)     INCLUDE (A+B)      (B)=MALI
+
+   INCLUDE (A)       IS_EX (B)     EXCLUDE (A*B, B-A) (B-A)=0
+                                                      Delete (A-B)
+                                                      Filter Timer=MALI
+
+   EXCLUDE (X,Y)     IS_IN (A)     EXCLUDE (X+A, Y-A) (A)=MALI
+                                            |- und anschließend läuft der source timer ab und teile von A werden zu Y hinzugefügt und plätzlich wird wir was geblockt was hätte nicht geblockt werden dürfen ??????
+                                            
+   EXCLUDE (X,Y)     IS_EX (A)     EXCLUDE (A-Y, Y*A) (A-X-Y)=MALI
+                                                      Delete (X-A)
+                                                      Delete (Y-A)
+                                                      Filter Timer=MALI
+
+#Section 7.4.2. Reception of Filter Mode Change and Source List Change Records
+ - der Querier muss source or multicast adress that are requested to be no longer forwarded. (in diesem Fall wird der source timer auf Last Listener Query Time gesetzt (milliseconds))
+ - bei einem Multicast Address Specific query kann auch für ein fast transition von EXCLUDE to INCLUDe mode genutzt werden, dabei wird der Filter Timer wieder auf Last Listener Query time gesetzt.
+    - query werden in hohe des Listner query Counts wiederholt und das im abstand vom Last Listener Query interval 
+ - Abkürzungen/Notationen
+   - Q(MA) = send a Multicast Address Specific query
+   - Q(MA,A) = send aMulticast Address and Source Specific Query - mit source list A wenn A nicht leer ist
+ - neue und anstehende Queries der selben gruppe müssen gemerged werden
+
+   Router State  Report Received  New Router State     Actions
+   ------------  ---------------  ----------------     -------
+   INCLUDE (A)     ALLOW (B)      INCLUDE (A+B)        (B)=MALI
+
+   INCLUDE (A)     BLOCK (B)      INCLUDE (A)          Send Q(MA,A*B)
+
+   INCLUDE (A)     TO_EX (B)      EXCLUDE (A*B,B-A)    (B-A)=0
+                                                       Delete (A-B)
+                                                       Send Q(MA,A*B)
+                                                       Filter Timer=MALI
+
+   INCLUDE (A)     TO_IN (B)      INCLUDE (A+B)        (B)=MALI
+                                                       Send Q(MA,A-B)
+
+   EXCLUDE (X,Y)   ALLOW (A)      EXCLUDE (X+A,Y-A)    (A)=MALI
+
+   EXCLUDE (X,Y)   BLOCK (A)      EXCLUDE (X+(A-Y),Y)  (A-X-Y) =
+                                                            Filter Timer
+                                                       Send Q(MA,A-Y)
+
+   EXCLUDE (X,Y)   TO_EX (A)      EXCLUDE (A-Y,Y*A)    (A-X-Y) =
+                                                            Filter Timer
+                                                       Delete (X-A)
+                                                       Delete (Y-A)
+                                                       Send Q(MA,A-Y)
+                                                       Filter Timer=MALI
+
+   EXCLUDE (X,Y)   TO_IN (A)      EXCLUDE (X+A,Y-A)    (A)=MALI
+                                                       Send Q(MA,X-A)
+                                                       Send Q(MA)
+
+#Section 7.5. Switching Router Filter Modes 
+ - läuft der filter timer ab wechselt der Filter mode von EXCLUDE to INCLUDE
+ - die Reqeusted List wird dabei als INCLUDE Filter List verwendet.
+ - ist die Source Liste leer wird der multicast address record gelöscht
+
+#Section 7.6. Action on Reception of Queries
+ - krasser Suppress router-Side Processing flag kram
+
+#Section 7.6.2. Querier Election
+ - der größenvergleich zwichen den IPv6 addressen bezieht sich nur auf die interface ID 
+ 
+#Section 7.6.3. Building and Sending Specific Queries
+#Secction 7.6.3.1.  Building and Sending Multicast Address Specific Queries
+ - wird dein Q(MA) versendet werden die Filter timer auf LLQT gesetzt.
+ - der Q(MA) wird Last Listener Query Count -1 wiederholt und das im bastand von Last Listener Query Interval über den zeitraum von Last Listene Query timer (stimmt das rechnerrisch ?????)
+ - irgendwass mit Suppress router-side proccessing flag
+
+#Section 7.6.3.2.  Building and Sending Multicast Address and Source Specific Queries
+ - falls ein Q(MA,X) versendet wird
+   - für jede Source in X wird der source timer auf LLQT gesetzt
+   - die source wird zu einer Retransmission List hinzugefügt
+   - der source Retransmission Couter jeder Source wird auf Last Query Count gesetzt
+   
+ - der Q(MA,X) wird dann alle Last Listener Query count -1 mal versendet in einem abstand von Last Listener Query Interval über der Last Listener Query Time
+ - nochmal lesen wieder was krasses mit router suppression 
+
+##Section 8. Interoperation with MLDv1
+#Section 8.1.  Query Version Distinctions
+   MLDv1 Query: length = 24 octets
+   MLDv2 Query: length >= 28 octets
+
+#Section 8.2. Multicast Address Listener Behavior 
+#Section 8.2.1. In the Presence of MLDv1 Routers
+ - langweilig betrifft mich nicht
+
+#Section 8.2.2. In the Presence of MLDv1 Multicast Address Listeners
+ - alle Router in MLDv2 mode müssen in der gegenwart von router in mldv1 adminstartiv auf auf den MLDv1 mode umgestellt werden.
+ 
+#Sectin 8.3.2.  In the Presence of MLDv1 Multicast Address Listeners 
+ - für jedes interface gibt es eine Compatible Mode variable die immer auf MLDv1 gesezt wird falls ein MLDv1 Multicast Listener Report empfangen wird, gleichzeit wird der timer Older Version Host Present Timeout in seconds gesetzt.
+ - es werden weiterhin MLDv2 queries gesendet
+ - TO_EX Nachrichten werden ignoriert
+
+  MLDv1 Message    MLDv2 Equivalent
+ -------------    ----------------
+    Report           IS_EX( {} )
+
+    Done             TO_IN( {} )
+
+
