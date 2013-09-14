@@ -29,10 +29,12 @@
 #define MEMBERSHIP_DB_HPP
 
 #include "include/utils/addr_storage.hpp"
-
+#include "include/proxy/def.hpp"
 #include <iostream>
 #include <set>
+#include <map>
 
+//------------------------------------------------------------------------
 template<typename T> using source_list = std::set<T>;
 
 //A+B means the union of set A and B
@@ -116,17 +118,36 @@ inline std::ostream& operator<<(std::ostream& stream, const source_list<T> sl)
     using namespace std;
     for (auto e : sl) {
         stream << e << " ";
-    }
+    }    
     return stream;
 }
 
+//------------------------------------------------------------------------
+struct source {
+    addr_storage saddr;
+    void* source_timer;
+    void* current_state;
+};
+
+struct group_info{
+    mc_filter filter_mode; 
+    void* filter_timer;
+    void* current_state;
+    source_list<source> include_list;
+    source_list<source>& requested_list = include_list;
+    source_list<source> exclude_list;
+};
+
+
 /**
- * @brief The Membership Database maintaines the membership records (RFC 4605)
+ * @brief The Membership Database maintaines the membership records for one specific interface (RFC 4605)
  */
-class membership_db
+struct membership_db
 {
-private:
-public:
+    group_mem_protocol compatibility_mode_variable; //RFC3810 - Section 6
+    bool is_querier; 
+    std::map<addr_storage,group_info> gaddr_map; //subscribed multicast group with there source lists  
+
     static void test_arithmetic();
 
 };

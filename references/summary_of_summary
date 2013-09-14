@@ -1,21 +1,39 @@
 ##-- summary of summaries --##
 
 #Datenstruktur
-interface
-    -> Compatible Mode variable
-    -> is Querier 
-    -> multicast address
-        -> filter mode 
-        -> filter timer
-        -> source list
-            -> Include List/Requested List
-                -> Source Timer
-            -> Exclude       
-                -> Source Timer
-
+interface (index)
+    -> specified values
+        -> Robustness Variable
+        -> Query Interval
+        -> Query Response Interval
+        -> Multicast Address Listening Interval
+        -> Other Querier Present Tiemout
+        -> Startup Query Interval
+        -> Startup Query Count
+        -> Last Listener Query Interval
+        -> Last Listener Query Count 
+        -> Last Listener Query Time (not tunable)
+        -> Older Version Querier Present Timeout
+        -> Older Version Host Present Timeout
+    -> Compatible Mode variable (MLDv1, MLDv2, IGMPv1, IGMPv2, IGMPv3)
+    -> is Querier (bool) 
+    -> multicast group addr 
+        -> subscribers 
+            -> filter mode (INCLUDE, EXCLUDE) 
+            -> filter timer 
+            -> current state (counter, flag(INIT, RUNNING, RESPONSE_STATE)) 
+            -> filter source list (set<addr_storage>)
+                -> Include List/Requested List
+                    -> Source Timer
+                -> Exclude       
+                    -> Source Timer
+        -> sourcen
+            -> received source list 
+                -> current state (counter, flag (UNUSED_SRC, CACHED_SRC))
+     
     - query werden in hohe des Listner query Counts wiederholt und das im abstand vom Last Listener Query interval 
     - neue und anstehende Queries der selben gruppe müssen gemerged werden
-
+    - wie funkt das mit dem forwarden wie müssen die forwarding rules erarbeitet werden
 #Nachrichten
 Queries
     -> General Query

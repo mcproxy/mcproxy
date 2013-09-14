@@ -70,8 +70,9 @@ HEADERS += include/hamcast_logging.h \
            include/proxy/timing.hpp \
            include/proxy/check_if.hpp \
            include/proxy/check_source.hpp \
-           include/proc/check_kernel.hpp \
-           include/proc/membership_db.hpp
+           include/proxy/check_kernel.hpp \
+           include/proxy/membership_db.hpp \
+           include/proxy/def.hpp
 
 LIBS += -L/usr/lib -lboost_thread \
         -lboost_date_time \
