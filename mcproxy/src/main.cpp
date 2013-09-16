@@ -30,6 +30,7 @@
 #include "include/proxy/check_if.hpp"
 #include "include/utils/if_prop.hpp"
 #include "include/proxy/membership_db.hpp"
+#include "include/proxy/querier.hpp"
 
 #include <iostream>
 using namespace std;
@@ -86,8 +87,8 @@ void test_test()
     //mc_socket::test_all();
     //addr_storage::test_addr_storage_a();
     //addr_storage::test_addr_sto_b();
-    membership_db::test_arithmetic(); 
-
+    //membership_db::test_arithmetic(); 
+    querier::test_querier("dummy0");
 
 
     
