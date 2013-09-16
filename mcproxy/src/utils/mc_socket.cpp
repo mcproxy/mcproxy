@@ -151,12 +151,12 @@ bool mc_socket::set_own_socket(int sck, int addr_family)
     }
 }
 
-int mc_socket::get_addr_family()
+int mc_socket::get_addr_family() const
 {
     return m_addrFamily;
 }
 
-bool mc_socket::bind_udp_socket(in_port_t port)
+bool mc_socket::bind_udp_socket(in_port_t port) const
 {
     HC_LOG_TRACE("");
 
@@ -200,7 +200,7 @@ bool mc_socket::bind_udp_socket(in_port_t port)
     }
 }
 
-bool mc_socket::set_loop_back(bool enable)
+bool mc_socket::set_loop_back(bool enable) const
 {
     HC_LOG_TRACE("");
 
@@ -242,12 +242,12 @@ bool mc_socket::set_loop_back(bool enable)
     }
 }
 
-bool mc_socket::send_packet(const addr_storage& addr, string data)
+bool mc_socket::send_packet(const addr_storage& addr, string data) const
 {
     return send_packet(addr, reinterpret_cast<const unsigned char*>(data.c_str()), data.size());
 }
 
-bool mc_socket::send_packet(const addr_storage& addr, const unsigned char* data, unsigned int data_size)
+bool mc_socket::send_packet(const addr_storage& addr, const unsigned char* data, unsigned int data_size) const
 {
     HC_LOG_TRACE("addr: " << addr << " port: " << addr.get_port() << " data_size: " << data_size);
 
@@ -268,7 +268,7 @@ bool mc_socket::send_packet(const addr_storage& addr, const unsigned char* data,
     }
 }
 
-bool mc_socket::receive_packet(unsigned char* buf, int sizeOfBuf, int& sizeOfInfo)
+bool mc_socket::receive_packet(unsigned char* buf, int sizeOfBuf, int& sizeOfInfo) const
 {
     HC_LOG_TRACE("");
 
@@ -293,7 +293,7 @@ bool mc_socket::receive_packet(unsigned char* buf, int sizeOfBuf, int& sizeOfInf
     }
 }
 
-bool mc_socket::receive_msg(struct msghdr* msg, int& sizeOfInfo)
+bool mc_socket::receive_msg(struct msghdr* msg, int& sizeOfInfo) const
 {
     HC_LOG_TRACE("");
 
@@ -370,7 +370,7 @@ bool mc_socket::receive_msg(struct msghdr* msg, int& sizeOfInfo)
     //     //#######################
 }
 
-bool mc_socket::set_receive_timeout(long msec)
+bool mc_socket::set_receive_timeout(long msec) const
 {
     HC_LOG_TRACE("");
 
@@ -393,7 +393,7 @@ bool mc_socket::set_receive_timeout(long msec)
     }
 }
 
-bool mc_socket::choose_if(uint32_t if_index)
+bool mc_socket::choose_if(uint32_t if_index) const
 {
     HC_LOG_TRACE("");
 
@@ -446,7 +446,7 @@ bool mc_socket::choose_if(uint32_t if_index)
     }
 }
 
-bool mc_socket::set_ttl(int ttl)
+bool mc_socket::set_ttl(int ttl) const
 {
     HC_LOG_TRACE("");
 
@@ -474,21 +474,21 @@ bool mc_socket::set_ttl(int ttl)
     }
 }
 
-bool mc_socket::join_group(const addr_storage& gaddr, uint32_t if_index)
+bool mc_socket::join_group(const addr_storage& gaddr, uint32_t if_index) const
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " if_index: " << if_index);
 
     return generic_group_sockopt(gaddr, if_index, MCAST_JOIN_GROUP);
 }
 
-bool mc_socket::leave_group(const addr_storage& gaddr, uint32_t if_index)
+bool mc_socket::leave_group(const addr_storage& gaddr, uint32_t if_index) const
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " if_index: " << if_index);
 
     return generic_group_sockopt(gaddr, if_index, MCAST_LEAVE_GROUP);
 }
 
-bool mc_socket::block_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index)
+bool mc_socket::block_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index) const
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " saddr: " << saddr << " if_index: " << if_index << " optname: MCAST_BLOCK_SOURCE(" << MCAST_BLOCK_SOURCE << ")");
 
@@ -496,7 +496,7 @@ bool mc_socket::block_source(const addr_storage& gaddr, const addr_storage& sadd
 }
 
 
-bool mc_socket::unblock_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index)
+bool mc_socket::unblock_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index) const
 {
     HC_LOG_TRACE("gaddr: " << gaddr <<  " saddr: " << saddr << " if_index: " << if_index << " optname: MCAST_UNBLOCK_SOURCE(" << MCAST_UNBLOCK_SOURCE << ")");
 
@@ -504,14 +504,14 @@ bool mc_socket::unblock_source(const addr_storage& gaddr, const addr_storage& sa
 }
 
 
-bool mc_socket::join_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index)
+bool mc_socket::join_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index) const
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " saddr: " << saddr << " if_index: " << if_index << " optname: MCAST_JOIN_SOURCE_GROUP(" << MCAST_JOIN_SOURCE_GROUP << ")");
 
     return generic_source_sockopt(gaddr, saddr, if_index, MCAST_JOIN_SOURCE_GROUP);
 }
 
-bool mc_socket::leave_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index)
+bool mc_socket::leave_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index) const
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " saddr: " << saddr << " if_index: " << if_index << " optname: MCAST_LEAVE_SOURCE_GROUP(" << MCAST_LEAVE_SOURCE_GROUP << ")");
 
@@ -519,7 +519,7 @@ bool mc_socket::leave_source_group(const addr_storage& gaddr, const addr_storage
 }
 
 
-bool mc_socket::generic_group_sockopt(const addr_storage& gaddr, uint32_t if_index, int optname)
+bool mc_socket::generic_group_sockopt(const addr_storage& gaddr, uint32_t if_index, int optname) const
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " if_index: " << if_index << " optname: " << optname);
 
@@ -547,7 +547,7 @@ bool mc_socket::generic_group_sockopt(const addr_storage& gaddr, uint32_t if_ind
 
 }
 
-bool mc_socket::generic_source_sockopt(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index, int optname)
+bool mc_socket::generic_source_sockopt(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index, int optname) const
 {
     HC_LOG_TRACE("gaddr: " << gaddr << " saddr: " << saddr << " if_index: " << if_index << " optname: " << optname);
 
@@ -575,7 +575,7 @@ bool mc_socket::generic_source_sockopt(const addr_storage& gaddr, const addr_sto
 
 }
 
-bool mc_socket::set_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t filter_mode, const std::list<addr_storage>& src_list)
+bool mc_socket::set_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t filter_mode, const std::list<addr_storage>& src_list) const
 {
     HC_LOG_TRACE("if_index: " << if_index << " gaddr: " << gaddr << " filter_mode: " << filter_mode << " src_list: " << std::accumulate(src_list.begin(), src_list.end(), std::string() , [](const std::string & res, const addr_storage & b) {
         return res + b.to_string() + " ";
@@ -605,7 +605,7 @@ bool mc_socket::set_source_filter(uint32_t if_index, const addr_storage& gaddr, 
     return false;
 }
 
-bool mc_socket::get_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t& filter_mode, std::list<addr_storage>& src_list)
+bool mc_socket::get_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t& filter_mode, std::list<addr_storage>& src_list) const
 {
     HC_LOG_TRACE("");
 
@@ -642,7 +642,7 @@ bool mc_socket::get_source_filter(uint32_t if_index, const addr_storage& gaddr, 
     }
 }
 
-void mc_socket::print_source_filter(uint32_t if_index, const addr_storage& gaddr)
+void mc_socket::print_source_filter(uint32_t if_index, const addr_storage& gaddr) const
 {
     HC_LOG_TRACE("");
     char if_name[IF_NAMESIZE];

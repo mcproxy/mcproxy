@@ -40,8 +40,8 @@ private:
         GENERAL_QUERY, GROUP_SPECIFIC_QUERY
     };
 
-    bool create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr = nullptr);
-    int get_msg_min_size();
+    bool create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr = nullptr) const;
+    int get_msg_min_size() const;
 public:
     /**
      * @brief Create an igmp_sender.
@@ -50,10 +50,10 @@ public:
 
     bool init(int addr_family, int version) override;
 
-    bool send_general_query(int if_index) override;
-    bool send_group_specific_query(int if_index, const addr_storage& g_addr) override;
-    bool send_report(int if_index, const addr_storage& g_addr) override;
-    bool send_leave(int if_index, const addr_storage& g_addr) override;
+    bool send_general_query(int if_index) const override;
+    bool send_group_specific_query(int if_index, const addr_storage& g_addr) const override;
+    bool send_report(int if_index, const addr_storage& g_addr) const override;
+    bool send_leave(int if_index, const addr_storage& g_addr) const override;
 };
 
 #endif // IGMP_SENDER_HPP

@@ -89,7 +89,7 @@ bool mroute_socket::create_raw_ipv6_socket()
     }
 }
 
-bool mroute_socket::set_kernel_table(int table)
+bool mroute_socket::set_kernel_table(int table) const
 {
     HC_LOG_TRACE("");
 
@@ -127,7 +127,7 @@ bool mroute_socket::set_kernel_table(int table)
     return true;
 }
 
-bool mroute_socket::set_no_ip_hdr()
+bool mroute_socket::set_no_ip_hdr() const
 {
     HC_LOG_TRACE("");
 
@@ -154,7 +154,7 @@ bool mroute_socket::set_no_ip_hdr()
     return true;
 }
 
-u_int16_t mroute_socket::calc_checksum(const unsigned char* buf, int buf_size)
+u_int16_t mroute_socket::calc_checksum(const unsigned char* buf, int buf_size) const
 {
     HC_LOG_TRACE("");
 
@@ -174,7 +174,7 @@ u_int16_t mroute_socket::calc_checksum(const unsigned char* buf, int buf_size)
     return ~sum;
 }
 
-bool mroute_socket::set_default_icmp6_checksum_calc(bool enable)
+bool mroute_socket::set_default_icmp6_checksum_calc(bool enable) const
 {
     HC_LOG_TRACE("");
 
@@ -201,7 +201,7 @@ bool mroute_socket::set_default_icmp6_checksum_calc(bool enable)
 
 }
 
-bool mroute_socket::add_extension_header(const unsigned char* buf, unsigned int buf_size)
+bool mroute_socket::add_extension_header(const unsigned char* buf, unsigned int buf_size) const
 {
     HC_LOG_TRACE("");
 
@@ -228,7 +228,7 @@ bool mroute_socket::add_extension_header(const unsigned char* buf, unsigned int 
     }
 }
 
-bool mroute_socket::set_recv_icmpv6_msg()
+bool mroute_socket::set_recv_icmpv6_msg() const
 {
     HC_LOG_TRACE("");
 
@@ -262,7 +262,7 @@ bool mroute_socket::set_recv_icmpv6_msg()
 
 }
 
-bool mroute_socket::set_recv_pkt_info()
+bool mroute_socket::set_recv_pkt_info() const
 {
 
     if (!is_udp_valid()) {
@@ -288,7 +288,7 @@ bool mroute_socket::set_recv_pkt_info()
     }
 }
 
-bool mroute_socket::set_recv_hop_by_hop_msg()
+bool mroute_socket::set_recv_hop_by_hop_msg() const
 {
     HC_LOG_TRACE("");
 
@@ -314,7 +314,7 @@ bool mroute_socket::set_recv_hop_by_hop_msg()
     }
 }
 
-bool mroute_socket::set_mrt_flag(bool enable)
+bool mroute_socket::set_mrt_flag(bool enable) const
 {
     HC_LOG_TRACE("enable: " << enable);
 
@@ -373,7 +373,7 @@ bool mroute_socket::set_mrt_flag(bool enable)
 
 //vifNum musst the same uniqueName  on delVIF (0 > vifNum < MAXVIF ==32)
 //iff_register = true if used for PIM Register encap/decap
-bool mroute_socket::add_vif(int vifNum, uint32_t if_index, const addr_storage& ip_tunnel_remote_addr)
+bool mroute_socket::add_vif(int vifNum, uint32_t if_index, const addr_storage& ip_tunnel_remote_addr) const
 {
     HC_LOG_TRACE("");
 
@@ -439,7 +439,7 @@ bool mroute_socket::add_vif(int vifNum, uint32_t if_index, const addr_storage& i
     }
 }
 
-bool mroute_socket::del_vif(vifi_t vif_index)
+bool mroute_socket::del_vif(vifi_t vif_index) const
 {
     HC_LOG_TRACE("");
 
@@ -480,7 +480,7 @@ bool mroute_socket::del_vif(vifi_t vif_index)
     }
 }
 
-bool mroute_socket::bind_vif_to_table(uint32_t if_index, int table)
+bool mroute_socket::bind_vif_to_table(uint32_t if_index, int table) const
 {
     HC_LOG_TRACE("");
 
@@ -524,7 +524,7 @@ bool mroute_socket::bind_vif_to_table(uint32_t if_index, int table)
 }
 
 
-bool mroute_socket::unbind_vif_form_table(uint32_t if_index, int table)
+bool mroute_socket::unbind_vif_form_table(uint32_t if_index, int table) const
 {
     HC_LOG_TRACE("");
 
@@ -570,7 +570,7 @@ bool mroute_socket::unbind_vif_form_table(uint32_t if_index, int table)
 
 //source_addr is the source address of the received multicast packet
 //group_addr group address of the received multicast packet
-bool mroute_socket::add_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif)
+bool mroute_socket::add_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif) const
 {
 
 //unsigned int* output_vifTTL, unsigned int output_vifTTL_Ncount){
@@ -642,7 +642,7 @@ bool mroute_socket::add_mroute(vifi_t vif_index, const addr_storage& source_addr
 
 }
 
-bool mroute_socket::del_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr)
+bool mroute_socket::del_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr) const
 {
     HC_LOG_TRACE("");
 
@@ -691,7 +691,7 @@ bool mroute_socket::del_mroute(vifi_t vif_index, const addr_storage& source_addr
     return false;
 }
 
-bool mroute_socket::get_vif_stats(vifi_t vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6)
+bool mroute_socket::get_vif_stats(vifi_t vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6) const
 {
     HC_LOG_TRACE("");
 
@@ -743,7 +743,7 @@ bool mroute_socket::get_vif_stats(vifi_t vif_index, struct sioc_vif_req* req_v4,
     return false;
 }
 
-bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr, struct sioc_sg_req* sgreq_v4, struct sioc_sg_req6* sgreq_v6)
+bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr, struct sioc_sg_req* sgreq_v4, struct sioc_sg_req6* sgreq_v6) const
 {
     HC_LOG_TRACE("");
 
@@ -800,7 +800,7 @@ bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr
     return false;
 }
 
-void mroute_socket::print_vif_stats(vifi_t vif_index)
+void mroute_socket::print_vif_stats(vifi_t vif_index) const
 {
     HC_LOG_TRACE("");
 
@@ -833,7 +833,7 @@ void mroute_socket::print_vif_stats(vifi_t vif_index)
     }
 }
 
-void mroute_socket::print_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr)
+void mroute_socket::print_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr) const
 {
     HC_LOG_TRACE("");
 

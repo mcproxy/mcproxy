@@ -57,7 +57,7 @@ bool mld_sender::init(int addr_family, int version)
     return true;
 }
 
-bool mld_sender::send_general_query(int if_index)
+bool mld_sender::send_general_query(int if_index) const
 {
     HC_LOG_TRACE("");
 
@@ -79,7 +79,7 @@ bool mld_sender::send_general_query(int if_index)
     return m_sock.send_packet(addr_storage(IPV6_ALL_NODES_ADDR), buf.get(), size);
 }
 
-bool mld_sender::send_group_specific_query(int if_index, const addr_storage& g_addr)
+bool mld_sender::send_group_specific_query(int if_index, const addr_storage& g_addr) const
 {
     HC_LOG_TRACE("");
 
@@ -101,7 +101,7 @@ bool mld_sender::send_group_specific_query(int if_index, const addr_storage& g_a
     return m_sock.send_packet(g_addr, buf.get(), size);
 }
 
-int mld_sender::get_msg_min_size()
+int mld_sender::get_msg_min_size() const
 {
     HC_LOG_TRACE("");
 
@@ -113,21 +113,21 @@ int mld_sender::get_msg_min_size()
     }
 }
 
-bool mld_sender::send_report(int if_index, const addr_storage& g_addr)
+bool mld_sender::send_report(int if_index, const addr_storage& g_addr) const
 {
     HC_LOG_TRACE("");
 
     return m_sock.join_group(g_addr, if_index);
 }
 
-bool mld_sender::send_leave(int if_index, const addr_storage& g_addr)
+bool mld_sender::send_leave(int if_index, const addr_storage& g_addr) const
 {
     HC_LOG_TRACE("");
 
     return m_sock.leave_group(g_addr, if_index);
 }
 
-bool mld_sender::create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr)
+bool mld_sender::create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr) const
 {
     HC_LOG_TRACE("");
 
@@ -162,7 +162,7 @@ bool mld_sender::create_mc_query(msg_type type, unsigned char* buf, const addr_s
     }
 }
 
-bool mld_sender::add_hbh_opt_header()
+bool mld_sender::add_hbh_opt_header() const
 {
     HC_LOG_TRACE("");
 

@@ -75,8 +75,8 @@ using namespace std;
 class mc_socket
 {
 private:
-    bool generic_source_sockopt(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index, int optname);
-    bool generic_group_sockopt(const addr_storage& gaddr, uint32_t if_index, int optname);
+    bool generic_source_sockopt(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index, int optname) const;
+    bool generic_group_sockopt(const addr_storage& gaddr, uint32_t if_index, int optname) const;
 protected:
     /**
      * @brief Used socket descriptor
@@ -135,19 +135,19 @@ public:
     /**
      * @return Get the address family (AF_INET | AF_INET6).
      */
-    int get_addr_family();
+    int get_addr_family() const;
 
     /**
      * @brief Bind IPv4 or IPv6 socket to a specific port.
      * @return Return true on success.
      */
-    bool bind_udp_socket(in_port_t port);
+    bool bind_udp_socket(in_port_t port) const;
 
     /**
      * @brief Enable or disable multicast loopback.
      * @return Return true on success.
      */
-    bool set_loop_back(bool enable);
+    bool set_loop_back(bool enable) const;
 
     /**
      * @brief Send a string to a specific ip address and to a specific port.
@@ -155,7 +155,7 @@ public:
      * @param data message to send
      * @return Return true on success.
      */
-    bool send_packet(const addr_storage& addr, string data);
+    bool send_packet(const addr_storage& addr, string data) const;
 
     /**
      * @brief Send data to a specific ip address and to a specific port.
@@ -164,7 +164,7 @@ public:
      * @param data_size size of the data
      * @return Return true on success.
      */
-    bool send_packet(const addr_storage& addr, const unsigned char* data, unsigned int data_size);
+    bool send_packet(const addr_storage& addr, const unsigned char* data, unsigned int data_size) const;
 
     /**
      * @brief Receive a datagram
@@ -173,7 +173,7 @@ public:
      * @param[out] sizeOfInfo filled with the effective packet length less then sizeOfBuf
      * @return Return true on success.
      */
-    bool receive_packet(unsigned char* buf, int sizeOfBuf, int& sizeOfInfo);
+    bool receive_packet(unsigned char* buf, int sizeOfBuf, int& sizeOfInfo) const;
 
     /**
      * @brief Receive a message with the kernel function recvmsg().
@@ -181,26 +181,26 @@ public:
      * @param[out] sizeOfInfo size of the received message
      * @return Return true on success.
      */
-    bool receive_msg(struct msghdr* msg, int& sizeOfInfo);
+    bool receive_msg(struct msghdr* msg, int& sizeOfInfo) const;
 
     /**
      * @brief Set a receive timeout.
      * @param msec timeout in millisecond
      * @return Return true on success.
      */
-    bool set_receive_timeout(long msec);
+    bool set_receive_timeout(long msec) const;
 
     /**
      * @brief Choose a specific network interface
      * @return Return true on success.
      */
-    bool choose_if(uint32_t if_index);
+    bool choose_if(uint32_t if_index) const;
 
     /**
      * @brief set the ttl
      * @return Return true on success.
      */
-    bool set_ttl(int ttl);
+    bool set_ttl(int ttl) const;
 
     /**
      * @brief Join a multicast group on a specific network interface.
@@ -208,7 +208,7 @@ public:
      * @param if_index define related interface
      * @return Return true on success.
      */
-    bool join_group(const addr_storage& gaddr, uint32_t if_index);
+    bool join_group(const addr_storage& gaddr, uint32_t if_index) const;
 
     /**
      * @brief Leave a multicast group on a specific network interface.
@@ -216,7 +216,7 @@ public:
      * @param if_index define related interface
      * @return Return true on success.
      */
-    bool leave_group(const addr_storage& gaddr, uint32_t if_index);
+    bool leave_group(const addr_storage& gaddr, uint32_t if_index) const;
 
     /**
      * @brief Block a source for a specific network interface and a group address. The function uses the delta based api (RFC3678).
@@ -225,7 +225,7 @@ public:
      * @param if_index define related interface
      * @return Return true on success.
      */
-    bool block_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index);
+    bool block_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index) const;
 
     /**
      * @brief Unblock a source for a specific network interface and a group address. The function uses the delta based api (RFC3678).
@@ -234,7 +234,7 @@ public:
      * @param if_index define related interface
      * @return Return true on success.
      */
-    bool unblock_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index);
+    bool unblock_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index) const;
 
     /**
      * @brief Join a source for a specific network interface and a group address. The function uses the delta based api (RFC3678).
@@ -243,7 +243,7 @@ public:
      * @param if_index define related interface
      * @return Return true on success.
      */
-    bool join_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index);
+    bool join_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index) const;
 
     /**
      * @brief Leave a source on a specific network interface. The function uses the delta based api (RFC3678).
@@ -251,7 +251,7 @@ public:
      * @param if_index define related interface
      * @return Return true on success.
      */
-    bool leave_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index);
+    bool leave_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index) const;
 
     /**
      * @brief Set an include or an exlcude source filter list for a specific interface and a specific multicast group. The function uses the advanced (full-state) api (RFC3678).
@@ -261,7 +261,7 @@ public:
      * @param src_list source filter list
      * @return Return true on success.
      */
-    bool set_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t filter_mode, const std::list<addr_storage>& src_list);
+    bool set_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t filter_mode, const std::list<addr_storage>& src_list) const;
 
     /**
      * @brief Get an include or an exlcude source filter list for a specific interface and a specific multicast group. The function uses the advanced (full-state) api (RFC3678).
@@ -271,17 +271,17 @@ public:
      * @param src_list source filter list
      * @return Return true on success.
      */
-    bool get_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t& filter_mode, std::list<addr_storage>& src_list);
+    bool get_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t& filter_mode, std::list<addr_storage>& src_list) const;
 
     /**
      * @brief Check for valid socket descriptor.
      */
-    bool is_udp_valid() {
+    bool is_udp_valid() const {
         return m_sock > 0;
     }
 
 
-    void print_source_filter(uint32_t if_index, const addr_storage& gaddr);
+    void print_source_filter(uint32_t if_index, const addr_storage& gaddr) const;
 
     /**
      * @brief Test a part of the class mc_socket.

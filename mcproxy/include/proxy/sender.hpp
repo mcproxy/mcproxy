@@ -84,7 +84,7 @@ public:
      * @param if_index used interface
      * @return Return true on success.
      */
-    virtual bool send_general_query(int if_index) = 0;
+    virtual bool send_general_query(int if_index) const = 0;
 
     /**
      * @brief Send a Group Specific Query to a multicast group and a specific interface.
@@ -92,7 +92,7 @@ public:
      * @param g_addr used multicast group
      * @return Return true on success.
      */
-    virtual bool send_group_specific_query(int if_index, const addr_storage& g_addr) = 0;
+    virtual bool send_group_specific_query(int if_index, const addr_storage& g_addr) const = 0;
 
     /**
      * @brief Send a Membership Report to a multicast group and a specific interface.
@@ -100,7 +100,7 @@ public:
      * @param g_addr used multicast group
      * @return Return true on success.
      */
-    virtual bool send_report(int if_index, const addr_storage& g_addr) = 0;
+    virtual bool send_report(int if_index, const addr_storage& g_addr) const = 0;
 
     /**
      * @brief Send a leave Message to a multicast group and a specific interface.
@@ -108,7 +108,7 @@ public:
      * @param g_addr used multicast group
      * @return Return true on success.
      */
-    virtual bool send_leave(int if_index, const addr_storage& g_addr) = 0;
+    virtual bool send_leave(int if_index, const addr_storage& g_addr) const = 0;
 
     virtual ~sender() = default;
 };

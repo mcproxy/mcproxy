@@ -92,7 +92,7 @@ public:
      * @brief Create IPv6 raw socket (RFC 3542 Section 3).
      * @return Return true on success.
      */
-    bool set_kernel_table(int table);
+    bool set_kernel_table(int table) const;
 
     /**
      * @brief The IPv4 layer generates an IP header when
@@ -102,14 +102,14 @@ public:
      *        IP header is always included in the packet.
      * @return Return true on success.
      */
-    bool set_no_ip_hdr();
+    bool set_no_ip_hdr() const;
 
     /**
      * @brief Calculate an internet checksum needed for IPv4 IGMP header.
      * @param buf header of the IGMP packet with a zero checksum field
      * @param buf_size size of the IGMP packet
      */
-    u_int16_t calc_checksum(const unsigned char* buf, int buf_size);
+    u_int16_t calc_checksum(const unsigned char* buf, int buf_size) const;
 
     /**
      * @brief Calculate the ICMPv6 header checksum by sending an ICMPv6 packet.
@@ -117,7 +117,7 @@ public:
      * @param enable if true the checsum will be calculate.
      * @return Return true on success.
      */
-    bool set_default_icmp6_checksum_calc(bool enable);
+    bool set_default_icmp6_checksum_calc(bool enable) const;
 
     /**
      * @brief Add an extension header to a sending packet.
@@ -125,32 +125,32 @@ public:
      * @param buf_size size of the extension header
      * @return Return true on success.
      */
-    bool add_extension_header(const unsigned char* buf, unsigned int buf_size);
+    bool add_extension_header(const unsigned char* buf, unsigned int buf_size) const;
 
     /**
      * @brief Set to pass all icmpv6 packets to userpace.
      * @return Return true on success.
      */
-    bool set_recv_icmpv6_msg();
+    bool set_recv_icmpv6_msg() const;
 
     /**
      * @brief Set to pass the Hob-by-Hob header to userpace.
      * @return Return true on success
      */
-    bool set_recv_hop_by_hop_msg();
+    bool set_recv_hop_by_hop_msg() const;
 
     /**
      * @brief Set to pass the receive packet information to userpace.
      * @return Return true on success
      */
-    bool set_recv_pkt_info();
+    bool set_recv_pkt_info() const;
 
     /**
      * @brief Enable or disable MRT flag to manipulate the multicast routing tables.
      *        - sysctl net.ipv4.conf.all.mc_forwarding will be set/reset
      * @return Return true on success.
      */
-    bool set_mrt_flag(bool enable);
+    bool set_mrt_flag(bool enable) const;
 
     /**
      * @brief Adds the virtual interface to the mrouted API
@@ -162,7 +162,7 @@ public:
      * @param ip_tunnel_remote_addr if the interface is a tunnel interface the remote address has to set else it has to be an empty addr_storage
      * @return Return true on success.
      */
-    bool add_vif(int vifNum, uint32_t if_index, const addr_storage& ip_tunnel_remote_addr);
+    bool add_vif(int vifNum, uint32_t if_index, const addr_storage& ip_tunnel_remote_addr) const;
 
     /**
      * @brief Bind the interface to a spezific table as output and input interface
@@ -170,7 +170,7 @@ public:
      * @param table is the spezific table
      * @return Return true on success.
      */
-    bool bind_vif_to_table(uint32_t if_index, int table);
+    bool bind_vif_to_table(uint32_t if_index, int table) const;
 
     /**
      * @brief unbind the interface from a spezific table as output and input interface
@@ -178,7 +178,7 @@ public:
      * @param table is the spezific table
      * @return Return true on success.
      */
-    bool unbind_vif_form_table(uint32_t if_index, int table);
+    bool unbind_vif_form_table(uint32_t if_index, int table) const;
 
 
     /**
@@ -186,7 +186,7 @@ public:
      * @param vif_index virtual index of the interface
      * @return Return true on success.
      */
-    bool del_vif(vifi_t vif_index);
+    bool del_vif(vifi_t vif_index) const;
 
     /**
      * @brief Adds a multicast route to the kernel.
@@ -199,7 +199,7 @@ public:
      * @param output_vifNum_size size of the interface indexes
      * @return Return true on success.
      */
-    bool add_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif);
+    bool add_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif) const;
 
     /**
      * @brief Delete a multicast route.
@@ -208,7 +208,7 @@ public:
      * @param group_addr from the receiving packet
      * @return Return true on success.
      */
-    bool del_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr);
+    bool del_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr) const;
 
     /**
      * @brief Get various statistics per interface.
@@ -217,7 +217,7 @@ public:
      * @param req_v6 musst point to a sioc_mif_req6 struct and will filled by this function when ipv6 is used
      * @return Return true on success.
      */
-    bool get_vif_stats(vifi_t vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6);
+    bool get_vif_stats(vifi_t vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6) const;
 
     /**
      * @brief Get various statistics per multicast route.
@@ -227,7 +227,7 @@ public:
      * @param sgreq_v6 musst point to a sioc_sg_req6 struct and will filled by this function when ipv6 is used
      * @return Return true on success.
      */
-    bool get_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr, struct sioc_sg_req* sgreq_v4, struct sioc_sg_req6* sgreq_v6);
+    bool get_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr, struct sioc_sg_req* sgreq_v4, struct sioc_sg_req6* sgreq_v6) const;
 
     /**
      * @brief simple test outputs
@@ -244,8 +244,8 @@ public:
 #define  MROUTE_SOCKET_IF_STR_TWO "wlan0"
 #define  MROUTE_SOCKET_IF_STR_THREE "tun0"
 
-    void print_vif_stats(vifi_t vif_index);
-    void print_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr);
+    void print_vif_stats(vifi_t vif_index) const;
+    void print_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr) const;
 
     static void print_struct_mf6cctl(struct mf6cctl* mc);
     static void test_mcrouter_mrt_flag();
