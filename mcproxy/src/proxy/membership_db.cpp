@@ -88,12 +88,6 @@ string source::to_string() const
     return s.str();
 }
 
-std::ostream& source::operator<<(std::ostream& stream) const
-{
-    HC_LOG_TRACE("");
-    return stream << to_string();
-}
-
 string gaddr_info::to_string() const
 {
     HC_LOG_TRACE("");
@@ -106,11 +100,6 @@ string gaddr_info::to_string() const
     return s.str();
 }
 
-std::ostream& gaddr_info::operator<<(std::ostream& stream) const
-{
-    HC_LOG_TRACE("");
-    return stream << to_string();
-}
 
 
 

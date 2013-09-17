@@ -118,7 +118,7 @@ inline std::ostream& operator<<(std::ostream& stream, const source_list<T> sl)
     using namespace std;
     for (auto e : sl) {
         stream << e << " ";
-    }    
+    }
     return stream;
 }
 
@@ -130,12 +130,14 @@ struct source {
 
     string to_string() const;
 
-    std::ostream& operator<<(std::ostream& stream) const;
+    friend std::ostream& operator<<(std::ostream& stream, const source s) {
+        return stream << s.to_string();
+    }
 };
 
 
-struct gaddr_info{
-    mc_filter filter_mode = INCLUDE_MODE; 
+struct gaddr_info {
+    mc_filter filter_mode = INCLUDE_MODE;
     void* filter_timer;
     void* current_state;
     source_list<source> include_list;
@@ -144,23 +146,24 @@ struct gaddr_info{
 
     string to_string() const;
 
-    std::ostream& operator<<(std::ostream& stream) const;
+    friend std::ostream& operator<<(std::ostream& stream, const gaddr_info g) {
+        return stream << g.to_string();
+    }
 };
 
-using gaddr_map = std::map<addr_storage,gaddr_info>;
-using gaddr_pair = std::pair<addr_storage,gaddr_info>;
+using gaddr_map = std::map<addr_storage, gaddr_info>;
+using gaddr_pair = std::pair<addr_storage, gaddr_info>;
+
 /**
  * @brief The Membership Database maintaines the membership records for one specific interface (RFC 4605)
  */
-struct membership_db
-{
+struct membership_db {
     group_mem_protocol compatibility_mode_variable; //RFC3810 - Section 6
-    bool is_querier; 
-    gaddr_map group_info; //subscribed multicast group with there source lists  
- 
+    bool is_querier;
+    gaddr_map group_info; //subscribed multicast group with there source lists
+
 
     static void test_arithmetic();
-
 };
 
 

@@ -98,16 +98,43 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
     HC_LOG_TRACE("record type: " << record_type);
 
     switch (record_type) {
+
+        //Router State  Report Received  New Router State     Actions
+        //------------  ---------------  ----------------     -------
+        //INCLUDE (A)     ALLOW (B)      INCLUDE (A+B)        (B)=MALI
     case ALLOW_NEW_SOURCES: //ALLOW(x)
+        //db_info.include_list+=saddr_list;
+
         break;
+
+
+        //INCLUDE (A)     BLOCK (B)      INCLUDE (A)          Send Q(MA,A*B)
     case BLOCK_OLD_SOURCES: //BLOCK(x)
         break;
+
+
+        //INCLUDE (A)     TO_EX (B)      EXCLUDE (A*B,B-A)    (B-A)=0
+        //                                                    Delete (A-B)
+        //                                                    Send Q(MA,A*B)
+        //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
         break;
+
+
+        //INCLUDE (A)     TO_IN (B)      INCLUDE (A+B)        (B)=MALI
+        //                                                    Send Q(MA,A-B)
     case CHANGE_TO_INCLUDE_MODE: //TO_IN(x)
         break;
+
+
+        //INCLUDE (A)       IS_EX (B)     EXCLUDE (A*B, B-A) (B-A)=0
+        //                                                    Delete (A-B)
+        //                                                    Filter Timer=MALI
     case  MODE_IS_EXCLUDE: //IS_EX(x)
         break;
+
+
+        //INCLUDE (A)       IS_IN (B)     INCLUDE (A+B)      (B)=MALI
     case MODE_IS_INCLUDE: //IS_IN(x)
         break;
     default:
@@ -116,22 +143,53 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
     }
 }
 
-
 void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<addr_storage>&& saddr_list, int report_version, gaddr_info& db_info)
 {
     HC_LOG_TRACE("record type: " << record_type);
 
     switch (record_type) {
+
+
+        //Router State  Report Received  New Router State     Actions
+        //------------  ---------------  ----------------     -------
+        //EXCLUDE (X,Y)   ALLOW (A)      EXCLUDE (X+A,Y-A)    (A)=MALI
     case ALLOW_NEW_SOURCES: //ALLOW(x)
         break;
+
+
+        //EXCLUDE (X,Y)   BLOCK (A)      EXCLUDE (X+(A-Y),Y)  (A-X-Y) =
+        //                                                          Filter Timer
+        //                                                    Send Q(MA,A-Y)
     case BLOCK_OLD_SOURCES: //BLOCK(x)
         break;
+
+
+        //EXCLUDE (X,Y)   TO_EX (A)      EXCLUDE (A-Y,Y*A)    (A-X-Y) =
+        //                                                          Filter Timer
+        //                                                    Delete (X-A)
+        //                                                    Delete (Y-A)
+        //                                                    Send Q(MA,A-Y)
+        //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
         break;
+
+        
+        //EXCLUDE (X,Y)   TO_IN (A)      EXCLUDE (X+A,Y-A)    (A)=MALI
+        //                                                    Send Q(MA,X-A)
+        //                                                    Send Q(MA)
     case CHANGE_TO_INCLUDE_MODE: //TO_IN(x)
         break;
+
+
+        //EXCLUDE (X,Y)     IS_EX (A)     EXCLUDE (A-Y, Y*A) (A-X-Y)=MALI
+        //                                                   Delete (X-A)
+        //                                                   Delete (Y-A)
+        //                                                   Filter Timer=MALI
     case  MODE_IS_EXCLUDE: //IS_EX(x)
         break;
+
+
+        //EXCLUDE (X,Y)     IS_IN (A)     EXCLUDE (X+A, Y-A) (A)=MALI
     case MODE_IS_INCLUDE: //IS_IN(x)
         break;
     default:
