@@ -88,7 +88,7 @@ void test_test()
     //addr_storage::test_addr_storage_a();
     //addr_storage::test_addr_sto_b();
     //membership_db::test_arithmetic(); 
-    querier::test_querier("dummy0");
+    querier::test_querier(AF_INET, "dummy0");
 
 
     

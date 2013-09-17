@@ -46,11 +46,6 @@ protected:
     int m_addr_family; //AF_INET or AF_INET6
 
     /**
-     *  @brief Used group membership version.
-     */
-    int m_version; //for AF_INET (1,2,3) to use IGMPv1/2/3, for AF_INET6 (1,2) to use MLDv1/2
-
-    /**
      * @brief Abstracted multicast socket, that use raw-socket to send the messages.
      */
     mroute_socket m_sock;
@@ -77,7 +72,7 @@ public:
      * @param version used group membership version
      * @return Return true on success.
      */
-    virtual bool init(int addr_family, int version);
+    virtual bool init(int addr_family);
 
     /**
      * @brief Send a General Query to a specific interface.
@@ -110,7 +105,7 @@ public:
      */
     virtual bool send_leave(int if_index, const addr_storage& g_addr) const = 0;
 
-    virtual ~sender() = default;
+    virtual ~sender();
 };
 
 

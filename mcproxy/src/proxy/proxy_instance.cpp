@@ -143,7 +143,7 @@ bool proxy_instance::init_sender()
         return false;
     }
 
-    if (!m_sender->init(m_addr_family, m_version)) {
+    if (!m_sender->init(m_addr_family)) {
         return false;
     }
 

@@ -20,8 +20,11 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
+#include "include/hamcast_logging.h"
 #include "include/proxy/membership_db.hpp"
+
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <set>
@@ -32,16 +35,16 @@ void membership_db::test_arithmetic()
     source_list<int> a;
     source_list<int> b;
     cout << "##-- membership_db test --##" << endl;
-    const source_list<int> sl_a{0, 1, 2, 55};
+    const source_list<int> sl_a {0, 1, 2, 55};
     cout << "a: " << sl_a << endl;
 
-    const source_list<int> sl_b{1,2,3, 55};
+    const source_list<int> sl_b {1, 2, 3, 55};
     cout << "b: " << sl_b << endl;
-    
+
     cout << "doing: a += b" << endl;
     a = sl_a;
     b = sl_b;
-    a +=b;
+    a += b;
     cout << "a: " << a << endl;
     cout << "b: " << b << endl;
 
@@ -52,7 +55,7 @@ void membership_db::test_arithmetic()
     cout << "doing: a *= b" << endl;
     a = sl_a;
     b = sl_b;
-    a *=b;
+    a *= b;
     cout << "a: " << a << endl;
     cout << "b: " << b << endl;
 
@@ -63,7 +66,7 @@ void membership_db::test_arithmetic()
     cout << "doing: a -= b" << endl;
     a = sl_a;
     b = sl_b;
-    a -=b;
+    a -= b;
     cout << "a: " << a << endl;
     cout << "b: " << b << endl;
 
@@ -73,8 +76,40 @@ void membership_db::test_arithmetic()
 
     cout << "random suff" << endl;
     cout << "source_list<int>{1, 5, 2} - source_list<int>{2} - source_list<int>{5, 2}" << endl;
-    cout << source_list<int>{1, 5, 2} - source_list<int>{2} - source_list<int>{5, 2}  << endl;
+    cout << source_list<int> {1, 5, 2} - source_list<int> {2} - source_list<int> {5, 2}  << endl;
 
+}
+
+string source::to_string() const
+{
+    HC_LOG_TRACE("");
+    ostringstream s;
+    s << saddr << "(?timer?, ?current state?)";
+    return s.str();
+}
+
+std::ostream& source::operator<<(std::ostream& stream) const
+{
+    HC_LOG_TRACE("");
+    return stream << to_string();
+}
+
+string gaddr_info::to_string() const
+{
+    HC_LOG_TRACE("");
+    ostringstream s;
+    s << "filter mode: " << mc_filter_name[filter_mode] << endl;
+    s << "filter timer: " << "?filter_timer" << endl;
+    s << "current state: " << "?current_state" << endl;
+    s << "include/requested list: " << include_list << endl;
+    s << "exclude_list: " << exclude_list << endl;
+    return s.str();
+}
+
+std::ostream& gaddr_info::operator<<(std::ostream& stream) const
+{
+    HC_LOG_TRACE("");
+    return stream << to_string();
 }
 
 

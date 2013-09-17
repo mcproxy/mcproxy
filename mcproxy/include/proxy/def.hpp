@@ -20,17 +20,37 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#ifndef DEF_HPP 
+#ifndef DEF_HPP
 #define DEF_HPP
 
 #include <netinet/in.h>
 
-enum mc_filter {INCLUDE_MODE=MCAST_INCLUDE, EXLCUDE_MODE=MCAST_EXCLUDE};
+#include <map>
+#include <string>
+
+enum mc_filter {INCLUDE_MODE = MCAST_INCLUDE, EXLCUDE_MODE = MCAST_EXCLUDE};
+std::map<mc_filter, std::string> mc_filter_name = {
+    {INCLUDE_MODE, "INCLUDE_MODE"},
+    {EXLCUDE_MODE, "EXLCUDE_MODE"}
+};
 
 enum group_mem_protocol {IGMPv1, IGMPv2, IGMPv3, MLDv1, MLDv2};
-
-
-
+std::map<group_mem_protocol, std::string> group_mem_protocol_name = {
+    {IGMPv1, "IGMPv1"},
+    {IGMPv2, "IGMPv2"},
+    {IGMPv3, "IGMPv3"},
+    {MLDv1, "MLDv1"},
+    {MLDv2, "MLDv2"}
+};
+enum mcast_addr_record_type {MODE_IS_INCLUDE = 1, MODE_IS_EXCLUDE = 2, CHANGE_TO_INCLUDE_MODE = 3, CHANGE_TO_EXCLUDE_MODE = 4, ALLOW_NEW_SOURCES = 5, BLOCK_OLD_SOURCES = 6};
+std::map<mcast_addr_record_type, std::string> mcast_addr_record_type_name = {
+    {MODE_IS_INCLUDE, "MODE_IS_INCLUDE"},
+    {MODE_IS_EXCLUDE, "MODE_IS_EXCLUDE"},
+    {CHANGE_TO_INCLUDE_MODE, "CHANGE_TO_INCLUDE_MODE"},
+    {CHANGE_TO_EXCLUDE_MODE, "CHANGE_TO_EXCLUDE_MODE"},
+    {ALLOW_NEW_SOURCES, "ALLOW_NEW_SOURCES"},
+    {BLOCK_OLD_SOURCES, "BLOCK_OLD_SOURCES"}
+};
 
 
 

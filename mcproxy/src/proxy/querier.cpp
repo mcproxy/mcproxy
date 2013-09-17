@@ -22,10 +22,15 @@
 
 #include "include/hamcast_logging.h"
 #include "include/proxy/querier.hpp"
+#include "include/utils/addr_storage.hpp"
+#include "include/proxy/igmp_sender.hpp"
+#include "include/proxy/mld_sender.hpp"
 
+#include <unistd.h>
+#include <net/if.h>
 #include <iostream>
 
-querier::querier(int addr_family, int if_index, const sender& sender): m_addr_family(addr_family), m_if_index(if_index), m_sender(sender)
+querier::querier(int addr_family, int if_index, const sender& sender): success_init(false), m_addr_family(addr_family), m_if_index(if_index), m_sender(sender)
 {
     HC_LOG_TRACE("");
 }
@@ -34,7 +39,18 @@ bool querier::init()
 {
     HC_LOG_TRACE("");
 
-    return init_db();
+    //join all router groups
+    if (!router_groups_function(&sender::send_report)) {
+        HC_LOG_ERROR("failed to subscribe multicast router groups");
+        return false;
+    }
+
+    if (!init_db()) {
+        HC_LOG_ERROR("failed to initalize multicast membership database");
+        return false;
+    }
+
+    return true;
 }
 
 bool querier::init_db()
@@ -52,19 +68,128 @@ bool querier::init_db()
 
     m_db.is_querier = true;
 
-
-
-
+    success_init = true;
     return true;
 }
 
-void querier::test_querier(string if_name)
+void querier::receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<addr_storage>&& saddr_list, int report_version)
 {
-    cout << "##-- querier test on interface " << if_name << " --##" << endl;
+    HC_LOG_TRACE("record type: " << record_type);
+    auto db_info = m_db.group_info.find(gaddr);
+
+    if (db_info != end(m_db.group_info)) {
+        //add an empty neutral record include( null )neutral record include( null ) to membership database
+        db_info = m_db.group_info.insert(gaddr_pair(gaddr, gaddr_info())).first;
+    }
+
+    switch (db_info->second.filter_mode) {
+    case  INCLUDE_MODE:
+        receive_record_in_include_mode(record_type, gaddr, move(saddr_list), report_version, db_info->second);
+        break;
+    case EXLCUDE_MODE:
+        receive_record_in_exclude_mode(record_type, gaddr, move(saddr_list), report_version, db_info->second);
+        break;
+    }
+
+}
+
+void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<addr_storage>&& saddr_list, int report_version, gaddr_info& db_info)
+{
+    HC_LOG_TRACE("record type: " << record_type);
+
+    switch (record_type) {
+    case ALLOW_NEW_SOURCES: //ALLOW(x)
+        break;
+    case BLOCK_OLD_SOURCES: //BLOCK(x)
+        break;
+    case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
+        break;
+    case CHANGE_TO_INCLUDE_MODE: //TO_IN(x)
+        break;
+    case  MODE_IS_EXCLUDE: //IS_EX(x)
+        break;
+    case MODE_IS_INCLUDE: //IS_IN(x)
+        break;
+    default:
+        HC_LOG_ERROR("unknown multicast record type: " << record_type);
+        return;
+    }
+}
 
 
+void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<addr_storage>&& saddr_list, int report_version, gaddr_info& db_info)
+{
+    HC_LOG_TRACE("record type: " << record_type);
+
+    switch (record_type) {
+    case ALLOW_NEW_SOURCES: //ALLOW(x)
+        break;
+    case BLOCK_OLD_SOURCES: //BLOCK(x)
+        break;
+    case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
+        break;
+    case CHANGE_TO_INCLUDE_MODE: //TO_IN(x)
+        break;
+    case  MODE_IS_EXCLUDE: //IS_EX(x)
+        break;
+    case MODE_IS_INCLUDE: //IS_IN(x)
+        break;
+    default:
+        HC_LOG_ERROR("unknown multicast record type: " << record_type);
+        return;
+    }
+}
+
+bool querier::router_groups_function(function<bool(const sender&, int, addr_storage)> f)
+{
+    HC_LOG_TRACE("");
+
+//MLDv1 RFC 2710: Section 8. link-scope all-routers (FF02::2), link-scope all-routers (FF05::2)| IANA: site local scope all-routers
+//MLDv2 RFC 3810: Section 7. all MLDv2-capable routers (FF02::16)
+//IGMPv1
+//IGMPv2 RFC 2236: Section 9. ALL-ROUTERS (224.0.0.2)
+//IGMPv3 IANA: IGMP (224.0.0.22)
+
+    bool rc = true;
+    if (m_addr_family == AF_INET) {
+        rc = rc && f(m_sender, m_if_index, addr_storage(IPV4_ALL_IGMP_ROUTERS_ADDR));
+        rc = rc && f(m_sender, m_if_index, addr_storage(IPV4_IGMPV3_ADDR));
+    } else if (m_addr_family == AF_INET6) {
+        rc = rc && f(m_sender, m_if_index, addr_storage(IPV6_ALL_NODE_LOCAL_ROUTER));
+        rc = rc && f(m_sender, m_if_index, addr_storage(IPV6_ALL_SITE_LOCAL_ROUTER));
+        rc = rc && f(m_sender, m_if_index, addr_storage(IPV6_ALL_MLDv2_CAPABLE_ROUTERS));
+    } else {
+        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
+        return false;
+    }
+    return rc;
+}
+
+void querier::test_querier(int addr_family, string if_name)
+{
+    std::cout << "##-- querier test on interface " << if_name << " --##" << std::endl;
 
 
+    igmp_sender s;
+    s.init(addr_family);
+    {
+        querier q(AF_INET, if_nametoindex(if_name.c_str()), s);
+        if (!q.init()) {
+            std::cout << "failed initialise querier" << std::endl;
+            return;
+        }
+    }
+    std::cout << "wait wait wait" << std::endl;
+    sleep(1000);
 
+}
+
+querier::~querier()
+{
+    HC_LOG_TRACE("");
+
+    if (success_init) {
+        router_groups_function(&sender::send_leave);
+    }
 
 }

@@ -127,18 +127,28 @@ struct source {
     addr_storage saddr;
     void* source_timer;
     void* current_state;
+
+    string to_string() const;
+
+    std::ostream& operator<<(std::ostream& stream) const;
 };
 
-struct group_info{
-    mc_filter filter_mode; 
+
+struct gaddr_info{
+    mc_filter filter_mode = INCLUDE_MODE; 
     void* filter_timer;
     void* current_state;
     source_list<source> include_list;
     source_list<source>& requested_list = include_list;
     source_list<source> exclude_list;
+
+    string to_string() const;
+
+    std::ostream& operator<<(std::ostream& stream) const;
 };
 
-
+using gaddr_map = std::map<addr_storage,gaddr_info>;
+using gaddr_pair = std::pair<addr_storage,gaddr_info>;
 /**
  * @brief The Membership Database maintaines the membership records for one specific interface (RFC 4605)
  */
@@ -146,7 +156,8 @@ struct membership_db
 {
     group_mem_protocol compatibility_mode_variable; //RFC3810 - Section 6
     bool is_querier; 
-    std::map<addr_storage,group_info> gaddr_map; //subscribed multicast group with there source lists  
+    gaddr_map group_info; //subscribed multicast group with there source lists  
+ 
 
     static void test_arithmetic();
 

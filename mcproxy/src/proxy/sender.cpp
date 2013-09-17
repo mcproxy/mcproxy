@@ -29,12 +29,11 @@ sender::sender()
     HC_LOG_TRACE("");
 }
 
-bool sender::init(int addr_family, int version)
+bool sender::init(int addr_family)
 {
     HC_LOG_TRACE("");
 
     m_addr_family = addr_family;
-    m_version = version;
 
     if (m_addr_family == AF_INET) {
         if (!m_sock.create_raw_ipv4_socket()) {
@@ -71,3 +70,7 @@ bool sender::init_if_prop()
     return true;
 }
 
+sender::~sender(){
+    HC_LOG_TRACE("");
+
+}

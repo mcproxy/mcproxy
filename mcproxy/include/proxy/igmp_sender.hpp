@@ -48,7 +48,7 @@ public:
      */
     igmp_sender();
 
-    bool init(int addr_family, int version) override;
+    bool init(int addr_family) override;
 
     bool send_general_query(int if_index) const override;
     bool send_group_specific_query(int if_index, const addr_storage& g_addr) const override;
