@@ -72,30 +72,38 @@ bool querier::init_db()
     return true;
 }
 
-void querier::receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<addr_storage>&& saddr_list, int report_version)
+void querier::receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version)
 {
-    HC_LOG_TRACE("record type: " << record_type);
+    HC_LOG_TRACE("record type: " << record_type << " gaddr: " << gaddr << " saddr_list: " << saddr_list << " report_version: " << report_version);
+
     auto db_info = m_db.group_info.find(gaddr);
 
-    if (db_info != end(m_db.group_info)) {
+    if (db_info == end(m_db.group_info)) {
         //add an empty neutral record include( null )neutral record include( null ) to membership database
+        HC_LOG_DEBUG("gaddr not found");
         db_info = m_db.group_info.insert(gaddr_pair(gaddr, gaddr_info())).first;
     }
+    HC_LOG_DEBUG("m_db.group_info.size: " << m_db.group_info.size());
 
     switch (db_info->second.filter_mode) {
     case  INCLUDE_MODE:
-        receive_record_in_include_mode(record_type, gaddr, move(saddr_list), report_version, db_info->second);
+        receive_record_in_include_mode(record_type, gaddr, saddr_list, report_version, db_info->second);
         break;
     case EXLCUDE_MODE:
-        receive_record_in_exclude_mode(record_type, gaddr, move(saddr_list), report_version, db_info->second);
+        receive_record_in_exclude_mode(record_type, gaddr, saddr_list, report_version, db_info->second);
         break;
+    default :
+        HC_LOG_ERROR("wrong filter mode: " << db_info->second.filter_mode);
     }
 
 }
 
-void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<addr_storage>&& saddr_list, int report_version, gaddr_info& db_info)
+void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info)
 {
     HC_LOG_TRACE("record type: " << record_type);
+
+    source_list<source>& A = db_info.include_list;
+    source_list<source>& B = saddr_list;
 
     switch (record_type) {
 
@@ -103,13 +111,13 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         //------------  ---------------  ----------------     -------
         //INCLUDE (A)     ALLOW (B)      INCLUDE (A+B)        (B)=MALI
     case ALLOW_NEW_SOURCES: //ALLOW(x)
-        //db_info.include_list+=saddr_list;
-
+        A += B;
         break;
 
 
         //INCLUDE (A)     BLOCK (B)      INCLUDE (A)          Send Q(MA,A*B)
     case BLOCK_OLD_SOURCES: //BLOCK(x)
+
         break;
 
 
@@ -118,12 +126,16 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         //                                                    Send Q(MA,A*B)
         //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
+        db_info.filter_mode = EXLCUDE_MODE;
+        db_info.exclude_list = B - A;
+        db_info.requested_list *= B;
         break;
 
 
         //INCLUDE (A)     TO_IN (B)      INCLUDE (A+B)        (B)=MALI
         //                                                    Send Q(MA,A-B)
     case CHANGE_TO_INCLUDE_MODE: //TO_IN(x)
+        A += B;
         break;
 
 
@@ -131,21 +143,32 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         //                                                    Delete (A-B)
         //                                                    Filter Timer=MALI
     case  MODE_IS_EXCLUDE: //IS_EX(x)
+        db_info.filter_mode = EXLCUDE_MODE;
+        db_info.exclude_list = B - A;
+        db_info.requested_list *= B;
         break;
 
 
         //INCLUDE (A)       IS_IN (B)     INCLUDE (A+B)      (B)=MALI
     case MODE_IS_INCLUDE: //IS_IN(x)
+        A += B;
         break;
+
+
     default:
         HC_LOG_ERROR("unknown multicast record type: " << record_type);
         return;
     }
 }
 
-void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<addr_storage>&& saddr_list, int report_version, gaddr_info& db_info)
+void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info)
 {
     HC_LOG_TRACE("record type: " << record_type);
+
+    source_list<source>& X = db_info.requested_list;
+    source_list<source>& Y = db_info.exclude_list;
+
+    source_list<source>& A = saddr_list;
 
     switch (record_type) {
 
@@ -154,6 +177,8 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         //------------  ---------------  ----------------     -------
         //EXCLUDE (X,Y)   ALLOW (A)      EXCLUDE (X+A,Y-A)    (A)=MALI
     case ALLOW_NEW_SOURCES: //ALLOW(x)
+        X += A;
+        Y -= A;
         break;
 
 
@@ -161,6 +186,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         //                                                          Filter Timer
         //                                                    Send Q(MA,A-Y)
     case BLOCK_OLD_SOURCES: //BLOCK(x)
+        X += (A - Y);
         break;
 
 
@@ -171,13 +197,17 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         //                                                    Send Q(MA,A-Y)
         //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
+        X = A - Y;
+        Y *= A;
         break;
 
-        
+
         //EXCLUDE (X,Y)   TO_IN (A)      EXCLUDE (X+A,Y-A)    (A)=MALI
         //                                                    Send Q(MA,X-A)
         //                                                    Send Q(MA)
     case CHANGE_TO_INCLUDE_MODE: //TO_IN(x)
+        X += A;
+        Y -= A;
         break;
 
 
@@ -186,12 +216,19 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         //                                                   Delete (Y-A)
         //                                                   Filter Timer=MALI
     case  MODE_IS_EXCLUDE: //IS_EX(x)
+        X = (A - Y);
+        Y *= A;
         break;
 
 
         //EXCLUDE (X,Y)     IS_IN (A)     EXCLUDE (X+A, Y-A) (A)=MALI
     case MODE_IS_INCLUDE: //IS_IN(x)
+        X += A;
+        Y -= A;
         break;
+
+
+
     default:
         HC_LOG_ERROR("unknown multicast record type: " << record_type);
         return;
@@ -230,14 +267,28 @@ void querier::test_querier(int addr_family, string if_name)
 
     igmp_sender s;
     s.init(addr_family);
-    {
-        querier q(AF_INET, if_nametoindex(if_name.c_str()), s);
-        if (!q.init()) {
-            std::cout << "failed initialise querier" << std::endl;
-            return;
-        }
+    querier q(AF_INET, if_nametoindex(if_name.c_str()), s);
+    if (!q.init()) {
+        std::cout << "failed initialise querier" << std::endl;
+        return;
     }
-    std::cout << "wait wait wait" << std::endl;
+
+    addr_storage ad("224.1.1.1");
+    source_list<source> sl {
+        source(addr_storage("1.1.1.1")),
+        source(addr_storage("2.2.2.2")),
+        source(addr_storage("3.3.3.3"))
+    };
+
+    cout << q << endl << endl;
+    
+    cout << "!!ACTION: receive_record" << endl;
+    cout << "record type: ALLOW_NEW_SOURCES" << endl;
+    cout << "group address: " << ad << endl;
+    cout << "source list: " << sl << endl;
+    q.receive_record(ALLOW_NEW_SOURCES, ad, sl, 3 );
+    cout << q << endl;
+
     sleep(1000);
 
 }
@@ -249,5 +300,24 @@ querier::~querier()
     if (success_init) {
         router_groups_function(&sender::send_leave);
     }
+
+}
+
+std::string querier::to_string() const
+{
+    ostringstream s;
+
+    char cstr[IF_NAMESIZE];
+    string if_name(if_indextoname(m_if_index, cstr));
+
+    s << "##-- interface: " << if_name << " (index: " << m_if_index << ") --##" << endl;
+    s << m_db;
+    return s.str();
+}
+
+std::ostream& operator<<(std::ostream& stream, const querier& q)
+{
+    HC_LOG_TRACE("");
+    return stream << q.to_string();
 
 }

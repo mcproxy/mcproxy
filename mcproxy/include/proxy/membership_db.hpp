@@ -116,8 +116,13 @@ template<typename T>
 inline std::ostream& operator<<(std::ostream& stream, const source_list<T> sl)
 {
     using namespace std;
+    int i = 1;
     for (auto e : sl) {
-        stream << e << " ";
+        if (i % 3 == 0 ) {
+            stream << endl << "\t";
+        }
+        stream << e << "; ";
+        i++;
     }
     return stream;
 }
@@ -128,11 +133,15 @@ struct source {
     void* source_timer;
     void* current_state;
 
+    source();
+    source(addr_storage a);
+
     string to_string() const;
 
-    friend std::ostream& operator<<(std::ostream& stream, const source s) {
-        return stream << s.to_string();
-    }
+    bool operator==(const source& s) const;
+
+    friend std::ostream& operator<<(std::ostream& stream, const source& s);
+    friend bool operator< (const source& s1, const source& s2);
 };
 
 
@@ -144,11 +153,8 @@ struct gaddr_info {
     source_list<source>& requested_list = include_list;
     source_list<source> exclude_list;
 
-    string to_string() const;
-
-    friend std::ostream& operator<<(std::ostream& stream, const gaddr_info g) {
-        return stream << g.to_string();
-    }
+    std::string to_string() const;
+    friend std::ostream& operator<<(std::ostream& stream, const gaddr_info& g);
 };
 
 using gaddr_map = std::map<addr_storage, gaddr_info>;
@@ -164,6 +170,13 @@ struct membership_db {
 
 
     static void test_arithmetic();
+
+    std::string to_string() const;
+
+    friend std::ostream& operator<<(std::ostream& stream, const membership_db& mdb);
+
+private:
+    std::string indention(std::string str) const;
 };
 
 

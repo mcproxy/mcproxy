@@ -147,7 +147,7 @@ public:
     bool operator!=(addr_storage& addr) const;
 
     /**
-     * @brief lower then operator (only for IPv4 implemented)
+     * @brief lower then operator 
      */
     friend bool operator< (const addr_storage& addr1, const addr_storage& addr2);
 

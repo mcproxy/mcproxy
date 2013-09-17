@@ -50,8 +50,8 @@ private:
 
     //join all router groups or leave them
     bool router_groups_function(function<bool(const sender&, int,addr_storage)> f);
-    void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<addr_storage>&& saddr_list, int report_version, gaddr_info& db_info);
-    void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<addr_storage>&& saddr_list, int report_version, gaddr_info& db_info);
+    void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
+    void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
 public:
 
     virtual ~querier();
@@ -60,9 +60,12 @@ public:
     bool init();
 
 
-    void receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<addr_storage>&& saddr_list, int report_version);
+    void receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version);
     void receive_query(); 
     void timer_triggerd();
+   
+    std::string to_string() const;
+    friend std::ostream& operator<<(std::ostream& stream, const querier& q);
     /**
      * @brief Test the functionality of the querier.
      */
