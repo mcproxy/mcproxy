@@ -31,6 +31,7 @@
 #include "include/utils/if_prop.hpp"
 #include "include/proxy/membership_db.hpp"
 #include "include/proxy/querier.hpp"
+#include "include/proxy/timers_values.hpp"
 
 #include <iostream>
 using namespace std;
@@ -88,7 +89,8 @@ void test_test()
     //addr_storage::test_addr_storage_a();
     //addr_storage::test_addr_sto_b();
     //membership_db::test_arithmetic(); 
-    querier::test_querier(AF_INET, "dummy0");
+    //querier::test_querier(AF_INET, "dummy0");
+    timers_values::test_timers_values();
 
 
     

@@ -129,12 +129,8 @@ std::string gaddr_info::to_string() const
     s << "filter mode: " << mc_filter_name[filter_mode] << endl;
     s << "filter timer: " << "?filter_timer?" << endl;
     s << "current state: " << "?current_state?" << endl;
-    s << "included list: " << include_list << endl;
-    s << "requested list: " << requested_list << endl;
+    s << "included/requested list: " << include_requested_list << endl;
     s << "exclude_list: " << exclude_list;
-
-    s << "&included list: " << &include_list << endl;
-    s << "&requested list: " << &requested_list << endl;
     return s.str();
 }
 

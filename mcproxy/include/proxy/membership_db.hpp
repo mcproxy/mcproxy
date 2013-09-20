@@ -149,8 +149,7 @@ struct gaddr_info {
     mc_filter filter_mode = INCLUDE_MODE;
     void* filter_timer;
     void* current_state;
-    source_list<source> include_list;
-    source_list<source>& requested_list = include_list;
+    source_list<source> include_requested_list;
     source_list<source> exclude_list;
 
     std::string to_string() const;

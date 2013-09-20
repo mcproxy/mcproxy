@@ -34,7 +34,7 @@
 #include <functional>
 #include <string>
 /**
- * @brief define the behaviour of a maulticast querier for a specific interface
+ * @brief define the behaviour of a multicast querier for a specific interface
  */
 class querier 
 {
@@ -70,6 +70,7 @@ public:
      * @brief Test the functionality of the querier.
      */
     static void test_querier(int addr_family, string if_name);
+    static void send_test_record(querier& q, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& saddr_list, int report_version);
 };
 
 #endif // QUERIER_HPP

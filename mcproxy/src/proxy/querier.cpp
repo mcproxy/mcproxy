@@ -83,7 +83,6 @@ void querier::receive_record(mcast_addr_record_type record_type, const addr_stor
         HC_LOG_DEBUG("gaddr not found");
         db_info = m_db.group_info.insert(gaddr_pair(gaddr, gaddr_info())).first;
     }
-    HC_LOG_DEBUG("m_db.group_info.size: " << m_db.group_info.size());
 
     switch (db_info->second.filter_mode) {
     case  INCLUDE_MODE:
@@ -102,7 +101,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
 {
     HC_LOG_TRACE("record type: " << record_type);
 
-    source_list<source>& A = db_info.include_list;
+    source_list<source>& A = db_info.include_requested_list;
     source_list<source>& B = saddr_list;
 
     switch (record_type) {
@@ -128,7 +127,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
     case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
         db_info.filter_mode = EXLCUDE_MODE;
         db_info.exclude_list = B - A;
-        db_info.requested_list *= B;
+        db_info.include_requested_list *= B;
         break;
 
 
@@ -145,7 +144,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
     case  MODE_IS_EXCLUDE: //IS_EX(x)
         db_info.filter_mode = EXLCUDE_MODE;
         db_info.exclude_list = B - A;
-        db_info.requested_list *= B;
+        db_info.include_requested_list *= B;
         break;
 
 
@@ -165,7 +164,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
 {
     HC_LOG_TRACE("record type: " << record_type);
 
-    source_list<source>& X = db_info.requested_list;
+    source_list<source>& X = db_info.include_requested_list;
     source_list<source>& Y = db_info.exclude_list;
 
     source_list<source>& A = saddr_list;
@@ -264,7 +263,6 @@ void querier::test_querier(int addr_family, string if_name)
 {
     std::cout << "##-- querier test on interface " << if_name << " --##" << std::endl;
 
-
     igmp_sender s;
     s.init(addr_family);
     querier q(AF_INET, if_nametoindex(if_name.c_str()), s);
@@ -273,24 +271,51 @@ void querier::test_querier(int addr_family, string if_name)
         return;
     }
 
-    addr_storage ad("224.1.1.1");
-    source_list<source> sl {
-        source(addr_storage("1.1.1.1")),
-        source(addr_storage("2.2.2.2")),
-        source(addr_storage("3.3.3.3"))
-    };
+    source s1(addr_storage("1.1.1.1"));
+    source s2(addr_storage("2.2.2.2"));
+    source s3(addr_storage("3.3.3.3"));
+    source s4(addr_storage("4.4.4.4"));
+    source s5(addr_storage("5.5.5.5"));
+
+    addr_storage gaddr("224.1.1.1");
 
     cout << q << endl << endl;
+
+    //in include mode
+    q.send_test_record(q, ALLOW_NEW_SOURCES, gaddr, source_list<source> {s1, s2, s3}, 3 );
+    cout << q << endl << endl;
+
+    //ininclude mode
+    q.send_test_record(q, CHANGE_TO_EXCLUDE_MODE, gaddr, source_list<source> {s3, s4, s5}, 3);
+    cout << q << endl << endl;
+
+    //in exclude mode
+    q.send_test_record(q, ALLOW_NEW_SOURCES, gaddr, source_list<source> {s3, s4}, 3);
+    cout << q << endl << endl;
+
+    //in exclude mode
+    q.send_test_record(q, BLOCK_OLD_SOURCES , gaddr, source_list<source> {s1, s5}, 3);
+    cout << q << endl << endl;
     
-    cout << "!!ACTION: receive_record" << endl;
-    cout << "record type: ALLOW_NEW_SOURCES" << endl;
-    cout << "group address: " << ad << endl;
-    cout << "source list: " << sl << endl;
-    q.receive_record(ALLOW_NEW_SOURCES, ad, sl, 3 );
-    cout << q << endl;
-
+    //in exclude mode
+    q.send_test_record(q, CHANGE_TO_EXCLUDE_MODE, gaddr, source_list<source> {s5, s2}, 3);
+    cout << q << endl << endl;
+    
+    //in exclude mode
+    q.send_test_record(q, CHANGE_TO_INCLUDE_MODE, gaddr, source_list<source> {s5, s1, s2, s3}, 3);
+    cout << q << endl << endl;
     sleep(1000);
+}
 
+void querier::send_test_record(querier& q, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& saddr_list, int report_version)
+{
+    cout << "!!ACTION: receive record" << endl;
+    cout << "record_type: " << mcast_addr_record_type_name[record_type] << endl;
+    cout << "group address: " << gaddr << endl;
+    cout << "source list: " << saddr_list << endl;
+    cout << endl;
+
+    q.receive_record(record_type, gaddr, saddr_list, report_version);
 }
 
 querier::~querier()

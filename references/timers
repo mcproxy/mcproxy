@@ -1,0 +1,80 @@
+##-- timers and values of igmp and mld --##
+
+IGMPv3                              MLDV2                                   Default Values (igmp info, mld info)
+------                              -----                                   --------------
+Robustness Variable                 -""-                                    variable: 2
+uery Interval                       -""-                                    variable: 125 seconds (precision in seconds) 
+Query Response Interval (Max Response Time/Delay)   -""-                    variable: 10 seconds  precision==> (100ms, ms)
+Group Membership Interval           Multicast Address Listening Interval    const: Robustness Variable * Query Interval + Query Response Interval
+Other Querier Present Interval      -""-                                    const: Robustness Variable * Query Interval + (Query Response Interval / 2)
+Startup Query Interval              -""-                                    variable: Query Interval / 4
+Startup Query Count                 -""-                                    variable: Robustness Variable
+Last Member Query Interval          Last Listener Query Interval            variable: 1 second precision==>(100ms,ms) 
+Last Member Query Count             Last Listener Query Count               variable: Robustness Variable
+Last Member Query Time              Last Listener Query Time                const: Last Listener Query Interval * Last Listener Query count
+Unsolicited Report Interval         -""-                                    variable: 1 second         
+Older Version Querier Present Tiemout -""-                                  const: Robustness Variable * Query Interval of the last received Query + Query Response Interval
+Older Host Present Interval         Older Version Host Present Timeout      const: Robustness Variable * Query Interval + Query Response Interval
+
+QQIC IGMPv3 and MLDv2
+--------------------
+QQIC (Queriers's Query Interval Code) 
+QQI (Querier's Query IntervaL) in seconds
+
+ A)                 B)
+  0 1 2 3 4 5 6 7       0 1 2 3 4 5 6 7
+ +-+-+-+-+-+-+-+-+     +-+-+-+-+-+-+-+-+
+ |0|   seconds   |     |1| exp | mant  |
+ +-+-+-+-+-+-+-+-+     +-+-+-+-+-+-+-+-+
+
+ QQI in seconds         QQI= (mant | 0x10) << (exp +3)
+ 
+ QQI (0-127s)          mant (0-15) | 0x10 ==> (16-31)
+                       exp (0-7) + 3 ==> (3-10)
+                       16 << 3 = 128
+                       31 << 10 = 31744
+
+                       QQI (128-31744s)
+                       
+Max Resp Code IGMPv3
+-----------------
+
+ A)                 B)
+  0 1 2 3 4 5 6 7       0 1 2 3 4 5 6 7
+ +-+-+-+-+-+-+-+-+     +-+-+-+-+-+-+-+-+
+ |0|   seconds   |     |1| exp | mant  |
+ +-+-+-+-+-+-+-+-+     +-+-+-+-+-+-+-+-+
+
+ Max Resp Time (0-12,7s) and (12,8-3174,4s)
+
+                    Max Resp Time = (mant | 0x10) << (exp + 3) 
+
+Max Resp Code MLDv2               
+-------------------
+
+ A)
+   0 1 2 3 4 5 6 7 8 9 A B C D E F
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |0|        seconds              |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     
+ Max Resp Time (0-32.767ms)     
+  
+ B)
+   0 1 2 3 4 5 6 7 8 9 A B C D E F
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |1| exp |          mant         |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+ Maximum Response Delay = (mant | 0x1000) << (exp+3)    
+
+ exp (0-7) + 3 ==> (3-10)
+ mant (0-4095) | 0x1000 ==> (4096-8192)
+  
+ Max Resp Time (32.768-8.388.608ms) 
+ 
+               
+               
+response stuff
+
+
