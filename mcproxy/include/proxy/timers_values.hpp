@@ -29,10 +29,32 @@
 #define TIMERS_VALUES_HPP
 
 #include <cstdint>
+#include <string>
+
+struct timers_values_tank {
+    unsigned int robustness_variable = 2;
+    unsigned int query_interval_sec = 125;
+    unsigned int query_response_interval_msec = 10000; //Max Response Time/Delay
+    unsigned int startup_query_interval_sec = query_interval_sec / 4;
+    unsigned int startup_query_count = robustness_variable;
+    unsigned int last_member_query_interval_msec = 1000;
+    unsigned int last_member_query_count = robustness_variable;
+    unsigned int unsolicited_report_interval_msec = 1000;
+
+    std::string to_string() const;
+    friend std::ostream& operator<<(std::ostream& stream, const timers_values_tank& tvt);
+};
+
+static timers_values_tank default_timers_values_tank = timers_values_tank();
 
 class timers_values
 {
 private:
+    bool is_default_timers_values_tank = true;
+    timers_values_tank* tank = &default_timers_values_tank;
+
+    void set_new_tank();
+    void delete_new_tank();
     //--------------------------------------
     //return in seconds
     uint16_t calc_qqic_to_sec(bool first_bit, unsigned int exp, unsigned int mant) const;
@@ -65,6 +87,33 @@ private:
 
 public:
     static void test_timers_values();
+
+    unsigned int get_robustness_variable() const;
+    unsigned int get_query_interval_sec() const;
+    unsigned int get_query_response_interval_msec() const;
+    unsigned int get_group_membership_interval() const; //
+    unsigned int get_other_querier_present_interval() const; //
+    unsigned int get_startup_query_interval_sec() const;
+    unsigned int get_startup_query_count() const;
+    unsigned int get_last_member_query_interval_msec() const;
+    unsigned int get_last_member_query_count() const;
+    unsigned int get_last_member_query_time() const; //
+    unsigned int get_unsolicited_report_interval_msec() const;
+    unsigned int get_older_host_present_interval() const; //
+
+    void set_robustness_variable(unsigned int robustness_variable);
+    void set_query_interval_sec(unsigned int query_interval_sec);
+    void set_query_response_interval_msec(unsigned int query_response_interval_msec);
+    void set_startup_query_interval_sec(unsigned int startup_query_interval_sec);
+    void set_startup_query_count(unsigned int startup_query_count);
+    void set_last_member_query_interval_msec(unsigned int last_member_query_interval_msec);
+    void set_last_member_query_count(unsigned int last_member_query_count);
+    void set_unsolicited_report_interval_msec(unsigned int unsolicited_report_interval_msec);
+
+    virtual ~timers_values();
+
+    std::string to_string() const;
+    friend std::ostream& operator<<(std::ostream& stream, const timers_values& tv);
 };
 
 

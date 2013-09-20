@@ -151,7 +151,7 @@ struct gaddr_info {
     void* current_state;
     source_list<source> include_requested_list;
     source_list<source> exclude_list;
-
+    
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const gaddr_info& g);
 };

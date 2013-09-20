@@ -25,6 +25,7 @@
 #include "include/proxy/membership_db.hpp"
 
 #include <iomanip>
+#include <sstream>
 #include <iostream>
 
 template<typename T>
@@ -34,6 +35,36 @@ string to_hex_str(T n)
     s << "0x" << std::uppercase << std::hex << n;
     return s.str();
 }
+
+
+
+std::string timers_values_tank::to_string() const
+{
+    HC_LOG_TRACE("");
+    ostringstream s;
+    s << "Robustness Variable: " << robustness_variable << std::endl;
+    s << "Query Interval: " << query_interval_sec << " sec" << std::endl;
+    s << "Query Response Interval: " << query_response_interval_msec << " msec" << std::endl;
+    s << "Group Membership Interval: " << robustness_variable*query_interval_sec * 1000 + query_response_interval_msec << " msec" << std::endl;
+    s << "Other Querier Present Interval: " << robustness_variable* query_interval_sec * 1000 + (query_response_interval_msec / 2) << " msec" << std::endl;;
+    s << "Startup Query Interval: " << startup_query_interval_sec << " sec" << std::endl;
+    s << "Startup Query Count: " << startup_query_count << endl;
+    s << "Last Member Query Interval: " << last_member_query_interval_msec << " msec" << std::endl;
+    s << "Last Member Query Count: " << last_member_query_count << std::endl;
+    s << "Last Member Query Time: " << last_member_query_interval_msec*last_member_query_count << " msec" << std::endl;
+    s << "Unsolicited Report Interval: " << unsolicited_report_interval_msec <<  " msec" << endl;
+    s << "Older Host Present Interval: " << robustness_variable* query_interval_sec * 1000 + query_response_interval_msec << " msec" << std::endl;
+
+
+    return s.str();
+}
+
+std::ostream& operator<<(std::ostream& stream, const timers_values_tank& tvt)
+{
+    HC_LOG_TRACE("");
+    return stream << tvt.to_string();
+}
+
 
 uint16_t timers_values::calc_qqic_to_sec(bool first_bit, unsigned int exp, unsigned int mant) const
 {
@@ -117,6 +148,165 @@ uint32_t timers_values::calc_max_resp_code_mldv2_to_msec(bool first_bit, unsigne
     }
 }
 
+//--------------------------------------
+unsigned int timers_values::get_robustness_variable() const
+{
+    HC_LOG_TRACE("");
+    return tank->robustness_variable;
+}
+
+unsigned int timers_values::get_query_interval_sec() const
+{
+    HC_LOG_TRACE("");
+    return tank->query_interval_sec;
+}
+
+unsigned int timers_values::get_query_response_interval_msec() const
+{
+    HC_LOG_TRACE("");
+    return tank->query_response_interval_msec;
+}
+
+unsigned int timers_values::get_group_membership_interval() const
+{
+    HC_LOG_TRACE("");
+    return (tank->robustness_variable * tank->query_interval_sec * 1000) + tank->query_response_interval_msec;
+}
+
+unsigned int timers_values::get_other_querier_present_interval() const
+{
+    HC_LOG_TRACE("");
+    return (tank->robustness_variable * tank->query_interval_sec * 1000) + (tank->query_response_interval_msec / 2);
+}
+
+unsigned int timers_values::get_startup_query_interval_sec() const
+{
+    HC_LOG_TRACE("");
+    return tank->startup_query_interval_sec;
+}
+
+unsigned int timers_values::get_startup_query_count() const
+{
+    HC_LOG_TRACE("");
+    return tank->startup_query_count;
+}
+
+unsigned int timers_values::get_last_member_query_interval_msec() const
+{
+    HC_LOG_TRACE("");
+    return tank->last_member_query_interval_msec;
+}
+
+unsigned int timers_values::get_last_member_query_count() const
+{
+    HC_LOG_TRACE("");
+    return tank->last_member_query_count;
+}
+
+unsigned int timers_values::get_last_member_query_time() const
+{
+    HC_LOG_TRACE("");
+    return tank->last_member_query_interval_msec * tank->last_member_query_count;
+}
+
+unsigned int timers_values::get_unsolicited_report_interval_msec() const
+{
+    HC_LOG_TRACE("");
+    return tank->unsolicited_report_interval_msec;
+}
+
+unsigned int timers_values::get_older_host_present_interval() const
+{
+    HC_LOG_TRACE("");
+    return (tank->robustness_variable * tank->query_interval_sec * 1000) + tank->query_response_interval_msec;
+}
+
+
+void timers_values::set_new_tank()
+{
+    HC_LOG_TRACE("");
+    if (is_default_timers_values_tank) {
+        tank = new timers_values_tank();
+        is_default_timers_values_tank = false;
+    }
+}
+
+void timers_values::delete_new_tank()
+{
+    HC_LOG_TRACE("");
+    if (!is_default_timers_values_tank) {
+        delete tank;
+        tank = &default_timers_values_tank;
+    }
+}
+
+//--------------------------------------
+void timers_values::set_robustness_variable(unsigned int robustness_variable)
+{
+    HC_LOG_TRACE("");
+    set_new_tank();
+    tank->robustness_variable = robustness_variable;
+
+}
+
+void timers_values::set_query_interval_sec(unsigned int query_interval_sec)
+{
+    HC_LOG_TRACE("");
+    set_new_tank();
+    tank->query_interval_sec = query_interval_sec;
+}
+
+void timers_values::set_query_response_interval_msec(unsigned int query_response_interval_msec)
+{
+    HC_LOG_TRACE("");
+    set_new_tank();
+    tank->query_response_interval_msec = query_response_interval_msec;
+}
+
+void timers_values::set_startup_query_interval_sec(unsigned int startup_query_interval_sec)
+{
+    HC_LOG_TRACE("");
+    set_new_tank();
+    tank->startup_query_interval_sec = startup_query_interval_sec;
+}
+
+void timers_values::set_startup_query_count(unsigned int startup_query_count)
+{
+    HC_LOG_TRACE("");
+    set_new_tank();
+    tank->startup_query_count = startup_query_count;
+
+}
+
+void timers_values::set_last_member_query_interval_msec(unsigned int last_member_query_interval_msec)
+{
+    HC_LOG_TRACE("");
+    set_new_tank();
+    tank->last_member_query_interval_msec = last_member_query_interval_msec;
+
+}
+
+void timers_values::set_last_member_query_count(unsigned int last_member_query_count)
+{
+    HC_LOG_TRACE("");
+    set_new_tank();
+    tank->last_member_query_count = last_member_query_count;
+
+}
+
+void timers_values::set_unsolicited_report_interval_msec(unsigned int unsolicited_report_interval_msec)
+{
+    HC_LOG_TRACE("");
+    set_new_tank();
+    tank->unsolicited_report_interval_msec = unsolicited_report_interval_msec;
+}
+
+
+timers_values::~timers_values()
+{
+    delete_new_tank();
+}
+
 uint32_t timers_values::calc_max_resp_code_mldv2_to_msec(uint16_t max_resp_code) const
 {
     HC_LOG_TRACE("");
@@ -148,10 +338,24 @@ uint16_t timers_values::calc_msec_to_max_resp_code_mldv2(uint32_t msec) const
                 return (1 << 15) | (exp << 12) | mant;
             }
         }
-        std::cout << "hier falsch und so" << endl;
         HC_LOG_ERROR("unknown max response code: " << msec);
         return 0;
     }
+}
+
+std::string timers_values::to_string() const
+{
+    HC_LOG_TRACE("");
+    ostringstream s;
+    s << "is_default_timers_values_tank: " << (is_default_timers_values_tank ? "true" : "false") << std::endl;
+    s << tank->to_string() << std::endl;
+    return s.str();
+}
+
+std::ostream& operator<<(std::ostream& stream, const timers_values& tv)
+{
+    HC_LOG_TRACE("");
+    return stream << tv.to_string();
 }
 
 void timers_values::test_timers_values()
@@ -224,8 +428,8 @@ void timers_values::test_timers_values()
     std::cout << "tv.calc_max_resp_code_mldv2_to_msec(true,1,1): " << static_cast<unsigned int>(tv.calc_max_resp_code_mldv2_to_msec(true, 1, 1)) << std::endl;
     std::cout << "tv.calc_max_resp_code_mldv2_to_msec(0x9001): " << static_cast<unsigned int>(tv.calc_max_resp_code_mldv2_to_msec(0x9001)) << std::endl;
 
-    std::cout << "tv.calc_max_resp_code_mldv2_to_msec(5274==" << to_hex_str(5274)<< "): " << static_cast<unsigned int>(tv.calc_max_resp_code_mldv2_to_msec(5274)) << std::endl;
-    std::cout << "tv.calc_msec_to_max_resp_code_mldv2(5274==" << to_hex_str(5274)<< "): " << static_cast<unsigned int>(tv.calc_msec_to_max_resp_code_mldv2(5274)) << std::endl;
+    std::cout << "tv.calc_max_resp_code_mldv2_to_msec(5274==" << to_hex_str(5274) << "): " << static_cast<unsigned int>(tv.calc_max_resp_code_mldv2_to_msec(5274)) << std::endl;
+    std::cout << "tv.calc_msec_to_max_resp_code_mldv2(5274==" << to_hex_str(5274) << "): " << static_cast<unsigned int>(tv.calc_msec_to_max_resp_code_mldv2(5274)) << std::endl;
     std::cout << "--------------------------------------" << std::endl;
     for (int i = 1000; i <= 0xFFFF; i += 2137) {
         std::cout << "calc_msec_to_max_resp_code_mldv2(calc_max_resp_code_mldv2_to_msec(" << i << ") ";

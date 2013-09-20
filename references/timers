@@ -3,7 +3,7 @@
 IGMPv3                              MLDV2                                   Default Values (igmp info, mld info)
 ------                              -----                                   --------------
 Robustness Variable                 -""-                                    variable: 2
-uery Interval                       -""-                                    variable: 125 seconds (precision in seconds) 
+Query Interval                      -""-                                    variable: 125 seconds (precision in seconds) 
 Query Response Interval (Max Response Time/Delay)   -""-                    variable: 10 seconds  precision==> (100ms, ms)
 Group Membership Interval           Multicast Address Listening Interval    const: Robustness Variable * Query Interval + Query Response Interval
 Other Querier Present Interval      -""-                                    const: Robustness Variable * Query Interval + (Query Response Interval / 2)
