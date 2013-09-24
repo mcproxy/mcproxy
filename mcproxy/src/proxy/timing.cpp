@@ -24,7 +24,6 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/timing.hpp"
 #include "include/proxy/proxy_instance.hpp"
-#include <sys/time.h>
 #include <iostream>
 
 timing::timing():
@@ -40,40 +39,34 @@ timing::~timing()
     delete m_worker_thread;
 }
 
-timing::timehandling::timehandling(struct timeval time, proxy_instance* pr_i, proxy_msg pr_msg)
-{
-    HC_LOG_TRACE("");
-    m_time = time;
-    m_pr_i = pr_i;
-    m_pr_msg = pr_msg;
-}
-
 void timing::worker_thread(timing* t)
 {
     HC_LOG_TRACE("");
 
     while (t->m_running) {
-        usleep(TIME_POLL_INTERVAL);
 
-        struct timeval current_timeval;
-        gettimeofday(&current_timeval, nullptr);
+        //std::lock_guard<mutex> lock(t->m_global_lock);
 
-        t->m_global_lock.lock();
+        timing_db_key now = std::chrono::steady_clock::now();
 
-        list<struct timehandling>::iterator iter;
-        for (iter = t->m_time_list.begin(); iter != t->m_time_list.end(); iter++) {
-            if (current_timeval.tv_sec > iter->m_time.tv_sec) {
-                iter->m_pr_i->add_msg(iter->m_pr_msg);
-                iter = t->m_time_list.erase(iter);
-            } else if (current_timeval.tv_sec == iter->m_time.tv_sec) {
-                if (current_timeval.tv_usec >= iter->m_time.tv_usec) {
-                    iter->m_pr_i->add_msg(iter->m_pr_msg);
-                    iter = t->m_time_list.erase(iter);
-                }
+        for(auto e: t->m_db){
+            if(e.first <= now){
+
             }
         }
 
-        t->m_global_lock.unlock();
+        //list<struct timehandling>::iterator iter;
+        //for (iter = t->m_time_list.begin(); iter != t->m_time_list.end(); iter++) {
+            //if (current_timeval.tv_sec > iter->m_time.tv_sec) {
+                //iter->m_pr_i->add_msg(iter->m_pr_msg);
+                //iter = t->m_time_list.erase(iter);
+            //} else if (current_timeval.tv_sec == iter->m_time.tv_sec) {
+                //if (current_timeval.tv_usec >= iter->m_time.tv_usec) {
+                    //iter->m_pr_i->add_msg(iter->m_pr_msg);
+                    //iter = t->m_time_list.erase(iter);
+                //}
+            //}
+        //}
 
     }
 }
@@ -86,37 +79,30 @@ timing* timing::getInstance()
     return &instance;
 }
 
-void timing::add_time(int msec, proxy_instance* m_pr_i, proxy_msg& pr_msg)
+void timing::add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, proxy_msg& pr_msg)
 {
     HC_LOG_TRACE("");
+    timing_db_key until = std::chrono::steady_clock::now() + delay;
 
-    struct timeval t;
-    gettimeofday(&t, nullptr);
-    t.tv_sec += msec / 1000;
-    t.tv_usec += 1000 * (msec % 1000);;
+    std::lock_guard<mutex> lock(m_global_lock);
 
-    struct timehandling th(t, m_pr_i, pr_msg);
-
-    m_global_lock.lock();
-    m_time_list.push_back(th);
-    m_global_lock.unlock();
+    m_db.insert(timing_db_pair(until, std::make_tuple(pr_inst,pr_msg)));
 
 }
 
-void timing::stop_all_time(proxy_instance* pr_i)
+void timing::stop_all_time(const proxy_instance* pr_inst)
 {
     HC_LOG_TRACE("");
 
-    m_global_lock.lock();
+    std::lock_guard<mutex> lock(m_global_lock);
 
-    list<struct timehandling>::iterator iter;
-    for (iter = m_time_list.begin(); iter != m_time_list.end(); iter++) {
-        if (iter->m_pr_i == pr_i) {
-            iter = m_time_list.erase(iter);
+    for(auto it = begin(m_db); it != end(m_db); ++it ){
+        if(std::get<0>(it->second) == pr_inst) {
+            it = m_db.erase(it);
         }
+    
     }
 
-    m_global_lock.unlock();
 }
 
 void timing::start()
@@ -124,7 +110,7 @@ void timing::start()
     HC_LOG_TRACE("");
 
     m_running =  true;
-    m_worker_thread =  new boost::thread(timing::worker_thread, this);
+    m_worker_thread =  new std::thread(timing::worker_thread, this);
 }
 
 void timing::stop()
@@ -134,7 +120,7 @@ void timing::stop()
     m_running = false;
 }
 
-void timing::join()
+void timing::join() const
 {
     HC_LOG_TRACE("");
 
@@ -145,19 +131,28 @@ void timing::join()
 
 void timing::test_timing()
 {
+    using namespace std;
     HC_LOG_TRACE("");
-
+    cout << "##-- test timing --##" << endl;
     timing* t = timing::getInstance();
-    proxy_msg p_msg;
-    p_msg.msg =  new struct test_msg(4);
 
+    proxy_msg p_msg;
+
+    p_msg.msg =  new struct test_msg(4);
+    
+    cout << "start timing" << endl;
     t->start();
-    t->add_time(10000, nullptr, p_msg);
+
+    cout << "add test message" << endl;
+    t->add_time(std::chrono::seconds(10), nullptr, p_msg);
     /*t->add_time(2000,NULL,p_msg);
     t->add_time(3000,NULL,p_msg);
     t->add_time(4000,NULL,p_msg);
     t->add_time(10000,NULL,p_msg);*/
-    sleep(2);
+    
+    sleep(20);
+    cout << "stop and join timing" << endl;
     t->stop();
     t->join();
+    cout << "finished" << endl;
 }

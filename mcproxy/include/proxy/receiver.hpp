@@ -119,11 +119,6 @@ protected:
     int m_addr_family;
 
     /**
-     * @brief Used group membership version.
-     */
-    int m_version;
-
-    /**
      * @brief Get the size for the control buffer for recvmsg().
      */
     virtual int get_ctrl_min_size() = 0;
@@ -173,7 +168,7 @@ public:
      * @param mrt_sock need the multicast routing socket with set mrt-flag
      * @return Return true on success.
      */
-    virtual bool init(int addr_family, int version, mroute_socket* mrt_sock);
+    virtual bool init(int addr_family, mroute_socket* mrt_sock);
 
     /**
      * @brief Register an interface at the receiver.

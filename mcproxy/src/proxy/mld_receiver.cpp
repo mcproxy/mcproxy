@@ -39,9 +39,9 @@ mld_receiver::mld_receiver()
 }
 
 
-bool mld_receiver::init(int addr_family, int version, mroute_socket* mrt_sock)
+bool mld_receiver::init(int addr_family, mroute_socket* mrt_sock)
 {
-    bool rc = this->receiver::init(addr_family, version, mrt_sock);
+    bool rc = this->receiver::init(addr_family, mrt_sock);
     if (!rc) {
         return false;
     }

@@ -50,6 +50,10 @@ struct intrusive_message {
         HC_LOG_TRACE("");
     }
 
+    virtual void operator() () {
+        HC_LOG_TRACE("");
+    }
+
 private:
     int refs;
     boost::mutex m_global_lock;
@@ -80,6 +84,7 @@ private:
         p->refs++;
         HC_LOG_DEBUG("add ref ==> now: " << p->refs);
     }
+
 };
 
 //##-- generic struct for message_queue --##
@@ -126,6 +131,10 @@ typedef struct {
      */
     message_type type;
 
+    void operator() () {
+        HC_LOG_TRACE("");
+        (*msg.get())();
+    }
     /**
      * @brief Intrusive pointer to the message contain.
      */
@@ -148,11 +157,8 @@ struct test_msg: public intrusive_message {
     virtual ~test_msg() {
         HC_LOG_TRACE("");
     }
-
-    /**
-     * @brief Do some output.
-     */
-    void test() {
+    
+    virtual void operator()() override {
         HC_LOG_TRACE("");
         std::cout << "Test Message value:"  << m_value << std::endl;
     }

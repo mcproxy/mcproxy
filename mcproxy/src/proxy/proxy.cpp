@@ -556,7 +556,7 @@ bool proxy::start_proxy_instances()
         downstream_vif = it_vif->second;
 
         //start proxy instance
-        if (!p->init(m_addr_family, m_version, it_up_down->first, upstream_vif, tmp_down_vector[0], downstream_vif,
+        if (!p->init(m_addr_family, it_up_down->first, upstream_vif, tmp_down_vector[0], downstream_vif,
                      m_is_single_instance)) {
             return false;
         }

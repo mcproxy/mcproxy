@@ -57,12 +57,11 @@ bool receiver::init_if_prop()
     return true;
 }
 
-bool receiver::init(int addr_family, int version, mroute_socket* mrt_sock)
+bool receiver::init(int addr_family, mroute_socket* mrt_sock)
 {
     HC_LOG_TRACE("");
 
     m_addr_family = addr_family;
-    m_version =  version;
     m_mrt_sock = mrt_sock;
 
     if (!init_if_prop()) {

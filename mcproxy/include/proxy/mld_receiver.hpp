@@ -45,7 +45,7 @@ private:
     int get_iov_min_size() override; //size in byte
     void analyse_packet(struct msghdr* msg, int info_size) override;
 public:
-    bool init(int addr_family, int version, mroute_socket* mrt_sock);
+    bool init(int addr_family, mroute_socket* mrt_sock);
 
     mld_receiver();
 };

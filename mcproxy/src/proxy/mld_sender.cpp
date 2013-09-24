@@ -22,7 +22,6 @@
 
 #include "include/hamcast_logging.h"
 #include "include/proxy/mld_sender.hpp"
-#include "include/utils/mc_timers_values.hpp"
 
 #include <net/if.h>
 #include <netinet/icmp6.h>

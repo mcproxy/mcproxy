@@ -84,7 +84,7 @@ public:
       * @param version used group membership version
       * @return Return true on success.
       */
-    bool init(int addr_family, int version, mroute_socket* mrt_sock, bool single_instance, int table_number);
+    bool init(int addr_family, mroute_socket* mrt_sock, bool single_instance, int table_number);
 
 };
 

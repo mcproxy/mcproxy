@@ -30,14 +30,13 @@
 #include <linux/mroute6.h>
 #include <iostream>
 
-bool routing::init(int addr_family, int version, mroute_socket* mrt_sock, bool single_instance, int table_number)
+bool routing::init(int addr_family, mroute_socket* mrt_sock, bool single_instance, int table_number)
 {
     HC_LOG_TRACE("");
 
     m_is_single_instance = single_instance;
     m_table_number = table_number;
     m_addr_family = addr_family;
-    m_version = version;
     m_mrt_sock = mrt_sock;
 
     if (!init_if_prop()) {

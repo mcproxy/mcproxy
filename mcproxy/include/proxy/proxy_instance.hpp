@@ -115,89 +115,6 @@ struct src_state {
     state flag;
 };
 
-//--------------------------------------------------
-/**
- * @brief Data structure to save the interface index with the current virtual interface index.
- * @param first if_index
- * @param second vif
- */
-typedef map<int, int> vif_map;
-
-/**
- * @brief Pair for #vif_map.
- * @param first if_index
- * @param second vif
- */
-typedef pair<int, int> vif_pair;
-
-//--------------------------------------------------
-/**
- * @brief Data structure to save sources and there states.
- * @param first source address
- * @param second states of the source
- */
-typedef map<addr_storage, struct src_state> src_state_map;
-
-/**
- * @brief Pair for #src_state_map.
- * @param first source address
- * @param second states of the source
- */
-typedef pair<addr_storage, struct src_state> src_state_pair;
-
-//--------------------------------------------------
-/**
- * @brief Data structure for the upstream interface to save group memberships and there states
- * @param first group address
- * @param second map of sources and there states
- */
-typedef map<addr_storage, src_state_map> upstream_src_state_map;
-
-/**
- * @brief Pair for #upstream_src_state_map
- * @param first group address
- * @param second map of sources and there states
- */
-typedef pair<addr_storage, src_state_map> upstream_src_state_pair;
-
-//--------------------------------------------------
-/**
- * @brief Data structure to save a number of sources with there states and group membership states.
- * @param first data structure to save sources and there states
- * @param second group membership state
- */
-typedef pair<src_state_map, struct src_state> src_group_state_pair;
-
-//--------------------------------------------------
-/**
- * @brief Data structure to save group memberships with there states and exsists sources with there states
- * @param first group address
- * @param second Data structure to save a number of sources with there states and group membership states.
- */
-typedef map<addr_storage, src_group_state_pair > g_state_map;
-
-/**
- * @brief Pair for #g_state_map
- * @param first group address
- * @param second data structure to save a number of sources with there states and group membership states.
- */
-typedef pair<addr_storage, src_group_state_pair > g_state_pair;
-
-//--------------------------------------------------
-
-/**
- * @brief Data structure to save downstream interfaces and there multicast group information
- * @param first interface index of the downstream interface
- * @param second multicast group information
- */
-typedef map< int, g_state_map > state_table_map;
-
-/**
- * @brief Pair for #state_table_map
- * @param first interface index of the downstream interface
- * @param second multicast group information
- */
-typedef pair< int, g_state_map > state_tabel_pair;
 
 /**
  * @brief Represent a multicast Proxy
@@ -211,16 +128,10 @@ private:
 
     //upstream inforamtion
     int m_upstream; //if_index
-    upstream_src_state_map m_upstream_state;
-
-    //downstream inforamtion
-    state_table_map m_state_table;
-
 
     vif_map m_vif_map; //if_index to vif
 
     int m_addr_family; //AF_INET or AF_INET6
-    int m_version; //for AF_INET (1,2,3) to use IGMPv1/2/3, for AF_INET6 (1,2) to use MLDv1/2
 
     check_source m_check_source;
 
@@ -237,14 +148,6 @@ private:
 
     void worker_thread();
 
-    // registrate/unregistrate to reciever, router, and to the network
-    void registrate_if(int if_index);
-    void unregistrate_if(int if_index);
-
-    //##-- igmp automat --##
-    //send general query to all downstream
-    bool send_gq_to_all();
-
     //processed joins and leaves
     void handle_igmp(struct receiver_msg* r);
 
@@ -256,21 +159,6 @@ private:
 
     //add and del interfaces
     void handle_config(struct config_msg* c);
-
-    //need for aggregate states
-    bool is_group_joined(int without_if_index, const addr_storage& g_addr);
-
-    //handel multicast routes
-    //need for CACHE_MISS, General Query
-    bool split_traffic(int if_index, const addr_storage& g_addr, const addr_storage& src_addr);
-    bool del_route(int if_index, const addr_storage& g_addr, const addr_storage& src_addr);
-
-    //need for join, del group
-    void refresh_all_traffic(int if_index, const addr_storage& g_addr);
-
-    //fill vif_list with downstream vifs who has the same g_addr
-    //without_if_index will be ignored
-    void add_all_group_vifs_to_list(std::list<unsigned int>& vif_list, int without_if_index, addr_storage g_addr);
 
 
     void close();
@@ -289,14 +177,13 @@ public:
     /**
      * @brief initialise the proxy
      * @param addr_family AF_INET or AF_INET6
-     * @param version used group membership version
      * @param upstream_index interface index of the upstream
      * @param upstream_vif virtual interface index of the upstream
      * @param downstream_index  interface index of the downstream
      * @param downstram_vif virtual interface index of the downstream
      * @param receiver* pointer to the modul @ref mod_receiver
      */
-    bool init(int addr_family, int version, int upstream_index, int upstream_vif, int downstream_index, int downstram_vif,
+    bool init(int addr_family, int upstream_index, int upstream_vif, int downstream_index, int downstram_vif,
               bool single_instance);
 };
 

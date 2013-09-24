@@ -32,34 +32,31 @@
 #include "include/proxy/message_format.hpp"
 
 #include <list>
-#include <boost/thread.hpp>
-
-/**
- * @brief Poll interval, to look for an expires reminder.
- */
-#define  TIME_POLL_INTERVAL 500 //msec
+#include <thread>
+#include <mutex>
+#include <chrono>
+#include <tuple>
 
 class proxy_instance;
 
+using timing_db_value = std::tuple<proxy_instance*, proxy_msg>;
+using timing_db_key = std::chrono::time_point<std::chrono::steady_clock>;
+using timing_db = map<timing_db_key, timing_db_value>; 
+using timing_db_pair = pair<timing_db_key, timing_db_value>;
 /**
  * @brief Organizes reminder.
  */
 class timing
 {
 private:
-    struct timehandling {
-        timehandling(struct timeval time, proxy_instance* pr_i, proxy_msg pr_msg);
-        struct timeval m_time;
-        proxy_instance* m_pr_i;
-        proxy_msg m_pr_msg;
-    };
+
+    timing_db m_db;
 
     bool m_running;
-    boost::thread* m_worker_thread;
+    std::thread* m_worker_thread;
     static void worker_thread(timing* t);
 
-    boost::mutex m_global_lock;
-    std::list<struct timehandling> m_time_list;
+    std::mutex m_global_lock;
 
     //GOF singleton
     timing();
@@ -79,13 +76,13 @@ public:
      * @param pr_msg message of the reminder
      *
      */
-    void add_time(int msec, proxy_instance* pr_i, proxy_msg& pr_msg);
+    void add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, proxy_msg& pr_msg);
 
     /**
      * @brief Delete all reminder from a specific proxy instance.
      * @param proxy_instance* pointer to the specific proxy instance
      */
-    void stop_all_time(proxy_instance* pr_i);
+    void stop_all_time(const proxy_instance* pr_inst);
 
     /**
      * @brief Start the module Timer.
@@ -100,12 +97,14 @@ public:
     /**
      * @brief Blocked until module Timer stopped.
      */
-    void join();
+    void join() const;
 
-    /**
+        /**
      * @brief Test the functionality of the module Timer.
      */
     static void test_timing();
+
+
 };
 
 

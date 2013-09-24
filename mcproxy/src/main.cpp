@@ -91,6 +91,7 @@ void test_test()
     //membership_db::test_arithmetic(); 
     //querier::test_querier(AF_INET, "dummy0");
     timers_values::test_timers_values();
+    //timing::test_timing();
 
 
     

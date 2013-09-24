@@ -30,20 +30,22 @@
 
 #include <cstdint>
 #include <string>
+#include <chrono>
+
 
 struct timers_values_tank {
     unsigned int robustness_variable = 2;
-    unsigned int query_interval_sec = 125;
-    unsigned int query_response_interval_msec = 10000; //Max Response Time/Delay
-    unsigned int startup_query_interval_sec = query_interval_sec / 4;
+    std::chrono::seconds query_interval = std::chrono::seconds(125);
+    std::chrono::milliseconds query_response_interval = std::chrono::milliseconds(10000); //Max Response Time/Delay
+    std::chrono::seconds startup_query_interval = query_interval / 4;
     unsigned int startup_query_count = robustness_variable;
-    unsigned int last_member_query_interval_msec = 1000;
+    std::chrono::milliseconds last_member_query_interval = std::chrono::milliseconds(1000);
     unsigned int last_member_query_count = robustness_variable;
-    unsigned int unsolicited_report_interval_msec = 1000;
-
+    std::chrono::milliseconds unsolicited_report_interval = std::chrono::milliseconds(1000);
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const timers_values_tank& tvt);
 };
+
 
 static timers_values_tank default_timers_values_tank = timers_values_tank();
 
@@ -54,61 +56,62 @@ private:
     timers_values_tank* tank = &default_timers_values_tank;
 
     void set_new_tank();
-    void delete_new_tank();
     //--------------------------------------
     //return in seconds
-    uint16_t calc_qqic_to_sec(bool first_bit, unsigned int exp, unsigned int mant) const;
+    std::chrono::seconds qqic_to_qqi(bool first_bit, unsigned int exp, unsigned int mant) const;
 
     //return in seconds
-    uint16_t calc_qqic_to_sec(uint8_t qqic) const;
+    std::chrono::seconds qqic_to_qqi(uint8_t qqic) const;
 
     //retrun qqic
-    uint8_t calc_sec_to_qqic(uint16_t sec) const;
+    uint8_t qqi_to_qqic(const std::chrono::seconds& sec) const;
 
     //--------------------------------------
     //return in milli seconds
-    uint32_t calc_max_resp_code_igmpv3_to_msec(bool first_bit, unsigned int exp, unsigned int mant) const;
+    std::chrono::milliseconds maxrespc_igmpv3_to_maxrespi(bool first_bit, unsigned int exp, unsigned int mant) const;
 
     //return in milli seconds
-    uint32_t calc_max_resp_code_igmpv3_to_msec(uint8_t max_resp_code) const;
+    std::chrono::milliseconds maxrespc_igmpv3_to_maxrespi(uint8_t max_resp_code) const;
 
     //retrun qqic
-    uint8_t calc_msec_to_max_resp_code_igmpv3(uint32_t msec) const;
+    uint8_t maxrespi_to_maxrespc_igmpv3(const std::chrono::milliseconds& msec) const;
 
     //--------------------------------------
     //return in milli seconds
-    uint32_t calc_max_resp_code_mldv2_to_msec(bool first_bit, unsigned int exp, unsigned int mant) const;
+    std::chrono::milliseconds maxrespc_mldv2_to_maxrespi(bool first_bit, unsigned int exp, unsigned int mant) const;
 
     //return in milli seconds
-    uint32_t calc_max_resp_code_mldv2_to_msec(uint16_t max_resp_code) const;
+    std::chrono::milliseconds maxrespc_mldv2_to_maxrespi(uint16_t max_resp_code) const;
 
     //retrun qqic
-    uint16_t calc_msec_to_max_resp_code_mldv2(uint32_t msec) const;
+    uint16_t maxrespi_to_maxrespc_mldv2(std::chrono::milliseconds msec) const;
 
 public:
     static void test_timers_values();
 
     unsigned int get_robustness_variable() const;
-    unsigned int get_query_interval_sec() const;
-    unsigned int get_query_response_interval_msec() const;
-    unsigned int get_group_membership_interval() const; //
-    unsigned int get_other_querier_present_interval() const; //
-    unsigned int get_startup_query_interval_sec() const;
+    std::chrono::seconds get_query_interval() const;
+    std::chrono::milliseconds get_query_response_interval() const;
+    std::chrono::milliseconds get_group_membership_interval() const; //
+    std::chrono::milliseconds get_other_querier_present_interval() const; //
+    std::chrono::seconds get_startup_query_interval() const;
     unsigned int get_startup_query_count() const;
-    unsigned int get_last_member_query_interval_msec() const;
+    std::chrono::milliseconds get_last_member_query_interval() const;
     unsigned int get_last_member_query_count() const;
-    unsigned int get_last_member_query_time() const; //
-    unsigned int get_unsolicited_report_interval_msec() const;
-    unsigned int get_older_host_present_interval() const; //
+    std::chrono::milliseconds get_last_member_query_time() const; //
+    std::chrono::milliseconds get_unsolicited_report_interval() const;
+    std::chrono::milliseconds get_older_host_present_interval() const; //
 
     void set_robustness_variable(unsigned int robustness_variable);
-    void set_query_interval_sec(unsigned int query_interval_sec);
-    void set_query_response_interval_msec(unsigned int query_response_interval_msec);
-    void set_startup_query_interval_sec(unsigned int startup_query_interval_sec);
+    void set_query_interval_sec(std::chrono::seconds query_interval);
+    void set_query_response_interval(std::chrono::milliseconds query_response_interval);
+    void set_startup_query_interval(std::chrono::seconds startup_query_interval);
     void set_startup_query_count(unsigned int startup_query_count);
-    void set_last_member_query_interval_msec(unsigned int last_member_query_interval_msec);
+    void set_last_member_query_interval(std::chrono::milliseconds last_member_query_interval);
     void set_last_member_query_count(unsigned int last_member_query_count);
-    void set_unsolicited_report_interval_msec(unsigned int unsolicited_report_interval_msec);
+    void set_unsolicited_report_interval(std::chrono::milliseconds unsolicited_report_interval);
+
+    void reset_to_default_tank();
 
     virtual ~timers_values();
 

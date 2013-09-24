@@ -66,6 +66,7 @@ public:
    
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const querier& q);
+
     /**
      * @brief Test the functionality of the querier.
      */

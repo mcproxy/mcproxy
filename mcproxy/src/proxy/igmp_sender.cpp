@@ -23,7 +23,6 @@
 
 #include "include/hamcast_logging.h"
 #include "include/proxy/igmp_sender.hpp"
-#include "include/utils/mc_timers_values.hpp"
 
 #include <netinet/igmp.h>
 #include <netinet/ip.h>
