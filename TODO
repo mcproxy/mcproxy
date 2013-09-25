@@ -29,6 +29,6 @@ struct mfcctl {
 
 
   
-overwork class timing
+overwork class timing with pipe and pselect
 
 exchange boost stufF

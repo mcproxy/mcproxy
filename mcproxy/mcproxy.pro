@@ -1,3 +1,6 @@
+QMAKE_CXX = clang
+QMAKE_CC = clang
+
 TARGET = mcproxy
 
 CONFIG(debug, debug|release) {

@@ -90,8 +90,8 @@ void test_test()
     //addr_storage::test_addr_sto_b();
     //membership_db::test_arithmetic(); 
     //querier::test_querier(AF_INET, "dummy0");
-    timers_values::test_timers_values();
-    //timing::test_timing();
+    //timers_values::test_timers_values();
+    timing::test_timing();
 
 
     

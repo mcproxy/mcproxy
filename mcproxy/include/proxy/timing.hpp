@@ -33,10 +33,13 @@
 
 #include <list>
 #include <thread>
+#include <condition_variable>
 #include <mutex>
 #include <chrono>
 #include <tuple>
 
+
+#define TIMING_IDLE_POLLING_INTERVAL 1 //sec
 class proxy_instance;
 
 using timing_db_value = std::tuple<proxy_instance*, proxy_msg>;
@@ -57,6 +60,7 @@ private:
     static void worker_thread(timing* t);
 
     std::mutex m_global_lock;
+    std::condition_variable m_con_var;
 
     //GOF singleton
     timing();
@@ -78,6 +82,7 @@ public:
      */
     void add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, proxy_msg& pr_msg);
 
+    void add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, proxy_msg&& pr_msg);
     /**
      * @brief Delete all reminder from a specific proxy instance.
      * @param proxy_instance* pointer to the specific proxy instance

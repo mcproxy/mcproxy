@@ -92,18 +92,19 @@ private:
  * @brief Generic message for the #message_queue.
  */
 
-typedef struct {
+struct proxy_msg {
 
     /**
      * @brief Available message types.
      */
     enum message_type {
-        TEST_MSG       /** Test message type to test the message queue and the intrusive pointer. */,
-        CLOCK_MSG      /** Message type used from module @ref mod_timer. */,
-        RECEIVER_MSG   /** Message type used from module @ref mod_receiver. */,
-        CONFIG_MSG     /** Message type used from module @ref mod_proxy to set and delete interfaces of the proxy instances. */,
-        EXIT_CMD       /** Message type to stop the proxy instances. */,
-        DEBUG_MSG      /** Message type to collect debug information for the module @ref mod_proxy. */
+        TEST_MSG,       /** Test message type to test the message queue and the intrusive pointer. */
+        //CLOCK_MSG      [>* Message type used from module @ref mod_timer. <],
+        //RECEIVER_MSG   [>* Message type used from module @ref mod_receiver. <],
+        //CONFIG_MSG     [>* Message type used from module @ref mod_proxy to set and delete interfaces of the proxy instances. <],
+        //EXIT_CMD       [>* Message type to stop the proxy instances. <],
+        DEBUG_MSG,      /** Message type to collect debug information for the module @ref mod_proxy. */
+        QUERIER_MSG
     };
 
     std::string msg_type_to_string() {
@@ -111,16 +112,18 @@ typedef struct {
         switch (type) {
         case TEST_MSG:
             return "TEST_MSG";
-        case CLOCK_MSG:
-            return "CLOCK_MSG";
-        case RECEIVER_MSG:
-            return "RECEIVER_MSG";
+        case QUERIER_MSG:
+            return "QUERIER_MSG";
+        //case CLOCK_MSG:
+            //return "CLOCK_MSG";
+        //case RECEIVER_MSG:
+            //return "RECEIVER_MSG";
         case DEBUG_MSG:
             return "DEBUG_MSG";
-        case EXIT_CMD:
-            return "EXIT_CMD";
-        case CONFIG_MSG:
-            return "CONFIG_MSG";
+        //case EXIT_CMD:
+            //return "EXIT_CMD";
+        //case CONFIG_MSG:
+            //return "CONFIG_MSG";
         default:
             return "ERROR";
         }
@@ -131,6 +134,15 @@ typedef struct {
      */
     message_type type;
 
+    proxy_msg(boost::intrusive_ptr<struct intrusive_message> msg) {
+        HC_LOG_TRACE("");
+        this->msg = msg;
+    }
+
+    proxy_msg(){
+        HC_LOG_TRACE("");
+    }
+
     void operator() () {
         HC_LOG_TRACE("");
         (*msg.get())();
@@ -139,7 +151,7 @@ typedef struct {
      * @brief Intrusive pointer to the message contain.
      */
     boost::intrusive_ptr<struct intrusive_message> msg;
-} proxy_msg;
+};
 
 
 //##-- possible messages --##
@@ -157,7 +169,7 @@ struct test_msg: public intrusive_message {
     virtual ~test_msg() {
         HC_LOG_TRACE("");
     }
-    
+
     virtual void operator()() override {
         HC_LOG_TRACE("");
         std::cout << "Test Message value:"  << m_value << std::endl;
@@ -166,177 +178,31 @@ private:
     int m_value;
 };
 
-//message_type: CLOCK_MSG
+
+//message_type: DEBUG_MSG
 /**
- * @brief Message used from module @ref mod_timer. It is the contain of a reminder.
+ * @brief Test message to test the message queue and the intrusive pointer.
  */
-struct clock_msg: public intrusive_message {
-
+struct test_msg: public intrusive_message {
     /**
-     * @brief A module @ref mod_timer can remind about this actions.
+     * @brief Create a test_msg.
      */
-    enum clock_action {
-        SEND_GQ_TO_ALL /** Send to all downstreams General Queries. */,
-        SEND_GSQ       /** Send a Group Specific Query to an interface and to a group. */,
-        DEL_GROUP      /** Delete a group from an interface. */,
-        SEND_GQ        /** not implementeted at the moment. */
-    };
-
-    /**
-     * @brief Constructor used for the actions DEL_GROUP, SEND_GQ and SEND_GSQ.
-     * @param type type of the clock action
-     * @param if_index actionfor a specific interface index
-     * @param g_addr action for a specific multicast group
-     */
-    clock_msg(clock_action type, int if_index, addr_storage g_addr) {
-        HC_LOG_TRACE("");
-        this->type = type;
-        this->if_index = if_index;
-        this->g_addr = g_addr;
-    }
-
-    /**
-     * @brief Constructor used for the action SEND_GQ_TO_ALL.
-     * @param type type of the clock action
-     */
-    clock_msg(clock_action type) {
-        this->type = type;
-    }
-
-    virtual ~clock_msg() {
+    test_msg(int value): m_value(value) {
         HC_LOG_TRACE("");
     }
 
-    /**
-     * @brief Type of the clock message.
-     */
-    clock_action type;
+    virtual ~test_msg() {
+        HC_LOG_TRACE("");
+    }
 
-    /**
-     * @brief Action on a specific interface index.
-     */
-    int if_index;
-
-    /**
-     * @brief Action for a specific multicast group.
-     */
-    addr_storage g_addr;
+    virtual void operator()() override {
+        HC_LOG_TRACE("");
+        std::cout << "Test Message value:"  << m_value << std::endl;
+    }
+private:
+    int m_value;
 };
 
-//message_type: RECEIVER_MSG
-/**
- * @brief Message used from module @ref mod_receiver to inform the
- * module @ref mod_proxy_instance of received a message.
- */
-struct receiver_msg: public intrusive_message {
-
-    /**
-     * @brief A module @ref mod_receiver can receive the following messages.
-     */
-    enum receiver_action {
-        JOIN           /** a Join message for a specific group on a specific interface */,
-        LEAVE          /** a Leave message for a specific group on a specific interface */,
-        CACHE_MISS     /** a Cache Miss message from the Linux Kernel */
-    };
-
-    //CACHE_MISS
-    /**
-     * @brief Constructor used for the action CACHE_MISS.
-     * @param type type of the receiver action
-     * @param if_index action for a specific interface index
-     * @param src_addr action for a specific source
-     * @param g_addr action for a specific multicast group
-     */
-    receiver_msg(receiver_action type, int if_index, addr_storage src_addr, addr_storage g_addr):
-        type(type), if_index(if_index), src_addr(src_addr), g_addr(g_addr) {
-        HC_LOG_TRACE("");
-    }
-
-    //JOIN, LEAVE
-    /**
-     * @brief Constructor used for the actions JOIN and LEAVE.
-     * @param type type of the receiver action
-     * @param if_index action for a specific interface index
-     * @param g_addr action for a specific multicast group
-     */
-    receiver_msg(receiver_action type, int if_index, addr_storage g_addr):
-        type(type), if_index(if_index), g_addr(g_addr) {
-        HC_LOG_TRACE("");
-    }
-
-    virtual ~receiver_msg() {
-        HC_LOG_TRACE("");
-    }
-
-    /**
-     * @brief Type of the receiver message.
-     */
-    receiver_action type;
-
-    /**
-     * @brief Action on a specific interface index.
-     */
-    int if_index;
-
-    /**
-     * @brief Action for a specific source address.
-     */
-    addr_storage src_addr;
-
-    /**
-     * @brief Action for a specific multicast group.
-     */
-    addr_storage g_addr;
-
-};
-
-//message_type: CONFIG_MSG
-/**
- * @brief Message used from module @ref mod_proxy to
- * set and delete interfaces of the proxy instances.
- */
-struct config_msg: public intrusive_message {
-
-    /**
-     * @brief configure types for proxy instances
-     */
-    enum config_action {
-        ADD_DOWNSTREAM /** downstreams can be added to a proxy instance*/,
-        DEL_DOWNSTREAM /** downstreams can be delete form a proxy instance */,
-        SET_UPSTREAM   /** an upstream can be changed */
-    };
-
-    //routing_action: ADD_VIF and DEL_VIF
-    /**
-     * @brief Create a config_msg.
-     * @param type configuration type
-     * @param if_index index of the to change interface
-     * @param vif virtual index of the to change interface
-     */
-    config_msg(config_action type, int if_index, int vif):
-        type(type), if_index(if_index), vif(vif) {
-        HC_LOG_TRACE("");
-    }
-
-    virtual ~config_msg() {
-        HC_LOG_TRACE("");
-    }
-
-    /**
-     * @brief Type of the config_msg.
-     */
-    config_action type;
-
-    /**
-     * @brief Action on a specific interface index.
-     */
-    int if_index;
-
-    /**
-     * @brief Action on a virtual interface index.
-     */
-    int vif;
-};
 
 //message_type: DEBUG_MSG
 /**
@@ -429,6 +295,180 @@ private:
     int m_timeout_msec;
 
 };
+
+
+////message_type: CLOCK_MSG
+/**
+ * @brief Message used from module @ref mod_timer. It is the contain of a reminder.
+ */
+//struct clock_msg: public intrusive_message {
+
+    /**
+     * @brief A module @ref mod_timer can remind about this actions.
+     */
+    //enum clock_action {
+        //SEND_GQ_TO_ALL [>* Send to all downstreams General Queries. <],
+        //SEND_GSQ       [>* Send a Group Specific Query to an interface and to a group. <],
+        //DEL_GROUP      [>* Delete a group from an interface. <],
+        //SEND_GQ        [>* not implementeted at the moment. <]
+    //};
+
+    /**
+     * @brief Constructor used for the actions DEL_GROUP, SEND_GQ and SEND_GSQ.
+     * @param type type of the clock action
+     * @param if_index actionfor a specific interface index
+     * @param g_addr action for a specific multicast group
+     */
+    //clock_msg(clock_action type, int if_index, addr_storage g_addr) {
+        //HC_LOG_TRACE("");
+        //this->type = type;
+        //this->if_index = if_index;
+        //this->g_addr = g_addr;
+    //}
+
+    /**
+     * @brief Constructor used for the action SEND_GQ_TO_ALL.
+     * @param type type of the clock action
+     */
+    //clock_msg(clock_action type) {
+        //this->type = type;
+    //}
+
+    //virtual ~clock_msg() {
+        //HC_LOG_TRACE("");
+    //}
+
+    /**
+     * @brief Type of the clock message.
+     */
+    //clock_action type;
+
+    /**
+     * @brief Action on a specific interface index.
+     */
+    //int if_index;
+
+    /**
+     * @brief Action for a specific multicast group.
+     */
+    //addr_storage g_addr;
+//};
+
+////message_type: RECEIVER_MSG
+/**
+ * @brief Message used from module @ref mod_receiver to inform the
+ * module @ref mod_proxy_instance of received a message.
+ */
+//struct receiver_msg: public intrusive_message {
+
+    /**
+     * @brief A module @ref mod_receiver can receive the following messages.
+     */
+    //enum receiver_action {
+        //JOIN           [>* a Join message for a specific group on a specific interface <],
+        //LEAVE          [>* a Leave message for a specific group on a specific interface <],
+        //CACHE_MISS     [>* a Cache Miss message from the Linux Kernel <]
+    //};
+
+    ////CACHE_MISS
+    /**
+     * @brief Constructor used for the action CACHE_MISS.
+     * @param type type of the receiver action
+     * @param if_index action for a specific interface index
+     * @param src_addr action for a specific source
+     * @param g_addr action for a specific multicast group
+     */
+    //receiver_msg(receiver_action type, int if_index, addr_storage src_addr, addr_storage g_addr):
+        //type(type), if_index(if_index), src_addr(src_addr), g_addr(g_addr) {
+        //HC_LOG_TRACE("");
+    //}
+
+    ////JOIN, LEAVE
+    /**
+     * @brief Constructor used for the actions JOIN and LEAVE.
+     * @param type type of the receiver action
+     * @param if_index action for a specific interface index
+     * @param g_addr action for a specific multicast group
+     */
+    //receiver_msg(receiver_action type, int if_index, addr_storage g_addr):
+        //type(type), if_index(if_index), g_addr(g_addr) {
+        //HC_LOG_TRACE("");
+    //}
+
+    //virtual ~receiver_msg() {
+        //HC_LOG_TRACE("");
+    //}
+
+    /**
+     * @brief Type of the receiver message.
+     */
+    //receiver_action type;
+
+    /**
+     * @brief Action on a specific interface index.
+     */
+    //int if_index;
+
+    /**
+     * @brief Action for a specific source address.
+     */
+    //addr_storage src_addr;
+
+    /**
+     * @brief Action for a specific multicast group.
+     */
+    //addr_storage g_addr;
+
+//};
+
+////message_type: CONFIG_MSG
+/**
+ * @brief Message used from module @ref mod_proxy to
+ * set and delete interfaces of the proxy instances.
+ */
+//struct config_msg: public intrusive_message {
+
+    /**
+     * @brief configure types for proxy instances
+     */
+    //enum config_action {
+        //ADD_DOWNSTREAM [>* downstreams can be added to a proxy instance<],
+        //DEL_DOWNSTREAM [>* downstreams can be delete form a proxy instance <],
+        //SET_UPSTREAM   [>* an upstream can be changed <]
+    //};
+
+    ////routing_action: ADD_VIF and DEL_VIF
+    /**
+     * @brief Create a config_msg.
+     * @param type configuration type
+     * @param if_index index of the to change interface
+     * @param vif virtual index of the to change interface
+     */
+    //config_msg(config_action type, int if_index, int vif):
+        //type(type), if_index(if_index), vif(vif) {
+        //HC_LOG_TRACE("");
+    //}
+
+    //virtual ~config_msg() {
+        //HC_LOG_TRACE("");
+    //}
+
+    /**
+     * @brief Type of the config_msg.
+     */
+    //config_action type;
+
+    /**
+     * @brief Action on a specific interface index.
+     */
+    //int if_index;
+
+    /**
+     * @brief Action on a virtual interface index.
+     */
+    //int vif;
+//};
+
 
 #endif // MESSAGE_FORMAT_HPP
 /** @} */
