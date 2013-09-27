@@ -57,7 +57,7 @@ public:
     /**
      * @brief Create an igmp_receiver.
      */
-    igmp_receiver();
+    igmp_receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock);
 };
 
 #endif // IGMP_RECEIVER_HPP

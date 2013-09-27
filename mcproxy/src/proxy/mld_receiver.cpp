@@ -33,28 +33,17 @@
 //DEBUG
 #include <net/if.h>
 
-mld_receiver::mld_receiver()
+mld_receiver::mld_receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock): receiver(addr_family, mrt_sock)
 {
     HC_LOG_TRACE("");
-}
-
-
-bool mld_receiver::init(int addr_family, mroute_socket* mrt_sock)
-{
-    bool rc = this->receiver::init(addr_family, mrt_sock);
-    if (!rc) {
-        return false;
-    }
     if (!m_mrt_sock->set_recv_icmpv6_msg()) {
-        return false;
+        throw "failed to set receive icmpv6 message";
     }
+
     if (!m_mrt_sock->set_recv_pkt_info()) {
-        return false;
+        throw "faield to set receive paket info";
     }
-
-    return true;
 }
-
 
 int mld_receiver::get_iov_min_size()
 {
@@ -98,10 +87,10 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
                 return;
             }
 
-            proxy_msg m;
-            m.type = proxy_msg::RECEIVER_MSG;
-            m.msg = new struct receiver_msg(receiver_msg::CACHE_MISS, if_index, src_addr, g_addr);
-            pr_i->add_msg(m);
+            //proxy_msg m;
+            //m.type = proxy_msg::RECEIVER_MSG;
+            //m.msg = new struct receiver_msg(receiver_msg::CACHE_MISS, if_index, src_addr, g_addr);
+            //pr_i->add_msg(m);
             break;
         }
         default:
@@ -124,18 +113,18 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
         }
         g_addr = hdr->mld_addr;
 
-        proxy_msg m;
-        m.type = proxy_msg::RECEIVER_MSG;
+        //proxy_msg m;
+        //m.type = proxy_msg::RECEIVER_MSG;
 
-        if (hdr->mld_type == MLD_LISTENER_REPORT) {
-            m.msg = new struct receiver_msg(receiver_msg::JOIN, packet_info->ipi6_ifindex, g_addr);
-        } else if (hdr->mld_type == MLD_LISTENER_REDUCTION) {
-            m.msg = new struct receiver_msg(receiver_msg::LEAVE, packet_info->ipi6_ifindex, g_addr);
-        } else {
-            HC_LOG_ERROR("wrong mld type");
-        }
+        //if (hdr->mld_type == MLD_LISTENER_REPORT) {
+            //m.msg = new struct receiver_msg(receiver_msg::JOIN, packet_info->ipi6_ifindex, g_addr);
+        //} else if (hdr->mld_type == MLD_LISTENER_REDUCTION) {
+            //m.msg = new struct receiver_msg(receiver_msg::LEAVE, packet_info->ipi6_ifindex, g_addr);
+        //} else {
+            //HC_LOG_ERROR("wrong mld type");
+        //}
 
-        pr_i->add_msg(m);
+        //pr_i->add_msg(m);
     } else {
         HC_LOG_DEBUG("unknown MLD-packet: " << (int)(hdr->mld_type));
     }

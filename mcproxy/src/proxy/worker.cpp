@@ -24,16 +24,18 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/worker.hpp"
 
-worker::worker(int max_msg):
-    m_worker_thread(0), m_running(false), m_job_queue(max_msg)
+worker::worker():
+    m_thread(nullptr), m_running(false)
 
 {
     HC_LOG_TRACE("");
+    start();
 }
 
 worker::~worker()
 {
-    close();
+    stop();
+    join();
 }
 
 
@@ -42,29 +44,16 @@ void worker::start()
     HC_LOG_TRACE("");
 
     m_running =  true;
-    m_worker_thread =  new boost::thread(worker::worker_thread_starter, this);
+    m_thread.reset(new std::thread(&worker::worker_thread));
 }
 
-void worker::worker_thread_starter(worker* w)
-{
-    HC_LOG_TRACE("");
-
-    w->worker_thread();
-}
-
-void worker::close()
-{
-    HC_LOG_TRACE("");
-    join();
-    delete m_worker_thread;
-}
-
-void worker::add_msg(proxy_msg& msg)
+void worker::add_msg(proxy_msg&& msg)
 {
     HC_LOG_TRACE("");
 
     HC_LOG_DEBUG("message type:" << msg.msg_type_to_string());
-    m_job_queue.enqueue(msg);
+
+    m_job_queue.enqueue(move(msg));
 }
 
 bool worker::is_running()
@@ -73,11 +62,16 @@ bool worker::is_running()
     return m_running;
 }
 
+void worker::stop()
+{
+    m_running = false;
+}
+
 void worker::join()
 {
     HC_LOG_TRACE("");
 
-    if (m_worker_thread) {
-        m_worker_thread->join();
+    if (m_thread.get() != nullptr) {
+        m_thread->join();
     }
 }

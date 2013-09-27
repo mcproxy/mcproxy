@@ -33,19 +33,23 @@
 
 #include <list>
 #include <thread>
+#include <memory>
 #include <condition_variable>
 #include <mutex>
 #include <chrono>
 #include <tuple>
+#include <map>
 
 
 #define TIMING_IDLE_POLLING_INTERVAL 1 //sec
+
 class proxy_instance;
 
 using timing_db_value = std::tuple<proxy_instance*, proxy_msg>;
 using timing_db_key = std::chrono::time_point<std::chrono::steady_clock>;
-using timing_db = map<timing_db_key, timing_db_value>; 
+using timing_db = std::map<timing_db_key, timing_db_value>; 
 using timing_db_pair = pair<timing_db_key, timing_db_value>;
+
 /**
  * @brief Organizes reminder.
  */
@@ -56,22 +60,23 @@ private:
     timing_db m_db;
 
     bool m_running;
-    std::thread* m_worker_thread;
-    static void worker_thread(timing* t);
+    std::unique_ptr<std::thread> m_thread;
+    void worker_thread();
 
     std::mutex m_global_lock;
     std::condition_variable m_con_var;
 
+    void start();
+    void stop();
+    void join() const;
+
     //GOF singleton
-    timing();
-    timing(const timing&);
-    timing& operator=(const timing&);
-    virtual ~timing();
+    timing(const timing&) = delete;
+    timing(const timing&&) = delete;
+    timing& operator=(const timing&) = delete;
+    timing& operator=(const timing&&) = delete;
 public:
-    /**
-     * @brief Get an instance of the Routing module (GOF singleton).
-     */
-    static timing* getInstance();
+    timing();
 
     /**
      * @brief Add a new reminder with an predefined time.
@@ -80,30 +85,16 @@ public:
      * @param pr_msg message of the reminder
      *
      */
-    void add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, proxy_msg& pr_msg);
-
     void add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, proxy_msg&& pr_msg);
+
     /**
      * @brief Delete all reminder from a specific proxy instance.
      * @param proxy_instance* pointer to the specific proxy instance
      */
     void stop_all_time(const proxy_instance* pr_inst);
 
-    /**
-     * @brief Start the module Timer.
-     */
-    void start();
 
-    /**
-     * @brief Stop the module Timer, but dont wait for stopped.
-     */
-    void stop();
-
-    /**
-     * @brief Blocked until module Timer stopped.
-     */
-    void join() const;
-
+    virtual ~timing();
         /**
      * @brief Test the functionality of the module Timer.
      */

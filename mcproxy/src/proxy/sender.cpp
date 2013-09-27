@@ -24,50 +24,32 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/sender.hpp"
 
-sender::sender()
+sender::sender(int addr_family)
 {
     HC_LOG_TRACE("");
-}
-
-bool sender::init(int addr_family)
-{
-    HC_LOG_TRACE("");
-
     m_addr_family = addr_family;
 
     if (m_addr_family == AF_INET) {
         if (!m_sock.create_raw_ipv4_socket()) {
-            return false;
+            throw "failed to create raw ipv4 socket";
         }
     } else if (m_addr_family == AF_INET6) {
         if (!m_sock.create_raw_ipv6_socket()) {
-            return false;
+            throw "failed to create raw ipv6 socket";
         }
     } else {
         HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
-        return false;
+        throw "wrong addr_family";
     }
 
     if (!m_sock.set_loop_back(false)) {
-        return false;
+        throw "failed to set loop back";
     }
-
-    if (!init_if_prop()) {
-        return false;
-    }
-
-    return true;
-}
-
-bool sender::init_if_prop()
-{
-    HC_LOG_TRACE("");
 
     if (!m_if_prop.refresh_network_interfaces()) {
-        return false;
+        throw "failed to refresh network interfaces"; 
     }
 
-    return true;
 }
 
 sender::~sender(){

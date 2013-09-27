@@ -30,7 +30,9 @@
 
 #include "include/proxy/message_queue.hpp"
 #include "include/proxy/message_format.hpp"
-#include "boost/thread.hpp"
+
+#include <thread>
+#include <memory>
 
 /**
  * @brief Wraps the job queue to a basic worker like an simple actor pattern.
@@ -38,12 +40,7 @@
 class worker
 {
 private:
-    worker();
-    boost::thread* m_worker_thread;
-
-    static void worker_thread_starter(worker* w);
-
-    void close();
+    std::unique_ptr<std::thread> m_thread;
 protected:
 
     /**
@@ -60,35 +57,28 @@ protected:
      * @brief Job queue to process proxy_msg.
      */
     message_queue<proxy_msg> m_job_queue;
+
+    void join();
+    void start();
 public:
 
     /**
      * @brief Create a worker with a maximum job queue size.
      * @param max_msg maximum size of the job queue
      */
-    worker(int max_msg);
+    worker();
 
     virtual ~worker();
+
+    void stop();
+
+    bool is_running();
 
     /**
      * @brief Add a message to the job queue.
      */
-    void add_msg(proxy_msg& msg);
+    void add_msg(proxy_msg&& msg);
 
-    /**
-     * @brief Start the worker.
-     */
-    void start();
-
-    /**
-     * @brief Check whether the receiver is running.
-     */
-    bool is_running();
-
-    /**
-     * @brief Blocked until the worker thread stopped.
-     */
-    void join();
 };
 
 #endif // WORKER_HPP

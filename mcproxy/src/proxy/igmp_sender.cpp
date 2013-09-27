@@ -30,25 +30,10 @@
 
 #include <memory>
 
-igmp_sender::igmp_sender()
+igmp_sender::igmp_sender(): sender(AF_INET)
 {
     HC_LOG_TRACE("");
 
-}
-
-bool igmp_sender::init(int addr_family)
-{
-    HC_LOG_TRACE("");
-
-    if (addr_family == AF_INET) {
-        if (!sender::init(addr_family)) {
-            return false;
-        }
-    } else {
-        return false;
-    }
-
-    return true;
 }
 
 bool igmp_sender::send_general_query(int if_index) const

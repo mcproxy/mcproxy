@@ -34,25 +34,23 @@
 
 #include <map>
 #include <list>
-
+#include <memory>
 /**
  * @brief Set and delete virtual interfaces and forwarding rules in the Linux kernel.
  */
 class routing
 {
 private:
-    bool m_is_single_instance;
     int m_table_number;
     int m_addr_family; //AF_INET or AF_INET6
-    int m_version; //for AF_INET (1,2,3) to use IGMPv1/2/3, for AF_INET6 (1,2) to use MLDv1/2
 
-    mroute_socket* m_mrt_sock;
+    std::shared_ptr<mroute_socket> m_mrt_sock;
     if_prop m_if_prop; //return interface properties
 
-    //init
-    bool init_if_prop();
 public:
+    routing(int addr_family, std::shared_ptr<mroute_socket> mrt_sock, int table_number);
 
+    ~routing();
     /**
       * @brief Add a virtual interface to the linux kernel table.
       * @return Return true on success.
@@ -77,14 +75,6 @@ public:
       * @return Return true on success.
       */
     bool del_route(int vif, const addr_storage& g_addr, const addr_storage& src_addr);
-
-    /**
-      * @brief Initialize the Routing module.
-      * @param addr_family AF_INET or AF_INET6
-      * @param version used group membership version
-      * @return Return true on success.
-      */
-    bool init(int addr_family, mroute_socket* mrt_sock, bool single_instance, int table_number);
 
 };
 

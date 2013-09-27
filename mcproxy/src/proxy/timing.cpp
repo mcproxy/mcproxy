@@ -24,50 +24,53 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/timing.hpp"
 #include "include/proxy/proxy_instance.hpp"
+
 #include <iostream>
+#include <unistd.h>
 
 timing::timing():
-    m_running(false), m_worker_thread(0)
+    m_running(false), m_worker_thread(nullptr)
 {
     HC_LOG_TRACE("");
-
+    start();
 }
 
 timing::~timing()
 {
     HC_LOG_TRACE("");
-    delete m_worker_thread;
+    stop();
+    join();
 }
 
-void timing::worker_thread(timing* t)
+void timing::worker_thread()
 {
     HC_LOG_TRACE("");
 
-    while (t->m_running) {
+    while (m_running) {
 
         std::mutex lokal_lock;
         std::unique_lock<std::mutex> ull(lokal_lock);
 
-        if (t->m_db.empty()) {
+        if (m_db.empty()) {
             sleep(TIMING_IDLE_POLLING_INTERVAL);
         } else {
-            t->m_con_var.wait_until(ull, t->m_db.begin()->first);
+            m_con_var.wait_until(ull, m_db.begin()->first);
         }
 
-        std::lock_guard<mutex> lock(t->m_global_lock);
+        std::lock_guard<mutex> lock(m_global_lock);
 
         timing_db_key now = std::chrono::steady_clock::now();
 
-        for (auto i = begin(t->m_db); i != end(t->m_db); ++i) {
+        for (auto i = begin(m_db); i != end(m_db); ++i) {
             if (i->first <= now) {
                 timing_db_value& db_value = i->second;
                 get<1>(db_value)();
                 if (get<0>(db_value) != nullptr) {
-                    get<0>(db_value)->add_msg(get<1>(db_value));
+                    get<0>(db_value)->add_msg(move(get<1>(db_value)));
                 }
 
-                i = t->m_db.erase(i);
-                if (i == end(t->m_db)) {
+                i = m_db.erase(i);
+                if (i == end(m_db)) {
                     break;
                 }
 
@@ -78,29 +81,15 @@ void timing::worker_thread(timing* t)
     }
 }
 
-timing* timing::getInstance()
-{
-    HC_LOG_TRACE("");
-
-    static timing instance;
-    return &instance;
-}
-
-void timing::add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, proxy_msg& pr_msg)
+void timing::add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, proxy_msg&& pr_msg)
 {
     HC_LOG_TRACE("");
     timing_db_key until = std::chrono::steady_clock::now() + delay;
 
     std::lock_guard<mutex> lock(m_global_lock);
 
-    m_db.insert(timing_db_pair(until, std::make_tuple(pr_inst, pr_msg)));
+    m_db.insert(timing_db_pair(until, std::make_tuple(pr_inst, move(pr_msg))));
     m_con_var.notify_one();
-}
-
-void timing::add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, proxy_msg&& pr_msg)
-{
-    HC_LOG_TRACE("");
-    add_time(delay, pr_inst, pr_msg);
 }
 
 void timing::stop_all_time(const proxy_instance* pr_inst)
@@ -121,9 +110,11 @@ void timing::start()
 {
     HC_LOG_TRACE("");
 
-    m_running =  true;
-    if(m_worker_thread == nullptr){
-        m_worker_thread =  new std::thread(timing::worker_thread, this);
+    if (m_thread.get() == nullptr) {
+        m_running =  true;
+        m_thread.reset(new std::thread(&timing::worker_thread));
+    } else {
+        HC_LOG_WARN("timing is already running");
     }
 }
 
@@ -138,8 +129,8 @@ void timing::join() const
 {
     HC_LOG_TRACE("");
 
-    if (m_worker_thread) {
-        m_worker_thread->join();
+    if (m_thread) {
+        m_thread->join();
     }
 }
 
@@ -148,25 +139,19 @@ void timing::test_timing()
     using namespace std;
     HC_LOG_TRACE("");
     cout << "##-- test timing --##" << endl;
-    timing* t = timing::getInstance();
+    timing t;
 
-    cout << "start timing" << endl;
-
-    t->start();
     cout << "add test message 1 (5sec) " << endl;
-    t->add_time(std::chrono::seconds(5), nullptr, proxy_msg(new struct test_msg(1)));
+    t.add_time(std::chrono::seconds(5), nullptr, test_msg(1));
     cout << "add test message 2 (7sec) " << endl;
-    t->add_time(std::chrono::seconds(7), nullptr, proxy_msg(new struct test_msg(2)));
+    t.add_time(std::chrono::seconds(7), nullptr, test_msg(2));
     cout << "add test message 3 (1sec) " << endl;
-    t->add_time(std::chrono::seconds(1), nullptr, proxy_msg(new struct test_msg(3)));
+    t.add_time(std::chrono::seconds(1), nullptr, test_msg(3));
     cout << "add test message 4 (1msec) " << endl;
-    t->add_time(std::chrono::milliseconds(1), nullptr, proxy_msg(new struct test_msg(4)));
+    t.add_time(std::chrono::milliseconds(1), nullptr, test_msg(4));
     cout << "add test message 5 (1msec) " << endl;
-    t->add_time(std::chrono::milliseconds(1), nullptr, proxy_msg(new struct test_msg(5)));
+    t.add_time(std::chrono::milliseconds(1), nullptr, test_msg(5));
 
     sleep(10);
-    cout << "stop and join timing" << endl;
-    t->stop();
-    t->join();
     cout << "finished" << endl;
 }

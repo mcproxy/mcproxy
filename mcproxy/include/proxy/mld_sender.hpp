@@ -65,8 +65,6 @@ public:
      */
     mld_sender();
 
-    bool init(int addr_family) override;
-
     bool send_general_query(int if_index) const override;
     bool send_group_specific_query(int if_index, const addr_storage& g_addr) const override;
     bool send_report(int if_index, const addr_storage& g_addr) const override;

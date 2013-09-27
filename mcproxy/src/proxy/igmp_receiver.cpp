@@ -31,7 +31,7 @@
 
 
 
-igmp_receiver::igmp_receiver()
+igmp_receiver::igmp_receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock): receiver(addr_family, mrt_sock)
 {
     HC_LOG_TRACE("");
 }
@@ -90,10 +90,10 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 return;
             }
 
-            proxy_msg m;
-            m.type = proxy_msg::RECEIVER_MSG;
-            m.msg = new struct receiver_msg(receiver_msg::CACHE_MISS, if_index, src_addr, g_addr);
-            pr_i->add_msg(m);
+            //proxy_msg m;
+            //m.type = proxy_msg::RECEIVER_MSG;
+            //m.msg = new struct receiver_msg(receiver_msg::CACHE_MISS, if_index, src_addr, g_addr);
+            //pr_i->add_msg(m);
             break;
         }
         default:
@@ -119,10 +119,10 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 return;
             }
 
-            proxy_msg m;
-            m.type = proxy_msg::RECEIVER_MSG;
-            m.msg = new struct receiver_msg(receiver_msg::JOIN, if_index, g_addr);
-            pr_i->add_msg(m);
+            //proxy_msg m;
+            //m.type = proxy_msg::RECEIVER_MSG;
+            //m.msg = new struct receiver_msg(receiver_msg::JOIN, if_index, g_addr);
+            //pr_i->add_msg(m);
         } else if (igmp_hdr->igmp_type == IGMP_V2_LEAVE_GROUP) {
             HC_LOG_DEBUG("\tleave");
 
@@ -141,10 +141,10 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 return;
             }
 
-            proxy_msg m;
-            m.type = proxy_msg::RECEIVER_MSG;
-            m.msg = new struct receiver_msg(receiver_msg::LEAVE, if_index, g_addr);
-            pr_i->add_msg(m);
+            //proxy_msg m;
+            //m.type = proxy_msg::RECEIVER_MSG;
+            //m.msg = new struct receiver_msg(receiver_msg::LEAVE, if_index, g_addr);
+            //pr_i->add_msg(m);
         } else {
             HC_LOG_DEBUG("unknown IGMP-packet");
             HC_LOG_DEBUG("type: " << igmp_hdr->igmp_type);

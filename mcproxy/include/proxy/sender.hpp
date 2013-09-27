@@ -55,24 +55,12 @@ protected:
      */
     if_prop m_if_prop; //return interface properties
 
-    /**
-     * @brief initialize the interface properties class.
-     */
-    bool init_if_prop();
 public:
 
     /**
      * @brief Create a sender.
      */
-    sender();
-
-    /**
-     * @brief initialise the sender
-     * @param addr_family used IP version (AF_INET or AF_INET6)
-     * @param version used group membership version
-     * @return Return true on success.
-     */
-    virtual bool init(int addr_family);
+    sender(int addr_family);
 
     /**
      * @brief Send a General Query to a specific interface.

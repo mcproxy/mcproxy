@@ -29,11 +29,13 @@
 
 #ifndef MESSAGE_QUEUE_HPP
 #define MESSAGE_QUEUE_HPP
-
-#include <boost/thread/pthread/mutex.hpp>
-#include <boost/thread/pthread/condition_variable.hpp>
+#include "include/hamcast_logging.h"
+#include <thread>
+#include <condition_variable>
+#include <mutex>
 #include <queue>
-using namespace std;
+
+#define MESSAGE_QUEUE_DEFAULT_SIZE 100
 
 /**
  * @brief Fixed sized synchronised job queue.
@@ -42,20 +44,18 @@ template< typename T>
 class message_queue
 {
 private:
-    message_queue();
-
-    queue<T> m_q;
+    std::queue<T> m_q;
     unsigned int m_size;
 
-    boost::mutex m_global_lock;
-    boost::condition_variable cond_full;
-    boost::condition_variable cond_empty;
+    std::mutex m_global_lock;
+    std::condition_variable cond_empty;
 public:
     /**
-      * @brief Create a message_queue with a fixed size.
+      * @brief Create a message_queue with a maximum size.
       * @param size size of the message_queue.
       */
     message_queue(int size);
+    message_queue();
 
     /**
       * @brief Return true if the message queue is empty.
@@ -65,7 +65,7 @@ public:
     /**
       * @brief Return the current size of the message queue.
       */
-    unsigned int current_size();
+    unsigned int size();
 
     /**
       * @brief Return the set size.
@@ -75,7 +75,10 @@ public:
     /**
      * @brief add an element on tail and wait if full.
      */
-    void enqueue(T t);
+    bool enqueue(const T& t);
+    void enqueue_priority(const T& t);
+    bool enqueue(T&& t);
+    void enqueue_priority(T&& t);
 
     /**
      * @brief get and el element on head and wait if empty.
@@ -84,24 +87,24 @@ public:
 };
 
 template< typename T>
-message_queue<T>::message_queue(int size)
-{
-    m_size = size;
-}
+message_queue<T>::message_queue(int size): m_size(size) {}
+
+template< typename T>
+message_queue<T>::message_queue(): message_queue(MESSAGE_QUEUE_DEFAULT_SIZE) {}
 
 template< typename T>
 bool message_queue<T>::is_empty()
 {
-    boost::lock_guard<boost::mutex> lock(m_global_lock);
+    std::lock_guard<std::mutex> lock(m_global_lock);
 
     return m_q.empty();
 }
 
 
 template< typename T>
-unsigned int message_queue<T>::current_size()
+unsigned int message_queue<T>::size()
 {
-    boost::lock_guard<boost::mutex> lock(m_global_lock);
+    std::lock_guard<std::mutex> lock(m_global_lock);
 
     return m_q.size();
 }
@@ -113,15 +116,53 @@ int message_queue<T>::max_size()
 }
 
 template< typename T>
-void message_queue<T>::enqueue(T t)
+bool message_queue<T>::enqueue(const T& t)
 {
     {
-        boost::unique_lock<boost::mutex> lock(m_global_lock);
-        while (m_q.size() >= m_size) {
-            cond_full.wait(lock);
+        std::unique_lock<std::mutex> lock(m_global_lock);
+        if (m_q.size() < m_size) {
+            m_q.push(t);
+        } else {
+            HC_LOG_WARN("message_queue is full, failed to insert object");
+            return false;
         }
+    }
+    cond_empty.notify_one();
+    return true;
+}
 
+template< typename T>
+void message_queue<T>::enqueue_priority(const T& t)
+{
+    {
+        std::unique_lock<std::mutex> lock(m_global_lock);
         m_q.push(t);
+    }
+    cond_empty.notify_one();
+}
+
+template< typename T>
+bool message_queue<T>::enqueue(T&& t)
+{
+    {
+        std::unique_lock<std::mutex> lock(m_global_lock);
+        if (m_q.size() < m_size) {
+            m_q.push(move(t));
+        } else {
+            HC_LOG_WARN("message_queue is full, failed to insert object");
+            return false;
+        }
+    }
+    cond_empty.notify_one();
+    return true;
+}
+
+template< typename T>
+void message_queue<T>::enqueue_priority(T&& t)
+{
+    {
+        std::unique_lock<std::mutex> lock(m_global_lock);
+        m_q.push(move(t));
     }
     cond_empty.notify_one();
 }
@@ -131,15 +172,14 @@ T message_queue<T>::dequeue(void)
 {
     T t;
     {
-        boost::unique_lock<boost::mutex> lock(m_global_lock);
-        while (m_q.size() == 0) {
-            cond_empty.wait(lock);
-        }
+        std::unique_lock<std::mutex> lock(m_global_lock);
+        cond_empty.wait(lock, [&]() {
+            return m_q.size() != 0;
+        });
 
-        t = m_q.front();
+        t = move(m_q.front());
         m_q.pop();
     }
-    cond_full.notify_one();
     return t;
 }
 

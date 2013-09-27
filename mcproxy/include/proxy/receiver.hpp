@@ -31,14 +31,14 @@
 #ifndef RECEIVER_HPP
 #define RECEIVER_HPP
 
-#include "include/proxy/worker.hpp"
 #include "include/utils/mroute_socket.hpp"
 #include "include/utils/addr_storage.hpp"
 #include "include/utils/if_prop.hpp"
 
 #include <map>
-#include "boost/thread.hpp"
-#include "boost/thread/mutex.hpp"
+#include <thread>
+#include <mutex>
+#include <memory>
 
 class proxy_instance;
 
@@ -54,14 +54,14 @@ class proxy_instance;
  * @param first interface index
  * @param second pointer to the incidental Proxy Instance
  */
-typedef std::map<int, proxy_instance*> if_poxy_instance_map;
+using if_poxy_instance_map = std::map<int, proxy_instance*>;
 
 /**
  * @brief Pair for #if_poxy_instance_map.
  * @param first interface index
  * @param second pointer to the incidental Proxy Instance
  */
-typedef std::pair<int, proxy_instance*> if_proxy_instance_pair;
+using if_proxy_instance_pair = std::pair<int, proxy_instance*>;
 
 //--------------------------------------------------
 //     vif number, if_index        !!! reversed !!!
@@ -71,7 +71,7 @@ typedef std::pair<int, proxy_instance*> if_proxy_instance_pair;
  * @param second if_index
  * @attention This data structure is reversed to the over vif_maps!!
  */
-typedef map<int, int> vif_map;
+using vif_map =  std::map<int, int>;
 
 /**
  * @brief Pair for #vif_map.
@@ -79,7 +79,7 @@ typedef map<int, int> vif_map;
  * @param second if_index
  * @attention This data structure is reversed to the over vif_maps!!
  */
-typedef pair<int, int> vif_pair;
+using vif_pair = std::pair<int, int> ;
 
 /**
  * @brief Abstract basic receiver class.
@@ -88,15 +88,15 @@ class receiver
 {
 private:
     bool m_running;
-    boost::thread* m_worker_thread;
-    static void worker_thread(void* arg);
+    std::unique_ptr<std::thread> m_thread;
+    void worker_thread();
 
-    bool init_if_prop();
-
-    boost::mutex m_data_lock;
+    std::mutex m_data_lock;
     vif_map m_vif_map;
 
-    void close();
+    void start();
+    void stop();
+    void join();
 protected:
     /**
      * @brief Save the interface index with the incidental Proxy Instance.
@@ -111,7 +111,7 @@ protected:
     /**
      * @brief Abstracted multicast socket to receive multicast messages.
      */
-    mroute_socket* m_mrt_sock;
+    std::shared_ptr<mroute_socket> m_mrt_sock;
 
     /**
      * @brief Used IP version (AF_INET or AF_INET6).
@@ -154,21 +154,13 @@ public:
     /**
       * @brief Create a receiver.
      */
-    receiver();
+    receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock);
 
     /**
      * @brief Release all resources.
      */
     virtual ~receiver();
 
-    /**
-     * @brief Initialize the receiver.
-     * @param addr_family used IP version (AF_INET or AF_INET6)
-     * @param version used group membership version
-     * @param mrt_sock need the multicast routing socket with set mrt-flag
-     * @return Return true on success.
-     */
-    virtual bool init(int addr_family, mroute_socket* mrt_sock);
 
     /**
      * @brief Register an interface at the receiver.
@@ -183,27 +175,13 @@ public:
      * @param if_index interface index of the interface
      * @param vif virtual interface index of the interface
      */
-    void del_interface(int if_index, int vif);
+    void del_interface(int if_index);
 
     /**
      * @brief Check whether the receiver is running.
      */
     bool is_running();
 
-    /**
-     * @brief Start the receiver.
-     */
-    void start();
-
-    /**
-     * @brief Stop the receiver, but dont wait for stopped.
-     */
-    void stop();
-
-    /**
-     * @brief Blocked until receiver stopped.
-     */
-    void join();
 };
 
 

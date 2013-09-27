@@ -29,31 +29,22 @@
 
 #include <memory>
 
-mld_sender::mld_sender()
+mld_sender::mld_sender(): sender(AF_INET6)
 {
     HC_LOG_TRACE("");
 
-}
-
-bool mld_sender::init(int addr_family)
-{
-    HC_LOG_TRACE("");
-
-    if (addr_family == AF_INET6) {
-        if (!sender::init(addr_family)) {
-            return false;
-        }
+    if (m_addr_family == AF_INET6) {
         if (!m_sock.set_default_icmp6_checksum_calc(true)) {
-            return false;
+            throw "failed to set default icmmpv6 checksum";
         }
         if (!add_hbh_opt_header()) {
-            return false;
+            throw "failed to add hop by hop header";
         }
     } else {
-        return false;
+        HC_LOG_ERROR("wrong address family: " << m_addr_family);
+        throw "wrong address family";
     }
 
-    return true;
 }
 
 bool mld_sender::send_general_query(int if_index) const
@@ -105,10 +96,10 @@ int mld_sender::get_msg_min_size() const
     HC_LOG_TRACE("");
 
     //if (m_version == 1) {
-        //return sizeof(struct mld_hdr);
+    //return sizeof(struct mld_hdr);
     //} else {
-        //HC_LOG_ERROR("IPv6 version: " << m_version << " not supported");
-        //return -1;
+    //HC_LOG_ERROR("IPv6 version: " << m_version << " not supported");
+    //return -1;
     //}
     return -1;
 }
@@ -132,33 +123,33 @@ bool mld_sender::create_mc_query(msg_type type, unsigned char* buf, const addr_s
     HC_LOG_TRACE("");
 
     //if (m_version == 1) {
-        //struct mld_hdr* mld_Hdr = (struct mld_hdr*)buf;
+    //struct mld_hdr* mld_Hdr = (struct mld_hdr*)buf;
 
-        //mld_Hdr->mld_type = MLD_LISTENER_QUERY;
-        //mld_Hdr->mld_code = 0;
-        //mld_Hdr->mld_cksum = MC_MASSAGES_AUTO_FILL;
-        //mld_Hdr->mld_reserved = 0;
+    //mld_Hdr->mld_type = MLD_LISTENER_QUERY;
+    //mld_Hdr->mld_code = 0;
+    //mld_Hdr->mld_cksum = MC_MASSAGES_AUTO_FILL;
+    //mld_Hdr->mld_reserved = 0;
 
-        //if (type == GENERAL_QUERY) {
-            //mld_Hdr->mld_maxdelay = htons(MC_TV_QUERY_RESPONSE_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
-            //mld_Hdr->mld_addr = addr_storage(m_addr_family).get_in6_addr(); //0.0.0.0
-        //} else if (type == MC_ADDR_SPECIFIC_QUERY) {
-            //if (!g_addr) {
-                //HC_LOG_ERROR("g_addr is NULL");
-                //return false;
-            //}
+    //if (type == GENERAL_QUERY) {
+    //mld_Hdr->mld_maxdelay = htons(MC_TV_QUERY_RESPONSE_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
+    //mld_Hdr->mld_addr = addr_storage(m_addr_family).get_in6_addr(); //0.0.0.0
+    //} else if (type == MC_ADDR_SPECIFIC_QUERY) {
+    //if (!g_addr) {
+    //HC_LOG_ERROR("g_addr is NULL");
+    //return false;
+    //}
 
-            //mld_Hdr->mld_maxdelay = htons(MC_TV_LAST_LISTENER_QUERY_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
-            //mld_Hdr->mld_addr = g_addr->get_in6_addr();
-        //} else {
-            //HC_LOG_ERROR("wrong type: " << type);
-            //return false;
-        //}
-
-        //return true;
+    //mld_Hdr->mld_maxdelay = htons(MC_TV_LAST_LISTENER_QUERY_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
+    //mld_Hdr->mld_addr = g_addr->get_in6_addr();
     //} else {
-        //HC_LOG_ERROR("wrong verson: " << m_version);
-        //return false;
+    //HC_LOG_ERROR("wrong type: " << type);
+    //return false;
+    //}
+
+    //return true;
+    //} else {
+    //HC_LOG_ERROR("wrong verson: " << m_version);
+    //return false;
     //}
     return true;
 }
@@ -182,8 +173,7 @@ bool mld_sender::add_hbh_opt_header() const
 
     *pad_Hdr = IP6OPT_PADN;
 
-    if (!m_sock.add_extension_header((unsigned char*)hbh_Hdr,
-                                     sizeof(struct ip6_hbh) + sizeof(struct ip6_opt_router) + sizeof(pad2))) {
+    if (!m_sock.add_extension_header((unsigned char*)hbh_Hdr, sizeof(struct ip6_hbh) + sizeof(struct ip6_opt_router) + sizeof(pad2))) {
         return false;
     }
 

@@ -30,31 +30,17 @@
 #include <linux/mroute6.h>
 #include <iostream>
 
-bool routing::init(int addr_family, mroute_socket* mrt_sock, bool single_instance, int table_number)
+routing::routing(int addr_family, std::shared_ptr<mroute_socket> mrt_sock, int table_number)
 {
     HC_LOG_TRACE("");
 
-    m_is_single_instance = single_instance;
     m_table_number = table_number;
     m_addr_family = addr_family;
     m_mrt_sock = mrt_sock;
 
-    if (!init_if_prop()) {
-        return false;
-    }
-
-    return false;
-}
-
-bool routing::init_if_prop()
-{
-    HC_LOG_TRACE("");
-
     if (!m_if_prop.refresh_network_interfaces()) {
-        return false;
+        throw "failed to refresh netwok interfaces";
     }
-
-    return true;
 }
 
 bool routing::add_vif(int if_index, int vif)
@@ -95,7 +81,7 @@ bool routing::add_vif(int if_index, int vif)
 
     }
 
-    if (!m_is_single_instance) {
+    if (m_table_number > 0) {
         if (!m_mrt_sock->bind_vif_to_table(if_index, m_table_number)) {
             return false;
         }
@@ -123,14 +109,6 @@ bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_st
         return false;
     }
 
-    //list<int>::const_iterator iter_out;
-    //unsigned int out_vif[output_vif.size()];
-
-    //int i=0;
-    //for(iter_out = output_vif.begin(); iter_out != output_vif.end(); iter_out++){
-    //out_vif[i++] = *iter_out;
-    //}
-
     if (!m_mrt_sock->add_mroute(input_vif, src_addr, g_addr, output_vif)) {
         return false;
     }
@@ -157,7 +135,7 @@ bool routing::del_vif(int if_index, int vif)
         return false;
     }
 
-    if (!m_is_single_instance) {
+    if (m_table_number > 0) {
         if (!m_mrt_sock->unbind_vif_form_table(if_index, m_table_number)) {
             return false;
         }

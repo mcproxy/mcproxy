@@ -24,62 +24,43 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/receiver.hpp"
 
-#include <memory>
+#include <unistd.h>
 #include <iostream>
-using namespace std;
 
-receiver::receiver():
-    m_running(false), m_worker_thread(0)
-{
-    HC_LOG_TRACE("");
-}
-
-receiver::~receiver()
-{
-    HC_LOG_TRACE("");
-    close();
-}
-
-void receiver::close()
-{
-    HC_LOG_TRACE("");
-    delete m_worker_thread;
-}
-
-bool receiver::init_if_prop()
-{
-    HC_LOG_TRACE("");
-
-    //if(!m_if_prop.init_IfInfo()) return false;
-    //if(!m_if_prop.refresh_network_interfaces()) return false;
-    m_if_property.refresh_network_interfaces();
-
-    return true;
-}
-
-bool receiver::init(int addr_family, mroute_socket* mrt_sock)
+receiver::receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock):
+    m_running(false), m_thread(nullptr)
 {
     HC_LOG_TRACE("");
 
     m_addr_family = addr_family;
     m_mrt_sock = mrt_sock;
 
-    if (!init_if_prop()) {
-        return false;
+    if (!m_if_property.refresh_network_interfaces()) {
+        throw std::string("failed to refresh network interface properties");
     }
+
     if (!m_mrt_sock->set_receive_timeout(RECEIVER_RECV_TIMEOUT)) {
-        return false;
+        throw std::string("failed to set receive timeout");
     }
+
     //if(!m_mrt_sock->setLoopBack(true)) return false;
 
-    return true;
+    start();
+}
+
+receiver::~receiver()
+{
+    HC_LOG_TRACE("");
+    stop();
+    join();
+
 }
 
 proxy_instance* receiver::get_proxy_instance(int if_index)
 {
     HC_LOG_TRACE("");
-    if_poxy_instance_map::iterator it =  m_if_proxy_map.find(if_index);
-    if (it != m_if_proxy_map.end()) {
+    auto it =  m_if_proxy_map.find(if_index);
+    if (it != end(m_if_proxy_map)) {
         return it->second;
     } else {
         return nullptr;
@@ -90,52 +71,59 @@ void receiver::registrate_interface(int if_index, int vif, proxy_instance* p)
 {
     HC_LOG_TRACE("");
 
-    boost::lock_guard<boost::mutex> lock(m_data_lock);
-    m_if_proxy_map.insert(if_proxy_instance_pair(if_index, p));
+    std::lock_guard<std::mutex> lock(m_data_lock);
 
+    m_if_proxy_map.insert(if_proxy_instance_pair(if_index, p));
     m_vif_map.insert(vif_pair(vif, if_index));
 }
 
-void receiver::del_interface(int if_index, int vif)
+void receiver::del_interface(int if_index)
 {
     HC_LOG_TRACE("");
 
-    boost::lock_guard<boost::mutex> lock(m_data_lock);
+    std::lock_guard<std::mutex> lock(m_data_lock);
+
     m_if_proxy_map.erase(if_index);
-    m_vif_map.erase(vif);
+    for (auto it = begin(m_vif_map); it != end(m_vif_map); ++it ) {
+        if (it->second == if_index) {
+            m_vif_map.erase(it);
+            return;
+        }
+    }
+    HC_LOG_WARN("failed to find if_index in m_vif_map (if_index: " << if_index);
+    //m_vif_map.erase(vif);
 }
 
 int receiver::get_if_index(int vif)
 {
     HC_LOG_TRACE("");
 
-    vif_map::iterator it =  m_vif_map.find(vif);
-    if (it != m_vif_map.end()) {
+    auto it =  m_vif_map.find(vif);
+    if (it != end(m_vif_map)) {
         return it->second;
     } else {
         return 0;
     }
 }
 
-void receiver::worker_thread(void* arg)
+void receiver::worker_thread()
 {
     HC_LOG_TRACE("");
 
-    receiver* r = (receiver*) arg;
     int info_size = 0;
 
     //########################
     //create msg
     //iov
 
-    unique_ptr<unsigned char[]> iov_buf { new unsigned char[r->get_iov_min_size()] };
+    unique_ptr<unsigned char[]> iov_buf { new unsigned char[get_iov_min_size()] };
     //unsigned char iov_buf[r->get_iov_min_size()];
     struct iovec iov;
     iov.iov_base = iov_buf.get();
-    iov.iov_len = r->get_iov_min_size(); //sizeof(iov_buf);
+    iov.iov_len = get_iov_min_size(); //sizeof(iov_buf);
 
     //control
-    unique_ptr<unsigned char[]> ctrl { new unsigned char[r->get_ctrl_min_size()] };
+    unique_ptr<unsigned char[]> ctrl { new unsigned char[get_ctrl_min_size()] };
     //unsigned char ctrl[r->get_ctrl_min_size()];
 
     //create msghdr
@@ -147,13 +135,13 @@ void receiver::worker_thread(void* arg)
     msg.msg_iovlen = 1;
 
     msg.msg_control = ctrl.get();
-    msg.msg_controllen = r->get_iov_min_size(); //sizeof(ctrl);
+    msg.msg_controllen = get_iov_min_size(); //sizeof(ctrl);
 
     msg.msg_flags = 0;
     //########################
 
-    while (r->m_running) {
-        if (!r->m_mrt_sock->receive_msg(&msg, info_size)) {
+    while (m_running) {
+        if (!m_mrt_sock->receive_msg(&msg, info_size)) {
             HC_LOG_ERROR("received failed");
             sleep(1);
             continue;
@@ -161,9 +149,10 @@ void receiver::worker_thread(void* arg)
         if (info_size == 0) {
             continue; //on timeout
         }
-        r->m_data_lock.lock();
-        r->analyse_packet(&msg, info_size);
-        r->m_data_lock.unlock();
+
+        m_data_lock.lock();
+        analyse_packet(&msg, info_size);
+        m_data_lock.unlock();
     }
 }
 
@@ -178,7 +167,7 @@ void receiver::start()
     HC_LOG_TRACE("");
 
     m_running =  true;
-    m_worker_thread =  new boost::thread(receiver::worker_thread, this);
+    m_thread.reset(new std::thread(&receiver::worker_thread));
 }
 
 void receiver::stop()
@@ -192,7 +181,7 @@ void receiver::join()
 {
     HC_LOG_TRACE("");
 
-    if (m_worker_thread) {
-        m_worker_thread->join();
+    if (m_thread.get() != nullptr) {
+        m_thread->join();
     }
 }
