@@ -45,11 +45,6 @@ sender::sender(int addr_family)
     if (!m_sock.set_loop_back(false)) {
         throw "failed to set loop back";
     }
-
-    if (!m_if_prop.refresh_network_interfaces()) {
-        throw "failed to refresh network interfaces"; 
-    }
-
 }
 
 sender::~sender(){

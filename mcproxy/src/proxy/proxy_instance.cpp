@@ -130,30 +130,8 @@ bool proxy_instance::init_routing()
 proxy_instance::~proxy_instance()
 {
     HC_LOG_TRACE("");
-    close();
 }
 
-//bool proxy_instance::init(, int upstream_index, int upstream_vif, int downstream_index, int downstram_vif, )
-//{
-//HC_LOG_TRACE("");
-
-////m_upstream = upstream_index;
-////m_table_number = upstream_index;
-////m_vif_map.insert(vif_pair(upstream_index, upstream_vif));
-
-////m_vif_map.insert(vif_pair(downstream_index, downstram_vif));
-
-
-////m_check_source.init(m_addr_family, &m_mrt_sock);
-
-
-//if(!init_routing()){
-//return false;
-//}
-
-
-//return false;
-//}
 
 
 
@@ -270,3 +248,24 @@ void proxy_instance::worker_thread()
 //db->add_debug_msg(string());
 //}
 
+//bool proxy_instance::init(, int upstream_index, int upstream_vif, int downstream_index, int downstram_vif, )
+//{
+//HC_LOG_TRACE("");
+
+////m_upstream = upstream_index;
+////m_table_number = upstream_index;
+////m_vif_map.insert(vif_pair(upstream_index, upstream_vif));
+
+////m_vif_map.insert(vif_pair(downstream_index, downstram_vif));
+
+
+////m_check_source.init(m_addr_family, &m_mrt_sock);
+
+
+//if(!init_routing()){
+//return false;
+//}
+
+
+//return false;
+//}

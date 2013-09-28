@@ -33,32 +33,30 @@
 
 #include <functional>
 #include <string>
+#include <memory>
 /**
  * @brief define the behaviour of a multicast querier for a specific interface
  */
 class querier 
 {
 private:
-    bool success_init;
     int m_addr_family;
     int m_if_index;
     membership_db m_db;
 
-    const sender& m_sender;
+    std::shared_ptr<sender> m_sender;
 
     bool init_db();
 
     //join all router groups or leave them
-    bool router_groups_function(function<bool(const sender&, int,addr_storage)> f);
+    bool router_groups_function(function<bool(std::shared_ptr<sender>, int,addr_storage)> f);
     void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
     void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
 public:
 
     virtual ~querier();
 
-    querier(int addr_family, int if_index, const sender& sender);
-    bool init();
-
+    querier(int addr_family, int if_index, std::shared_ptr<sender> sender);
 
     void receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version);
     void receive_query(); 

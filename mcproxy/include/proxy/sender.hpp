@@ -50,11 +50,6 @@ protected:
      */
     mroute_socket m_sock;
 
-    /**
-     * @brief Collect interface properties. Used to generate multicast messages.
-     */
-    if_prop m_if_prop; //return interface properties
-
 public:
 
     /**

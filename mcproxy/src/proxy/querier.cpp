@@ -30,27 +30,20 @@
 #include <net/if.h>
 #include <iostream>
 
-querier::querier(int addr_family, int if_index, const sender& sender): success_init(false), m_addr_family(addr_family), m_if_index(if_index), m_sender(sender)
-{
-    HC_LOG_TRACE("");
-}
-
-bool querier::init()
+querier::querier(int addr_family, int if_index, std::shared_ptr<sender> sender): m_addr_family(addr_family), m_if_index(if_index), m_sender(sender)
 {
     HC_LOG_TRACE("");
 
     //join all router groups
     if (!router_groups_function(&sender::send_report)) {
         HC_LOG_ERROR("failed to subscribe multicast router groups");
-        return false;
+        throw "failed to subscribe multicast router groups";
     }
 
     if (!init_db()) {
         HC_LOG_ERROR("failed to initalize multicast membership database");
-        return false;
+        throw "failed to initialze multicast membership database";
     }
-
-    return true;
 }
 
 bool querier::init_db()
@@ -68,7 +61,6 @@ bool querier::init_db()
 
     m_db.is_querier = true;
 
-    success_init = true;
     return true;
 }
 
@@ -234,7 +226,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     }
 }
 
-bool querier::router_groups_function(function<bool(const sender&, int, addr_storage)> f)
+bool querier::router_groups_function(function<bool(std::shared_ptr<sender>, int, addr_storage)> f)
 {
     HC_LOG_TRACE("");
 
@@ -263,13 +255,8 @@ void querier::test_querier(int addr_family, string if_name)
 {
     std::cout << "##-- querier test on interface " << if_name << " --##" << std::endl;
 
-    igmp_sender s;
-    s.init(addr_family);
+    std::shared_ptr<igmp_sender> s = make_shared<igmp_sender>();
     querier q(AF_INET, if_nametoindex(if_name.c_str()), s);
-    if (!q.init()) {
-        std::cout << "failed initialise querier" << std::endl;
-        return;
-    }
 
     source s1(addr_storage("1.1.1.1"));
     source s2(addr_storage("2.2.2.2"));
@@ -296,11 +283,11 @@ void querier::test_querier(int addr_family, string if_name)
     //in exclude mode
     q.send_test_record(q, BLOCK_OLD_SOURCES , gaddr, source_list<source> {s1, s5}, 3);
     cout << q << endl << endl;
-    
+
     //in exclude mode
     q.send_test_record(q, CHANGE_TO_EXCLUDE_MODE, gaddr, source_list<source> {s5, s2}, 3);
     cout << q << endl << endl;
-    
+
     //in exclude mode
     q.send_test_record(q, CHANGE_TO_INCLUDE_MODE, gaddr, source_list<source> {s5, s1, s2, s3}, 3);
     cout << q << endl << endl;
@@ -310,7 +297,7 @@ void querier::test_querier(int addr_family, string if_name)
 void querier::send_test_record(querier& q, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& saddr_list, int report_version)
 {
     cout << "!!ACTION: receive record" << endl;
-    cout << "record_type: " << mcast_addr_record_type_name[record_type] << endl;
+    cout << "record_type: " << mcast_addr_record_type_name.at(record_type) << endl;
     cout << "group address: " << gaddr << endl;
     cout << "source list: " << saddr_list << endl;
     cout << endl;
@@ -322,10 +309,7 @@ querier::~querier()
 {
     HC_LOG_TRACE("");
 
-    if (success_init) {
-        router_groups_function(&sender::send_leave);
-    }
-
+    router_groups_function(&sender::send_leave);
 }
 
 std::string querier::to_string() const

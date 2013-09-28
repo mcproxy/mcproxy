@@ -27,13 +27,14 @@
 #include <unistd.h>
 #include <iostream>
 
-receiver::receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock):
-    m_running(false), m_thread(nullptr)
+receiver::receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces)
+    : m_running(false)
+    , m_thread(nullptr)
+    , m_addr_family(addr_family)
+    , m_mrt_sock(mrt_sock) 
+    , m_interfaces(interfaces)
 {
     HC_LOG_TRACE("");
-
-    m_addr_family = addr_family;
-    m_mrt_sock = mrt_sock;
 
     if (!m_if_property.refresh_network_interfaces()) {
         throw std::string("failed to refresh network interface properties");
@@ -43,8 +44,6 @@ receiver::receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock):
         throw std::string("failed to set receive timeout");
     }
 
-    //if(!m_mrt_sock->setLoopBack(true)) return false;
-
     start();
 }
 
@@ -53,7 +52,6 @@ receiver::~receiver()
     HC_LOG_TRACE("");
     stop();
     join();
-
 }
 
 proxy_instance* receiver::get_proxy_instance(int if_index)
@@ -67,14 +65,13 @@ proxy_instance* receiver::get_proxy_instance(int if_index)
     }
 }
 
-void receiver::registrate_interface(int if_index, int vif, proxy_instance* p)
+void receiver::registrate_interface(int if_index, proxy_instance* p)
 {
     HC_LOG_TRACE("");
 
     std::lock_guard<std::mutex> lock(m_data_lock);
 
     m_if_proxy_map.insert(if_proxy_instance_pair(if_index, p));
-    m_vif_map.insert(vif_pair(vif, if_index));
 }
 
 void receiver::del_interface(int if_index)
@@ -84,26 +81,6 @@ void receiver::del_interface(int if_index)
     std::lock_guard<std::mutex> lock(m_data_lock);
 
     m_if_proxy_map.erase(if_index);
-    for (auto it = begin(m_vif_map); it != end(m_vif_map); ++it ) {
-        if (it->second == if_index) {
-            m_vif_map.erase(it);
-            return;
-        }
-    }
-    HC_LOG_WARN("failed to find if_index in m_vif_map (if_index: " << if_index);
-    //m_vif_map.erase(vif);
-}
-
-int receiver::get_if_index(int vif)
-{
-    HC_LOG_TRACE("");
-
-    auto it =  m_vif_map.find(vif);
-    if (it != end(m_vif_map)) {
-        return it->second;
-    } else {
-        return 0;
-    }
 }
 
 void receiver::worker_thread()

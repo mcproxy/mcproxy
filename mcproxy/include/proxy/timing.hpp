@@ -70,7 +70,6 @@ private:
     void stop();
     void join() const;
 
-    //GOF singleton
     timing(const timing&) = delete;
     timing(const timing&&) = delete;
     timing& operator=(const timing&) = delete;

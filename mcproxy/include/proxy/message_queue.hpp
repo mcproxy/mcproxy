@@ -35,7 +35,7 @@
 #include <mutex>
 #include <queue>
 
-#define MESSAGE_QUEUE_DEFAULT_SIZE 100
+#define MESSAGE_QUEUE_DEFAULT_SIZE 150
 
 /**
  * @brief Fixed sized synchronised job queue.
@@ -44,7 +44,7 @@ template< typename T>
 class message_queue
 {
 private:
-    std::queue<T> m_q;
+    std::priority_queue<T> m_q;
     unsigned int m_size;
 
     std::mutex m_global_lock;
@@ -75,10 +75,10 @@ public:
     /**
      * @brief add an element on tail and wait if full.
      */
-    bool enqueue(const T& t);
-    void enqueue_priority(const T& t);
-    bool enqueue(T&& t);
-    void enqueue_priority(T&& t);
+    bool enqueue_loseable(const T& t);
+    void enqueue(const T& t);
+    bool enqueue_loseable(T&& t);
+    void enqueue(T&& t);
 
     /**
      * @brief get and el element on head and wait if empty.
@@ -116,7 +116,7 @@ int message_queue<T>::max_size()
 }
 
 template< typename T>
-bool message_queue<T>::enqueue(const T& t)
+bool message_queue<T>::enqueue_loseable(const T& t)
 {
     {
         std::unique_lock<std::mutex> lock(m_global_lock);
@@ -132,7 +132,7 @@ bool message_queue<T>::enqueue(const T& t)
 }
 
 template< typename T>
-void message_queue<T>::enqueue_priority(const T& t)
+void message_queue<T>::enqueue(const T& t)
 {
     {
         std::unique_lock<std::mutex> lock(m_global_lock);
@@ -142,7 +142,7 @@ void message_queue<T>::enqueue_priority(const T& t)
 }
 
 template< typename T>
-bool message_queue<T>::enqueue(T&& t)
+bool message_queue<T>::enqueue_loseable(T&& t)
 {
     {
         std::unique_lock<std::mutex> lock(m_global_lock);
@@ -158,7 +158,7 @@ bool message_queue<T>::enqueue(T&& t)
 }
 
 template< typename T>
-void message_queue<T>::enqueue_priority(T&& t)
+void message_queue<T>::enqueue(T&& t)
 {
     {
         std::unique_lock<std::mutex> lock(m_global_lock);

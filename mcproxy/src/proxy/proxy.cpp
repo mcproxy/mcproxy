@@ -218,43 +218,6 @@ vector<int> proxy::all_if_to_list()
     return interface_list;
 }
 
-int proxy::get_free_vif_number()
-{
-    HC_LOG_TRACE("");
-
-    int vifs_elements;
-
-    if (m_addr_family == AF_INET) {
-        vifs_elements = MAXVIFS;
-    } else if (m_addr_family == AF_INET6) {
-        vifs_elements = MAXMIFS;
-    } else {
-        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
-        return -1;
-    }
-
-    vector<int> vifs(vifs_elements,
-                     0); //[vifs_elements]; //index interpreted as vifnumber, containt interpreted as interface index
-
-    //fill vif list
-    vif_map::iterator iter;
-    for (iter = m_vif_map.begin(); iter != m_vif_map.end(); iter++) {
-        if (iter->second >= vifs_elements) {
-            HC_LOG_ERROR("wrong vif index");
-            return -1;
-        }
-        vifs[iter->second] = iter->first;
-    }
-
-    for (int i = 0; i < vifs_elements; i++) {
-        if (vifs[i] == 0 ) {
-            return i;
-        }
-    }
-
-    HC_LOG_ERROR("no free vif number");
-    return -1;
-}
 
 bool proxy::init_vif_map()
 {

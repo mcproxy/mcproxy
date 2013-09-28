@@ -78,7 +78,7 @@ addr_storage::addr_storage(const std::string& addr)
     *this = addr;
 }
 
-addr_storage::addr_storage(const  sockaddr_storage& addr)
+addr_storage::addr_storage(const sockaddr_storage& addr)
 {
     HC_LOG_TRACE("");
 
@@ -92,35 +92,35 @@ addr_storage::addr_storage(const addr_storage& addr)
     *this = addr;
 }
 
-addr_storage::addr_storage(const  in_addr& addr)
+addr_storage::addr_storage(const in_addr& addr)
 {
     HC_LOG_TRACE("");
 
     *this = addr;
 }
 
-addr_storage::addr_storage(const  in6_addr& addr)
+addr_storage::addr_storage(const in6_addr& addr)
 {
     HC_LOG_TRACE("");
 
     *this = addr;
 }
 
-addr_storage::addr_storage(const  sockaddr& addr)
+addr_storage::addr_storage(const sockaddr& addr)
 {
     HC_LOG_TRACE("");
 
     *this = addr;
 }
 
-addr_storage::addr_storage(const  sockaddr_in6& addr)
+addr_storage::addr_storage(const sockaddr_in6& addr)
 {
     HC_LOG_TRACE("");
 
     *this = addr;
 }
 
-addr_storage::addr_storage(const  sockaddr_in& addr)
+addr_storage::addr_storage(const sockaddr_in& addr)
 {
     HC_LOG_TRACE("");
 
@@ -146,7 +146,7 @@ addr_storage& addr_storage::operator=(const addr_storage& s)
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const  sockaddr_storage& s)
+addr_storage& addr_storage::operator=(const sockaddr_storage& s)
 {
     HC_LOG_TRACE("");
 
@@ -177,7 +177,7 @@ addr_storage& addr_storage::operator=(const std::string& s)
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const  in_addr& s)
+addr_storage& addr_storage::operator=(const in_addr& s)
 {
     HC_LOG_TRACE("");
 
@@ -188,7 +188,7 @@ addr_storage& addr_storage::operator=(const  in_addr& s)
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const  in6_addr& s)
+addr_storage& addr_storage::operator=(const in6_addr& s)
 {
     HC_LOG_TRACE("");
 
@@ -199,7 +199,7 @@ addr_storage& addr_storage::operator=(const  in6_addr& s)
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const  sockaddr& s)
+addr_storage& addr_storage::operator=(const sockaddr& s)
 {
     HC_LOG_TRACE("");
 
@@ -209,7 +209,7 @@ addr_storage& addr_storage::operator=(const  sockaddr& s)
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const  sockaddr_in& s)
+addr_storage& addr_storage::operator=(const sockaddr_in& s)
 {
     HC_LOG_TRACE("");
 
@@ -219,7 +219,7 @@ addr_storage& addr_storage::operator=(const  sockaddr_in& s)
     return *this;
 }
 
-addr_storage& addr_storage::operator=(const  sockaddr_in6& s)
+addr_storage& addr_storage::operator=(const sockaddr_in6& s)
 {
     HC_LOG_TRACE("");
 
@@ -315,37 +315,43 @@ socklen_t addr_storage::get_addr_len() const
     return get_addr_len(get_addr_family());
 }
 
-const  sockaddr_storage& addr_storage::get_sockaddr_storage() const {
+const  sockaddr_storage& addr_storage::get_sockaddr_storage() const
+{
     HC_LOG_TRACE("");
 
     return m_addr;
 }
 
-const  in_addr& addr_storage::get_in_addr() const {
+const  in_addr& addr_storage::get_in_addr() const
+{
     HC_LOG_TRACE("");
 
     return ((const  sockaddr_in*)(&m_addr))->sin_addr;
 }
 
-const  in6_addr& addr_storage::get_in6_addr() const {
+const  in6_addr& addr_storage::get_in6_addr() const
+{
     HC_LOG_TRACE("");
 
     return ((const  sockaddr_in6*)(&m_addr))->sin6_addr;
 }
 
-const  sockaddr& addr_storage::get_sockaddr() const {
+const  sockaddr& addr_storage::get_sockaddr() const
+{
     HC_LOG_TRACE("");
 
     return *((const  sockaddr*)&m_addr);
 }
 
-const  sockaddr_in& addr_storage::get_sockaddr_in() const {
+const  sockaddr_in& addr_storage::get_sockaddr_in() const
+{
     HC_LOG_TRACE("");
 
     return *((const  sockaddr_in*)(&m_addr));
 }
 
-const  sockaddr_in6& addr_storage::get_sockaddr_in6() const {
+const  sockaddr_in6& addr_storage::get_sockaddr_in6() const
+{
     HC_LOG_TRACE("");
 
     return *((const  sockaddr_in6*)(&m_addr));
@@ -420,11 +426,11 @@ void addr_storage::test_addr_storage_a()
     std::string addr4 = "251.0.0.224";
     std::string addr6 = "ff02:231:abc::1";
 
-     sockaddr_storage sockaddr4;
-     sockaddr_storage sockaddr6;
-     in_addr in_addr4;
-     in6_addr in_addr6;
-     in6_addr in_addr6tmp;
+    sockaddr_storage sockaddr4;
+    sockaddr_storage sockaddr6;
+    in_addr in_addr4;
+    in6_addr in_addr6;
+    in6_addr in_addr6tmp;
 
     addr_storage s4;
     addr_storage s6;

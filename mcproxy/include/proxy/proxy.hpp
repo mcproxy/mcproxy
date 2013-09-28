@@ -43,21 +43,6 @@
 using namespace std;
 
 //--------------------------------------------------
-/**
- * @brief data structure to the interface index with the current virtual interface index.
- * @param first if_index
- * @param second vif
- */
-typedef map<int, int> vif_map;
-
-/**
- * @brief Pair for #vif_map.
- * @param first if_index
- * @param second vif
- */
-typedef pair<int, int> vif_pair;
-
-//--------------------------------------------------
 
 /**
  * @brief Downstream vector for #up_down_map.
@@ -143,11 +128,9 @@ private:
     vector<proxy_instance*> m_proxy_instances;
     interface_map m_interface_map;
     up_down_map m_up_down_map;
-    vif_map m_vif_map;
 
     if_prop m_if_prop;
 
-    int get_free_vif_number();
 
     vector<int> all_if_to_list();
 

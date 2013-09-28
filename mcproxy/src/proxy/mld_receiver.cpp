@@ -33,7 +33,8 @@
 //DEBUG
 #include <net/if.h>
 
-mld_receiver::mld_receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock): receiver(addr_family, mrt_sock)
+mld_receiver::mld_receiver(std::shared_ptr<mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces)
+    : receiver(AF_INET6, mrt_sock,interfaces)
 {
     HC_LOG_TRACE("");
     if (!m_mrt_sock->set_recv_icmpv6_msg()) {
@@ -79,7 +80,7 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
             g_addr = mldctl->im6_dst;
 
             int if_index;
-            if ((if_index = get_if_index(mldctl->im6_mif)) == 0) {
+            if ((if_index = m_interfaces->get_if_index(mldctl->im6_mif)) == 0) {
                 return;
             }
 

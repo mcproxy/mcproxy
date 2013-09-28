@@ -31,7 +31,7 @@
 
 
 
-igmp_receiver::igmp_receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock): receiver(addr_family, mrt_sock)
+igmp_receiver::igmp_receiver(std::shared_ptr<mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces): receiver(AF_INET, mrt_sock, interfaces)
 {
     HC_LOG_TRACE("");
 }
@@ -81,7 +81,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             HC_LOG_DEBUG("\tgroup: " << g_addr);
 
             HC_LOG_DEBUG("\tvif: " << (int)igmpctl->im_vif);
-            if ((if_index = get_if_index(igmpctl->im_vif)) == 0) {
+            if ((if_index = m_interfaces->get_if_index(igmpctl->im_vif)) == 0) {
                 return;
             }
             HC_LOG_DEBUG("\tif_index: " << if_index);
@@ -154,44 +154,4 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
     }
 }
 
-int igmp_receiver::map_ip2if_index(const addr_storage& src_addr)
-{
-    HC_LOG_TRACE("");
-
-    char cstr[IF_NAMESIZE];
-    addr_storage tmp_mask;
-
-    addr_storage own_addr;
-    const struct ifaddrs* item;
-
-    addr_storage comp_addr;
-
-    if (src_addr.get_addr_family() == AF_INET) {
-        if_poxy_instance_map::iterator it;
-        for (it = m_if_proxy_map.begin(); it != m_if_proxy_map.end(); it++) {
-            //maks own ip
-            string if_name(if_indextoname(it->first, cstr));
-
-            item = m_if_property.get_ip4_if(if_name);
-            if (item == nullptr) {
-                return 0;
-            }
-
-            own_addr = *(item->ifa_addr);
-            tmp_mask = *(item->ifa_netmask);
-
-            comp_addr = own_addr.mask_ipv4(tmp_mask);
-
-            if (comp_addr == tmp_mask.mask_ipv4(src_addr)) {
-                return it->first;
-            }
-
-        }
-    } else {
-        HC_LOG_ERROR("cannot map IPv6 addr to interface index:" << src_addr);
-        return 0;
-    }
-
-    return 0; //no interface found
-}
 

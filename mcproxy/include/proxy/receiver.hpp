@@ -34,6 +34,7 @@
 #include "include/utils/mroute_socket.hpp"
 #include "include/utils/addr_storage.hpp"
 #include "include/utils/if_prop.hpp"
+#include "include/proxy/interfaces.hpp"
 
 #include <map>
 #include <thread>
@@ -63,60 +64,33 @@ using if_poxy_instance_map = std::map<int, proxy_instance*>;
  */
 using if_proxy_instance_pair = std::pair<int, proxy_instance*>;
 
-//--------------------------------------------------
-//     vif number, if_index        !!! reversed !!!
-/**
- * @brief Data structure to save the virtual interface index with the interface index with the current.
- * @param first vif
- * @param second if_index
- * @attention This data structure is reversed to the over vif_maps!!
- */
-using vif_map =  std::map<int, int>;
-
-/**
- * @brief Pair for #vif_map.
- * @param first vif
- * @param second if_index
- * @attention This data structure is reversed to the over vif_maps!!
- */
-using vif_pair = std::pair<int, int> ;
-
 /**
  * @brief Abstract basic receiver class.
  */
 class receiver
 {
 private:
+
     bool m_running;
     std::unique_ptr<std::thread> m_thread;
     void worker_thread();
 
     std::mutex m_data_lock;
-    vif_map m_vif_map;
 
     void start();
     void stop();
     void join();
 protected:
-    /**
-     * @brief Save the interface index with the incidental Proxy Instance.
-     */
+    int m_addr_family;
+
     if_poxy_instance_map m_if_proxy_map;
 
-    /**
-     * @brief Collect interface properties. Used to generate multicast messages.
-     */
     if_prop m_if_property;
 
-    /**
-     * @brief Abstracted multicast socket to receive multicast messages.
-     */
     std::shared_ptr<mroute_socket> m_mrt_sock;
+    
+    std::shared_ptr<const interfaces> m_interfaces; 
 
-    /**
-     * @brief Used IP version (AF_INET or AF_INET6).
-     */
-    int m_addr_family;
 
     /**
      * @brief Get the size for the control buffer for recvmsg().
@@ -143,18 +117,11 @@ protected:
      */
     proxy_instance* get_proxy_instance(int if_index);
 
-    //return on error 0
-    /**
-     * @brief Get the interface index to a virtual interface index. Search in a private map #vif_map
-     * @param vif virutal interface index
-     * @return interface index or 0 if not found
-     */
-    int get_if_index(int vif);
 public:
     /**
       * @brief Create a receiver.
      */
-    receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock);
+    receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces);
 
     /**
      * @brief Release all resources.
@@ -168,7 +135,7 @@ public:
      * @param vif virtual interface indxe of the inteface
      * @param proxy_instance* who register the interface
      */
-    void registrate_interface(int if_index, int vif, proxy_instance* p);
+    void registrate_interface(int if_index, proxy_instance* p);
 
     /**
      * @brief Delete an registerd interface
