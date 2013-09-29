@@ -31,7 +31,7 @@
 
 
 
-igmp_receiver::igmp_receiver(std::shared_ptr<mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces): receiver(AF_INET, mrt_sock, interfaces)
+igmp_receiver::igmp_receiver(const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces): receiver(AF_INET, mrt_sock, interfaces)
 {
     HC_LOG_TRACE("");
 }
@@ -110,7 +110,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             g_addr = igmp_hdr->igmp_group;
             HC_LOG_DEBUG("\tgroup: " << g_addr);
 
-            if ((if_index = this->map_ip2if_index(src_addr)) == 0) {
+            if ((if_index = m_interfaces->get_if_index(src_addr)) == 0) {
                 return;
             }
             HC_LOG_DEBUG("\tif_index: " << if_index);
@@ -132,7 +132,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             g_addr = igmp_hdr->igmp_group;
             HC_LOG_DEBUG("\tgroup: " << g_addr);
 
-            if ((if_index = this->map_ip2if_index(src_addr)) == 0) {
+            if ((if_index = m_interfaces->get_if_index(src_addr)) == 0) {
                 return ;
             }
             HC_LOG_DEBUG("\tif_index: " << if_index);

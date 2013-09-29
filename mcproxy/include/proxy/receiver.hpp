@@ -33,7 +33,6 @@
 
 #include "include/utils/mroute_socket.hpp"
 #include "include/utils/addr_storage.hpp"
-#include "include/utils/if_prop.hpp"
 #include "include/proxy/interfaces.hpp"
 
 #include <map>
@@ -85,11 +84,9 @@ protected:
 
     if_poxy_instance_map m_if_proxy_map;
 
-    if_prop m_if_property;
-
-    std::shared_ptr<mroute_socket> m_mrt_sock;
+    const std::shared_ptr<const mroute_socket> m_mrt_sock;
     
-    std::shared_ptr<const interfaces> m_interfaces; 
+    const std::shared_ptr<const interfaces> m_interfaces; 
 
 
     /**
@@ -121,7 +118,7 @@ public:
     /**
       * @brief Create a receiver.
      */
-    receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces);
+    receiver(int addr_family,const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces);
 
     /**
      * @brief Release all resources.

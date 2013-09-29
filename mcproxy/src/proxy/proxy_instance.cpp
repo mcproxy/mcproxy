@@ -31,9 +31,10 @@
 #include <net/if.h>
 #include <sstream>
 
-proxy_instance::proxy_instance(int addr_family, int table_number)
+proxy_instance::proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces> interfaces)
     : m_addr_family(addr_family)
     , m_table_number(table_number)
+    , m_interfaces(interfaces)
     , m_mrt_sock(nullptr)
     , m_timing(nullptr)
     , m_sender(nullptr)
@@ -109,9 +110,9 @@ bool proxy_instance::init_receiver()
     HC_LOG_TRACE("");
 
     if (m_addr_family == AF_INET) {
-        m_receiver.reset(new igmp_receiver(m_addr_family, m_mrt_sock));
+        m_receiver.reset(new igmp_receiver(m_mrt_sock, m_interfaces));
     } else if (m_addr_family == AF_INET6) {
-        m_receiver.reset(new mld_receiver(m_addr_family, m_mrt_sock));
+        m_receiver.reset(new mld_receiver(m_mrt_sock,m_interfaces));
     } else {
         HC_LOG_ERROR("wrong address family");
         return false;

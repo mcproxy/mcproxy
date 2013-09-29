@@ -30,7 +30,7 @@
 #include <linux/mroute6.h>
 #include <iostream>
 
-routing::routing(int addr_family, std::shared_ptr<mroute_socket> mrt_sock, int table_number)
+routing::routing(int addr_family, std::shared_ptr<const mroute_socket> mrt_sock, int table_number)
 {
     HC_LOG_TRACE("");
 

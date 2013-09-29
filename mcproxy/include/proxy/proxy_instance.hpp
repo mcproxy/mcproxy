@@ -52,14 +52,9 @@ private:
     int m_table_number; // 0 means no table number
 
 
-    //upstream inforamtion
-    //int m_upstream; //if_index
-
-        //if_index to vif
-    std::map<int, int> m_vif_map; //if_index to vif
-
-
     //check_source m_check_source;
+
+    const std::shared_ptr<const interfaces> m_interfaces;
 
     std::shared_ptr<mroute_socket> m_mrt_sock;
     std::shared_ptr<timing> m_timing;
@@ -94,7 +89,7 @@ public:
     /**
      * @brief Set default values of the class members.
      */
-    proxy_instance(int addr_family, int table_number);
+    proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces> interfaces);
 
     /**
      * @brief Release all resources.

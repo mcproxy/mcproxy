@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <iostream>
 
-receiver::receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces)
+receiver::receiver(int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces)
     : m_running(false)
     , m_thread(nullptr)
     , m_addr_family(addr_family)
@@ -35,10 +35,6 @@ receiver::receiver(int addr_family, std::shared_ptr<mroute_socket> mrt_sock, std
     , m_interfaces(interfaces)
 {
     HC_LOG_TRACE("");
-
-    if (!m_if_property.refresh_network_interfaces()) {
-        throw std::string("failed to refresh network interface properties");
-    }
 
     if (!m_mrt_sock->set_receive_timeout(RECEIVER_RECV_TIMEOUT)) {
         throw std::string("failed to set receive timeout");

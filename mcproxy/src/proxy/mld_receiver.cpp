@@ -33,7 +33,7 @@
 //DEBUG
 #include <net/if.h>
 
-mld_receiver::mld_receiver(std::shared_ptr<mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces)
+mld_receiver::mld_receiver(const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces)
     : receiver(AF_INET6, mrt_sock,interfaces)
 {
     HC_LOG_TRACE("");

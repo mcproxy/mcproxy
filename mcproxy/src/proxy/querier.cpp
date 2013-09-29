@@ -30,7 +30,7 @@
 #include <net/if.h>
 #include <iostream>
 
-querier::querier(int addr_family, int if_index, std::shared_ptr<sender> sender): m_addr_family(addr_family), m_if_index(if_index), m_sender(sender)
+querier::querier(int addr_family, int if_index, std::shared_ptr<const sender> sender): m_addr_family(addr_family), m_if_index(if_index), m_sender(sender)
 {
     HC_LOG_TRACE("");
 
@@ -226,7 +226,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     }
 }
 
-bool querier::router_groups_function(function<bool(std::shared_ptr<sender>, int, addr_storage)> f)
+bool querier::router_groups_function(function<bool(const std::shared_ptr<const sender>, int, addr_storage)> f)
 {
     HC_LOG_TRACE("");
 

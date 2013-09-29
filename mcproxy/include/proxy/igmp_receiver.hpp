@@ -51,13 +51,11 @@ private:
     int get_iov_min_size() override;
     void analyse_packet(struct msghdr* msg, int info_size) override;
 
-    //return the interface index to addr, on error return 0
-    int map_ip2if_index(const addr_storage& src_addr);
 public:
     /**
      * @brief Create an igmp_receiver.
      */
-    igmp_receiver(std::shared_ptr<mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces);
+    igmp_receiver(const std::shared_ptr<const mroute_socket> mrt_sock,const std::shared_ptr<const interfaces> interfaces);
 };
 
 #endif // IGMP_RECEIVER_HPP

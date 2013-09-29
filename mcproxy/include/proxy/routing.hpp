@@ -44,11 +44,11 @@ private:
     int m_table_number;
     int m_addr_family; //AF_INET or AF_INET6
 
-    std::shared_ptr<mroute_socket> m_mrt_sock;
+    const std::shared_ptr<const mroute_socket> m_mrt_sock;
     if_prop m_if_prop; //return interface properties
 
 public:
-    routing(int addr_family, std::shared_ptr<mroute_socket> mrt_sock, int table_number);
+    routing(int addr_family, std::shared_ptr<const mroute_socket> mrt_sock, int table_number);
 
     ~routing();
     /**
