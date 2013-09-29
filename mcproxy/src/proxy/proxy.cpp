@@ -64,139 +64,7 @@ proxy::~proxy()
     close();
 }
 
-bool proxy::load_config(string path)
-{
-    HC_LOG_TRACE("");
 
-    ifstream file;
-    //IF_NAMESIZE
-    //net/if.h, line 74
-    //item ifreq*
-    char cstr[PROXY_CONFIG_LINE_LENGTH];
-    int state =
-        0; //0= look für upstream, 1= look for "==>" 2= look for the first downstream 3= look for additional downstreams
-    int linecount = 0;
-
-    file.open(path.c_str());
-    if (!file) {
-        HC_LOG_ERROR("can't open file: " << path);
-        return false;
-    } else {
-        file.getline(cstr, sizeof(cstr));
-        linecount++;
-        while (!file.eof()) {
-            stringstream strline;
-            string comp_str;
-            strline << string(cstr).erase(string(cstr).find_last_not_of(' ') + 1); //trim all spaces at the end of the string
-
-            int tmp_upstream_if = -1;
-            int tmp_downstream_if = -1;
-            down_vector tmp_down_vector;
-
-            state = 0;
-            if (!strline.eof()) {
-                do {
-                    strline >> comp_str;
-                    if (!comp_str.empty() && comp_str.at(0) != '#') {
-
-                        if (comp_str.compare("protocol") == 0) {
-                            if (!strline.eof()) {
-                                strline >> comp_str;
-                                if (comp_str.compare("IGMPv1") == 0) {
-                                    m_addr_family = AF_INET;
-                                    m_version = 1;
-                                } else if (comp_str.compare("IGMPv2") == 0) {
-                                    m_addr_family = AF_INET;
-                                    m_version = 2;
-                                } else if (comp_str.compare("IGMPv3") == 0) {
-                                    m_addr_family = AF_INET;
-                                    m_version = 3;
-                                } else if (comp_str.compare("MLDv1") == 0) {
-                                    m_addr_family = AF_INET6;
-                                    m_version = 1;
-                                } else if (comp_str.compare("MLDv2") == 0) {
-                                    m_addr_family = AF_INET6;
-                                    m_version = 2;
-                                } else {
-                                    HC_LOG_ERROR("unknown protocol: " << comp_str << " <line " << linecount << ">");
-                                    return false;
-                                }
-                            } else {
-                                HC_LOG_ERROR("unknown protocol " << " <line " << linecount << ">");
-                                return false;
-                            }
-
-                            if (!strline.eof()) {
-                                strline >> comp_str;
-                                if (comp_str.at(0) == '#') {
-                                    while (!strline.eof()) {
-                                        strline >> comp_str;
-                                    }
-                                } else {
-                                    HC_LOG_ERROR("to much arguments" << " <line " << linecount << ">");
-                                    return false;
-                                }
-                            }
-                        } else if (state == 0) {
-                            tmp_upstream_if = if_nametoindex(comp_str.c_str());
-
-                            if (tmp_upstream_if > 0) {
-                                state = 1;
-                                HC_LOG_DEBUG("upstream_if: " << comp_str << " (if_index=" << tmp_upstream_if << ")");
-                            } else {
-                                HC_LOG_ERROR("upstream interface not found: " << comp_str << " <line " << linecount << ">");
-                                return false;
-                            }
-
-                        } else if (state == 1) {
-                            if (comp_str.compare("==>") == 0) {
-                                state = 2;
-                            } else {
-                                HC_LOG_ERROR("syntax error: " << comp_str << " expected: " << " ==>" << " <line " << linecount << ">");
-                                return false;
-                            }
-                        } else if (state == 2 || state == 3) {
-                            tmp_downstream_if = if_nametoindex(comp_str.c_str());
-                            if (tmp_downstream_if > 0) {
-                                state = 3;
-                                tmp_down_vector.push_back(tmp_downstream_if);
-                            } else {
-                                HC_LOG_ERROR("downstream interface not found: " << comp_str << " <line " << linecount << ">");
-                                return false;
-                            }
-                        } else {
-                            HC_LOG_ERROR("wrong state: " << state);
-                            return false;
-                        }
-
-
-                    } else {
-                        break;
-                    }
-
-                } while (!strline.eof());
-            }
-
-            if (state == 3) {
-                m_up_down_map.insert(up_down_pair(tmp_upstream_if, tmp_down_vector));
-            } else if (state == 2) {
-                HC_LOG_ERROR("line incomplete: " << cstr << " in line " << linecount << ">");
-                return false;
-            }
-            file.getline(cstr, sizeof(cstr));
-        }
-    }
-
-    if (m_up_down_map.size() > 1) {
-        m_is_single_instance = false;
-    } else {
-        m_is_single_instance = true;
-    }
-
-    HC_LOG_DEBUG("m_addr_family: " << m_addr_family << ";  m_version: " << m_version << "; m_is_single_instance: " <<
-                 m_is_single_instance << ";");
-    return true;
-}
 
 vector<int> proxy::all_if_to_list()
 {
@@ -218,28 +86,6 @@ vector<int> proxy::all_if_to_list()
     return interface_list;
 }
 
-
-bool proxy::init_vif_map()
-{
-    HC_LOG_TRACE("");
-
-    vector<int> interface_list = all_if_to_list();
-
-    int free_vif;
-
-    for (unsigned int i = 0; i < interface_list.size(); i++) {
-        free_vif = get_free_vif_number();
-        if (free_vif < 0) {
-            HC_LOG_ERROR("no free vif");
-            return false;
-        }
-
-        m_vif_map.insert(vif_pair(interface_list[i], free_vif));
-
-    }
-
-    return true;
-}
 
 bool proxy::check_double_used_if(const vector<int>* new_interfaces)
 {
@@ -268,62 +114,6 @@ bool proxy::check_double_used_if(const vector<int>* new_interfaces)
     return true;
 }
 
-string proxy::get_state_table()
-{
-    HC_LOG_TRACE("");
-
-    up_down_map::iterator it_up_down;
-    stringstream str;
-    char cstr[IF_NAMESIZE];
-
-    str << "protocol: " << endl;
-
-    if (m_addr_family == AF_INET) {
-        switch (m_version) {
-        case 1:
-            str << "\tIGMPv1" << endl;
-            break;
-        case 2:
-            str << "\tIGMPv2" << endl;
-            break;
-        case 3:
-            str << "\tIGMPv3" << endl;
-            break;
-        default:
-            str << "\tIPv4 but unknown addr family" << endl;
-        }
-    } else if (m_addr_family == AF_INET6) {
-        switch (m_version) {
-        case 1:
-            str << "\tMLDv1" << endl;
-            break;
-        case 2:
-            str << "\tMLDv2" << endl;
-            break;
-        default:
-            str << "\tIPv6 but unknown addr family" << endl;
-        }
-    } else {
-        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
-        str << "\tunknown IP version" << endl;
-    }
-
-    str << endl;
-
-    if (m_up_down_map.empty()) {
-        return "state table is empty";
-    }
-
-    for ( it_up_down = m_up_down_map.begin() ; it_up_down != m_up_down_map.end(); it_up_down++ ) {
-        str << if_indextoname(it_up_down->first, cstr) << " (#" << it_up_down->first << ")" << " ==>" << endl;
-
-        down_vector tmp_down_vector = it_up_down->second;
-        for (unsigned int i = 0; i < tmp_down_vector.size(); i++) {
-            str << "\t" << if_indextoname(tmp_down_vector[i], cstr)  << " (#" << tmp_down_vector[i] << ")" << endl;
-        }
-    }
-    return str.str();
-}
 
 bool proxy::init(int arg_count, char* args[])
 {
@@ -552,17 +342,6 @@ bool proxy::start_proxy_instances()
     return false;
 }
 
-bool proxy::init_if_prop()
-{
-    HC_LOG_TRACE("");
-
-    if (!m_if_prop.refresh_network_interfaces()) {
-        return false;
-    }
-
-    return true;
-}
-
 bool proxy::check_and_set_flags(vector<int>& interface_list)
 {
     HC_LOG_TRACE("");
@@ -612,87 +391,32 @@ bool proxy::check_and_set_flags(vector<int>& interface_list)
         }
 
         //reset rp_filter for every used interface
-        if (m_rest_rp_filter) {
-            if (get_rp_filter(if_name)) {
-                if (set_rp_filter(if_name, false)) {
-                    m_restore_rp_filter_vector.push_back(if_name);
-                } else {
-                    return false;
-                }
-            }
-        }
-    }
+        //if (m_rest_rp_filter) {
+            //if (get_rp_filter(if_name)) {
+                //if (set_rp_filter(if_name, false)) {
+                    //m_restore_rp_filter_vector.push_back(if_name);
+                //} else {
+                    //return false;
+                //}
+            //}
+        //}
+    //}
 
-    //reset global rp_filter
-    if (m_rest_rp_filter) {
-        string global_if = "all";
-        if (get_rp_filter(global_if)) {
-            if (set_rp_filter(global_if, false)) {
-                m_restore_rp_filter_vector.push_back(global_if);
-            } else {
-                return false;
-            }
-        }
-    }
+    ////reset global rp_filter
+    //if (m_rest_rp_filter) {
+        //string global_if = "all";
+        //if (get_rp_filter(global_if)) {
+            //if (set_rp_filter(global_if, false)) {
+                //m_restore_rp_filter_vector.push_back(global_if);
+            //} else {
+                //return false;
+            //}
+        //}
+    //}
 
     return true;
 }
 
-bool proxy::restore_rp_filter()
-{
-    HC_LOG_TRACE("");
-    bool state = true;
-
-    for (vector<string>::iterator iter = m_restore_rp_filter_vector.begin(); iter != m_restore_rp_filter_vector.end();
-            iter++) {
-        if (!set_rp_filter(*iter, true)) {
-            state = false;
-        }
-    }
-
-    return state;
-}
-
-bool proxy::get_rp_filter(string interface)
-{
-    HC_LOG_TRACE("");
-    stringstream path;
-    bool state;
-    path << PROXY_RP_FILTER_PATH << interface << "/rp_filter";
-
-    ifstream is(path.str().c_str(), ios::binary | ios::in);
-    if (!is) {
-        HC_LOG_ERROR("failed to open file:" << path);
-        return false;
-    } else {
-        state = is.get();
-    }
-    is.close();
-
-    return state;
-}
-
-bool proxy::set_rp_filter(string interface, bool to)
-{
-    HC_LOG_TRACE("");
-    stringstream path;
-    path << PROXY_RP_FILTER_PATH << interface << "/rp_filter";
-
-    ofstream os(path.str().c_str(), ios::binary | ios::out);
-    if (!os) {
-        HC_LOG_ERROR("failed to open file:" << path << " and set rp_filter to " << to);
-        return false;
-    } else {
-        if (to) {
-            os.put('1');
-        } else {
-            os.put('0');
-        }
-    }
-    os.flush();
-    os.close();
-    return true;
-}
 
 bool proxy::start()
 {

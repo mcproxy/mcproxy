@@ -26,8 +26,11 @@
 
 #include "include/utils/addr_storage.hpp"
 #include "include/utils/if_prop.hpp"
+#include "include/utils/reverse_path_filter.hpp"
+
 #include <string>
 #include <map>
+#include <vector>
 
 #define INTERFACES_UNKOWN_IF_INDEX 0
 #define INTERFACES_UNKOWN_VIF_INDEX -1
@@ -36,12 +39,18 @@ class interfaces
 {
 private:
     int m_addr_family;
+
+    //ipv4 only
+    bool m_reset_reverse_path_filter;
     if_prop m_if_prop;
+    reverse_path_filter m_reverse_path_filter;
 
     std::map<int, int> m_vif_if;
     std::map<int, int> m_if_vif;
+
+    int get_free_vif_number() const;
 public:
-    interfaces(int addr_family);
+    interfaces(int addr_family, bool reset_reverse_path_filter);
     ~interfaces();
 
     bool refresh_network_interfaces();
@@ -60,9 +69,9 @@ public:
     unsigned int get_if_index(const std::string& if_name) const;
     unsigned int get_if_index(const char* if_name) const;
     unsigned int get_if_index(int virtual_if_index) const;
-    unsigned int get_if_index(const addr_storage& addr) const;
 
-    int get_free_vif_number() const;
+    //ipv4 only
+    unsigned int get_if_index(const addr_storage& addr) const;
 };
 
 
