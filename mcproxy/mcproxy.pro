@@ -51,7 +51,8 @@ SOURCES += src/main.cpp \
            src/proxy/membership_db.cpp \
            src/proxy/querier.cpp \
            src/proxy/timers_values.cpp \
-           src/proxy/interfaces.cpp
+           src/proxy/interfaces.cpp \
+           src/proxy/proxy_configuration.cpp
 
 HEADERS += include/hamcast_logging.h \
                 #utils
@@ -81,7 +82,8 @@ HEADERS += include/hamcast_logging.h \
            include/proxy/def.hpp \
            include/proxy/querier.hpp \
            include/proxy/timers_values.hpp \
-           include/proxy/interfaces.hpp
+           include/proxy/interfaces.hpp \
+           include/proxy/proxy_configuration.hpp
 
 LIBS += -L/usr/lib -lboost_thread \
         -lboost_date_time \

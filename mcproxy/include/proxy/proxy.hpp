@@ -41,24 +41,6 @@
 
 //--------------------------------------------------
 
-/**
- * @brief Downstream vector for #up_down_map.
- * @param vector of the downstream interfaces indexes
- */
-using down_vector = std::vector<int>;
-/**
- * @brief data structure to mangage the upstream/downstream instances.
- * @param first index of the upstream interface
- * @param second index vector of the downstream interfaces
- */
-using up_down_map = std::map<int, down_vector>; //map<upstream, downstreams>
-
-/**
- * @brief Pair for #up_down_map.
- * @param first index of the upstream interface
- * @param second vector of the downstream interfaces
- */
-using up_down_pair = std::pair<int, down_vector>;
 
 //--------------------------------------------------
 
@@ -82,8 +64,6 @@ private:
 
 
     string m_config_path;
-    int m_addr_family; //AF_INET or AF_INET6
-    int m_version; //for AF_INET (1,2,3) to use IGMPv1/2/3, for AF_INET6 (1,2) to use MLDv1/2
 
     //--
     vector<proxy_instance*> m_proxy_instances;
@@ -105,7 +85,6 @@ private:
 
 
     //check the state_table for valid input, interfaces can only used on time ==> true = check ok, false = double interfaces
-    bool check_and_set_flags(vector<int>& interface_list); //check up and running flag, set multicast and allMulti flag
     bool start_proxy_instances();
 
 

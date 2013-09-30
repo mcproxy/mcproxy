@@ -230,3 +230,28 @@ int interfaces::get_free_vif_number() const
 }
 
 
+bool interfaces::is_interface_up(unsigned if_index)
+{
+    HC_LOG_TRACE("");
+    if (m_addr_family == AF_INET6) {
+        const struct ifaddrs* prop = m_if_prop.get_ip4_if(get_if_name(if_index));
+        if (prop != nullptr) {
+            return prop->ifa_flags & IFF_UP;
+        } else {
+            HC_LOG_WARN("failed to get interface ipv4 properties of interface: " << get_if_name(if_name));
+            return false;
+        }
+    } else if (m_addr_family == AF_INET) {
+        const std::list<const struct ifaddrs*>* prop = m_if_prop.get_ip6_if(get_if_name(if_index));
+        if (prop != nullptr && !prop->empty()) {
+            return (*(begin(*prop)))->ifa_flags & IFF_UP;
+        } else {
+            HC_LOG_WARN("failed to get interface ipv6 properties of interface: " << get_if_name(if_name));
+            return false;
+        }
+    }else{
+        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
+        return false; 
+    }
+}
+

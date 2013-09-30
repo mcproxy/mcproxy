@@ -49,7 +49,7 @@ void reverse_path_filter::restore_rp_filter()
 
 }
 
-bool reverse_path_filter::get_rp_filter(const std::string& if_name)
+bool reverse_path_filter::get_rp_filter(const std::string& if_name) const
 {
     HC_LOG_TRACE("");
     std::stringstream path;
@@ -68,7 +68,7 @@ bool reverse_path_filter::get_rp_filter(const std::string& if_name)
     return state;
 }
 
-bool reverse_path_filter::set_rp_filter(const std::string& if_name, bool set_to)
+bool reverse_path_filter::set_rp_filter(const std::string& if_name, bool set_to) const
 {
     HC_LOG_TRACE("");
     std::stringstream path;

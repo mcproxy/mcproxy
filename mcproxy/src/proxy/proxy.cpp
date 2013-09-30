@@ -87,32 +87,6 @@ vector<int> proxy::all_if_to_list()
 }
 
 
-bool proxy::check_double_used_if(const vector<int>* new_interfaces)
-{
-    HC_LOG_TRACE("");
-
-    vector<int> interface_list = all_if_to_list();
-
-    //add new if_list to interface_list
-    if (new_interfaces != nullptr) {
-        for (unsigned int i = 0; i < new_interfaces->size(); i++) {
-            interface_list.push_back((*new_interfaces)[i]);
-        }
-    }
-
-    while (!interface_list.empty()) {
-        int tmp_if = interface_list.back();
-        interface_list.pop_back();
-        for (unsigned int i = 0; i < interface_list.size(); i++) {
-            if (interface_list[i] == tmp_if) {
-                return false;
-            }
-        }
-    }
-
-
-    return true;
-}
 
 
 bool proxy::init(int arg_count, char* args[])
@@ -342,80 +316,6 @@ bool proxy::start_proxy_instances()
     return false;
 }
 
-bool proxy::check_and_set_flags(vector<int>& interface_list)
-{
-    HC_LOG_TRACE("");
-
-    char cstr[IF_NAMESIZE];
-    const if_prop_map* prop_map = m_if_prop.get_if_props();
-
-    //##debug
-    //m_if_prop.print_if_info();
-
-    if_prop_map::const_iterator iter;
-    const struct ifaddrs* ifaddr;
-
-    for (unsigned int i = 0; i < interface_list.size(); i++) {
-        string if_name(if_indextoname(interface_list[i], cstr));
-
-        iter = prop_map->find(if_name);
-
-        if (iter == prop_map->end()) {
-            HC_LOG_ERROR("interface " << if_name << " not found");
-            return false;
-        }
-
-        if (m_addr_family == AF_INET) {
-            if (iter->second.ip4_addr != nullptr) {
-                ifaddr = iter->second.ip4_addr;
-            } else {
-                HC_LOG_ERROR("interface " << if_name << " don't support ipv4");
-                return false;
-            }
-        } else if (m_addr_family == AF_INET6) {
-            const list<const struct ifaddrs*>* ipv6_if_list = &(iter->second.ip6_addr);
-            if (ipv6_if_list->size() != 0) {
-                ifaddr = *(ipv6_if_list->begin());
-            } else {
-                HC_LOG_ERROR("interface " << if_name << " don't support ipv6");
-                return false;
-            }
-        } else {
-            HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
-            return false;
-        }
-
-        if (!(ifaddr->ifa_flags & IFF_UP)) {
-            HC_LOG_ERROR("wrong interface status: interface " << if_name << " is not up");
-            return false;
-        }
-
-        //reset rp_filter for every used interface
-        //if (m_rest_rp_filter) {
-            //if (get_rp_filter(if_name)) {
-                //if (set_rp_filter(if_name, false)) {
-                    //m_restore_rp_filter_vector.push_back(if_name);
-                //} else {
-                    //return false;
-                //}
-            //}
-        //}
-    //}
-
-    ////reset global rp_filter
-    //if (m_rest_rp_filter) {
-        //string global_if = "all";
-        //if (get_rp_filter(global_if)) {
-            //if (set_rp_filter(global_if, false)) {
-                //m_restore_rp_filter_vector.push_back(global_if);
-            //} else {
-                //return false;
-            //}
-        //}
-    //}
-
-    return true;
-}
 
 
 bool proxy::start()

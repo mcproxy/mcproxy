@@ -72,6 +72,8 @@ public:
 
     //ipv4 only
     unsigned int get_if_index(const addr_storage& addr) const;
+
+    bool is_interface_up(unsigned if_index);
 };
 
 

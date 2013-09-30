@@ -36,8 +36,8 @@ private:
     //save interfaces what musst set to true before terminating
     std::set<std::string> m_restore_if_state; 
 
-    bool get_rp_filter(const std::string& if_name);
-    bool set_rp_filter(const std::string& if_name, bool set_to);
+    bool get_rp_filter(const std::string& if_name) const;
+    bool set_rp_filter(const std::string& if_name, bool set_to) const;
     void restore_rp_filter();
 public:
     reverse_path_filter();
