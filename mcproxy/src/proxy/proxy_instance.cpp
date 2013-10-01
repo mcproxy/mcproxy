@@ -31,12 +31,12 @@
 #include <net/if.h>
 #include <sstream>
 
-proxy_instance::proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces> interfaces)
+proxy_instance::proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces> interfaces, const std::shared_ptr<timing> shared_timing)
     : m_addr_family(addr_family)
     , m_table_number(table_number)
     , m_interfaces(interfaces)
+    , m_timing(shared_timing)
     , m_mrt_sock(nullptr)
-    , m_timing(nullptr)
     , m_sender(nullptr)
     , m_receiver(nullptr)
     , m_routing(nullptr)
@@ -46,8 +46,6 @@ proxy_instance::proxy_instance(int addr_family, int table_number, const std::sha
     if (!init_mrt_socket()) {
         throw "failed to initialize mroute socket";
     }
-
-    m_timing = make_shared<timing>();
 
     if (!init_sender()) {
        throw "failed to initialize sender"; 

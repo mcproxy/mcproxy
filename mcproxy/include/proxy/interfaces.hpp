@@ -49,6 +49,9 @@ private:
     std::map<int, int> m_if_vif;
 
     int get_free_vif_number() const;
+    
+    //flags example: IFF_UP IFF_LOOPBACK IFF_POINTOPOINT IFF_RUNNING IFF_ALLMULTI
+    bool is_interface(unsigned if_index, unsigned int interface_flags) const;
 public:
     interfaces(int addr_family, bool reset_reverse_path_filter);
     ~interfaces();
@@ -64,16 +67,15 @@ public:
 
     int get_virtual_if_index(unsigned int if_index) const;
 
-    std::string get_if_name(unsigned int if_index) const;
+    static std::string get_if_name(unsigned int if_index);
 
-    unsigned int get_if_index(const std::string& if_name) const;
-    unsigned int get_if_index(const char* if_name) const;
+    static unsigned int get_if_index(const std::string& if_name);
+    static unsigned int get_if_index(const char* if_name);
     unsigned int get_if_index(int virtual_if_index) const;
 
     //ipv4 only
     unsigned int get_if_index(const addr_storage& addr) const;
 
-    bool is_interface_up(unsigned if_index);
 };
 
 

@@ -65,14 +65,18 @@ bool interfaces::add_interface(unsigned int if_index)
     HC_LOG_TRACE("");
     int free_vif =  get_free_vif_number();
     if (free_vif > INTERFACES_UNKOWN_VIF_INDEX) {
+        if(!is_interface(if_index, IFF_UP)){
+            HC_LOG_WARN("failed to add interface: " << get_if_name(if_index) << "; interface is not up");
+        }
         auto rc_vif_if = m_vif_if.insert(std::pair<int, int>(free_vif, if_index));
         if (!rc_vif_if.second) {
+            HC_LOG_ERROR("failed to add interface: " << get_if_name(if_index) << " interface already in use")
             return false;
         }
 
         auto rc_if_vif = m_if_vif.insert(std::pair<int, int>(if_index, free_vif));
         if (!rc_if_vif.second) {
-            HC_LOG_ERROR("inconsistent database");
+            HC_LOG_ERROR("failed to add interface: " << get_if_name(if_index) << "inconsistent database");
             m_vif_if.erase(rc_vif_if.first);
             return false;
         }
@@ -117,13 +121,13 @@ bool interfaces::refresh_network_interfaces()
     return m_if_prop.refresh_network_interfaces();
 }
 
-unsigned int interfaces::get_if_index(const std::string& if_name) const
+unsigned int interfaces::get_if_index(const std::string& if_name)
 {
     HC_LOG_TRACE("");
     return get_if_index(if_name.c_str());
 }
 
-unsigned int interfaces::get_if_index(const char* if_name) const
+unsigned int interfaces::get_if_index(const char* if_name)
 {
     HC_LOG_TRACE("");
     return if_nametoindex(if_name);
@@ -152,7 +156,7 @@ int interfaces::get_virtual_if_index(unsigned int if_index) const
 
 }
 
-std::string interfaces::get_if_name(unsigned int if_index) const
+std::string interfaces::get_if_name(unsigned int if_index)
 {
     HC_LOG_TRACE("");
     char tmp[IF_NAMESIZE];
@@ -230,13 +234,13 @@ int interfaces::get_free_vif_number() const
 }
 
 
-bool interfaces::is_interface_up(unsigned if_index)
+bool interfaces::is_interface(unsigned if_index, unsigned int interface_flags) const
 {
     HC_LOG_TRACE("");
     if (m_addr_family == AF_INET6) {
         const struct ifaddrs* prop = m_if_prop.get_ip4_if(get_if_name(if_index));
         if (prop != nullptr) {
-            return prop->ifa_flags & IFF_UP;
+            return prop->ifa_flags & interface_flags;
         } else {
             HC_LOG_WARN("failed to get interface ipv4 properties of interface: " << get_if_name(if_name));
             return false;
@@ -244,7 +248,7 @@ bool interfaces::is_interface_up(unsigned if_index)
     } else if (m_addr_family == AF_INET) {
         const std::list<const struct ifaddrs*>* prop = m_if_prop.get_ip6_if(get_if_name(if_index));
         if (prop != nullptr && !prop->empty()) {
-            return (*(begin(*prop)))->ifa_flags & IFF_UP;
+            return (*(begin(*prop)))->ifa_flags & interface_flags;
         } else {
             HC_LOG_WARN("failed to get interface ipv6 properties of interface: " << get_if_name(if_name));
             return false;

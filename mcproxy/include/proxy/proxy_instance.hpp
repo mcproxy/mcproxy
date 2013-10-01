@@ -55,9 +55,9 @@ private:
     //check_source m_check_source;
 
     const std::shared_ptr<const interfaces> m_interfaces;
+    const std::shared_ptr<timing> m_timing;
 
     std::shared_ptr<mroute_socket> m_mrt_sock;
-    std::shared_ptr<timing> m_timing;
     std::shared_ptr<sender> m_sender;
 
     std::unique_ptr<receiver> m_receiver;
@@ -89,7 +89,7 @@ public:
     /**
      * @brief Set default values of the class members.
      */
-    proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces> interfaces);
+    proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces> interfaces, const std::shared_ptr<timing> shared_timing);
 
     /**
      * @brief Release all resources.

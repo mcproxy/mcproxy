@@ -52,50 +52,18 @@ proxy::proxy(int arg_count, char* args[]):
         throw "The mcproxy has to be started with root privileges!";
     }
 
-
-    ???????????
-    if (!load_config(m_config_path)) {
-        return false;
-    }
-
-    if (!check_double_used_if(nullptr)) {
-        HC_LOG_ERROR("found double used interface");
-        return false;
-    }
-
-    if (!init_vif_map()) {
-        return false;
-    }
-
-    if (!init_if_prop()) {
-        return false;
-    }
-
-    vector<int> if_list = all_if_to_list();
-    if (!check_and_set_flags(if_list)) {
-        return false;
-    }
-
-    //start timing
-    timing* tim = new timing();
+    m_proxy_configuration.reset(new proxy_configuration(m_config_path, m_rest_rp_filter));
 
     if (!start_proxy_instances()) {
         return false;
     }
 
-    return true;
 }
 
-void proxy::close()
-{
-    HC_LOG_TRACE("");
-}
 
 proxy::~proxy()
 {
     HC_LOG_TRACE("");
-
-    close();
 }
 
 void proxy::help_output()
@@ -151,7 +119,7 @@ void proxy::prozess_commandline_args(int arg_count, char* args[])
     if (arg_count == 1) {
 
     } else {
-        for (int c; (c = getopt(arg_count, args, "hrdsvcf")) != -1;) {
+        for (int c; (c = getopt(arg_count, args, "hrdsvcf:")) != -1;) {
             switch (c) {
             case 'h':
                 help_output();
@@ -173,12 +141,13 @@ void proxy::prozess_commandline_args(int arg_count, char* args[])
                 m_verbose_lvl++;
                 break;
             case 'f':
-                if (args[optind][0] != '-') {
-                    m_config_path = string(args[optind]);
-                } else {
-                    HC_LOG_ERROR("no config path defined");
-                    throw "no config path defined";
-                }
+                m_config_path = string(optarg);
+                //if (args[optind][0] != '-') {
+                //m_config_path = string(args[optind]);
+                //} else {
+                //HC_LOG_ERROR("no config path defined");
+                //throw "no config path defined";
+                //}
                 break;
             default:
                 HC_LOG_ERROR("Unknown argument! See help (-h) for more information.");
@@ -187,6 +156,11 @@ void proxy::prozess_commandline_args(int arg_count, char* args[])
         }
     }
 
+    //untestestd ???????????????????????
+    if (optind <  arg_count) {
+        HC_LOG_ERROR("Unknown option argument: " << args[optind]);
+        throw "Unknown option argument";
+    }
 
     if (!is_logging) {
         hc_set_default_log_fun(HC_LOG_ERROR_LVL); //no fatal logs defined
@@ -220,53 +194,53 @@ bool proxy::start_proxy_instances()
 
 
     //for ( it_up_down = m_up_down_map.begin() ; it_up_down != m_up_down_map.end(); it_up_down++ ) {
-        //down_vector tmp_down_vector = it_up_down->second;
+    //down_vector tmp_down_vector = it_up_down->second;
 
-        //proxy_instance* p = new proxy_instance();
-        //m_proxy_instances.push_back(p);
+    //proxy_instance* p = new proxy_instance();
+    //m_proxy_instances.push_back(p);
 
-        //if ((it_vif = m_vif_map.find(it_up_down->first)) == m_vif_map.end()) {
-            //HC_LOG_ERROR("failed to find vif form if_index: " << it_up_down->first);
-            //return false;
-        //}
-        //upstream_vif = it_vif->second;
+    //if ((it_vif = m_vif_map.find(it_up_down->first)) == m_vif_map.end()) {
+    //HC_LOG_ERROR("failed to find vif form if_index: " << it_up_down->first);
+    //return false;
+    //}
+    //upstream_vif = it_vif->second;
 
-        //if ((it_vif = m_vif_map.find(tmp_down_vector[0])) == m_vif_map.end()) {
-            //HC_LOG_ERROR("failed to find vif form if_index: " << tmp_down_vector[0]);
-            //return false;
-        //}
-        //downstream_vif = it_vif->second;
+    //if ((it_vif = m_vif_map.find(tmp_down_vector[0])) == m_vif_map.end()) {
+    //HC_LOG_ERROR("failed to find vif form if_index: " << tmp_down_vector[0]);
+    //return false;
+    //}
+    //downstream_vif = it_vif->second;
 
-        ////start proxy instance
-        //if (!p->init(m_addr_family, it_up_down->first, upstream_vif, tmp_down_vector[0], downstream_vif,
-                     //m_is_single_instance)) {
-            //return false;
-        //}
+    ////start proxy instance
+    //if (!p->init(m_addr_family, it_up_down->first, upstream_vif, tmp_down_vector[0], downstream_vif,
+    //m_is_single_instance)) {
+    //return false;
+    //}
 
-        //p->start();
+    //p->start();
 
 
-        ////add upstream and first downstream
-        //m_interface_map.insert(interface_pair(it_up_down->first, m_proxy_instances.size() - 1));
-        //m_interface_map.insert(interface_pair(tmp_down_vector[0], m_proxy_instances.size() - 1));
+    ////add upstream and first downstream
+    //m_interface_map.insert(interface_pair(it_up_down->first, m_proxy_instances.size() - 1));
+    //m_interface_map.insert(interface_pair(tmp_down_vector[0], m_proxy_instances.size() - 1));
 
-        ////add downstream
-        //for (unsigned int i = 1; i < tmp_down_vector.size(); i++) {
-            //msg.type = proxy_msg::CONFIG_MSG;
+    ////add downstream
+    //for (unsigned int i = 1; i < tmp_down_vector.size(); i++) {
+    //msg.type = proxy_msg::CONFIG_MSG;
 
-            //if ((it_vif = m_vif_map.find(tmp_down_vector[i])) == m_vif_map.end()) {
-                //HC_LOG_ERROR("failed to find vif form if_index: " << tmp_down_vector[0]);
-                //return false;
-            //}
-            //downstream_vif = it_vif->second;
-            //msg.msg = new config_msg(config_msg::ADD_DOWNSTREAM, tmp_down_vector[i], downstream_vif);
+    //if ((it_vif = m_vif_map.find(tmp_down_vector[i])) == m_vif_map.end()) {
+    //HC_LOG_ERROR("failed to find vif form if_index: " << tmp_down_vector[0]);
+    //return false;
+    //}
+    //downstream_vif = it_vif->second;
+    //msg.msg = new config_msg(config_msg::ADD_DOWNSTREAM, tmp_down_vector[i], downstream_vif);
 
-            //HC_LOG_DEBUG("add a new downstream interface; pointer: " << msg.msg);
-            //cout << "add a new downstream interface" << endl;
-            //cout << "proxy.cpp: msg.msg: " << msg.msg << " msg.msg.get(): " << msg.msg.get() << endl;
-            //p->add_msg(msg);
-            //m_interface_map.insert(interface_pair(tmp_down_vector[i], m_proxy_instances.size() - 1));
-        //}
+    //HC_LOG_DEBUG("add a new downstream interface; pointer: " << msg.msg);
+    //cout << "add a new downstream interface" << endl;
+    //cout << "proxy.cpp: msg.msg: " << msg.msg << " msg.msg.get(): " << msg.msg.get() << endl;
+    //p->add_msg(msg);
+    //m_interface_map.insert(interface_pair(tmp_down_vector[i], m_proxy_instances.size() - 1));
+    //}
     //}
 
     return false;
@@ -288,28 +262,28 @@ bool proxy::start()
     //up_down_map::iterator it_up_down;
 
     //for (it_up_down = m_up_down_map.begin() ; it_up_down != m_up_down_map.end(); it_up_down++) {
-        //down_vector tmp_down_vector = it_up_down->second;
-        //for (unsigned int i = 0; i < tmp_down_vector.size(); i++) {
-            //if_list_tmp.push_back(tmp_down_vector[i]);
-        //}
+    //down_vector tmp_down_vector = it_up_down->second;
+    //for (unsigned int i = 0; i < tmp_down_vector.size(); i++) {
+    //if_list_tmp.push_back(tmp_down_vector[i]);
+    //}
     //}
 
     ////init status
     ////del all down interfaces
     //if_list_tmp = check_interface.init(if_list_tmp, m_addr_family);
     //for (vector<int>::iterator i = if_list_tmp.begin(); i != if_list_tmp.end(); i++) {
-        //if ((it_vif = m_vif_map.find(*i)) == m_vif_map.end()) {
-            //HC_LOG_ERROR("failed to find vif form if_index: " << *i);
-            //return false;
-        //}
+    //if ((it_vif = m_vif_map.find(*i)) == m_vif_map.end()) {
+    //HC_LOG_ERROR("failed to find vif form if_index: " << *i);
+    //return false;
+    //}
 
-        //if ((it_proxy_numb = m_interface_map.find(*i)) == m_interface_map.end()) {
-            //HC_LOG_ERROR("failed to find proxy instance form if_index: " << *i);
-            //return false;
-        //}
+    //if ((it_proxy_numb = m_interface_map.find(*i)) == m_interface_map.end()) {
+    //HC_LOG_ERROR("failed to find proxy instance form if_index: " << *i);
+    //return false;
+    //}
 
-        //msg.msg = new config_msg(config_msg::DEL_DOWNSTREAM, *i, it_vif->second);
-        //m_proxy_instances[it_proxy_numb->second]->add_msg(msg);
+    //msg.msg = new config_msg(config_msg::DEL_DOWNSTREAM, *i, it_vif->second);
+    //m_proxy_instances[it_proxy_numb->second]->add_msg(msg);
     //}
 
 
@@ -318,69 +292,69 @@ bool proxy::start()
     //proxy::m_running = true;
     //while (proxy::m_running) {
 
-        //usleep(4000000);
-        //alive_time += 1;
+    //usleep(4000000);
+    //alive_time += 1;
 
-        //if (m_print_status) {
-            //debug_msg::lod lod = debug_msg::NORMAL;
-            //if (m_verbose_lvl == 0) {
-                //lod = debug_msg::NORMAL;
-            //} else if (m_verbose_lvl == 1) {
-                //lod = debug_msg::MORE;
-            //} else if (m_verbose_lvl >= 2) {
-                //lod = debug_msg::MORE_MORE;
-            //}
+    //if (m_print_status) {
+    //debug_msg::lod lod = debug_msg::NORMAL;
+    //if (m_verbose_lvl == 0) {
+    //lod = debug_msg::NORMAL;
+    //} else if (m_verbose_lvl == 1) {
+    //lod = debug_msg::MORE;
+    //} else if (m_verbose_lvl >= 2) {
+    //lod = debug_msg::MORE_MORE;
+    //}
 
-            //cout << "alive time: " << alive_time << endl;
+    //cout << "alive time: " << alive_time << endl;
 
-            //msg.type = proxy_msg::DEBUG_MSG;
-            //msg.msg = new debug_msg(lod, m_proxy_instances.size(), PROXY_DEBUG_MSG_TIMEOUT);
+    //msg.type = proxy_msg::DEBUG_MSG;
+    //msg.msg = new debug_msg(lod, m_proxy_instances.size(), PROXY_DEBUG_MSG_TIMEOUT);
 
-            //for (unsigned int i = 0; i < m_proxy_instances.size(); i++) {
-                //m_proxy_instances[i]->add_msg(msg);
-            //}
+    //for (unsigned int i = 0; i < m_proxy_instances.size(); i++) {
+    //m_proxy_instances[i]->add_msg(msg);
+    //}
 
-            //debug_msg* dm = (debug_msg*)msg.msg.get();
-            //dm->join_debug_msg();
-            //cout << dm->get_debug_msg() << endl;
-        //}
+    //debug_msg* dm = (debug_msg*)msg.msg.get();
+    //dm->join_debug_msg();
+    //cout << dm->get_debug_msg() << endl;
+    //}
 
-        //check_interface.check();
-        ////calc swap_to_down interfaces
-        //if_list_tmp = check_interface.swap_to_down();
-        //for (vector<int>::iterator i = if_list_tmp.begin(); i < if_list_tmp.end(); i++) {
-            //if ((it_vif = m_vif_map.find(*i)) == m_vif_map.end()) {
-                //HC_LOG_ERROR("failed to find vif form if_index: " << *i);
-                //return false;
-            //}
+    //check_interface.check();
+    ////calc swap_to_down interfaces
+    //if_list_tmp = check_interface.swap_to_down();
+    //for (vector<int>::iterator i = if_list_tmp.begin(); i < if_list_tmp.end(); i++) {
+    //if ((it_vif = m_vif_map.find(*i)) == m_vif_map.end()) {
+    //HC_LOG_ERROR("failed to find vif form if_index: " << *i);
+    //return false;
+    //}
 
-            //if ((it_proxy_numb = m_interface_map.find(*i)) == m_interface_map.end()) {
-                //HC_LOG_ERROR("failed to find proxy instance form if_index: " << *i);
-                //return false;
-            //}
+    //if ((it_proxy_numb = m_interface_map.find(*i)) == m_interface_map.end()) {
+    //HC_LOG_ERROR("failed to find proxy instance form if_index: " << *i);
+    //return false;
+    //}
 
-            //msg.type = proxy_msg::CONFIG_MSG;
-            //msg.msg = new config_msg(config_msg::DEL_DOWNSTREAM, *i, it_vif->second);
-            //m_proxy_instances[it_proxy_numb->second]->add_msg(msg);
-        //}
+    //msg.type = proxy_msg::CONFIG_MSG;
+    //msg.msg = new config_msg(config_msg::DEL_DOWNSTREAM, *i, it_vif->second);
+    //m_proxy_instances[it_proxy_numb->second]->add_msg(msg);
+    //}
 
-        ////calc swap_to_up interfaces
-        //if_list_tmp = check_interface.swap_to_up();
-        //for (vector<int>::iterator i = if_list_tmp.begin(); i < if_list_tmp.end(); i++) {
-            //if ((it_vif = m_vif_map.find(*i)) == m_vif_map.end()) {
-                //HC_LOG_ERROR("failed to find vif form if_index: " << *i);
-                //return false;
-            //}
+    ////calc swap_to_up interfaces
+    //if_list_tmp = check_interface.swap_to_up();
+    //for (vector<int>::iterator i = if_list_tmp.begin(); i < if_list_tmp.end(); i++) {
+    //if ((it_vif = m_vif_map.find(*i)) == m_vif_map.end()) {
+    //HC_LOG_ERROR("failed to find vif form if_index: " << *i);
+    //return false;
+    //}
 
-            //if ((it_proxy_numb = m_interface_map.find(*i)) == m_interface_map.end()) {
-                //HC_LOG_ERROR("failed to find proxy instance form if_index: " << *i);
-                //return false;
-            //}
+    //if ((it_proxy_numb = m_interface_map.find(*i)) == m_interface_map.end()) {
+    //HC_LOG_ERROR("failed to find proxy instance form if_index: " << *i);
+    //return false;
+    //}
 
-            //msg.type = proxy_msg::CONFIG_MSG;
-            //msg.msg = new config_msg(config_msg::ADD_DOWNSTREAM, *i, it_vif->second);
-            //m_proxy_instances[it_proxy_numb->second]->add_msg(msg);
-        //}
+    //msg.type = proxy_msg::CONFIG_MSG;
+    //msg.msg = new config_msg(config_msg::ADD_DOWNSTREAM, *i, it_vif->second);
+    //m_proxy_instances[it_proxy_numb->second]->add_msg(msg);
+    //}
     //}
 
 
@@ -406,14 +380,14 @@ void proxy::stop()
 
     //HC_LOG_DEBUG("kill worker thread proxy_instance");
     //for (unsigned int i = 0; i < m_proxy_instances.size(); i++) {
-        //m_proxy_instances[i]->add_msg(m);
+    //m_proxy_instances[i]->add_msg(m);
     //}
 
     //for (unsigned int i = 0; i < m_proxy_instances.size(); i++) {
-        //HC_LOG_DEBUG("join worker thread proxy_instance.");
-        //m_proxy_instances[i]->join();
-        //HC_LOG_DEBUG("joined.");
-        //delete m_proxy_instances[i];
+    //HC_LOG_DEBUG("join worker thread proxy_instance.");
+    //m_proxy_instances[i]->join();
+    //HC_LOG_DEBUG("joined.");
+    //delete m_proxy_instances[i];
     //}
 
     //timing* tim = timing::getInstance();
