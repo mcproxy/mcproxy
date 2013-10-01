@@ -77,6 +77,9 @@ public:
 
     const upstream_downstream_map& get_upstream_downstream_map() const;
     const shared_ptr<const interfaces> get_interfaces() const;
+
+    int get_addr_family() const;
+    int get_version() const;
 };
 
 #endif // PROXY_CONFIGURATION_HPP

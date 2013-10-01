@@ -473,7 +473,7 @@ void addr_storage::test_addr_storage_a()
     in_addr4 = s4.get_in_addr();
     in_addr6 = s6.get_in6_addr();
 
-    if (!inet_pton(AF_INET6, addr6.c_str(), (void*)&in_addr6tmp) > 0) {
+    if (inet_pton(AF_INET6, addr6.c_str(), (void*)&in_addr6tmp) <= 0) {
         cout << "Error convert " << addr6 << " to in6_addr FAILED! " << endl;
     }
 

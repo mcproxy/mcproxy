@@ -34,7 +34,6 @@
 #include "include/proxy/timers_values.hpp"
 
 #include <iostream>
-using namespace std;
 
 void test_log();
 void test_mctables();
@@ -72,15 +71,12 @@ void test_mcproxy(int arg_count, char* args[])
 {
     hc_set_default_log_fun(HC_LOG_ERROR_LVL);
 
-    proxy p;
-    if (p.init(arg_count, args)) {
-        cout << "Mcproxy started." << endl;
-        cout << p.get_state_table() << endl;
-        p.start();
-        p.stop();
-    } else {
-        cout << "Mcproxy stopped! For more informations see log files if it had run in debug mode." << endl;
+    try {
+        proxy p(arg_count, args);
+    } catch (const char* e) {
+        std::cout << e << std::endl;        
     }
+
 }
 
 void test_test()
@@ -88,11 +84,11 @@ void test_test()
     //mc_socket::test_all();
     //addr_storage::test_addr_storage_a();
     //addr_storage::test_addr_sto_b();
-    //membership_db::test_arithmetic(); 
+    //membership_db::test_arithmetic();
     //querier::test_querier(AF_INET, "dummy0");
     //timers_values::test_timers_values();
     timing::test_timing();
 
 
-    
+
 }

@@ -337,3 +337,16 @@ const shared_ptr<const interfaces> proxy_configuration::get_interfaces() const
     HC_LOG_TRACE("");
     return m_interfaces;
 }
+
+int proxy_configuration::get_addr_family() const
+{
+    HC_LOG_TRACE("");
+    return m_addr_family;
+}
+
+int proxy_configuration::get_version() const
+{
+    HC_LOG_TRACE("");
+    return m_version;
+}
+

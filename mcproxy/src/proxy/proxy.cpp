@@ -34,9 +34,13 @@ using namespace std;
 
 bool proxy::m_running = false;
 
-proxy::proxy(int arg_count, char* args[]):
-    m_verbose_lvl(0), m_print_proxy_status(false), m_rest_rp_filter(false),
-    m_config_path(PROXY_CONFIGURATION_DEFAULT_CONIG_PATH), m_proxy_configuration(nullptr)
+proxy::proxy(int arg_count, char* args[])
+    : m_verbose_lvl(0)
+    , m_print_proxy_status(false)
+    , m_rest_rp_filter(false)
+    , m_config_path(PROXY_CONFIGURATION_DEFAULT_CONIG_PATH)
+    , m_proxy_configuration(nullptr)
+    , m_timing(std::make_shared<timing>())
 {
     HC_LOG_TRACE("");
 
@@ -55,9 +59,10 @@ proxy::proxy(int arg_count, char* args[]):
     m_proxy_configuration.reset(new proxy_configuration(m_config_path, m_rest_rp_filter));
 
     if (!start_proxy_instances()) {
-        return false;
+        throw "failed to start a proxy instance";
     }
 
+    start();
 }
 
 
@@ -157,7 +162,7 @@ void proxy::prozess_commandline_args(int arg_count, char* args[])
     }
 
     //untestestd ???????????????????????
-    if (optind <  arg_count) {
+    if (optind < arg_count) {
         HC_LOG_ERROR("Unknown option argument: " << args[optind]);
         throw "Unknown option argument";
     }
@@ -186,12 +191,17 @@ bool proxy::start_proxy_instances()
 {
     HC_LOG_TRACE("");
 
-    //proxy_msg msg;
-    //up_down_map::iterator it_up_down;
-    //vif_map::iterator it_vif;
-    //int upstream_vif;
-    //int downstream_vif;
+    auto& db =m_proxy_configuration->get_upstream_downstream_map();
+    for(auto& e: db){
+        int table = e.first;
+        unsigned int upstream = e.first;
+        auto& downstreams = e.second;         
+        //std::unique_ptr<proxy_instance> instance = new proxy_instance(m_proxy_configuration->get_addr_family(), m_proxy_configuration->get_interfaces(), m_timing);
+        
+    //proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces> interfaces, const std::shared_ptr<timing> shared_timing);
+        
 
+    }
 
     //for ( it_up_down = m_up_down_map.begin() ; it_up_down != m_up_down_map.end(); it_up_down++ ) {
     //down_vector tmp_down_vector = it_up_down->second;
@@ -364,35 +374,6 @@ bool proxy::start()
 
 void proxy::signal_handler(int)
 {
-    HC_LOG_TRACE("");
-
-    //HC_LOG_DEBUG("Signale: " << sys_siglist[sig] << " received");
     proxy::m_running = false;
-}
-
-
-void proxy::stop()
-{
-    HC_LOG_TRACE("");
-
-    //proxy_msg m;
-    //m.type = proxy_msg::EXIT_CMD;
-
-    //HC_LOG_DEBUG("kill worker thread proxy_instance");
-    //for (unsigned int i = 0; i < m_proxy_instances.size(); i++) {
-    //m_proxy_instances[i]->add_msg(m);
-    //}
-
-    //for (unsigned int i = 0; i < m_proxy_instances.size(); i++) {
-    //HC_LOG_DEBUG("join worker thread proxy_instance.");
-    //m_proxy_instances[i]->join();
-    //HC_LOG_DEBUG("joined.");
-    //delete m_proxy_instances[i];
-    //}
-
-    //timing* tim = timing::getInstance();
-    //tim->stop();
-    //tim->join();
-
 }
 
