@@ -31,25 +31,12 @@
 #ifndef PROXY_HPP
 #define PROXY_HPP
 
-#include "include/utils/addr_storage.hpp"
 #include "include/proxy/proxy_instance.hpp"
-#include "include/proxy/receiver.hpp"
+#include "include/proxy/proxy_configuration.hpp"
 
-#include <map>
 #include <vector>
 #include <string>
-
-//--------------------------------------------------
-
-
-//--------------------------------------------------
-
-/**
- * @brief If s proxy instance in the timeout time dont react to an debug message it will be ignored.
- */
-#define PROXY_DEBUG_MSG_TIMEOUT 3000 //msec
-
-
+#include <memory>
 
 /**
   * @brief Instanced the multicast proxy
@@ -57,29 +44,19 @@
 class proxy
 {
 private:
-    //control data
     static bool m_running;
     int m_verbose_lvl;
-    bool m_print_status;
-
-
-    string m_config_path;
-
-    //--
-    vector<proxy_instance*> m_proxy_instances;
-    interface_map m_interface_map;
-    up_down_map m_up_down_map;
-
-
+    bool m_print_proxy_status;
     bool m_rest_rp_filter;
+    std::string m_config_path;
 
-    vector<int> all_if_to_list();
+    std::unique_ptr<proxy_configuration> m_proxy_configuration;        
 
-    //##############
-    //##-- Init --##
-    //##############
+    
+    vector<proxy_instance*> m_proxy_instances;
 
-    bool prozess_commandline_args(int arg_count, char* args[]);
+
+    void prozess_commandline_args(int arg_count, char* args[]);
     void help_output();
 
 
@@ -92,31 +69,21 @@ private:
     static void signal_handler(int sig);
     void close();
 
+    void start();
+    void stop();
+    void join();
 
 public:
     /**
      * @brief Set default values of the class members and add signal handlers for the signal SIGINT and SIGTERM.
      */
-    proxy();
+    proxy(int arg_count, char* args[]);
 
     /**
      * @brief Release all resources and restore reverse path flags if changed.
      */
     virtual ~proxy();
 
-
-    bool init(int arg_count, char* args[]);
-
-    /**
-     * @brief Start the proxy.
-     * @return Return true on success.
-     */
-    bool start();
-
-    /**
-     * @brief Stop the proxy.
-     */
-    void stop();
 };
 
 #endif // PROXY_HPP

@@ -24,87 +24,36 @@
 
 #include "include/hamcast_logging.h"
 #include "include/proxy/proxy.hpp"
-#include "include/proxy/routing.hpp"
-#include "include/proxy/igmp_receiver.hpp"
-#include "include/proxy/mld_receiver.hpp"
-#include "include/proxy/timing.hpp"
-#include "include/proxy/check_if.hpp"
 #include "include/proxy/check_kernel.hpp"
 
-#include <linux/mroute.h>
-#include <linux/mroute6.h>
-#include <sstream>
-#include <net/if.h>
-#include <fstream>
-#include <string>
-#include <vector>
 #include <iostream>
 #include <signal.h>
-
 #include <unistd.h>
 
 using namespace std;
 
 bool proxy::m_running = false;
 
-proxy::proxy():
-    m_is_single_instance(true), m_verbose_lvl(0), m_print_status(false), m_rest_rp_filter(false),
-    m_config_path(PROXY_DEFAULT_CONIG_PATH) , m_addr_family(AF_INET), m_version(2)
+proxy::proxy(int arg_count, char* args[]):
+    m_verbose_lvl(0), m_print_proxy_status(false), m_rest_rp_filter(false),
+    m_config_path(PROXY_CONFIGURATION_DEFAULT_CONIG_PATH), m_proxy_configuration(nullptr)
 {
     HC_LOG_TRACE("");
 
     signal(SIGINT, proxy::signal_handler);
     signal(SIGTERM, proxy::signal_handler);
-}
 
-proxy::~proxy()
-{
-    HC_LOG_TRACE("");
-
-    close();
-}
-
-
-
-vector<int> proxy::all_if_to_list()
-{
-    HC_LOG_TRACE("");
-
-    vector<int> interface_list;
-
-    up_down_map::iterator it_up_down;
-
-    for ( it_up_down = m_up_down_map.begin() ; it_up_down != m_up_down_map.end(); it_up_down++ ) {
-        interface_list.push_back(it_up_down->first);
-
-        down_vector tmp_down_vector = it_up_down->second;
-        for (unsigned int i = 0; i < tmp_down_vector.size(); i++) {
-            interface_list.push_back(tmp_down_vector[i]);
-        }
-    }
-
-    return interface_list;
-}
-
-
-
-
-bool proxy::init(int arg_count, char* args[])
-{
-    HC_LOG_TRACE("");
-
-    if (!prozess_commandline_args(arg_count, args)) {
-        return false;
-    }
+    prozess_commandline_args(arg_count, args);
 
     //admin test
     // Check root privilegis
     if (geteuid() != 0) {  //no root privilegis
         HC_LOG_ERROR("The mcproxy has to be started with root privileges!");
-        cout << "The mcproxy has to be started with root privileges!" << endl;
-        return false;
+        throw "The mcproxy has to be started with root privileges!";
     }
 
+
+    ???????????
     if (!load_config(m_config_path)) {
         return false;
     }
@@ -137,8 +86,21 @@ bool proxy::init(int arg_count, char* args[])
     return true;
 }
 
+void proxy::close()
+{
+    HC_LOG_TRACE("");
+}
+
+proxy::~proxy()
+{
+    HC_LOG_TRACE("");
+
+    close();
+}
+
 void proxy::help_output()
 {
+    using namespace std;
     HC_LOG_TRACE("");
     cout << "Mcproxy version 0.1.5" << endl;
 
@@ -179,7 +141,7 @@ void proxy::help_output()
     cout << "\t\tCheck the currently available kernel features." << endl;
 }
 
-bool proxy::prozess_commandline_args(int arg_count, char* args[])
+void proxy::prozess_commandline_args(int arg_count, char* args[])
 {
     HC_LOG_TRACE("");
 
@@ -193,7 +155,7 @@ bool proxy::prozess_commandline_args(int arg_count, char* args[])
             switch (c) {
             case 'h':
                 help_output();
-                return false;
+                throw "";
                 break;
             case 'c':
                 is_check_kernel = true;
@@ -205,7 +167,7 @@ bool proxy::prozess_commandline_args(int arg_count, char* args[])
                 is_logging = true;
                 break;
             case 's':
-                m_print_status = true;
+                m_print_proxy_status = true;
                 break;
             case 'v':
                 m_verbose_lvl++;
@@ -215,15 +177,12 @@ bool proxy::prozess_commandline_args(int arg_count, char* args[])
                     m_config_path = string(args[optind]);
                 } else {
                     HC_LOG_ERROR("no config path defined");
-                    cout << "no config path defined" << endl;
-                    return false;
+                    throw "no config path defined";
                 }
                 break;
             default:
                 HC_LOG_ERROR("Unknown argument! See help (-h) for more information.");
-                cout << "See help (-h) for more information." << endl;
-                return false;
-                break;
+                throw "Unknown argument! See help (-h) for more information.";
             }
         }
     }
@@ -238,18 +197,15 @@ bool proxy::prozess_commandline_args(int arg_count, char* args[])
             hc_set_default_log_fun(HC_LOG_TRACE_LVL);
         } else {
             HC_LOG_ERROR("Unknown verbose level: " << m_verbose_lvl);
-            return false;
+            throw "Unknown verbose level";
         }
     }
 
     if (is_check_kernel) {
         check_kernel ck;
         ck.check_kernel_features();
-        return false;
+        throw "";
     }
-
-    return true;
-
 }
 
 bool proxy::start_proxy_instances()
@@ -466,9 +422,3 @@ void proxy::stop()
 
 }
 
-void proxy::close()
-{
-    HC_LOG_TRACE("");
-
-    restore_rp_filter();
-}

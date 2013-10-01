@@ -64,8 +64,7 @@ private:
     upstream_downstream_map m_upstream_downstream_map;
 
     bool parse_config(const std::string& path);
-    bool check_interface_flags(upstream_downstream_map& udm); //check up and running flag, set multicast and allMulti flag
-    bool check_double_used_if(upstream_downstream_map& udm);
+    bool check_double_used_if(unsigned int if_index);
 
 public:
     proxy_configuration(const shared_ptr<interfaces> interfaces);
@@ -73,6 +72,12 @@ public:
 
     bool load_config(const std::string& path);
     std::string get_parsed_state() const;
+
+    bool add_downstream(unsigned int if_index_upstream, unsigned int if_index_downstream);
+    bool add_upstream(unsigned int if_index_upsteram);
+    bool del_downstream(unsigned int if_index_upstream, unsigned int if_index_downstream);
+    bool del_upstream(unsigned int if_index_upstream);
+    const upstream_downstream_map& get_upstream_downstream_map();
 };
 
 #endif // PROXY_CONFIGURATION_HPP
