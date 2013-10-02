@@ -144,7 +144,7 @@ void proxy::prozess_commandline_args(int arg_count, char* args[])
                 m_verbose_lvl++;
                 break;
             case 'f':
-                m_config_path = string(optarg);
+                m_config_path = std::string(optarg);
                 //if (args[optind][0] != '-') {
                 //m_config_path = string(args[optind]);
                 //} else {

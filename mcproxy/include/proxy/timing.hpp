@@ -48,7 +48,7 @@ class proxy_instance;
 using timing_db_value = std::tuple<proxy_instance*, proxy_msg>;
 using timing_db_key = std::chrono::time_point<std::chrono::steady_clock>;
 using timing_db = std::map<timing_db_key, timing_db_value>; 
-using timing_db_pair = pair<timing_db_key, timing_db_value>;
+using timing_db_pair = std::pair<timing_db_key, timing_db_value>;
 
 /**
  * @brief Organizes reminder.

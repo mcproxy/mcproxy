@@ -30,7 +30,6 @@
 #include <netinet/in.h>
 
 #include <iostream>
-using namespace std;
 
 /**
  * @brief Wrapper for ip an IP address storage.
@@ -176,7 +175,7 @@ public:
     /**
      * @brief return current port or return 0 if no port exist
      */
-    addr_storage& set_port(const string& port);
+    addr_storage& set_port(const std::string& port);
 
     /**
      * @brief return length of the address in byte or return 0 if no address family is available

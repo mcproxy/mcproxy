@@ -154,7 +154,7 @@ public:
      * @param data message to send
      * @return Return true on success.
      */
-    bool send_packet(const addr_storage& addr, string data) const;
+    bool send_packet(const addr_storage& addr, std::string data) const;
 
     /**
      * @brief Send data to a specific ip address and to a specific port.
@@ -290,11 +290,11 @@ public:
      * @param gaddr multicast address for example "239.99.99.99" or "FF02:0:0:0:99:99:99:99"
      * @param port define a port
      */
-    static void test_mc_group_functions(string ipversion, string msg, string interface, string gaddr, in_port_t port);
+    static void test_mc_group_functions(std::string ipversion, std::string msg, std::string interface, std::string gaddr, in_port_t port);
 
-    static void test_mc_source_delta_based_api(string ipversion, string interface, string gaddr, string saddr);
+    static void test_mc_source_delta_based_api(std::string ipversion, std::string interface, std::string gaddr, std::string saddr);
 
-    static void test_mc_source_advanced_api(string ipversion, string interface, string gaddr, string saddr_a, string saddr_b);
+    static void test_mc_source_advanced_api(std::string ipversion, std::string interface, std::string gaddr, std::string saddr_a, std::string saddr_b);
 
     static void test_all();
 };

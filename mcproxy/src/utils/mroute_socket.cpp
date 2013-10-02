@@ -491,7 +491,7 @@ bool mroute_socket::bind_vif_to_table(uint32_t if_index, int table) const
     std::ostringstream oss_in;
     std::ostringstream oss_out;
 
-    string cmd;
+    std::string cmd;
     if (m_addrFamily == AF_INET) {
         cmd = "ip mrule";
     } else if (m_addrFamily == AF_INET6) {
@@ -535,7 +535,7 @@ bool mroute_socket::unbind_vif_form_table(uint32_t if_index, int table) const
     std::ostringstream oss_in;
     std::ostringstream oss_out;
 
-    string cmd;
+    std::string cmd;
     if (m_addrFamily == AF_INET) {
         cmd = "ip mrule";
     } else if (m_addrFamily == AF_INET6) {
@@ -801,8 +801,9 @@ bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr
 
 void mroute_socket::print_vif_stats(vifi_t vif_index) const
 {
+    using namespace std;
     HC_LOG_TRACE("");
-
+    
     cout << "##-- vif stats --##" << endl;
     cout << " -vif_index:" << vif_index << endl;
 
@@ -834,6 +835,7 @@ void mroute_socket::print_vif_stats(vifi_t vif_index) const
 
 void mroute_socket::print_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr) const
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     cout << "##-- mroute states --##" << endl;
@@ -867,6 +869,7 @@ void mroute_socket::print_mroute_stats(const addr_storage& source_addr, const ad
 
 void mroute_socket::print_struct_mf6cctl(struct mf6cctl* mc)
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     char addressBuffer[INET6_ADDRSTRLEN];
@@ -1036,6 +1039,7 @@ void mroute_socket::test_mcrouter_mrt_flag()
 
 void mroute_socket::test_add_vifs(mroute_socket* m)
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     int if_one = MROUTE_SOCKET_IF_NUM_ONE;
@@ -1069,6 +1073,7 @@ void mroute_socket::test_add_vifs(mroute_socket* m)
 
 void mroute_socket::test_del_vifs(mroute_socket* m)
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     int if_one = MROUTE_SOCKET_IF_NUM_ONE;
@@ -1090,6 +1095,7 @@ void mroute_socket::test_del_vifs(mroute_socket* m)
 
 void mroute_socket::test_add_route(mroute_socket* m)
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     addr_storage src_addr;
@@ -1124,6 +1130,7 @@ void mroute_socket::test_add_route(mroute_socket* m)
 
 void mroute_socket::test_del_route(mroute_socket* m)
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     addr_storage src_addr;
@@ -1153,6 +1160,7 @@ void mroute_socket::test_del_route(mroute_socket* m)
 
 void mroute_socket::test_mcrouter_vifs_routes(int addrFamily)
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     mroute_socket m;

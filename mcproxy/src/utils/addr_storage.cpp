@@ -300,11 +300,11 @@ addr_storage& addr_storage::set_port(uint16_t port)
     return *this;
 }
 
-addr_storage& addr_storage::set_port(const string& port)
+addr_storage& addr_storage::set_port(const std::string& port)
 {
     HC_LOG_TRACE("");
 
-    set_port(stoi(port.c_str()));
+    set_port(std::stoi(port.c_str()));
     return *this;
 }
 
@@ -523,7 +523,7 @@ void addr_storage::test_addr_storage_a()
 void addr_storage::test_addr_storage_b()
 {
     HC_LOG_TRACE("");
-
+    using namespace std;
     const string s4("1.2.3.4");
     const string s6("1:2:3::4");
     const addr_storage a4(s4);

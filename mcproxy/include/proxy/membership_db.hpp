@@ -128,7 +128,7 @@ struct source {
     source();
     source(addr_storage a);
 
-    string to_string() const;
+    std::string to_string() const;
 
     bool operator==(const source& s) const;
 

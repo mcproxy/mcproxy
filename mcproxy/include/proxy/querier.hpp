@@ -49,7 +49,7 @@ private:
     bool init_db();
 
     //join all router groups or leave them
-    bool router_groups_function(function<bool(const std::shared_ptr<const sender>, int,addr_storage)> f);
+    bool router_groups_function(std::function<bool(const std::shared_ptr<const sender>, int,addr_storage)> f);
     void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
     void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
 public:
@@ -68,7 +68,7 @@ public:
     /**
      * @brief Test the functionality of the querier.
      */
-    static void test_querier(int addr_family, string if_name);
+    static void test_querier(int addr_family, std::string if_name);
     static void send_test_record(querier& q, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& saddr_list, int report_version);
 };
 

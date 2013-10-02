@@ -58,7 +58,7 @@ using upstream_downsteram_pair = std::pair<unsigned int, downstream_set>;
 class proxy_configuration
 {
 private:
-    shared_ptr<interfaces> m_interfaces;
+    std::shared_ptr<interfaces> m_interfaces;
     int m_addr_family; //AF_INET or AF_INET6
     int m_version; //for AF_INET (1,2,3) to use IGMPv1/2/3, for AF_INET6 (1,2) to use MLDv1/2
     upstream_downstream_map m_upstream_downstream_map;
@@ -76,7 +76,7 @@ public:
     bool del_upstream(unsigned int if_index_upstream);
 
     const upstream_downstream_map& get_upstream_downstream_map() const;
-    const shared_ptr<const interfaces> get_interfaces() const;
+    const std::shared_ptr<const interfaces> get_interfaces() const;
 
     int get_addr_family() const;
     int get_version() const;

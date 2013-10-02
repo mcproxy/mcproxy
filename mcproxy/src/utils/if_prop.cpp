@@ -72,15 +72,15 @@ bool if_prop::refresh_network_interfaces()
                     iter->second.ip4_addr = ifEntry;
                 }
             } else { //new interface
-                m_if_map.insert(if_prop_pair(ifEntry->ifa_name, ipv4_6_pair(ifEntry, list<const struct ifaddrs*>())));
+                m_if_map.insert(if_prop_pair(ifEntry->ifa_name, ipv4_6_pair(ifEntry, std::list<const struct ifaddrs*>())));
             }
         } else if (ifEntry->ifa_addr->sa_family == AF_INET6) {
             if_prop_map::iterator iter = m_if_map.find(ifEntry->ifa_name);
             if (iter != m_if_map.end()) { //existing interface
-                list<const struct ifaddrs*>* l = &iter->second.ip6_addr;
+                std::list<const struct ifaddrs*>* l = &iter->second.ip6_addr;
                 l->push_back(ifEntry);
             } else { //new interface
-                list<const struct ifaddrs*> l;
+                std::list<const struct ifaddrs*> l;
                 l.push_back(ifEntry);
                 m_if_map.insert(if_prop_pair(ifEntry->ifa_name, ipv4_6_pair(nullptr, l)));
             }
@@ -105,7 +105,7 @@ const if_prop_map* if_prop::get_if_props() const
     return &m_if_map;
 }
 
-const struct ifaddrs* if_prop::get_ip4_if(const string& if_name) const {
+const struct ifaddrs* if_prop::get_ip4_if(const std::string& if_name) const {
     HC_LOG_TRACE("");
 
     if (!is_getaddrs_valid()) {
@@ -121,7 +121,7 @@ const struct ifaddrs* if_prop::get_ip4_if(const string& if_name) const {
     return if_prop_iter->second.ip4_addr;
 }
 
-const list<const struct ifaddrs*>* if_prop::get_ip6_if(const string& if_name) const
+const std::list<const struct ifaddrs*>* if_prop::get_ip6_if(const std::string& if_name) const
 {
     HC_LOG_TRACE("");
 
@@ -140,6 +140,7 @@ const list<const struct ifaddrs*>* if_prop::get_ip6_if(const string& if_name) co
 
 void if_prop::print_if_addr(const struct ifaddrs* if_p) const
 {
+    using namespace std;
     cout << "\tif name: " << if_p->ifa_name << endl;
     cout << "\t- addr: " << addr_storage(*if_p->ifa_addr) << endl;
     cout << "\t- netmask: " << addr_storage(*if_p->ifa_netmask) << endl;
@@ -183,6 +184,7 @@ void if_prop::print_if_addr(const struct ifaddrs* if_p) const
 
 void if_prop::print_if_info() const
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     if (!is_getaddrs_valid()) {
@@ -236,6 +238,7 @@ if_prop::~if_prop()
 
 void if_prop::test_if_prop()
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     if_prop p;

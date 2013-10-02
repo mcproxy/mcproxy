@@ -38,9 +38,9 @@
 #include <net/if.h>
 
 
-std::string ipAddrResolver(string ipAddr)
+std::string ipAddrResolver(std::string ipAddr)
 {
-    string str[][2] = {
+    std::string str[][2] = {
         {IPV4_IGMPV3_ADDR, "IPV4_IGMPV3_ADDR"},
         {IPV4_ALL_HOST_ADDR, "IPV4_ALL_HOST_ADDR"},
         {IPV4_ALL_IGMP_ROUTERS_ADDR, "IPV4_ALL_ROUTERS_ADDR"},
@@ -61,7 +61,7 @@ std::string ipAddrResolver(string ipAddr)
         }
     }
 
-    return string();
+    return std::string();
 }
 
 int family_to_level(int family)
@@ -240,7 +240,7 @@ bool mc_socket::set_loop_back(bool enable) const
     }
 }
 
-bool mc_socket::send_packet(const addr_storage& addr, string data) const
+bool mc_socket::send_packet(const addr_storage& addr, std::string data) const
 {
     return send_packet(addr, reinterpret_cast<const unsigned char*>(data.c_str()), data.size());
 }
@@ -641,6 +641,7 @@ bool mc_socket::get_source_filter(uint32_t if_index, const addr_storage& gaddr, 
 
 void mc_socket::print_source_filter(uint32_t if_index, const addr_storage& gaddr) const
 {
+    using namespace std;
     HC_LOG_TRACE("");
     char if_name[IF_NAMESIZE];
     if_indextoname(if_index, if_name);
@@ -680,8 +681,9 @@ void mc_socket::print_source_filter(uint32_t if_index, const addr_storage& gaddr
 
 }
 
-void mc_socket::test_mc_group_functions(string ipversion, string msg, string interface, string gaddr, in_port_t port)
+void mc_socket::test_mc_group_functions(std::string ipversion, std::string msg, std::string interface, std::string gaddr, in_port_t port)
 {
+    using namespace std;
     HC_LOG_TRACE("");
     cout << "##-- Test multicast group managment functions --##" << endl;
     mc_socket m;
@@ -736,8 +738,9 @@ void mc_socket::test_mc_group_functions(string ipversion, string msg, string int
 
 }
 
-void mc_socket::test_mc_source_delta_based_api(string ipversion, string interface, string gaddr, string saddr)
+void mc_socket::test_mc_source_delta_based_api(std::string ipversion, std::string interface, std::string gaddr, std::string saddr)
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     cout << "##-- Test multicast source delta based api --##" << endl;
@@ -812,11 +815,12 @@ void mc_socket::test_mc_source_delta_based_api(string ipversion, string interfac
     sleep(sleepTime);
 }
 
-void mc_socket::test_mc_source_advanced_api(string ipversion, string interface, string gaddr, string saddr_a, string saddr_b)
+void mc_socket::test_mc_source_advanced_api(std::string ipversion, std::string interface, std::string gaddr, std::string saddr_a, std::string saddr_b)
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
-    cout << "##-- Test multicast source advanced api --##" << endl;
+    std::cout << "##-- Test multicast source advanced api --##" << std::endl;
     mc_socket m;
     int count = 0;
     int sleepTime = 2;
@@ -907,7 +911,7 @@ void mc_socket::test_all()
     addr_storage saddr_v4a("141.22.0.2");
     addr_storage saddr_v6("FE80:5E26::1");
     addr_storage saddr_v6a("FE80:5E26::2");
-    string if_name("dummy0");
+    std::string if_name("dummy0");
 
     int port = 9845;
 

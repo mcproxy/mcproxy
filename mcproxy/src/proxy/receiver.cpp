@@ -88,14 +88,14 @@ void receiver::worker_thread()
     //create msg
     //iov
 
-    unique_ptr<unsigned char[]> iov_buf { new unsigned char[get_iov_min_size()] };
+    std::unique_ptr<unsigned char[]> iov_buf { new unsigned char[get_iov_min_size()] };
     //unsigned char iov_buf[r->get_iov_min_size()];
     struct iovec iov;
     iov.iov_base = iov_buf.get();
     iov.iov_len = get_iov_min_size(); //sizeof(iov_buf);
 
     //control
-    unique_ptr<unsigned char[]> ctrl { new unsigned char[get_ctrl_min_size()] };
+    std::unique_ptr<unsigned char[]> ctrl { new unsigned char[get_ctrl_min_size()] };
     //unsigned char ctrl[r->get_ctrl_min_size()];
 
     //create msghdr

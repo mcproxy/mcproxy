@@ -226,7 +226,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     }
 }
 
-bool querier::router_groups_function(function<bool(const std::shared_ptr<const sender>, int, addr_storage)> f)
+bool querier::router_groups_function(std::function<bool(const std::shared_ptr<const sender>, int, addr_storage)> f)
 {
     HC_LOG_TRACE("");
 
@@ -251,9 +251,11 @@ bool querier::router_groups_function(function<bool(const std::shared_ptr<const s
     return rc;
 }
 
-void querier::test_querier(int addr_family, string if_name)
+void querier::test_querier(int addr_family, std::string if_name)
 {
-    std::cout << "##-- querier test on interface " << if_name << " --##" << std::endl;
+
+    using namespace std;
+    cout << "##-- querier test on interface " << if_name << " --##" << endl;
 
     std::shared_ptr<igmp_sender> s = make_shared<igmp_sender>();
     querier q(AF_INET, if_nametoindex(if_name.c_str()), s);
