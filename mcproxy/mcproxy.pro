@@ -85,9 +85,9 @@ HEADERS += include/hamcast_logging.h \
            include/proxy/interfaces.hpp \
            include/proxy/proxy_configuration.hpp
 
-LIBS += -L/usr/lib -lboost_thread \
-        -lboost_date_time \
-        -lboost_system
+;LIBS += -L/usr/lib -lboost_thread \
+        ;-lboost_date_time \
+        ;-lboost_system
 
 QMAKE_CLEAN += $$TARGET
 QMAKE_CLEAN += thread* 
