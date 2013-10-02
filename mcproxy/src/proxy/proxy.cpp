@@ -30,8 +30,6 @@
 #include <signal.h>
 #include <unistd.h>
 
-using namespace std;
-
 bool proxy::m_running = false;
 
 proxy::proxy(int arg_count, char* args[])

@@ -37,8 +37,7 @@
 
 #include <cstring>
 #include <iostream>
-
-using namespace std;
+#include <sstream>
 
 mroute_socket::mroute_socket()
 {
@@ -489,8 +488,8 @@ bool mroute_socket::bind_vif_to_table(uint32_t if_index, int table) const
         return false;
     }
 
-    ostringstream oss_in;
-    ostringstream oss_out;
+    std::ostringstream oss_in;
+    std::ostringstream oss_out;
 
     string cmd;
     if (m_addrFamily == AF_INET) {
@@ -533,8 +532,8 @@ bool mroute_socket::unbind_vif_form_table(uint32_t if_index, int table) const
         return false;
     }
 
-    ostringstream oss_in;
-    ostringstream oss_out;
+    std::ostringstream oss_in;
+    std::ostringstream oss_out;
 
     string cmd;
     if (m_addrFamily == AF_INET) {
@@ -891,7 +890,7 @@ void mroute_socket::print_struct_mf6cctl(struct mf6cctl* mc)
 void mroute_socket::test_mcrouter_mrt_flag()
 {
     HC_LOG_TRACE("");
-
+    using namespace std;
     int sleepTime = 1;
     mroute_socket m;
     mroute_socket m1;

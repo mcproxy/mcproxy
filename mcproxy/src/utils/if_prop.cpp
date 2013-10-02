@@ -32,8 +32,6 @@
 #include <unistd.h>
 #include <iostream>
 
-//using namespace std;
-
 if_prop::if_prop():
     m_if_addrs(0)
 {
@@ -68,8 +66,7 @@ bool if_prop::refresh_network_interfaces()
             if_prop_map::iterator iter = m_if_map.find(ifEntry->ifa_name);
             if (iter != m_if_map.end()) { //existing interface
                 if (iter->second.ip4_addr != nullptr) {
-                    HC_LOG_WARN("more than one ipv4 address for one interface configurated! used:" << addr_storage(*
-                                (iter->second.ip4_addr->ifa_addr)) << "; don't used:" << addr_storage(*(ifEntry->ifa_addr)) << ";");
+                    HC_LOG_WARN("more than one ipv4 address for one interface configurated! used:" << addr_storage(* (iter->second.ip4_addr->ifa_addr)) << "; don't used:" << addr_storage(*(ifEntry->ifa_addr)) << ";");
                     //return false;
                 } else {
                     iter->second.ip4_addr = ifEntry;

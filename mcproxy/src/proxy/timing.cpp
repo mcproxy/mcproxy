@@ -142,15 +142,15 @@ void timing::test_timing()
     timing t;
 
     cout << "add test message 1 (5sec) " << endl;
-    t.add_time(std::chrono::seconds(5), nullptr, test_msg(1));
+    t.add_time(std::chrono::seconds(5), nullptr, test_msg(1,proxy_msg::SYSTEMIC));
     cout << "add test message 2 (7sec) " << endl;
-    t.add_time(std::chrono::seconds(7), nullptr, test_msg(2));
+    t.add_time(std::chrono::seconds(7), nullptr, test_msg(2,proxy_msg::SYSTEMIC));
     cout << "add test message 3 (1sec) " << endl;
-    t.add_time(std::chrono::seconds(1), nullptr, test_msg(3));
+    t.add_time(std::chrono::seconds(1), nullptr, test_msg(3,proxy_msg::SYSTEMIC));
     cout << "add test message 4 (1msec) " << endl;
-    t.add_time(std::chrono::milliseconds(1), nullptr, test_msg(4));
+    t.add_time(std::chrono::milliseconds(1), nullptr, test_msg(4,proxy_msg::SYSTEMIC));
     cout << "add test message 5 (1msec) " << endl;
-    t.add_time(std::chrono::milliseconds(1), nullptr, test_msg(5));
+    t.add_time(std::chrono::milliseconds(1), nullptr, test_msg(5,proxy_msg::SYSTEMIC));
 
     sleep(10);
     cout << "finished" << endl;

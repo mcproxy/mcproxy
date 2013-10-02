@@ -38,9 +38,7 @@
 #include <net/if.h>
 
 
-using namespace std;
-
-string ipAddrResolver(string ipAddr)
+std::string ipAddrResolver(string ipAddr)
 {
     string str[][2] = {
         {IPV4_IGMPV3_ADDR, "IPV4_IGMPV3_ADDR"},

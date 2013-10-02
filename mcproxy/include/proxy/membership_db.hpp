@@ -41,7 +41,6 @@ template<typename T> using source_list = std::set<T>;
 template<typename T>
 inline source_list<T>& operator+=(source_list<T>& l, const source_list<T>& r)
 {
-    using namespace std;
     l.insert(r.cbegin(), r.cend());
     return l;
 }
@@ -49,7 +48,6 @@ inline source_list<T>& operator+=(source_list<T>& l, const source_list<T>& r)
 template<typename T>
 inline source_list<T> operator+(const source_list<T>& l, const source_list<T>& r)
 {
-    using namespace std;
     source_list<T> new_sl(l);
     new_sl += r;
     return new_sl;
@@ -59,11 +57,10 @@ inline source_list<T> operator+(const source_list<T>& l, const source_list<T>& r
 template<typename T>
 inline source_list<T>& operator*=(source_list<T>& l, const source_list<T>& r)
 {
-    using namespace std;
-    auto cur_l = begin(l);
-    auto cur_r = begin(r);
+    auto cur_l = std::begin(l);
+    auto cur_r = std::begin(r);
 
-    while (cur_l != end(l) && cur_r != end(r)) {
+    while (cur_l != std::end(l) && cur_r != std::end(r)) {
         if (*cur_l == *cur_r) {
             cur_l++;
             cur_r++;
@@ -74,8 +71,8 @@ inline source_list<T>& operator*=(source_list<T>& l, const source_list<T>& r)
         }
     }
 
-    if (cur_l != end(l)) {
-        l.erase(cur_l, end(l));
+    if (cur_l != std::end(l)) {
+        l.erase(cur_l, std::end(l));
     }
 
     return l;
@@ -84,7 +81,6 @@ inline source_list<T>& operator*=(source_list<T>& l, const source_list<T>& r)
 template<typename T>
 inline source_list<T> operator*(const source_list<T>& l, const source_list<T>& r)
 {
-    using namespace std;
     source_list<T> new_sl(l);
     new_sl *= r;
     return new_sl;
@@ -94,8 +90,6 @@ inline source_list<T> operator*(const source_list<T>& l, const source_list<T>& r
 template<typename T>
 inline source_list<T>& operator-=(source_list<T>& l, const source_list<T>& r)
 {
-    using namespace std;
-
     for (auto e : r) {
         l.erase(e);
     }
@@ -106,7 +100,6 @@ inline source_list<T>& operator-=(source_list<T>& l, const source_list<T>& r)
 template<typename T>
 inline source_list<T> operator-(const source_list<T>& l, const source_list<T>& r)
 {
-    using namespace std;
     source_list<T> new_sl(l);
     new_sl -= r;
     return new_sl;
@@ -115,11 +108,10 @@ inline source_list<T> operator-(const source_list<T>& l, const source_list<T>& r
 template<typename T>
 inline std::ostream& operator<<(std::ostream& stream, const source_list<T> sl)
 {
-    using namespace std;
     int i = 1;
     for (auto e : sl) {
         if (i % 3 == 0 ) {
-            stream << endl << "\t";
+            stream << std::endl << "\t";
         }
         stream << e << "; ";
         i++;

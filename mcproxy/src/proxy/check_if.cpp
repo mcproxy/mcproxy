@@ -27,34 +27,31 @@
 #include <unistd.h>
 #include <iostream>
 
-using namespace std;
-
-
 check_if::check_if()
 {
     HC_LOG_TRACE("");
 }
 
-std::vector<int> check_if::init(vector<int>& check_lst, int addr_family)
+std::vector<int> check_if::init(std::vector<int>& check_lst, int addr_family)
 {
     HC_LOG_TRACE("");
 
     this->m_check_lst = check_lst;
     this->m_addr_family = addr_family;
 
-    vector<int> result;
+    std::vector<int> result;
     m_if_property_a.refresh_network_interfaces();
     m_current_prop = &m_if_property_a;
 
-    for (vector<int>::iterator i = m_check_lst.begin(); i != m_check_lst.end(); i++) {
+    for (std::vector<int>::iterator i = m_check_lst.begin(); i != m_check_lst.end(); i++) {
         char cstr[IF_NAMESIZE];
-        string if_name(if_indextoname(*i, cstr));
+        std::string if_name(if_indextoname(*i, cstr));
 
         const struct ifaddrs* prop;
         if (m_addr_family == AF_INET) {
             prop = m_current_prop->get_ip4_if(if_name);
         } else if (m_addr_family == AF_INET6) {
-            const list<const struct ifaddrs*>* ipv6_if_list = m_current_prop->get_ip6_if(if_name);
+            const std::list<const struct ifaddrs*>* ipv6_if_list = m_current_prop->get_ip6_if(if_name);
             prop = *(ipv6_if_list->begin());
         } else {
             HC_LOG_ERROR("wrong address family: " << addr_family);
@@ -89,9 +86,9 @@ bool check_if::check()
 
     m_current_prop->refresh_network_interfaces();
 
-    for (vector<int>::iterator i = m_check_lst.begin(); i != m_check_lst.end(); i++) {
+    for (std::vector<int>::iterator i = m_check_lst.begin(); i != m_check_lst.end(); i++) {
         char cstr[IF_NAMESIZE];
-        string if_name(if_indextoname(*i, cstr));
+        std::string if_name(if_indextoname(*i, cstr));
 
         const struct ifaddrs* prop_new = m_current_prop->get_ip4_if(if_name);
         const struct ifaddrs* prop_old = if_property_old->get_ip4_if(if_name);
@@ -100,8 +97,8 @@ bool check_if::check()
             prop_new = m_current_prop->get_ip4_if(if_name);
             prop_old = if_property_old->get_ip4_if(if_name);
         } else if (m_addr_family == AF_INET6) {
-            const list<const struct ifaddrs*>* ipv6_if_list_new = m_current_prop->get_ip6_if(if_name);
-            const list<const struct ifaddrs*>* ipv6_if_list_old = if_property_old->get_ip6_if(if_name);
+            const std::list<const struct ifaddrs*>* ipv6_if_list_new = m_current_prop->get_ip6_if(if_name);
+            const std::list<const struct ifaddrs*>* ipv6_if_list_old = if_property_old->get_ip6_if(if_name);
 
             prop_new = *(ipv6_if_list_new->begin());
             prop_old = *(ipv6_if_list_old->begin());
@@ -134,6 +131,7 @@ std::vector<int> check_if::swap_to_down()
 
 void check_if::test_check_if()
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     check_if c;

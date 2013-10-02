@@ -29,17 +29,15 @@
 #include <map>
 #include <ifaddrs.h>
 
-using namespace std;
-
 //typedef pair<struct ifaddrs*, list<struct ifaddrs*> > ipv4_6_pair;
 
 struct ipv4_6_pair {
 
 
     const struct ifaddrs* ip4_addr;
-    list<const struct ifaddrs*> ip6_addr;
+    std::list<const struct ifaddrs*> ip6_addr;
 
-    ipv4_6_pair(const struct ifaddrs* ip4_addr, list<const struct ifaddrs*> ip6_addr) {
+    ipv4_6_pair(const struct ifaddrs* ip4_addr, std::list<const struct ifaddrs*> ip6_addr) {
         this->ip4_addr = ip4_addr;
         this->ip6_addr = ip6_addr;
     }
@@ -47,8 +45,8 @@ struct ipv4_6_pair {
 };
 
 //map<if_name, <ipv4 struct, ipv6 struct list> >
-typedef map<string, ipv4_6_pair > if_prop_map;
-typedef pair<string, ipv4_6_pair >if_prop_pair;
+typedef std::map<std::string, ipv4_6_pair > if_prop_map;
+typedef std::pair<std::string, ipv4_6_pair >if_prop_pair;
 
 /**
  * @brief Prepare and organized the interface properties to a map data structure.
@@ -78,12 +76,12 @@ public:
     /**
      * @brief Get the ipv4 interface properties for a specific interface name.
      */
-    const struct ifaddrs* get_ip4_if(const string& if_name) const;
+    const struct ifaddrs* get_ip4_if(const std::string& if_name) const;
 
     /**
      * @brief Get the ipv6 interface properties for a specific interface name.
      */
-    const list<const struct ifaddrs* >* get_ip6_if(const string& if_name) const;
+    const std::list<const struct ifaddrs* >* get_ip6_if(const std::string& if_name) const;
 
     /**
      * @brief Print all available network interface information.
