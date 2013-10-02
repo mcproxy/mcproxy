@@ -24,12 +24,10 @@
 #ifndef ADDR_STORAGE_HPP
 #define ADDR_STORAGE_HPP
 
-#include <iostream>
 #include <sys/socket.h>
-#include <string>
 #include <netinet/in.h>
 
-#include <iostream>
+#include <string>
 
 /**
  * @brief Wrapper for ip an IP address storage.
@@ -41,6 +39,9 @@ private:
     inline void clean();
     inline socklen_t get_addr_len(int addr_family) const;
 public:
+    addr_storage(addr_storage&&) = default;
+    addr_storage& operator=(addr_storage&&) = default;
+
     /**
      * @brief Create an empty and invalid addr_storage.
      */

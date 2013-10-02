@@ -29,6 +29,7 @@
 #include <cstring>
 #include <string>
 #include <stdlib.h>
+#include <iostream>
 
 void addr_storage::clean()
 {
