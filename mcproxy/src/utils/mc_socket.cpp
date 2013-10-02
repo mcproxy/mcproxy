@@ -406,8 +406,7 @@ bool mc_socket::choose_if(uint32_t if_index) const
 
         if ( if_index > 0) {
             if (if_indextoname(if_index, ifreq.ifr_name) == nullptr) {
-                HC_LOG_ERROR("failed to get interface name! if_index:" << if_index << "! Error: " << strerror(
-                                 errno)  << " errno: " << errno);
+                HC_LOG_ERROR("failed to get interface name! if_index:" << if_index << "! Error: " << strerror(errno)  << " errno: " << errno);
                 return false;
             }
 
@@ -842,11 +841,11 @@ void mc_socket::test_mc_source_advanced_api(string ipversion, string interface, 
 
     cout << "--<" << count++ << "> Join group " << gaddr << " --" << endl;
     if (m.join_group(addr_storage(gaddr), if_nametoindex(interface.c_str()))) {
-    cout << "join OK!" << endl;
+        cout << "join OK!" << endl;
     } else {
-    cout << "join FAILED!" << endl;
+        cout << "join FAILED!" << endl;
     }
-    
+
     //---------------------------------------------------------------------------------------
     cout << "--<" << count++ << "> Set source filter MCAST_INCLUDE on interface " << interface << " with group addr " << gaddr << " --" << endl;
     if (m.set_source_filter(if_nametoindex(interface.c_str()), addr_storage(gaddr), MCAST_INCLUDE , std::list<addr_storage> {addr_storage(saddr_a), addr_storage(saddr_b)})) {
@@ -889,7 +888,7 @@ void mc_socket::test_mc_source_advanced_api(string ipversion, string interface, 
     m.print_source_filter(if_nametoindex(interface.c_str()), addr_storage(gaddr));
     sleep(sleepTime);
     //---------------------------------------------------------------------------------------
-    
+
     cout << "--<" << count++ << "> Leave group " << gaddr << " --" << endl;
     if (m.leave_group(addr_storage(gaddr), if_nametoindex(interface.c_str()))) {
         cout << "leave OK!" << endl;

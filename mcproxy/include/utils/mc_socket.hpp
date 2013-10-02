@@ -28,7 +28,6 @@
 #include <list>
 #include <time.h>
 #include <string>
-using namespace std;
 
 ///@author Sebastian Woelke
 ///@brief socket for multicast applications

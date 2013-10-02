@@ -25,7 +25,6 @@
 #include "include/proxy/receiver.hpp"
 
 #include <unistd.h>
-#include <iostream>
 
 receiver::receiver(int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces)
     : m_running(false)
