@@ -60,7 +60,7 @@ bool mld_sender::send_general_query(int if_index) const
         return false;
     }
 
-    unique_ptr<unsigned char[]> buf {new unsigned char[size] };
+    std::unique_ptr<unsigned char[]> buf {new unsigned char[size] };
     //unsigned char buf[size];
     if (!create_mc_query(GENERAL_QUERY, buf.get())) {
         return false;
@@ -82,7 +82,7 @@ bool mld_sender::send_group_specific_query(int if_index, const addr_storage& g_a
         return false;
     }
 
-    unique_ptr<unsigned char[]> buf {new unsigned char[size] };
+    std::unique_ptr<unsigned char[]> buf {new unsigned char[size] };
     //unsigned char buf[size];
     if (!create_mc_query(MC_ADDR_SPECIFIC_QUERY, buf.get(), &g_addr)) {
         return false;

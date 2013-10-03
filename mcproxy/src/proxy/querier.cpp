@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <net/if.h>
 #include <iostream>
+#include <sstream>
 
 querier::querier(int addr_family, int if_index, std::shared_ptr<const sender> sender): m_addr_family(addr_family), m_if_index(if_index), m_sender(sender)
 {
@@ -85,6 +86,7 @@ void querier::receive_record(mcast_addr_record_type record_type, const addr_stor
         break;
     default :
         HC_LOG_ERROR("wrong filter mode: " << db_info->second.filter_mode);
+        break;
     }
 
 }
@@ -298,6 +300,7 @@ void querier::test_querier(int addr_family, std::string if_name)
 
 void querier::send_test_record(querier& q, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& saddr_list, int report_version)
 {
+    using namespace std;
     cout << "!!ACTION: receive record" << endl;
     cout << "record_type: " << mcast_addr_record_type_name.at(record_type) << endl;
     cout << "group address: " << gaddr << endl;
@@ -316,12 +319,12 @@ querier::~querier()
 
 std::string querier::to_string() const
 {
-    ostringstream s;
+    std::ostringstream s;
 
     char cstr[IF_NAMESIZE];
-    string if_name(if_indextoname(m_if_index, cstr));
+    std::string if_name(if_indextoname(m_if_index, cstr));
 
-    s << "##-- interface: " << if_name << " (index: " << m_if_index << ") --##" << endl;
+    s << "##-- interface: " << if_name << " (index: " << m_if_index << ") --##" << std::endl;
     s << m_db;
     return s.str();
 }

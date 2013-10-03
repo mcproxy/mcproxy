@@ -38,6 +38,7 @@
 #include "include/proxy/receiver.hpp"
 #include "include/proxy/check_source.hpp"
 #include "include/proxy/timing.hpp"
+#include "include/proxy/interfaces.hpp"
 
 #include <memory>
 #include <vector>

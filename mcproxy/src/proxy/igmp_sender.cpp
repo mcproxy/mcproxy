@@ -45,7 +45,7 @@ bool igmp_sender::send_general_query(int if_index) const
         return false;
     }
 
-    unique_ptr<unsigned char[]> buf { new unsigned char[size] };
+    std::unique_ptr<unsigned char[]> buf { new unsigned char[size] };
     //unsigned char buf[size];
 
     if (!m_sock.choose_if(if_index)) {
@@ -67,7 +67,7 @@ bool igmp_sender::send_group_specific_query(int if_index, const addr_storage& g_
         return false;
     }
 
-    unique_ptr<unsigned char[]> buf { new unsigned char[size] };
+    std::unique_ptr<unsigned char[]> buf { new unsigned char[size] };
     //unsigned char buf[size];
 
     if (!m_sock.choose_if(if_index)) {

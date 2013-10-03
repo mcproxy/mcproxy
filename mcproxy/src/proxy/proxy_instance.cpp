@@ -92,9 +92,9 @@ bool proxy_instance::init_sender()
 {
     HC_LOG_TRACE("");
     if (m_addr_family == AF_INET) {
-        m_sender = make_shared<igmp_sender>();
+        m_sender = std::make_shared<igmp_sender>();
     } else if (m_addr_family == AF_INET6) {
-        m_sender = make_shared<mld_sender>();
+        m_sender = std::make_shared<mld_sender>();
     } else {
         HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
         return false;

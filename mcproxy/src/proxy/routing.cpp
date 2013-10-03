@@ -30,13 +30,12 @@
 #include <linux/mroute6.h>
 #include <iostream>
 
-routing::routing(int addr_family, std::shared_ptr<const mroute_socket> mrt_sock, int table_number)
+louting::routing(int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, int table_number)
+    : m_table_number(table_number)
+    , m_addr_family(addr_family)
+    , m_mrt_sock(mrt_sock)
 {
     HC_LOG_TRACE("");
-
-    m_table_number = table_number;
-    m_addr_family = addr_family;
-    m_mrt_sock = mrt_sock;
 
     if (!m_if_prop.refresh_network_interfaces()) {
         throw "failed to refresh netwok interfaces";
@@ -49,7 +48,7 @@ bool routing::add_vif(int if_index, int vif)
 
     char cstr[IF_NAMESIZE];
     const struct ifaddrs* item = nullptr;
-    string if_name(if_indextoname(if_index, cstr));
+    std::string if_name(if_indextoname(if_index, cstr));
 
     if (m_addr_family == AF_INET) {
         if ((item = m_if_prop.get_ip4_if(if_name)) == nullptr) {

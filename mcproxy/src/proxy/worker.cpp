@@ -52,10 +52,10 @@ void worker::add_msg(proxy_msg&& msg)
     HC_LOG_TRACE("");
 
     HC_LOG_DEBUG("message type:" << msg.msg_type_to_string());
-    if (msg.m_prio == proxy_msg::LOSEABLE) {
-        m_job_queue.enqueue_loseable(move(msg));
+    if (msg.get_priority() == proxy_msg::LOSEABLE) {
+        m_job_queue.enqueue_loseable(std::move(msg));
     } else {
-        m_job_queue.enqueue(move(msg));
+        m_job_queue.enqueue(std::move(msg));
     }
 }
 

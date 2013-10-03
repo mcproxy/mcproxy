@@ -78,6 +78,10 @@ struct proxy_msg {
         return m_type;
     }
 
+    message_priority get_priority() {
+        return m_prio;
+    }
+
     virtual void operator() () {
         HC_LOG_TRACE("");
     }
