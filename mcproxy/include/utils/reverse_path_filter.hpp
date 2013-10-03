@@ -41,7 +41,7 @@ private:
     void restore_rp_filter();
 public:
     reverse_path_filter();
-    ~reverse_path_filter();
+    virtual ~reverse_path_filter();
 
     void reset_rp_filter(const std::string& if_name);
     void restore_rp_filter(const std::string& if_name);

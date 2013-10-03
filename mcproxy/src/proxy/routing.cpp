@@ -144,3 +144,6 @@ bool routing::del_vif(int if_index, int vif)
     return true;
 }
 
+routing::~routing(){
+    HC_LOG_TRACE("");
+}

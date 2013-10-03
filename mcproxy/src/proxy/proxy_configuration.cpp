@@ -29,6 +29,8 @@
 #include <functional>
 #include <cctype>
 #include <locale>
+#include <sstream>
+
 proxy_configuration::proxy_configuration(const std::string& path, bool reset_reverse_path_filter)
     : m_interfaces(nullptr)
     , m_addr_family(0)
@@ -92,8 +94,8 @@ upstream_downstream_map proxy_configuration::parse_config(const std::string& pat
         LOOK_FOR_ADDITIONAL_DOWNSTREAM = 3
     };
 
-    ifstream file;
-    string line;
+    std::ifstream file;
+    std::string line;
     state_machine state = LOOK_FOR_UPSTREAM;
     int linecount = 0;
     upstream_downstream_map rc;
@@ -106,8 +108,8 @@ upstream_downstream_map proxy_configuration::parse_config(const std::string& pat
         std::getline(file, line);
         linecount++;
         while (!file.eof()) {
-            stringstream strline;
-            string comp_str;
+            std::stringstream strline;
+            std::string comp_str;
             strline << trim(line);
 
             int tmp_upstream_if = -1;
@@ -214,6 +216,7 @@ upstream_downstream_map proxy_configuration::parse_config(const std::string& pat
 
 std::string proxy_configuration::get_parsed_state() const
 {
+    using namespace std;
     HC_LOG_TRACE("");
 
     stringstream str;
@@ -332,7 +335,7 @@ const upstream_downstream_map& proxy_configuration::get_upstream_downstream_map(
     return m_upstream_downstream_map;
 }
 
-const shared_ptr<const interfaces> proxy_configuration::get_interfaces() const
+const std::shared_ptr<const interfaces> proxy_configuration::get_interfaces() const
 {
     HC_LOG_TRACE("");
     return m_interfaces;
@@ -348,5 +351,9 @@ int proxy_configuration::get_version() const
 {
     HC_LOG_TRACE("");
     return m_version;
+}
+
+proxy_configuration::~proxy_configuration(){
+    HC_LOG_TRACE("");
 }
 

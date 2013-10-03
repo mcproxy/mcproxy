@@ -66,7 +66,7 @@ private:
     upstream_downstream_map parse_config(const std::string& path);
 public:
     proxy_configuration(const std::string& path, bool reset_reverse_path_filter);
-    ~proxy_configuration();
+    virtual ~proxy_configuration();
 
     std::string get_parsed_state() const;
 

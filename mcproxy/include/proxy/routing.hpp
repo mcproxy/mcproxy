@@ -50,7 +50,7 @@ private:
 public:
     routing(int addr_family, std::shared_ptr<const mroute_socket> mrt_sock, int table_number);
 
-    ~routing();
+    virtual ~routing();
     /**
       * @brief Add a virtual interface to the linux kernel table.
       * @return Return true on success.

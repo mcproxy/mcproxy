@@ -29,9 +29,9 @@
 #include <iostream>
 
 template<typename T>
-string to_hex_string(T n)
+std::string to_hex_string(T n)
 {
-    ostringstream s;
+    std::ostringstream s;
     s << "0x" << std::uppercase << std::hex << static_cast<unsigned int>(n);
     return s.str();
 }
@@ -39,14 +39,14 @@ string to_hex_string(T n)
 
 std::string to_time_string(const std::chrono::seconds& sec)
 {
-    ostringstream s;
+    std::ostringstream s;
     s << sec.count() << " sec";
     return s.str();
 }
 
 std::string to_time_string(const std::chrono::milliseconds& msec)
 {
-    ostringstream s;
+    std::ostringstream s;
     s << msec.count() << " msec";
     return s.str();
 }
@@ -54,18 +54,18 @@ std::string to_time_string(const std::chrono::milliseconds& msec)
 std::string timers_values_tank::to_string() const
 {
     HC_LOG_TRACE("");
-    ostringstream s;
+    std::ostringstream s;
     //s << "Robustness Variable: " << robustness_variable << std::endl;
     s << "Query Interval: " << to_time_string(query_interval) << std::endl;
     s << "Query Response Interval: " << to_time_string(query_response_interval) << std::endl;
     s << "Group Membership Interval: " << to_time_string(robustness_variable * query_interval + query_response_interval) << std::endl;
     s << "Other Querier Present Interval: " << to_time_string(robustness_variable * query_interval * 1000 + (query_response_interval / 2)) << std::endl;;
     s << "Startup Query Interval: " << to_time_string(startup_query_interval) << std::endl;
-    s << "Startup Query Count: " << startup_query_count << endl;
+    s << "Startup Query Count: " << startup_query_count << std::endl;
     s << "Last Member Query Interval: " << to_time_string(last_member_query_interval) << std::endl;
     s << "Last Member Query Count: " << last_member_query_count << std::endl;
     s << "Last Member Query Time: " << to_time_string(last_member_query_interval * last_member_query_count) << std::endl;
-    s << "Unsolicited Report Interval: " << to_time_string(unsolicited_report_interval) << endl;
+    s << "Unsolicited Report Interval: " << to_time_string(unsolicited_report_interval) << std::endl;
     s << "Older Host Present Interval: " << to_time_string((robustness_variable * query_interval) + query_response_interval) << std::endl;
 
 
@@ -360,7 +360,7 @@ timers_values::~timers_values()
 std::string timers_values::to_string() const
 {
     HC_LOG_TRACE("");
-    ostringstream s;
+    std::ostringstream s;
     s << "is_default_timers_values_tank: " << (is_default_timers_values_tank ? "true" : "false") << std::endl;
     s << tank->to_string() << std::endl;
     return s.str();
