@@ -33,6 +33,7 @@ SOURCES += src/main.cpp \
            src/utils/addr_storage.cpp \
            src/utils/mroute_socket.cpp \
            src/utils/if_prop.cpp \
+           src/utils/reverse_path_filter.cpp \
                 #proxy
            src/proxy/proxy.cpp \
            src/proxy/sender.cpp \
@@ -58,7 +59,8 @@ HEADERS += include/hamcast_logging.h \
                 #utils
            include/utils/mc_socket.hpp \
            include/utils/addr_storage.hpp \
-                #include/utils/mc_timers_values.hpp \
+           include/utils/reverse_path_filter.hpp \
+           #include/utils/mc_timers_values.hpp \
            include/utils/mroute_socket.hpp \
            include/utils/if_prop.hpp \
                #proxy
