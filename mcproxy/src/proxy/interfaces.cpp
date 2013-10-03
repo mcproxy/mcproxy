@@ -70,7 +70,7 @@ bool interfaces::add_interface(unsigned int if_index)
         }
         auto rc_vif_if = m_vif_if.insert(std::pair<int, int>(free_vif, if_index));
         if (!rc_vif_if.second) {
-            HC_LOG_ERROR("failed to add interface: " << get_if_name(if_index) << " interface already in use")
+            HC_LOG_ERROR("failed to add interface: " << get_if_name(if_index) << " interface already in use");
             return false;
         }
 
@@ -242,7 +242,7 @@ bool interfaces::is_interface(unsigned if_index, unsigned int interface_flags) c
         if (prop != nullptr) {
             return prop->ifa_flags & interface_flags;
         } else {
-            HC_LOG_WARN("failed to get interface ipv4 properties of interface: " << get_if_name(if_name));
+            HC_LOG_WARN("failed to get interface ipv4 properties of interface: " << get_if_name(if_index));
             return false;
         }
     } else if (m_addr_family == AF_INET) {
@@ -250,7 +250,7 @@ bool interfaces::is_interface(unsigned if_index, unsigned int interface_flags) c
         if (prop != nullptr && !prop->empty()) {
             return (*(begin(*prop)))->ifa_flags & interface_flags;
         } else {
-            HC_LOG_WARN("failed to get interface ipv6 properties of interface: " << get_if_name(if_name));
+            HC_LOG_WARN("failed to get interface ipv6 properties of interface: " << get_if_name(if_index));
             return false;
         }
     }else{

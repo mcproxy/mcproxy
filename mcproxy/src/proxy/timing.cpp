@@ -29,7 +29,7 @@
 #include <unistd.h>
 
 timing::timing():
-    m_running(false), m_worker_thread(nullptr)
+    m_running(false), m_thread(nullptr)
 {
     HC_LOG_TRACE("");
     start();
@@ -57,16 +57,16 @@ void timing::worker_thread()
             m_con_var.wait_until(ull, m_db.begin()->first);
         }
 
-        std::lock_guard<mutex> lock(m_global_lock);
+        std::lock_guard<std::mutex> lock(m_global_lock);
 
         timing_db_key now = std::chrono::steady_clock::now();
 
         for (auto i = begin(m_db); i != end(m_db); ++i) {
             if (i->first <= now) {
                 timing_db_value& db_value = i->second;
-                get<1>(db_value)();
-                if (get<0>(db_value) != nullptr) {
-                    get<0>(db_value)->add_msg(move(get<1>(db_value)));
+                std::get<1>(db_value)();
+                if (std::get<0>(db_value) != nullptr) {
+                    std::get<0>(db_value)->add_msg(std::move(std::get<1>(db_value)));
                 }
 
                 i = m_db.erase(i);
@@ -86,9 +86,9 @@ void timing::add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, 
     HC_LOG_TRACE("");
     timing_db_key until = std::chrono::steady_clock::now() + delay;
 
-    std::lock_guard<mutex> lock(m_global_lock);
+    std::lock_guard<std::mutex> lock(m_global_lock);
 
-    m_db.insert(timing_db_pair(until, std::make_tuple(pr_inst, move(pr_msg))));
+    m_db.insert(timing_db_pair(until, std::make_tuple(pr_inst, std::move(pr_msg))));
     m_con_var.notify_one();
 }
 
@@ -96,7 +96,7 @@ void timing::stop_all_time(const proxy_instance* pr_inst)
 {
     HC_LOG_TRACE("");
 
-    std::lock_guard<mutex> lock(m_global_lock);
+    std::lock_guard<std::mutex> lock(m_global_lock);
 
     for (auto it = begin(m_db); it != end(m_db); ++it ) {
         if (std::get<0>(it->second) == pr_inst) {
@@ -112,7 +112,7 @@ void timing::start()
 
     if (m_thread.get() == nullptr) {
         m_running =  true;
-        m_thread.reset(new std::thread(&timing::worker_thread));
+        m_thread.reset(new std::thread(&timing::worker_thread, this));
     } else {
         HC_LOG_WARN("timing is already running");
     }

@@ -30,7 +30,7 @@
 #include <linux/mroute6.h>
 #include <iostream>
 
-louting::routing(int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, int table_number)
+routing::routing(int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, int table_number)
     : m_table_number(table_number)
     , m_addr_family(addr_family)
     , m_mrt_sock(mrt_sock)

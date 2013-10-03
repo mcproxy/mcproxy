@@ -49,14 +49,14 @@ private:
     bool init_db();
 
     //join all router groups or leave them
-    bool router_groups_function(std::function<bool(const std::shared_ptr<const sender>, int,addr_storage)> f);
+    bool router_groups_function(std::function<bool(const sender&, int,addr_storage)> f) const;
     void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
     void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
 public:
 
     virtual ~querier();
 
-    querier(int addr_family, int if_index, std::shared_ptr<const sender> sender);
+    querier(int addr_family, int if_index, const std::shared_ptr<const sender> sender);
 
     void receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version);
     void receive_query(); 

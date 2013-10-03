@@ -44,14 +44,14 @@ void worker::start()
     HC_LOG_TRACE("");
 
     m_running =  true;
-    m_thread.reset(new std::thread(&worker::worker_thread));
+    m_thread.reset(new std::thread(&worker::worker_thread,this));
 }
 
 void worker::add_msg(proxy_msg&& msg)
 {
     HC_LOG_TRACE("");
 
-    HC_LOG_DEBUG("message type:" << msg.msg_type_to_string());
+    HC_LOG_DEBUG("message type:" << message_type_name.at(msg.get_type()));
     if (msg.get_priority() == proxy_msg::LOSEABLE) {
         m_job_queue.enqueue_loseable(std::move(msg));
     } else {

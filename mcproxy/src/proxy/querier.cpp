@@ -31,7 +31,10 @@
 #include <iostream>
 #include <sstream>
 
-querier::querier(int addr_family, int if_index, std::shared_ptr<const sender> sender): m_addr_family(addr_family), m_if_index(if_index), m_sender(sender)
+querier::querier(int addr_family, int if_index, const std::shared_ptr<const sender> sender)
+    : m_addr_family(addr_family)
+    , m_if_index(if_index)
+    , m_sender(sender)
 {
     HC_LOG_TRACE("");
 
@@ -63,6 +66,31 @@ bool querier::init_db()
     m_db.is_querier = true;
 
     return true;
+}
+
+bool querier::router_groups_function(std::function<bool(const sender&, int, addr_storage)> f) const
+{
+    HC_LOG_TRACE("");
+
+//MLDv1 RFC 2710: Section 8. link-scope all-routers (FF02::2), link-scope all-routers (FF05::2)| IANA: site local scope all-routers
+//MLDv2 RFC 3810: Section 7. all MLDv2-capable routers (FF02::16)
+//IGMPv1
+//IGMPv2 RFC 2236: Section 9. ALL-ROUTERS (224.0.0.2)
+//IGMPv3 IANA: IGMP (224.0.0.22)
+
+    bool rc = true;
+    if (m_addr_family == AF_INET) {
+        rc = rc && f(*m_sender.get(), m_if_index, addr_storage(IPV4_ALL_IGMP_ROUTERS_ADDR));
+        rc = rc && f(*m_sender.get(), m_if_index, addr_storage(IPV4_IGMPV3_ADDR));
+    } else if (m_addr_family == AF_INET6) {
+        rc = rc && f(*m_sender.get(), m_if_index, addr_storage(IPV6_ALL_NODE_LOCAL_ROUTER));
+        rc = rc && f(*m_sender.get(), m_if_index, addr_storage(IPV6_ALL_SITE_LOCAL_ROUTER));
+        rc = rc && f(*m_sender.get(), m_if_index, addr_storage(IPV6_ALL_MLDv2_CAPABLE_ROUTERS));
+    } else {
+        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
+        return false;
+    }
+    return rc;
 }
 
 void querier::receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version)
@@ -228,30 +256,6 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     }
 }
 
-bool querier::router_groups_function(std::function<bool(const std::shared_ptr<const sender>, int, addr_storage)> f)
-{
-    HC_LOG_TRACE("");
-
-//MLDv1 RFC 2710: Section 8. link-scope all-routers (FF02::2), link-scope all-routers (FF05::2)| IANA: site local scope all-routers
-//MLDv2 RFC 3810: Section 7. all MLDv2-capable routers (FF02::16)
-//IGMPv1
-//IGMPv2 RFC 2236: Section 9. ALL-ROUTERS (224.0.0.2)
-//IGMPv3 IANA: IGMP (224.0.0.22)
-
-    bool rc = true;
-    if (m_addr_family == AF_INET) {
-        rc = rc && f(m_sender, m_if_index, addr_storage(IPV4_ALL_IGMP_ROUTERS_ADDR));
-        rc = rc && f(m_sender, m_if_index, addr_storage(IPV4_IGMPV3_ADDR));
-    } else if (m_addr_family == AF_INET6) {
-        rc = rc && f(m_sender, m_if_index, addr_storage(IPV6_ALL_NODE_LOCAL_ROUTER));
-        rc = rc && f(m_sender, m_if_index, addr_storage(IPV6_ALL_SITE_LOCAL_ROUTER));
-        rc = rc && f(m_sender, m_if_index, addr_storage(IPV6_ALL_MLDv2_CAPABLE_ROUTERS));
-    } else {
-        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
-        return false;
-    }
-    return rc;
-}
 
 void querier::test_querier(int addr_family, std::string if_name)
 {

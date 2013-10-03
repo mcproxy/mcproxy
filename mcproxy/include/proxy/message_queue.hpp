@@ -147,7 +147,7 @@ bool message_queue<T>::enqueue_loseable(T&& t)
     {
         std::unique_lock<std::mutex> lock(m_global_lock);
         if (m_q.size() < m_size) {
-            m_q.push(move(t));
+            m_q.push(std::move(t));
         } else {
             HC_LOG_WARN("message_queue is full, failed to insert object");
             return false;
@@ -162,7 +162,7 @@ void message_queue<T>::enqueue(T&& t)
 {
     {
         std::unique_lock<std::mutex> lock(m_global_lock);
-        m_q.push(move(t));
+        m_q.push(std::move(t));
     }
     cond_empty.notify_one();
 }
@@ -177,7 +177,7 @@ T message_queue<T>::dequeue(void)
             return m_q.size() != 0;
         });
 
-        t = move(m_q.front());
+        t = std::move(m_q.front());
         m_q.pop();
     }
     return t;

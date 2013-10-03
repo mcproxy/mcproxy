@@ -139,7 +139,7 @@ void receiver::start()
     HC_LOG_TRACE("");
 
     m_running =  true;
-    m_thread.reset(new std::thread(&receiver::worker_thread));
+    m_thread.reset(new std::thread(&receiver::worker_thread, this));
 }
 
 void receiver::stop()
