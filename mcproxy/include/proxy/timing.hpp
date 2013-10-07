@@ -45,7 +45,7 @@
 
 class proxy_instance;
 
-using timing_db_value = std::tuple<proxy_instance*, proxy_msg>;
+using timing_db_value = std::tuple<proxy_instance*, std::shared_ptr<proxy_msg>>;
 using timing_db_key = std::chrono::time_point<std::chrono::steady_clock>;
 using timing_db = std::map<timing_db_key, timing_db_value>; 
 using timing_db_pair = std::pair<timing_db_key, timing_db_value>;
@@ -84,7 +84,7 @@ public:
      * @param pr_msg message of the reminder
      *
      */
-    void add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, proxy_msg&& pr_msg);
+    void add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, const std::shared_ptr<proxy_msg> pr_msg);
 
     /**
      * @brief Delete all reminder from a specific proxy instance.
@@ -94,12 +94,11 @@ public:
 
 
     virtual ~timing();
+    
         /**
      * @brief Test the functionality of the module Timer.
      */
     static void test_timing();
-
-
 };
 
 

@@ -64,20 +64,22 @@ bool interfaces::add_interface(unsigned int if_index)
 {
     HC_LOG_TRACE("");
     int free_vif =  get_free_vif_number();
+    HC_LOG_DEBUG("if_index: " << if_index << " (" << interfaces::get_if_name(if_index) << ")" << " free_vif: " << free_vif);
     if (free_vif > INTERFACES_UNKOWN_VIF_INDEX) {
-        if(!is_interface(if_index, IFF_UP)){
+        if (!is_interface(if_index, IFF_UP)) {
             HC_LOG_WARN("failed to add interface: " << get_if_name(if_index) << "; interface is not up");
-        }
-        auto rc_vif_if = m_vif_if.insert(std::pair<int, int>(free_vif, if_index));
-        if (!rc_vif_if.second) {
-            HC_LOG_ERROR("failed to add interface: " << get_if_name(if_index) << " interface already in use");
             return false;
         }
 
         auto rc_if_vif = m_if_vif.insert(std::pair<int, int>(if_index, free_vif));
         if (!rc_if_vif.second) {
-            HC_LOG_ERROR("failed to add interface: " << get_if_name(if_index) << "inconsistent database");
-            m_vif_if.erase(rc_vif_if.first);
+            HC_LOG_ERROR("failed to add interface: " << get_if_name(if_index) << "; interface already in use");
+            return false;
+        }
+
+        auto rc_vif_if = m_vif_if.insert(std::pair<int, int>(free_vif, if_index));
+        if (!rc_vif_if.second) {
+            HC_LOG_ERROR("failed to add interface: " << get_if_name(if_index) << "; inconsistent database");
             return false;
         }
 
@@ -253,9 +255,38 @@ bool interfaces::is_interface(unsigned if_index, unsigned int interface_flags) c
             HC_LOG_WARN("failed to get interface ipv6 properties of interface: " << get_if_name(if_index));
             return false;
         }
-    }else{
+    } else {
         HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
-        return false; 
+        return false;
     }
 }
 
+std::string interfaces::to_string() const
+{
+    HC_LOG_TRACE("");
+    std::ostringstream s;
+    s << "virtual interace index mapped to interface:" << std::endl;
+    for (auto e : m_vif_if) {
+        s << "vif: " << e.first << " ==> " << "if: " << interfaces::get_if_name(e.second) << " (#" << e.second <<  ")" << std::endl;
+    }
+
+    s << std::endl;
+    s << "interace mapped to virutal interface index:" << std::endl;
+    for (auto e : m_vif_if) {
+        s << "if: " << interfaces::get_if_name(e.second) << " (#" << e.second << ")" <<  " ==> " << "vif: " << e.first <<  std::endl;
+    }
+
+    s << std::endl;
+    s << "reset reverse path filter: " << m_reset_reverse_path_filter << std::endl;
+    s << std::endl;
+
+    s << m_reverse_path_filter;
+
+    return s.str();
+}
+std::ostream& operator<<(std::ostream& stream, const interfaces& i)
+{
+    HC_LOG_TRACE("");
+    stream << i.to_string();
+    return stream;
+}

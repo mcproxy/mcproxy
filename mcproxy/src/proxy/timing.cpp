@@ -64,7 +64,7 @@ void timing::worker_thread()
         for (auto i = begin(m_db); i != end(m_db); ++i) {
             if (i->first <= now) {
                 timing_db_value& db_value = i->second;
-                std::get<1>(db_value)();
+                (*std::get<1>(db_value).get())();
                 if (std::get<0>(db_value) != nullptr) {
                     std::get<0>(db_value)->add_msg(std::move(std::get<1>(db_value)));
                 }
@@ -81,14 +81,14 @@ void timing::worker_thread()
     }
 }
 
-void timing::add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, proxy_msg&& pr_msg)
+void timing::add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, const std::shared_ptr<proxy_msg> pr_msg)
 {
     HC_LOG_TRACE("");
     timing_db_key until = std::chrono::steady_clock::now() + delay;
 
     std::lock_guard<std::mutex> lock(m_global_lock);
 
-    m_db.insert(timing_db_pair(until, std::make_tuple(pr_inst, std::move(pr_msg))));
+    m_db.insert(timing_db_pair(until, std::make_tuple(pr_inst, pr_msg)));
     m_con_var.notify_one();
 }
 
@@ -142,16 +142,19 @@ void timing::test_timing()
     timing t;
 
     cout << "add test message 1 (5sec) " << endl;
-    t.add_time(std::chrono::seconds(5), nullptr, test_msg(1,proxy_msg::SYSTEMIC));
+    t.add_time(std::chrono::seconds(5), nullptr, std::make_shared<test_msg>(test_msg(1, proxy_msg::SYSTEMIC)));
     cout << "add test message 2 (7sec) " << endl;
-    t.add_time(std::chrono::seconds(7), nullptr, test_msg(2,proxy_msg::SYSTEMIC));
+    t.add_time(std::chrono::seconds(7), nullptr, std::make_shared<test_msg>(test_msg(2, proxy_msg::SYSTEMIC)));
     cout << "add test message 3 (1sec) " << endl;
-    t.add_time(std::chrono::seconds(1), nullptr, test_msg(3,proxy_msg::SYSTEMIC));
+    t.add_time(std::chrono::seconds(1), nullptr, std::make_shared<test_msg>(test_msg(3, proxy_msg::SYSTEMIC)));
     cout << "add test message 4 (1msec) " << endl;
-    t.add_time(std::chrono::milliseconds(1), nullptr, test_msg(4,proxy_msg::SYSTEMIC));
+    t.add_time(std::chrono::milliseconds(1), nullptr, std::make_shared<test_msg>(test_msg(4, proxy_msg::SYSTEMIC)));
     cout << "add test message 5 (1msec) " << endl;
-    t.add_time(std::chrono::milliseconds(1), nullptr, test_msg(5,proxy_msg::SYSTEMIC));
+    t.add_time(std::chrono::milliseconds(1), nullptr, std::make_shared<test_msg>(test_msg(5, proxy_msg::SYSTEMIC)));
 
     sleep(10);
     cout << "finished" << endl;
 }
+
+
+

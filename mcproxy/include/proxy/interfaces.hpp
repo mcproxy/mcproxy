@@ -31,6 +31,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <sstream>
 
 #define INTERFACES_UNKOWN_IF_INDEX 0
 #define INTERFACES_UNKOWN_VIF_INDEX -1
@@ -75,89 +76,12 @@ public:
 
     //ipv4 only
     unsigned int get_if_index(const addr_storage& addr) const;
-
+   
+    std::string to_string() const;
+    friend std::ostream& operator<<(std::ostream& stream, const interfaces& i);
 };
 
 
 #endif // INTERFACES_HPP
 /** @} */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

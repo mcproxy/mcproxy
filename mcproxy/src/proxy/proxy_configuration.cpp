@@ -43,13 +43,11 @@ proxy_configuration::proxy_configuration(const std::string& path, bool reset_rev
     if (!rc.empty()) {
         for (auto & e : rc) {
             if (!add_upstream(e.first)) {
-                HC_LOG_ERROR("failed to add upstream: " << m_interfaces->get_if_name(e.first));
                 throw  "failed to add upstream";
             }
 
             for (auto f : e.second) {
                 if (!add_downstream(e.first, f)) {
-                    HC_LOG_ERROR("failed to add downstream: " << m_interfaces->get_if_name(f));
                     throw  "failed to add downstream";
                 }
             }
@@ -126,18 +124,23 @@ upstream_downstream_map proxy_configuration::parse_config(const std::string& pat
                             if (!strline.eof()) {
                                 strline >> comp_str;
                                 if (comp_str.compare("IGMPv1") == 0) {
+                                    HC_LOG_DEBUG("protocol IGMPv1");
                                     m_addr_family = AF_INET;
                                     m_version = 1;
                                 } else if (comp_str.compare("IGMPv2") == 0) {
+                                    HC_LOG_DEBUG("protocol IGMPv2");
                                     m_addr_family = AF_INET;
                                     m_version = 2;
                                 } else if (comp_str.compare("IGMPv3") == 0) {
+                                    HC_LOG_DEBUG("protocol IGMPv3");
                                     m_addr_family = AF_INET;
                                     m_version = 3;
                                 } else if (comp_str.compare("MLDv1") == 0) {
+                                    HC_LOG_DEBUG("protocol MLDv1");
                                     m_addr_family = AF_INET6;
                                     m_version = 1;
                                 } else if (comp_str.compare("MLDv2") == 0) {
+                                    HC_LOG_DEBUG("protocol MLDv2");
                                     m_addr_family = AF_INET6;
                                     m_version = 2;
                                 } else {
@@ -152,7 +155,7 @@ upstream_downstream_map proxy_configuration::parse_config(const std::string& pat
                             if (!strline.eof()) {
                                 strline >> comp_str;
                                 if (comp_str.at(0) == '#') {
-                                    while (!strline.eof()) { //useless or what?????????????????????????????????????
+                                    while (!strline.eof()) {
                                         strline >> comp_str;
                                     }
                                 } else {
@@ -182,7 +185,11 @@ upstream_downstream_map proxy_configuration::parse_config(const std::string& pat
                             tmp_downstream_if = interfaces::get_if_index(comp_str);
                             if (tmp_downstream_if > 0) {
                                 state = LOOK_FOR_ADDITIONAL_DOWNSTREAM;
-                                tmp_downstream_set.insert(tmp_downstream_if);
+                                HC_LOG_DEBUG("downstream_if: " << comp_str << " (if_index=" << tmp_downstream_if << ")");
+                                if (!tmp_downstream_set.insert(tmp_downstream_if).second) {
+                                    HC_LOG_ERROR("downstream interface " << interfaces::get_if_name(tmp_downstream_if) << " already in use <line " << linecount << ">");
+                                    return upstream_downstream_map();
+                                }
                             } else {
                                 HC_LOG_ERROR("downstream interface not found: " << comp_str << " <line " << linecount << ">");
                                 return upstream_downstream_map();
@@ -200,76 +207,24 @@ upstream_downstream_map proxy_configuration::parse_config(const std::string& pat
             }
 
             if (state == LOOK_FOR_ADDITIONAL_DOWNSTREAM) {
-                rc.insert(upstream_downsteram_pair(tmp_upstream_if, tmp_downstream_set));
+                if (!rc.insert(upstream_downsteram_pair(tmp_upstream_if, tmp_downstream_set)).second) {
+                    HC_LOG_ERROR("upstream interface " << interfaces::get_if_name(tmp_upstream_if) << " already in use <line " << linecount << ">");
+                    return upstream_downstream_map();
+                }
             } else if (state == LOOK_FOR_FIRST_DOWNSTREAM) {
                 HC_LOG_ERROR("line incomplete: " << line << " in line " << linecount << ">");
                 return upstream_downstream_map();
             }
 
             std::getline(file, line);
+            linecount++;
         }
     }
 
     HC_LOG_DEBUG("m_addr_family: " << m_addr_family << ";  m_version: " << m_version );
-    return upstream_downstream_map();
+    return rc; 
 }
 
-std::string proxy_configuration::get_parsed_state() const
-{
-    using namespace std;
-    HC_LOG_TRACE("");
-
-    stringstream str;
-
-    str << "protocol: " << endl;
-
-    if (m_addr_family == AF_INET) {
-        switch (m_version) {
-        case 1:
-            str << "\tIGMPv1" << endl;
-            break;
-        case 2:
-            str << "\tIGMPv2" << endl;
-            break;
-        case 3:
-            str << "\tIGMPv3" << endl;
-            break;
-        default:
-            HC_LOG_ERROR("IPv4 with unknown protocol");
-            str << "\tIPv4 with unknown protocol" << endl;
-        }
-    } else if (m_addr_family == AF_INET6) {
-        switch (m_version) {
-        case 1:
-            str << "\tMLDv1" << endl;
-            break;
-        case 2:
-            str << "\tMLDv2" << endl;
-            break;
-        default:
-            HC_LOG_ERROR("IPv6 with unknown protocol");
-            str << "\tIPv6 with unknown protocol" << endl;
-        }
-    } else {
-        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
-        str << "\tunknown IP version" << endl;
-    }
-
-    str << endl;
-
-    if (m_upstream_downstream_map.empty()) {
-        return "state table is empty";
-    }
-
-    for (auto & e : m_upstream_downstream_map) {
-        str << m_interfaces->get_if_name(e.first) << " (#" << e.first << ")" << " ==>" << endl;
-
-        for (auto & f : e.second) {
-            str << "\t" << m_interfaces->get_if_index(f)  << " (#" << f << ")" << endl;
-        }
-    }
-    return str.str();
-}
 
 bool proxy_configuration::add_downstream(unsigned int if_index_upstream, unsigned int if_index_downstream)
 {
@@ -353,7 +308,85 @@ int proxy_configuration::get_version() const
     return m_version;
 }
 
-proxy_configuration::~proxy_configuration(){
+proxy_configuration::~proxy_configuration()
+{
     HC_LOG_TRACE("");
 }
 
+std::string proxy_configuration::to_string() const
+{
+    using namespace std;
+    HC_LOG_TRACE("");
+
+    stringstream str;
+
+    str << "protocol: " << endl;
+
+    if (m_addr_family == AF_INET) {
+        switch (m_version) {
+        case 1:
+            str << "\tIGMPv1" << endl;
+            break;
+        case 2:
+            str << "\tIGMPv2" << endl;
+            break;
+        case 3:
+            str << "\tIGMPv3" << endl;
+            break;
+        default:
+            HC_LOG_ERROR("IPv4 with unknown protocol");
+            str << "\tIPv4 with unknown protocol" << endl;
+        }
+    } else if (m_addr_family == AF_INET6) {
+        switch (m_version) {
+        case 1:
+            str << "\tMLDv1" << endl;
+            break;
+        case 2:
+            str << "\tMLDv2" << endl;
+            break;
+        default:
+            HC_LOG_ERROR("IPv6 with unknown protocol");
+            str << "\tIPv6 with unknown protocol" << endl;
+        }
+    } else {
+        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
+        str << "\tunknown IP version" << endl;
+    }
+
+    str << endl;
+
+    if (m_upstream_downstream_map.empty()) {
+        return "state table is empty";
+    }
+
+    for (auto & e : m_upstream_downstream_map) {
+        str << m_interfaces->get_if_name(e.first) << " (#" << e.first << ")" << " ==>" << endl;
+
+        for (auto & f : e.second) {
+            str << "\t" << m_interfaces->get_if_name(f)  << " (#" << f << ")" << endl;
+        }
+    }
+
+    str << endl;
+    str << m_interfaces->to_string();
+    return str.str();
+}
+
+std::ostream& operator<<(std::ostream& stream, const proxy_configuration& pc)
+{
+    HC_LOG_TRACE("");
+    stream << pc.to_string();
+    return stream;
+}
+
+void proxy_configuration::test_proxy_configuration()
+{
+    HC_LOG_TRACE("");
+    try {
+        proxy_configuration p(PROXY_CONFIGURATION_DEFAULT_CONIG_PATH, true);
+        std::cout << p << std::endl;
+    } catch (const char* e) {
+        std::cout << e << std::endl;
+    }
+}

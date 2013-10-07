@@ -34,17 +34,18 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
+#include <climits>
+#include <vector>
 
-#define MESSAGE_QUEUE_DEFAULT_SIZE 150
 
 /**
  * @brief Fixed sized synchronised job queue.
  */
-template< typename T>
+template< typename T, typename Compare  = std::less<T> >
 class message_queue
 {
 private:
-    std::priority_queue<T> m_q;
+    std::priority_queue<T, std::vector<T>, Compare> m_q;
     unsigned int m_size;
 
     std::mutex m_global_lock;
@@ -54,31 +55,28 @@ public:
       * @brief Create a message_queue with a maximum size.
       * @param size size of the message_queue.
       */
-    message_queue(int size);
-    message_queue();
+    message_queue(int size = UINT_MAX, Compare compare = Compare());
 
     /**
       * @brief Return true if the message queue is empty.
       */
-    bool is_empty();
+    bool is_empty() const;
 
     /**
       * @brief Return the current size of the message queue.
       */
-    unsigned int size();
+    unsigned int size() const;
 
     /**
       * @brief Return the set size.
       */
-    int max_size();
+    int max_size() const;
 
     /**
      * @brief add an element on tail and wait if full.
      */
     bool enqueue_loseable(const T& t);
     void enqueue(const T& t);
-    bool enqueue_loseable(T&& t);
-    void enqueue(T&& t);
 
     /**
      * @brief get and el element on head and wait if empty.
@@ -86,44 +84,55 @@ public:
     T dequeue(void);
 };
 
-template< typename T>
-message_queue<T>::message_queue(int size): m_size(size) {}
-
-template< typename T>
-message_queue<T>::message_queue(): message_queue(MESSAGE_QUEUE_DEFAULT_SIZE) {}
-
-template< typename T>
-bool message_queue<T>::is_empty()
+template< typename T, typename Compare>
+message_queue<T,Compare>::message_queue(int size, Compare compare)
+    : m_q(compare)
+    , m_size(size)
 {
+    HC_LOG_TRACE("");
+}
+
+
+template< typename T, typename Compare>
+bool message_queue<T, Compare>::is_empty() const
+{
+    HC_LOG_TRACE("");
+
     std::lock_guard<std::mutex> lock(m_global_lock);
 
     return m_q.empty();
 }
 
 
-template< typename T>
-unsigned int message_queue<T>::size()
+template< typename T, typename Compare>
+unsigned int message_queue<T, Compare>::size() const
 {
+    HC_LOG_TRACE("");
+
     std::lock_guard<std::mutex> lock(m_global_lock);
 
     return m_q.size();
 }
 
-template< typename T>
-int message_queue<T>::max_size()
+template< typename T, typename Compare>
+int message_queue<T, Compare>::max_size() const
 {
+    HC_LOG_TRACE("");
+
     return m_size;
 }
 
-template< typename T>
-bool message_queue<T>::enqueue_loseable(const T& t)
+template< typename T, typename Compare>
+bool message_queue<T, Compare>::enqueue_loseable(const T& t)
 {
+    HC_LOG_TRACE("");
+
     {
         std::unique_lock<std::mutex> lock(m_global_lock);
         if (m_q.size() < m_size) {
             m_q.push(t);
         } else {
-            HC_LOG_WARN("message_queue is full, failed to insert object");
+            HC_LOG_WARN("message_queue is full, failed to insert message");
             return false;
         }
     }
@@ -131,9 +140,11 @@ bool message_queue<T>::enqueue_loseable(const T& t)
     return true;
 }
 
-template< typename T>
-void message_queue<T>::enqueue(const T& t)
+template< typename T, typename Compare>
+void message_queue<T,Compare>::enqueue(const T& t)
 {
+    HC_LOG_TRACE("");
+
     {
         std::unique_lock<std::mutex> lock(m_global_lock);
         m_q.push(t);
@@ -141,35 +152,11 @@ void message_queue<T>::enqueue(const T& t)
     cond_empty.notify_one();
 }
 
-template< typename T>
-bool message_queue<T>::enqueue_loseable(T&& t)
+template< typename T, typename Compare>
+T message_queue<T,Compare>::dequeue(void)
 {
-    {
-        std::unique_lock<std::mutex> lock(m_global_lock);
-        if (m_q.size() < m_size) {
-            m_q.push(std::move(t));
-        } else {
-            HC_LOG_WARN("message_queue is full, failed to insert object");
-            return false;
-        }
-    }
-    cond_empty.notify_one();
-    return true;
-}
+    HC_LOG_TRACE("");
 
-template< typename T>
-void message_queue<T>::enqueue(T&& t)
-{
-    {
-        std::unique_lock<std::mutex> lock(m_global_lock);
-        m_q.push(std::move(t));
-    }
-    cond_empty.notify_one();
-}
-
-template< typename T>
-T message_queue<T>::dequeue(void)
-{
     T t;
     {
         std::unique_lock<std::mutex> lock(m_global_lock);
@@ -177,7 +164,7 @@ T message_queue<T>::dequeue(void)
             return m_q.size() != 0;
         });
 
-        t = std::move(m_q.front());
+        t = m_q.top();
         m_q.pop();
     }
     return t;

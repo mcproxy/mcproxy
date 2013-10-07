@@ -68,7 +68,6 @@ public:
     proxy_configuration(const std::string& path, bool reset_reverse_path_filter);
     virtual ~proxy_configuration();
 
-    std::string get_parsed_state() const;
 
     bool add_downstream(unsigned int if_index_upstream, unsigned int if_index_downstream);
     bool add_upstream(unsigned int if_index_upsteram);
@@ -80,6 +79,12 @@ public:
 
     int get_addr_family() const;
     int get_version() const;
+
+    std::string to_string() const;
+    
+    friend std::ostream& operator<<(std::ostream& stream, const proxy_configuration& pc);
+
+    static void test_proxy_configuration();
 };
 
 #endif // PROXY_CONFIGURATION_HPP

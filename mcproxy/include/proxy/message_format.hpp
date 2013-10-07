@@ -34,25 +34,11 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <memory>
 
 
 struct proxy_msg {
 
-    proxy_msg(const proxy_msg&) = delete;
-    proxy_msg& operator=(const proxy_msg&) = delete;
-    proxy_msg(proxy_msg&&) = default;
-    proxy_msg& operator=(proxy_msg && ) = default;
-
-    proxy_msg(): m_type(INIT_MSG), m_prio(SYSTEMIC) {
-        HC_LOG_TRACE("");
-    }
-
-    ~proxy_msg() {
-        HC_LOG_TRACE("");
-    }
-    /**
-     * @brief Available message types.
-     */
     enum message_type {
         INIT_MSG,
         TEST_MSG,       //Test message type to test the message queue and the intrusive pointer.
@@ -64,13 +50,22 @@ struct proxy_msg {
     };
 
     enum message_priority {
-        USER_INPUT = 0, //high
+        USER_INPUT = 1, //high
         SYSTEMIC = 10,
         LOSEABLE = 100 //low
     };
 
-    friend bool operator< (const proxy_msg& p1, const proxy_msg& p2) {
-        return p1.m_prio < p2.m_prio;
+    proxy_msg(): m_type(INIT_MSG), m_prio(SYSTEMIC) {
+        HC_LOG_TRACE("");
+    }
+
+    ~proxy_msg() {
+        HC_LOG_TRACE("");
+    }
+
+    friend bool operator< (const proxy_msg& l, const proxy_msg& r) {
+        HC_LOG_TRACE("");
+        return l.m_prio > r.m_prio;
     }
 
     message_type get_type() {
@@ -83,7 +78,7 @@ struct proxy_msg {
     }
 
     virtual void operator() () {
-        HC_LOG_TRACE("");
+        HC_LOG_TRACE("Empty operator");
     }
 
 protected:
@@ -124,8 +119,9 @@ struct test_msg : public proxy_msg {
 
     virtual void operator()() override {
         HC_LOG_TRACE("");
-        std::cout << "Test Message value: "  << m_value << std::endl;
+        std::cout << "Test Message value: "  << m_value << " prio: " << message_priority_name.at(get_priority()) << std::endl;
     }
+
 private:
     int m_value;
 };
@@ -146,9 +142,32 @@ struct querier_msg : public proxy_msg {
 
 
 struct config_msg : public proxy_msg {
-    config_msg(): proxy_msg(CONFIG_MSG, SYSTEMIC) {
+
+    enum config_instruction {
+        ADD_DOWNSTREAM,
+        DEL_DOWNSTREAM,
+        ADD_UPSTREAM,
+        DEL_UPSTREAM
+    };
+
+    config_msg(config_instruction instruction, unsigned int if_index)
+        : proxy_msg(CONFIG_MSG, SYSTEMIC)
+        , m_instruction(instruction)
+        , m_if_index(if_index) {
         HC_LOG_TRACE("");
     }
+
+    config_instruction get_instruction() {
+        return m_instruction;
+    }
+
+    unsigned int get_if_index() {
+        return m_if_index;
+    }
+
+private:
+    config_instruction m_instruction;
+    unsigned int m_if_index;
 };
 
 

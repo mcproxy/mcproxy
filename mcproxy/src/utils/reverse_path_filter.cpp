@@ -23,7 +23,6 @@
 #include "include/utils/reverse_path_filter.hpp"
 #include "include/hamcast_logging.h"
 
-#include <sstream>
 #include <fstream>
 
 reverse_path_filter::reverse_path_filter()
@@ -58,7 +57,7 @@ bool reverse_path_filter::get_rp_filter(const std::string& if_name) const
 
     std::ifstream is(path.str().c_str(), std::ios::binary | std::ios::in);
     if (!is) {
-        HC_LOG_ERROR("failed to open file:" << path);
+        HC_LOG_ERROR("failed to open file:" << path.str());
         return false;
     } else {
         state = is.get();
@@ -76,7 +75,7 @@ bool reverse_path_filter::set_rp_filter(const std::string& if_name, bool set_to)
 
     std::ofstream os(path.str().c_str(), std::ios::binary | std::ios::out);
     if (!os) {
-        HC_LOG_ERROR("failed to open file:" << path << " and set rp_filter to " << set_to);
+        HC_LOG_ERROR("failed to open file:" << path.str() << " and set rp_filter to " << set_to);
         return false;
     } else {
         if (set_to) {
@@ -114,4 +113,23 @@ void reverse_path_filter::restore_rp_filter(const std::string& if_name)
         m_restore_if_state.erase(it);
         set_rp_filter(if_name, true);
     }
+}
+
+std::string reverse_path_filter::to_string() const
+{
+    HC_LOG_TRACE("");
+    std::ostringstream s;
+
+    s << "disabled reverse path filter on following interfaces:";
+    for (auto & e : m_restore_if_state) {
+        s << std::endl << "\t-" <<  e;
+    }
+    return s.str();
+}
+
+std::ostream& operator<<(std::ostream& stream, const reverse_path_filter& r)
+{
+    HC_LOG_TRACE("");
+    stream << r.to_string();
+    return stream;
 }

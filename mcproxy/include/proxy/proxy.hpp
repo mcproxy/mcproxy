@@ -49,24 +49,27 @@ private:
     static bool m_running;
     int m_verbose_lvl;
     bool m_print_proxy_status;
-    bool m_rest_rp_filter;
+    bool m_reset_rp_filter;
     std::string m_config_path;
 
     std::unique_ptr<proxy_configuration> m_proxy_configuration;
     std::shared_ptr<timing> m_timing;
+
     //table (= interface index), proxy_instance
-    std::map<int, const std::unique_ptr<proxy_instance>> m_proxy_instances;
+    std::map<int, std::unique_ptr<proxy_instance>> m_proxy_instances;
 
     void prozess_commandline_args(int arg_count, char* args[]);
     void help_output();
 
-    bool start_proxy_instances();
+    void start_proxy_instances();
 
 
     //bool init_routing_table(); //add all interfaces from state_table to ip_mr_vif (phyint or tunnel) , allocate memory for m_vif
     static void signal_handler(int sig);
 
-    bool start();
+    void start();
+
+    std::string to_string();
 public:
     /**
      * @brief Set default values of the class members and add signal handlers for the signal SIGINT and SIGTERM.

@@ -32,6 +32,7 @@
 #include "include/proxy/membership_db.hpp"
 #include "include/proxy/querier.hpp"
 #include "include/proxy/timers_values.hpp"
+#include "include/proxy/proxy_configuration.hpp"
 
 #include <iostream>
 
@@ -42,16 +43,14 @@ void test_mcproxy(int arg_count, char* args[]);
 void test_test();
 
 int main(int arg_count, char* args[])
+
 {
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
 
-    //test_MC_Tables();
-    //test_MC_TestTool();
-
-    //test_mcproxy(arg_count, args);
+    test_mcproxy(arg_count, args);
 
 
-    test_test();
+    //test_test();
     return 0;
 }
 
@@ -87,8 +86,9 @@ void test_test()
     //membership_db::test_arithmetic();
     //querier::test_querier(AF_INET, "dummy0");
     //timers_values::test_timers_values();
-    timing::test_timing();
-
+    //timing::test_timing();
+    //proxy_configuration::test_proxy_configuration(); 
+    //worker::test_worker();
 
 
 }

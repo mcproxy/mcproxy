@@ -25,6 +25,7 @@
 
 #include <string>
 #include <set>
+#include <sstream>
 
 #define REVERSE_PATH_FILTER_PATH "/proc/sys/net/ipv4/conf/"
 #define REVERSE_PATH_FILTER_THE_ALL_INTERFACE "all"
@@ -45,6 +46,9 @@ public:
 
     void reset_rp_filter(const std::string& if_name);
     void restore_rp_filter(const std::string& if_name);
+
+    std::string to_string() const;
+    friend std::ostream& operator<<(std::ostream& stream, const reverse_path_filter& r);
 };
 
 

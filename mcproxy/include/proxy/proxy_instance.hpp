@@ -39,6 +39,7 @@
 #include "include/proxy/check_source.hpp"
 #include "include/proxy/timing.hpp"
 #include "include/proxy/interfaces.hpp"
+#include "include/proxy/querier.hpp"
 
 #include <memory>
 #include <vector>
@@ -64,14 +65,16 @@ private:
     std::unique_ptr<receiver> m_receiver;
     std::unique_ptr<routing> m_routing;
 
+    //if_index, querier
+    std::map<int, std::unique_ptr<querier>> m_querier;
+
     //init
     bool init_mrt_socket();
     bool init_sender();
     bool init_receiver();
-    bool init_routing(); 
+    bool init_routing();
 
-
-    virtual void worker_thread() override;
+    void worker_thread();
 
     //processed joins and leaves
     //void handle_igmp(struct receiver_msg* r);
@@ -82,8 +85,8 @@ private:
     ////create debug output
     //void handle_debug_msg(struct debug_msg* db);
 
-    ////add and del interfaces
-    //void handle_config(struct config_msg* c);
+    //add and del interfaces
+    void handle_config(std::shared_ptr<config_msg> msg);
 
 
 public:

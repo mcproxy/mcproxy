@@ -24,16 +24,26 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/worker.hpp"
 
-worker::worker():
-    m_thread(nullptr), m_running(false)
+#include "unistd.h"
 
+worker::worker()
+    : worker(WORKER_MESSAGE_QUEUE_DEFAULT_SIZE)
 {
     HC_LOG_TRACE("");
-    start();
+}
+
+worker::worker(int queue_size)
+    : m_thread(nullptr)
+    , m_running(false)
+    , m_job_queue(queue_size)
+{
+    HC_LOG_TRACE("");
+    //start();
 }
 
 worker::~worker()
 {
+    HC_LOG_TRACE("");
     stop();
     join();
 }
@@ -43,19 +53,49 @@ void worker::start()
 {
     HC_LOG_TRACE("");
 
-    m_running =  true;
-    m_thread.reset(new std::thread(&worker::worker_thread,this));
+    if (m_thread.get() == nullptr) {
+        m_running =  true;
+        m_thread.reset(new std::thread(&worker::worker_thread, this));
+    } else {
+        HC_LOG_WARN("timing is already running");
+    }
 }
 
-void worker::add_msg(proxy_msg&& msg)
+//void worker::worker_thread()
+//{
+//HC_LOG_TRACE("");
+//sleep(1);
+//while (m_running) {
+//HC_LOG_DEBUG("in while(m_running)");
+//auto m = m_job_queue.dequeue();
+//switch (m->get_type()) {
+//case proxy_msg::TEST_MSG:
+//HC_LOG_DEBUG("dequeued a test_msg");
+//(*m)();
+//break;
+//case proxy_msg::EXIT_MSG:
+//HC_LOG_DEBUG("dequeued a exit_msg");
+//std::cout << "exit msg" << std::endl;
+//stop();
+//break;
+//default:
+//HC_LOG_DEBUG("dequeued a an other message");
+//std::cout << "an ohter unknown message" << std::endl;
+//break;
+//}
+//}
+//HC_LOG_DEBUG("after while(m_running)");
+//};
+
+void worker::add_msg(std::shared_ptr<proxy_msg> msg)
 {
     HC_LOG_TRACE("");
 
-    HC_LOG_DEBUG("message type:" << message_type_name.at(msg.get_type()));
-    if (msg.get_priority() == proxy_msg::LOSEABLE) {
-        m_job_queue.enqueue_loseable(std::move(msg));
+    HC_LOG_DEBUG("message type:" << message_type_name.at(msg->get_type()));
+    if (msg->get_priority() == proxy_msg::LOSEABLE) {
+        m_job_queue.enqueue_loseable(msg);
     } else {
-        m_job_queue.enqueue(std::move(msg));
+        m_job_queue.enqueue(msg);
     }
 }
 
@@ -67,10 +107,11 @@ bool worker::is_running()
 
 void worker::stop()
 {
+    HC_LOG_TRACE("");
     m_running = false;
 }
 
-void worker::join()
+void worker::join() const
 {
     HC_LOG_TRACE("");
 
@@ -78,3 +119,62 @@ void worker::join()
         m_thread->join();
     }
 }
+
+void worker::test_worker()
+{
+    std::cout << "##-- test worker --##" << std::endl;
+
+    class my_worker: public worker
+    {
+    public:
+        my_worker(int queue_size): worker(queue_size) {
+            HC_LOG_TRACE("");
+            start();
+        }
+    private:
+        void worker_thread() override {
+            HC_LOG_TRACE("");
+            sleep(1);
+            while (m_running) {
+                HC_LOG_DEBUG("in while(m_running)");
+                auto m = m_job_queue.dequeue();
+                switch (m->get_type()) {
+                case proxy_msg::TEST_MSG:
+                    HC_LOG_DEBUG("dequeued a test_msg");
+                    (*m)();
+                    break;
+                case proxy_msg::EXIT_MSG:
+                    HC_LOG_DEBUG("dequeued a exit_msg");
+                    std::cout << "exit msg" << std::endl;
+                    stop();
+                    break;
+                default:
+                    HC_LOG_DEBUG("dequeued a an other message");
+                    std::cout << "an ohter unknown message" << std::endl;
+                    break;
+                }
+            }
+            HC_LOG_DEBUG("after while(m_running)");
+        };
+    };
+
+
+    //};
+
+    std::unique_ptr<worker> m(new my_worker(4));
+    //[4 6] 5  [1 2 3 ] without 7
+
+    m->add_msg(std::make_shared<test_msg>(test_msg(1, proxy_msg::LOSEABLE)));
+    m->add_msg(std::make_shared<test_msg>(test_msg(2, proxy_msg::LOSEABLE)));
+    m->add_msg(std::make_shared<test_msg>(test_msg(3, proxy_msg::LOSEABLE)));
+    m->add_msg(std::make_shared<test_msg>(test_msg(4, proxy_msg::USER_INPUT)));
+    m->add_msg(std::make_shared<test_msg>(test_msg(5, proxy_msg::SYSTEMIC)));
+    m->add_msg(std::make_shared<test_msg>(test_msg(6, proxy_msg::USER_INPUT)));
+    m->add_msg(std::make_shared<test_msg>(test_msg(7, proxy_msg::LOSEABLE)));
+    sleep(3);
+    m->add_msg(std::make_shared<exit_cmd>(exit_cmd()));
+
+    std::cout << "##-- end of test worker --##" << std::endl;
+    sleep(4);
+}
+

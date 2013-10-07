@@ -34,15 +34,24 @@
 #include <thread>
 #include <memory>
 
+#define WORKER_MESSAGE_QUEUE_DEFAULT_SIZE 150
+
+
+struct comp_proxy_msg {
+    bool operator()(const std::shared_ptr<proxy_msg>& l, const std::shared_ptr<proxy_msg>& r) const {
+        return *l < *r;
+    }
+};
+
 /**
  * @brief Wraps the job queue to a basic worker like an simple actor pattern.
  */
 class worker
 {
 private:
-    std::unique_ptr<std::thread> m_thread;
 protected:
 
+    std::unique_ptr<std::thread> m_thread;
     /**
      * @brief Worker thread to process the jobs.
      */
@@ -56,10 +65,10 @@ protected:
     /**
      * @brief Job queue to process proxy_msg.
      */
-    message_queue<proxy_msg> m_job_queue;
-
-    void join();
+    message_queue<std::shared_ptr<proxy_msg>,comp_proxy_msg> m_job_queue;
+    void join() const;
     void start();
+    void stop();
 public:
 
     /**
@@ -67,18 +76,19 @@ public:
      * @param max_msg maximum size of the job queue
      */
     worker();
+    worker(int queue_size);
 
     virtual ~worker();
 
-    void stop();
 
     bool is_running();
 
     /**
      * @brief Add a message to the job queue.
      */
-    void add_msg(proxy_msg&& msg);
+    void add_msg(std::shared_ptr<proxy_msg> msg);
 
+    static void test_worker();
 };
 
 #endif // WORKER_HPP

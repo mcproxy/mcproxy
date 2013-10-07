@@ -48,15 +48,15 @@ proxy_instance::proxy_instance(int addr_family, int table_number, const std::sha
     }
 
     if (!init_sender()) {
-       throw "failed to initialize sender"; 
+        throw "failed to initialize sender";
     }
-    
+
     if (!init_receiver()) {
-       throw "failed to initialise receiver";
+        throw "failed to initialise receiver";
     }
 
     if (!init_routing()) {
-       throw "failed to initialise routing";
+        throw "failed to initialise routing";
     }
 }
 
@@ -110,7 +110,7 @@ bool proxy_instance::init_receiver()
     if (m_addr_family == AF_INET) {
         m_receiver.reset(new igmp_receiver(m_mrt_sock, m_interfaces));
     } else if (m_addr_family == AF_INET6) {
-        m_receiver.reset(new mld_receiver(m_mrt_sock,m_interfaces));
+        m_receiver.reset(new mld_receiver(m_mrt_sock, m_interfaces));
     } else {
         HC_LOG_ERROR("wrong address family");
         return false;
@@ -141,7 +141,23 @@ void proxy_instance::worker_thread()
 {
     HC_LOG_TRACE("");
 
-    //proxy_msg m;
+    while (m_running) {
+        auto msg = m_job_queue.dequeue();
+        switch (msg->get_type()) {
+        case proxy_msg::TEST_MSG:
+            (*msg)();
+            break;
+        case proxy_msg::CONFIG_MSG:
+            handle_config(std::static_pointer_cast<config_msg>(msg));
+            break;
+        case proxy_msg::EXIT_MSG:
+            stop();
+            break;
+        default:
+            HC_LOG_ERROR("Received unknown message");
+            break;
+        }
+    }
 
     ////DEBUG output
     //HC_LOG_DEBUG("initiate GQ timer; pointer: " << m.msg);
@@ -191,6 +207,35 @@ void proxy_instance::worker_thread()
     HC_LOG_DEBUG("worker thread proxy_instance end");
 }
 
+void proxy_instance::handle_config(std::shared_ptr<config_msg> msg)
+{
+    HC_LOG_TRACE("");
+
+    switch (msg->get_instruction()) {
+    case config_msg::ADD_DOWNSTREAM: {
+        std::unique_ptr<querier> q(new querier(m_addr_family, msg->get_if_index(), m_sender));
+        m_querier.insert(std::pair<int, std::unique_ptr<querier>>(msg->get_if_index(), move(q)));
+    }
+    break;
+    case config_msg::DEL_DOWNSTREAM: {
+        auto it = m_querier.find(msg->get_if_index());
+        if (it != std::end(m_querier)) {
+            m_querier.erase(it);
+        } else {
+            HC_LOG_ERROR("failed to delete downstream interface: " << interfaces::get_if_name(msg->get_if_index()));
+
+        }
+    }
+    break;
+    case config_msg::ADD_UPSTREAM:
+        break;
+    case config_msg::DEL_UPSTREAM:
+        break;
+    default:
+        HC_LOG_ERROR("unknown config message format");
+    }
+}
+
 //void proxy_instance::handle_igmp(struct receiver_msg* r)
 //{
 //HC_LOG_TRACE("");
@@ -225,21 +270,6 @@ void proxy_instance::worker_thread()
 ////}
 //}
 
-//void proxy_instance::handle_config(struct config_msg* c)
-//{
-//HC_LOG_TRACE("");
-
-//switch (c->type) {
-//case config_msg::ADD_DOWNSTREAM:
-//break;
-//case config_msg::DEL_DOWNSTREAM:
-//break;
-//case config_msg::SET_UPSTREAM:
-//break;
-//default:
-//HC_LOG_ERROR("unknown config message format");
-//}
-//}
 
 //void proxy_instance::handle_debug_msg(struct debug_msg* db)
 //{

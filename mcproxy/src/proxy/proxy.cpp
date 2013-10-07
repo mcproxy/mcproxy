@@ -27,6 +27,8 @@
 #include "include/proxy/check_kernel.hpp"
 
 #include <iostream>
+#include <sstream>
+
 #include <signal.h>
 #include <unistd.h>
 
@@ -35,7 +37,7 @@ bool proxy::m_running = false;
 proxy::proxy(int arg_count, char* args[])
     : m_verbose_lvl(0)
     , m_print_proxy_status(false)
-    , m_rest_rp_filter(false)
+    , m_reset_rp_filter(false)
     , m_config_path(PROXY_CONFIGURATION_DEFAULT_CONIG_PATH)
     , m_proxy_configuration(nullptr)
     , m_timing(std::make_shared<timing>())
@@ -54,11 +56,9 @@ proxy::proxy(int arg_count, char* args[])
         throw "The mcproxy has to be started with root privileges!";
     }
 
-    m_proxy_configuration.reset(new proxy_configuration(m_config_path, m_rest_rp_filter));
+    m_proxy_configuration.reset(new proxy_configuration(m_config_path, m_reset_rp_filter));
 
-    if (!start_proxy_instances()) {
-        throw "failed to start a proxy instance";
-    }
+    start_proxy_instances();
 
     start();
 }
@@ -132,7 +132,7 @@ void proxy::prozess_commandline_args(int arg_count, char* args[])
                 is_check_kernel = true;
                 break;
             case 'r':
-                m_rest_rp_filter = true;
+                m_reset_rp_filter = true;
                 break;
             case 'd':
                 is_logging = true;
@@ -159,7 +159,6 @@ void proxy::prozess_commandline_args(int arg_count, char* args[])
         }
     }
 
-    //untestestd ???????????????????????
     if (optind < arg_count) {
         HC_LOG_ERROR("Unknown option argument: " << args[optind]);
         throw "Unknown option argument";
@@ -185,80 +184,38 @@ void proxy::prozess_commandline_args(int arg_count, char* args[])
     }
 }
 
-bool proxy::start_proxy_instances()
+void proxy::start_proxy_instances()
 {
     HC_LOG_TRACE("");
 
-    auto& db =m_proxy_configuration->get_upstream_downstream_map();
-    for(auto& e: db){
+    auto& db = m_proxy_configuration->get_upstream_downstream_map();
+    for (auto & e : db) {
         int table = e.first;
+        if (db.size() <= 1) {
+            table = 0; //single instance
+        }
         unsigned int upstream = e.first;
-        auto& downstreams = e.second;         
-        //std::unique_ptr<proxy_instance> instance = new proxy_instance(m_proxy_configuration->get_addr_family(), m_proxy_configuration->get_interfaces(), m_timing);
-        
-    //proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces> interfaces, const std::shared_ptr<timing> shared_timing);
-        
+        auto& downstreams = e.second;
+        std::unique_ptr<proxy_instance> pr_i(new proxy_instance(m_proxy_configuration->get_addr_family(), table, m_proxy_configuration->get_interfaces(), m_timing));
 
+        pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_UPSTREAM, upstream));
+
+        for (auto f : downstreams) {
+            pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, f));
+        }
+
+        m_proxy_instances.insert(std::pair<int, std::unique_ptr<proxy_instance>>(table,move(pr_i)));
     }
-
-    //for ( it_up_down = m_up_down_map.begin() ; it_up_down != m_up_down_map.end(); it_up_down++ ) {
-    //down_vector tmp_down_vector = it_up_down->second;
-
-    //proxy_instance* p = new proxy_instance();
-    //m_proxy_instances.push_back(p);
-
-    //if ((it_vif = m_vif_map.find(it_up_down->first)) == m_vif_map.end()) {
-    //HC_LOG_ERROR("failed to find vif form if_index: " << it_up_down->first);
-    //return false;
-    //}
-    //upstream_vif = it_vif->second;
-
-    //if ((it_vif = m_vif_map.find(tmp_down_vector[0])) == m_vif_map.end()) {
-    //HC_LOG_ERROR("failed to find vif form if_index: " << tmp_down_vector[0]);
-    //return false;
-    //}
-    //downstream_vif = it_vif->second;
-
-    ////start proxy instance
-    //if (!p->init(m_addr_family, it_up_down->first, upstream_vif, tmp_down_vector[0], downstream_vif,
-    //m_is_single_instance)) {
-    //return false;
-    //}
-
-    //p->start();
-
-
-    ////add upstream and first downstream
-    //m_interface_map.insert(interface_pair(it_up_down->first, m_proxy_instances.size() - 1));
-    //m_interface_map.insert(interface_pair(tmp_down_vector[0], m_proxy_instances.size() - 1));
-
-    ////add downstream
-    //for (unsigned int i = 1; i < tmp_down_vector.size(); i++) {
-    //msg.type = proxy_msg::CONFIG_MSG;
-
-    //if ((it_vif = m_vif_map.find(tmp_down_vector[i])) == m_vif_map.end()) {
-    //HC_LOG_ERROR("failed to find vif form if_index: " << tmp_down_vector[0]);
-    //return false;
-    //}
-    //downstream_vif = it_vif->second;
-    //msg.msg = new config_msg(config_msg::ADD_DOWNSTREAM, tmp_down_vector[i], downstream_vif);
-
-    //HC_LOG_DEBUG("add a new downstream interface; pointer: " << msg.msg);
-    //cout << "add a new downstream interface" << endl;
-    //cout << "proxy.cpp: msg.msg: " << msg.msg << " msg.msg.get(): " << msg.msg.get() << endl;
-    //p->add_msg(msg);
-    //m_interface_map.insert(interface_pair(tmp_down_vector[i], m_proxy_instances.size() - 1));
-    //}
-    //}
-
-    return false;
 }
 
-
-
-bool proxy::start()
+void proxy::start()
 {
     HC_LOG_TRACE("");
+
+    while (m_running) {
+                
+    }
+
 
     //vif_map::iterator it_vif;
     //interface_map::iterator it_proxy_numb;
@@ -365,9 +322,6 @@ bool proxy::start()
     //}
     //}
 
-
-
-    return true;
 }
 
 void proxy::signal_handler(int)
@@ -375,3 +329,19 @@ void proxy::signal_handler(int)
     proxy::m_running = false;
 }
 
+std::string proxy::to_string()
+{
+    using namespace std;
+    HC_LOG_TRACE("");
+    ostringstream s;
+    s << "##-- multicst proxy status --##" << endl;
+    s << "is running: " << m_running << endl;
+    s << "verbose level: " << m_verbose_lvl << endl;
+    s << "print proxy_status information: " << m_print_proxy_status << endl;
+    s << "reset all reverse path filter: " << m_reset_rp_filter << endl;
+    s << "config path: " << m_config_path << endl;
+
+    s << "-- proxy configuration --" << endl;
+    s << m_proxy_configuration.get()->to_string() << endl;
+    return s.str();
+}
