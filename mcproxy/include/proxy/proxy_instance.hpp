@@ -44,6 +44,41 @@
 #include <memory>
 #include <vector>
 
+struct exit_cmd : public proxy_msg {
+    exit_cmd(): proxy_msg(EXIT_MSG, USER_INPUT) {
+        HC_LOG_TRACE("");
+    }
+};
+
+struct config_msg : public proxy_msg {
+
+    enum config_instruction {
+        ADD_DOWNSTREAM,
+        DEL_DOWNSTREAM,
+        ADD_UPSTREAM,
+        DEL_UPSTREAM
+    };
+
+    config_msg(config_instruction instruction, unsigned int if_index)
+        : proxy_msg(CONFIG_MSG, SYSTEMIC)
+        , m_instruction(instruction)
+        , m_if_index(if_index) {
+        HC_LOG_TRACE("");
+    }
+
+    config_instruction get_instruction() {
+        return m_instruction;
+    }
+
+    unsigned int get_if_index() {
+        return m_if_index;
+    }
+
+private:
+    config_instruction m_instruction;
+    unsigned int m_if_index;
+};
+
 /**
  * @brief Represent a multicast Proxy
  */

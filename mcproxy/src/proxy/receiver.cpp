@@ -39,7 +39,6 @@ receiver::receiver(int addr_family, const std::shared_ptr<const mroute_socket> m
         throw std::string("failed to set receive timeout");
     }
 
-    start();
 }
 
 receiver::~receiver()

@@ -64,7 +64,6 @@ private:
     void start_proxy_instances();
 
 
-    //bool init_routing_table(); //add all interfaces from state_table to ip_mr_vif (phyint or tunnel) , allocate memory for m_vif
     static void signal_handler(int sig);
 
     void start();

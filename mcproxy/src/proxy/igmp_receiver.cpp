@@ -34,6 +34,8 @@
 igmp_receiver::igmp_receiver(const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces): receiver(AF_INET, mrt_sock, interfaces)
 {
     HC_LOG_TRACE("");
+
+    start();
 }
 
 int igmp_receiver::get_iov_min_size()

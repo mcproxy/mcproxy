@@ -43,7 +43,7 @@ struct proxy_msg {
         INIT_MSG,
         TEST_MSG,       //Test message type to test the message queue and the intrusive pointer.
         EXIT_MSG,       //Message type to stop the proxy instances.
-        QUERIER_MSG,
+        FILTER_TIMER_MSG,
         CONFIG_MSG,     //Message type used from module @ref mod_proxy to set and delete interfaces of the proxy instances.
         RECEIVER_MSG,    //Message type used from module @ref mod_receiver.
         DEBUG_MSG      //Message type to collect debug information for the module @ref mod_proxy.
@@ -92,13 +92,13 @@ protected:
 
 
 const std::map<proxy_msg::message_type, std::string> message_type_name = {
-    {proxy_msg::INIT_MSG,     "INIT_MSG"    },
-    {proxy_msg::TEST_MSG,     "TEST_MSG"    },
-    {proxy_msg::EXIT_MSG,     "EXIT_MSG"    },
-    {proxy_msg::QUERIER_MSG,  "QUERIER_MSG" },
-    {proxy_msg::CONFIG_MSG,   "CONFIG_MSG"  },
-    {proxy_msg::RECEIVER_MSG, "RECEIVER_MSG"},
-    {proxy_msg::DEBUG_MSG,    "DEBUG_MSG"   }
+    {proxy_msg::INIT_MSG,             "INIT_MSG"    },
+    {proxy_msg::TEST_MSG,             "TEST_MSG"    },
+    {proxy_msg::EXIT_MSG,             "EXIT_MSG"    },
+    {proxy_msg::FILTER_TIMER_MSG,     "FILTER_TIMER_MSG" },
+    {proxy_msg::CONFIG_MSG,           "CONFIG_MSG"  },
+    {proxy_msg::RECEIVER_MSG,         "RECEIVER_MSG"},
+    {proxy_msg::DEBUG_MSG,            "DEBUG_MSG"   }
 };
 
 const std::map<proxy_msg::message_priority, std::string> message_priority_name = {
@@ -126,49 +126,6 @@ private:
     int m_value;
 };
 
-
-struct exit_cmd : public proxy_msg {
-    exit_cmd(): proxy_msg(EXIT_MSG, USER_INPUT) {
-        HC_LOG_TRACE("");
-    }
-};
-
-
-struct querier_msg : public proxy_msg {
-    querier_msg(): proxy_msg(QUERIER_MSG, SYSTEMIC) {
-        HC_LOG_TRACE("");
-    }
-};
-
-
-struct config_msg : public proxy_msg {
-
-    enum config_instruction {
-        ADD_DOWNSTREAM,
-        DEL_DOWNSTREAM,
-        ADD_UPSTREAM,
-        DEL_UPSTREAM
-    };
-
-    config_msg(config_instruction instruction, unsigned int if_index)
-        : proxy_msg(CONFIG_MSG, SYSTEMIC)
-        , m_instruction(instruction)
-        , m_if_index(if_index) {
-        HC_LOG_TRACE("");
-    }
-
-    config_instruction get_instruction() {
-        return m_instruction;
-    }
-
-    unsigned int get_if_index() {
-        return m_if_index;
-    }
-
-private:
-    config_instruction m_instruction;
-    unsigned int m_if_index;
-};
 
 
 struct receiver_msg : public proxy_msg {

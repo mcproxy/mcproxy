@@ -286,6 +286,7 @@ void timers_values::reset_to_default_tank()
     if (!is_default_timers_values_tank) {
         delete tank;
         tank = &default_timers_values_tank;
+        is_default_timers_values_tank = true;
     }
 }
 
@@ -295,7 +296,6 @@ void timers_values::set_robustness_variable(unsigned int robustness_variable)
     HC_LOG_TRACE("");
     set_new_tank();
     tank->robustness_variable = robustness_variable;
-
 }
 
 void timers_values::set_query_interval_sec(std::chrono::seconds query_interval)

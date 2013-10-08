@@ -31,10 +31,11 @@
 #include <iostream>
 #include <sstream>
 
-querier::querier(int addr_family, int if_index, const std::shared_ptr<const sender> sender)
+querier::querier(int addr_family, int if_index, const std::shared_ptr<const sender> sender, const std::shared_ptr<timing> timing)
     : m_addr_family(addr_family)
     , m_if_index(if_index)
     , m_sender(sender)
+    , m_timing(timing)
 {
     HC_LOG_TRACE("");
 
@@ -148,8 +149,8 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
         db_info.filter_mode = EXLCUDE_MODE;
-        db_info.exclude_list = B - A;
         db_info.include_requested_list *= B;
+        db_info.exclude_list = B - A;
         break;
 
 
@@ -165,8 +166,8 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         //                                                    Filter Timer=MALI
     case  MODE_IS_EXCLUDE: //IS_EX(x)
         db_info.filter_mode = EXLCUDE_MODE;
-        db_info.exclude_list = B - A;
         db_info.include_requested_list *= B;
+        db_info.exclude_list = B - A;
         break;
 
 
@@ -264,7 +265,9 @@ void querier::test_querier(int addr_family, std::string if_name)
     cout << "##-- querier test on interface " << if_name << " --##" << endl;
 
     std::shared_ptr<igmp_sender> s = make_shared<igmp_sender>();
-    querier q(AF_INET, if_nametoindex(if_name.c_str()), s);
+    std::shared_ptr<timing> t = make_shared<timing>();
+
+    querier q(AF_INET, if_nametoindex(if_name.c_str()), s, t);
 
     source s1(addr_storage("1.1.1.1"));
     source s2(addr_storage("2.2.2.2"));

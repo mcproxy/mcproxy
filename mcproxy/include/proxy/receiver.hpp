@@ -76,7 +76,6 @@ private:
 
     std::mutex m_data_lock;
 
-    void start();
     void stop();
     void join();
 protected:
@@ -88,6 +87,8 @@ protected:
     
     const std::shared_ptr<const interfaces> m_interfaces; 
 
+
+    void start();
 
     /**
      * @brief Get the size for the control buffer for recvmsg().

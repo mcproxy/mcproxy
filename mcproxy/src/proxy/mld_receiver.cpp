@@ -44,6 +44,8 @@ mld_receiver::mld_receiver(const std::shared_ptr<const mroute_socket> mrt_sock, 
     if (!m_mrt_sock->set_recv_pkt_info()) {
         throw "faield to set receive paket info";
     }
+
+    start();
 }
 
 int mld_receiver::get_iov_min_size()

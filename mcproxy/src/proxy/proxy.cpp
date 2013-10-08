@@ -204,7 +204,7 @@ void proxy::start_proxy_instances()
             pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, f));
         }
 
-        m_proxy_instances.insert(std::pair<int, std::unique_ptr<proxy_instance>>(table,move(pr_i)));
+        m_proxy_instances.insert(std::pair<int, std::unique_ptr<proxy_instance>>(table, move(pr_i)));
     }
 }
 
@@ -212,8 +212,9 @@ void proxy::start()
 {
     HC_LOG_TRACE("");
 
+    m_running = true;
     while (m_running) {
-                
+        sleep(1);
     }
 
 

@@ -87,8 +87,6 @@ private:
     uint16_t maxrespi_to_maxrespc_mldv2(std::chrono::milliseconds msec) const;
 
 public:
-    static void test_timers_values();
-
     unsigned int get_robustness_variable() const;
     std::chrono::seconds get_query_interval() const;
     std::chrono::milliseconds get_query_response_interval() const;
@@ -117,6 +115,8 @@ public:
 
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const timers_values& tv);
+
+    static void test_timers_values();
 };
 
 

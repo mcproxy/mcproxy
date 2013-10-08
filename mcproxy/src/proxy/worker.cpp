@@ -38,7 +38,6 @@ worker::worker(int queue_size)
     , m_job_queue(queue_size)
 {
     HC_LOG_TRACE("");
-    //start();
 }
 
 worker::~worker()
@@ -60,32 +59,6 @@ void worker::start()
         HC_LOG_WARN("timing is already running");
     }
 }
-
-//void worker::worker_thread()
-//{
-//HC_LOG_TRACE("");
-//sleep(1);
-//while (m_running) {
-//HC_LOG_DEBUG("in while(m_running)");
-//auto m = m_job_queue.dequeue();
-//switch (m->get_type()) {
-//case proxy_msg::TEST_MSG:
-//HC_LOG_DEBUG("dequeued a test_msg");
-//(*m)();
-//break;
-//case proxy_msg::EXIT_MSG:
-//HC_LOG_DEBUG("dequeued a exit_msg");
-//std::cout << "exit msg" << std::endl;
-//stop();
-//break;
-//default:
-//HC_LOG_DEBUG("dequeued a an other message");
-//std::cout << "an ohter unknown message" << std::endl;
-//break;
-//}
-//}
-//HC_LOG_DEBUG("after while(m_running)");
-//};
 
 void worker::add_msg(std::shared_ptr<proxy_msg> msg)
 {

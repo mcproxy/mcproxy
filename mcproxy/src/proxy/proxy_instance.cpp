@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * written by Sebastian Woelke, in cooperation with:
+ *messg written by Sebastian Woelke, in cooperation with:
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
  */
@@ -58,6 +58,8 @@ proxy_instance::proxy_instance(int addr_family, int table_number, const std::sha
     if (!init_routing()) {
         throw "failed to initialise routing";
     }
+
+    start();
 }
 
 bool proxy_instance::init_mrt_socket()
@@ -129,13 +131,8 @@ bool proxy_instance::init_routing()
 proxy_instance::~proxy_instance()
 {
     HC_LOG_TRACE("");
+    add_msg(std::make_shared<exit_cmd>());
 }
-
-
-
-
-
-
 
 void proxy_instance::worker_thread()
 {
@@ -151,6 +148,7 @@ void proxy_instance::worker_thread()
             handle_config(std::static_pointer_cast<config_msg>(msg));
             break;
         case proxy_msg::EXIT_MSG:
+            HC_LOG_DEBUG("received exit command");
             stop();
             break;
         default:
