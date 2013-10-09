@@ -39,8 +39,8 @@ struct timers_values_tank {
     std::chrono::milliseconds query_response_interval = std::chrono::milliseconds(10000); //Max Response Time/Delay
     std::chrono::seconds startup_query_interval = query_interval / 4;
     unsigned int startup_query_count = robustness_variable;
-    std::chrono::milliseconds last_member_query_interval = std::chrono::milliseconds(1000);
-    unsigned int last_member_query_count = robustness_variable;
+    std::chrono::milliseconds last_listener_query_interval = std::chrono::milliseconds(1000);
+    unsigned int last_listener_query_count = robustness_variable;
     std::chrono::milliseconds unsolicited_report_interval = std::chrono::milliseconds(1000);
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const timers_values_tank& tvt);
@@ -90,13 +90,13 @@ public:
     unsigned int get_robustness_variable() const;
     std::chrono::seconds get_query_interval() const;
     std::chrono::milliseconds get_query_response_interval() const;
-    std::chrono::milliseconds get_group_membership_interval() const; //
+    std::chrono::milliseconds get_multicast_address_listening_interval() const; //
     std::chrono::milliseconds get_other_querier_present_interval() const; //
     std::chrono::seconds get_startup_query_interval() const;
     unsigned int get_startup_query_count() const;
-    std::chrono::milliseconds get_last_member_query_interval() const;
-    unsigned int get_last_member_query_count() const;
-    std::chrono::milliseconds get_last_member_query_time() const; //
+    std::chrono::milliseconds get_last_listener_query_interval() const;
+    unsigned int get_last_listener_query_count() const;
+    std::chrono::milliseconds get_last_listener_query_time() const; //
     std::chrono::milliseconds get_unsolicited_report_interval() const;
     std::chrono::milliseconds get_older_host_present_interval() const; //
 
@@ -105,8 +105,8 @@ public:
     void set_query_response_interval(std::chrono::milliseconds query_response_interval);
     void set_startup_query_interval(std::chrono::seconds startup_query_interval);
     void set_startup_query_count(unsigned int startup_query_count);
-    void set_last_member_query_interval(std::chrono::milliseconds last_member_query_interval);
-    void set_last_member_query_count(unsigned int last_member_query_count);
+    void set_last_listener_query_interval(std::chrono::milliseconds last_listener_query_interval);
+    void set_last_listener_query_count(unsigned int last_listener_query_count);
     void set_unsolicited_report_interval(std::chrono::milliseconds unsolicited_report_interval);
 
     void reset_to_default_tank();

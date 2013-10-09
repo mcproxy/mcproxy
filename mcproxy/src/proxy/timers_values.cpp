@@ -58,13 +58,13 @@ std::string timers_values_tank::to_string() const
     //s << "Robustness Variable: " << robustness_variable << std::endl;
     s << "Query Interval: " << to_time_string(query_interval) << std::endl;
     s << "Query Response Interval: " << to_time_string(query_response_interval) << std::endl;
-    s << "Group Membership Interval: " << to_time_string(robustness_variable * query_interval + query_response_interval) << std::endl;
+    s << "Multicast Address Listining Interval: " << to_time_string(robustness_variable * query_interval + query_response_interval) << std::endl;
     s << "Other Querier Present Interval: " << to_time_string(robustness_variable * query_interval * 1000 + (query_response_interval / 2)) << std::endl;;
     s << "Startup Query Interval: " << to_time_string(startup_query_interval) << std::endl;
     s << "Startup Query Count: " << startup_query_count << std::endl;
-    s << "Last Member Query Interval: " << to_time_string(last_member_query_interval) << std::endl;
-    s << "Last Member Query Count: " << last_member_query_count << std::endl;
-    s << "Last Member Query Time: " << to_time_string(last_member_query_interval * last_member_query_count) << std::endl;
+    s << "Last Listener Query Interval: " << to_time_string(last_listener_query_interval) << std::endl;
+    s << "Last Listener Query Count: " << last_listener_query_count << std::endl;
+    s << "Last Listener Query Time: " << to_time_string(last_listener_query_interval * last_listener_query_count) << std::endl;
     s << "Unsolicited Report Interval: " << to_time_string(unsolicited_report_interval) << std::endl;
     s << "Older Host Present Interval: " << to_time_string((robustness_variable * query_interval) + query_response_interval) << std::endl;
 
@@ -216,7 +216,7 @@ std::chrono::milliseconds timers_values::get_query_response_interval() const
     return tank->query_response_interval;
 }
 
-std::chrono::milliseconds timers_values::get_group_membership_interval() const
+std::chrono::milliseconds timers_values::get_multicast_address_listening_interval() const
 {
     HC_LOG_TRACE("");
     return (tank->robustness_variable * tank->query_interval) + tank->query_response_interval;
@@ -240,22 +240,22 @@ unsigned int timers_values::get_startup_query_count() const
     return tank->startup_query_count;
 }
 
-std::chrono::milliseconds timers_values::get_last_member_query_interval() const
+std::chrono::milliseconds timers_values::get_last_listener_query_interval() const
 {
     HC_LOG_TRACE("");
-    return tank->last_member_query_interval;
+    return tank->last_listener_query_interval;
 }
 
-unsigned int timers_values::get_last_member_query_count() const
+unsigned int timers_values::get_last_listener_query_count() const
 {
     HC_LOG_TRACE("");
-    return tank->last_member_query_count;
+    return tank->last_listener_query_count;
 }
 
-std::chrono::milliseconds timers_values::get_last_member_query_time() const
+std::chrono::milliseconds timers_values::get_last_listener_query_time() const
 {
     HC_LOG_TRACE("");
-    return tank->last_member_query_interval * tank->last_member_query_count;
+    return tank->last_listener_query_interval * tank->last_listener_query_count;
 }
 
 std::chrono::milliseconds timers_values::get_unsolicited_report_interval() const
@@ -327,19 +327,19 @@ void timers_values::set_startup_query_count(unsigned int startup_query_count)
 
 }
 
-void timers_values::set_last_member_query_interval(std::chrono::milliseconds last_member_query_interval)
+void timers_values::set_last_listener_query_interval(std::chrono::milliseconds last_listener_query_interval)
 {
     HC_LOG_TRACE("");
     set_new_tank();
-    tank->last_member_query_interval = last_member_query_interval;
+    tank->last_listener_query_interval = last_listener_query_interval;
 
 }
 
-void timers_values::set_last_member_query_count(unsigned int last_member_query_count)
+void timers_values::set_last_listener_query_count(unsigned int last_listener_query_count)
 {
     HC_LOG_TRACE("");
     set_new_tank();
-    tank->last_member_query_count = last_member_query_count;
+    tank->last_listener_query_count = last_listener_query_count;
 
 }
 

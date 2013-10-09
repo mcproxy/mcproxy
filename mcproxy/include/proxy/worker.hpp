@@ -37,6 +37,12 @@
 #define WORKER_MESSAGE_QUEUE_DEFAULT_SIZE 150
 
 
+struct exit_cmd : public proxy_msg {
+    exit_cmd(): proxy_msg(EXIT_MSG, USER_INPUT) {
+        HC_LOG_TRACE("");
+    }
+};
+
 struct comp_proxy_msg {
     bool operator()(const std::shared_ptr<proxy_msg>& l, const std::shared_ptr<proxy_msg>& r) const {
         return *l < *r;

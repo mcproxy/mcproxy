@@ -31,8 +31,9 @@
 #include <iostream>
 #include <sstream>
 
-querier::querier(int addr_family, int if_index, const std::shared_ptr<const sender> sender, const std::shared_ptr<timing> timing)
-    : m_addr_family(addr_family)
+querier::querier(proxy_instance* pr_i, int addr_family, int if_index, const std::shared_ptr<const sender> sender, const std::shared_ptr<timing> timing)
+    : m_proxy_instance(pr_i)
+    , m_addr_family(addr_family)
     , m_if_index(if_index)
     , m_sender(sender)
     , m_timing(timing)
@@ -238,6 +239,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         //                                                   Delete (Y-A)
         //                                                   Filter Timer=MALI
     case  MODE_IS_EXCLUDE: //IS_EX(x)
+        db_info.m_filter_timer = mali(gaddr);
         X = (A - Y);
         Y *= A;
         break;
@@ -258,6 +260,22 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
 }
 
 
+void querier::timer_triggerd(){
+    HC_LOG_TRACE("");
+
+    
+}
+
+
+
+std::shared_ptr<filter_timer> querier::mali(const addr_storage& gaddr) const
+{
+    HC_LOG_TRACE("");
+    auto result = std::make_shared<filter_timer>(m_if_index, gaddr, m_timers_values.get_multicast_address_listening_interval());
+    m_timing->add_time(m_timers_values.get_multicast_address_listening_interval(), m_proxy_instance, result);
+    return result;
+}
+
 void querier::test_querier(int addr_family, std::string if_name)
 {
 
@@ -267,7 +285,7 @@ void querier::test_querier(int addr_family, std::string if_name)
     std::shared_ptr<igmp_sender> s = make_shared<igmp_sender>();
     std::shared_ptr<timing> t = make_shared<timing>();
 
-    querier q(AF_INET, if_nametoindex(if_name.c_str()), s, t);
+    querier q(nullptr,AF_INET, if_nametoindex(if_name.c_str()), s, t);
 
     source s1(addr_storage("1.1.1.1"));
     source s2(addr_storage("2.2.2.2"));

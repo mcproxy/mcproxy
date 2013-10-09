@@ -44,11 +44,6 @@
 #include <memory>
 #include <vector>
 
-struct exit_cmd : public proxy_msg {
-    exit_cmd(): proxy_msg(EXIT_MSG, USER_INPUT) {
-        HC_LOG_TRACE("");
-    }
-};
 
 struct config_msg : public proxy_msg {
 
@@ -122,6 +117,8 @@ private:
 
     //add and del interfaces
     void handle_config(std::shared_ptr<config_msg> msg);
+
+    void handle_querier_timer(std::shared_ptr<timer_msg> msg);
 
 
 public:

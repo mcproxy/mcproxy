@@ -1,0 +1,50 @@
+##-- timing_and _coordination --##
+
+#filter timer
+ - wird nur im exclude benutzt, sonst ist er null
+ - läuft der filter timer im exclude mode ab existieren keine listener mehr im exlcude mode 
+   - action: siehe Kapitel 7.5
+   - details of setting the filtertimer: siehe Kapitel 7.4 
+  
+     Router               Filter
+   Filter Mode          Timer Value          Actions/Comments
+   -----------       -----------------       ----------------
+
+     INCLUDE             Not Used            All listeners in
+                                             INCLUDE mode.
+
+     EXCLUDE             Timer > 0           At least one listener
+                                             in EXCLUDE mode.
+
+     EXCLUDE             Timer == 0          No more listeners in
+                                             EXCLUDE mode for the
+                                             multicast address.
+                                             If the Requested List
+                                             is empty, delete
+                                             Multicast Address
+                                             Record.  If not, switch
+                                             to INCLUDE filter mode;
+                                             the sources in the
+                                             Requested List are
+                                             moved to the Include
+                                             List, and the Exclude
+                                             List is deleted.
+
+ im Exlcude mode ist der timer abgelaufen (Timer == 0) und es existieren keine source addressen in der Request list wird der group record gelöscht
+ sonst wird in den include mode gewechselt und Requested List wird zur incldue list.
+
+#source Timers
+ - details of setting the filtertimer: siehe Kapitel 7.4 
+ - MALI = Multicast Address Listening Interval
+ - LLQT = Last Linster Query Time
+   - in der LLQT time sendet ein querier [Last Member Query Count -1] wiederholungen des queries 
+
+ - im INCLUDE mode: der source timer einer source bei dem empfangen eines reports mit der soruce und im include mode aktuallisiert
+ - wenn die zeit abgelaufen ist wird die source gelöscht (SOFT LEAVE)
+    - wenn keine sourcen mehr vorhanen sind kann der multicast record gelöscht werden
+ - möchte ein client eine Source nicht mehr empfangen wird wird der source timer auf LLQT gesetzt und ein multicast address and Soure Specific queriery versendet. (ohne wiederholung?????) (FAST LEAVE)
+
+ - im EXLUDE mode: sourcen in der Requested list haben haben laufende sourcetimer, ist die zeit abgelaufen wird die source in die exclude lsit copiert
+    - sourcen in der exclude list benötigen keinen timer    
+ - sourcen in der exlude source list werden nicht gelöscht auer der filtertimer läuft ab oder source records manipulieren die db
+

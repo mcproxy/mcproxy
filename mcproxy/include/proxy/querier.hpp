@@ -38,13 +38,14 @@
 #include <memory>
 //#include <chrono>
 
-
+class proxy_instance;
 /**
  * @brief define the behaviour of a multicast querier for a specific interface
  */
 class querier
 {
 private:
+    proxy_instance* m_proxy_instance; 
     int m_addr_family;
     int m_if_index;
     membership_db m_db;
@@ -59,15 +60,17 @@ private:
     bool router_groups_function(std::function<bool(const sender&, int, addr_storage)> f) const;
     void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
     void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
+
+    std::shared_ptr<filter_timer> mali(const addr_storage& gaddr) const; //Multicast Address Listener Interval
 public:
 
     virtual ~querier();
 
-    querier(int addr_family, int if_index, const std::shared_ptr<const sender> sender, const std::shared_ptr<timing> timing);
+    querier(proxy_instance* pr_i, int addr_family, int if_index, const std::shared_ptr<const sender> sender, const std::shared_ptr<timing> timing);
 
     void receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version);
-    void receive_query();
     void timer_triggerd();
+    void receive_query();
 
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const querier& q);

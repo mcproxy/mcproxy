@@ -147,6 +147,13 @@ void proxy_instance::worker_thread()
         case proxy_msg::CONFIG_MSG:
             handle_config(std::static_pointer_cast<config_msg>(msg));
             break;
+        case proxy_msg::FILTER_TIMER_MSG:
+            if (msg.use_count() > 1) {
+                handle_querier_timer(std::static_pointer_cast<timer_msg>(msg));
+            } else {
+                HC_LOG_DEBUG("ignore timer message");
+            }
+            break;
         case proxy_msg::EXIT_MSG:
             HC_LOG_DEBUG("received exit command");
             stop();
@@ -211,7 +218,7 @@ void proxy_instance::handle_config(std::shared_ptr<config_msg> msg)
 
     switch (msg->get_instruction()) {
     case config_msg::ADD_DOWNSTREAM: {
-        std::unique_ptr<querier> q(new querier(m_addr_family, msg->get_if_index(), m_sender));
+        std::unique_ptr<querier> q(new querier(this, m_addr_family, msg->get_if_index(), m_sender, m_timing));
         m_querier.insert(std::pair<int, std::unique_ptr<querier>>(msg->get_if_index(), move(q)));
     }
     break;
@@ -231,6 +238,28 @@ void proxy_instance::handle_config(std::shared_ptr<config_msg> msg)
         break;
     default:
         HC_LOG_ERROR("unknown config message format");
+    }
+}
+
+void proxy_instance::handle_querier_timer(std::shared_ptr<timer_msg> msg)
+{
+    HC_LOG_TRACE("");
+
+    switch (msg->get_type()) {
+    case proxy_msg::FILTER_TIMER_MSG: {
+        auto filter_timer_msg = std::static_pointer_cast<filter_timer>(msg);
+        //m_querier->
+        auto it = m_querier.find(filter_timer_msg->get_if_index());
+        if (it != std::end(m_querier)) {
+            it->second->timer_triggerd();
+        } else {
+            HC_LOG_DEBUG("failed to find querier of interface: " << interfaces::get_if_name(filter_timer_msg->get_if_index()));
+        }
+    }
+    break;
+    default:
+        HC_LOG_ERROR("Received unknown message");
+        break;
     }
 }
 

@@ -35,6 +35,7 @@
 #include <iostream>
 #include <set>
 #include <map>
+#include <chrono>
 
 //------------------------------------------------------------------------
 template<typename T> using source_list = std::set<T>;
@@ -123,22 +124,37 @@ inline std::ostream& operator<<(std::ostream& stream, const source_list<T> sl)
 
 //------------------------------------------------------------------------
 struct timer_msg : public proxy_msg {
-    timer_msg(message_type type, unsigned int if_index): proxy_msg(type, SYSTEMIC), m_if_index(if_index) {
+    timer_msg(message_type type, unsigned int if_index, std::chrono::milliseconds duration): proxy_msg(type, SYSTEMIC), m_if_index(if_index) {
         HC_LOG_TRACE("");
+        set_duration(duration);
     }
 
     unsigned int get_if_index() {
         return m_if_index;
     }
 
+    std::string remaining_time() {
+        using namespace std::chrono;
+        std::ostringstream s;
+        auto current_time = steady_clock::now();
+        auto time_span = m_end_time - current_time;
+        double seconds = time_span.count()  * steady_clock::period::num / steady_clock::period::den;
+        s << seconds << " sec";
+        return s.str();
+    }
+
 private:
-    //std::chrono::time_point<std::chrono::steady_clock> m_start_time;
+    void set_duration(std::chrono::milliseconds duration) {
+        m_end_time = std::chrono::steady_clock::now() + duration;
+    }
+
+    std::chrono::time_point<std::chrono::steady_clock> m_end_time;
     unsigned int m_if_index;
 };
 
 
 struct filter_timer : public timer_msg {
-    filter_timer(unsigned int if_index, const addr_storage& g_addr): timer_msg(FILTER_TIMER_MSG, if_index), m_g_addr(g_addr) {
+    filter_timer(unsigned int if_index, const addr_storage& g_addr, std::chrono::milliseconds duration): timer_msg(FILTER_TIMER_MSG, if_index, duration), m_g_addr(g_addr) {
         HC_LOG_TRACE("");
     }
 
@@ -169,12 +185,13 @@ struct source {
 
 struct gaddr_info {
     mc_filter filter_mode = INCLUDE_MODE;
-    std::shared_ptr<filter_timer> m_filter_timer;
 
+    std::shared_ptr<filter_timer> m_filter_timer;
     void* current_state;
+
     source_list<source> include_requested_list;
     source_list<source> exclude_list;
-    
+
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const gaddr_info& g);
 };
