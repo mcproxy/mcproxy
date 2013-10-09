@@ -20,7 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
 #include "include/hamcast_logging.h"
 #include "include/proxy/timing.hpp"
 #include "include/proxy/proxy_instance.hpp"
@@ -66,7 +65,7 @@ void timing::worker_thread()
                 timing_db_value& db_value = i->second;
                 (*std::get<1>(db_value).get())();
                 if (std::get<0>(db_value) != nullptr) {
-                    std::get<0>(db_value)->add_msg(std::move(std::get<1>(db_value)));
+                    std::get<0>(db_value)->add_msg(std::get<1>(db_value));
                 }
 
                 i = m_db.erase(i);
@@ -81,7 +80,7 @@ void timing::worker_thread()
     }
 }
 
-void timing::add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, const std::shared_ptr<proxy_msg> pr_msg)
+    void timing::add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, const std::shared_ptr<proxy_msg>& pr_msg)
 {
     HC_LOG_TRACE("");
     timing_db_key until = std::chrono::steady_clock::now() + delay;

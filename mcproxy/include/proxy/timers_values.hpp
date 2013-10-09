@@ -101,7 +101,7 @@ public:
     std::chrono::milliseconds get_older_host_present_interval() const; //
 
     void set_robustness_variable(unsigned int robustness_variable);
-    void set_query_interval_sec(std::chrono::seconds query_interval);
+    void set_query_interval(std::chrono::seconds query_interval);
     void set_query_response_interval(std::chrono::milliseconds query_response_interval);
     void set_startup_query_interval(std::chrono::seconds startup_query_interval);
     void set_startup_query_count(unsigned int startup_query_count);

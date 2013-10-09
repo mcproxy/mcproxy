@@ -116,21 +116,21 @@ private:
     //void handle_debug_msg(struct debug_msg* db);
 
     //add and del interfaces
-    void handle_config(std::shared_ptr<config_msg> msg);
-
-    void handle_querier_timer(std::shared_ptr<timer_msg> msg);
-
+    void handle_config(const std::shared_ptr<config_msg>& msg);
 
 public:
     /**
      * @brief Set default values of the class members.
      */
-    proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces> interfaces, const std::shared_ptr<timing> shared_timing);
+    proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing);
 
     /**
      * @brief Release all resources.
      */
     virtual ~proxy_instance();
+
+    static void test_querier(int addr_family, std::string if_name);
+    static void send_test_record(querier& q, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& saddr_list, int report_version);
 };
 
 #endif // PROXY_INSTANCE_HPP

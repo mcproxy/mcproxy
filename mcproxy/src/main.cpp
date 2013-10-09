@@ -5,8 +5,7 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
+ * * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -47,10 +46,10 @@ int main(int arg_count, char* args[])
 {
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
 
-    test_mcproxy(arg_count, args);
+    //test_mcproxy(arg_count, args);
 
 
-    //test_test();
+    test_test();
     return 0;
 }
 
@@ -84,11 +83,11 @@ void test_test()
     //addr_storage::test_addr_storage_a();
     //addr_storage::test_addr_sto_b();
     //membership_db::test_arithmetic();
-    //querier::test_querier(AF_INET, "dummy0");
     //timers_values::test_timers_values();
     //timing::test_timing();
     //proxy_configuration::test_proxy_configuration(); 
     //worker::test_worker();
 
+    proxy_instance::test_querier(AF_INET, "dummy0");
 
 }

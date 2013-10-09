@@ -31,7 +31,7 @@
 #include <iostream>
 #include <sstream>
 
-querier::querier(proxy_instance* pr_i, int addr_family, int if_index, const std::shared_ptr<const sender> sender, const std::shared_ptr<timing> timing)
+querier::querier(proxy_instance* pr_i, int addr_family, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing)
     : m_proxy_instance(pr_i)
     , m_addr_family(addr_family)
     , m_if_index(if_index)
@@ -152,6 +152,8 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         db_info.filter_mode = EXLCUDE_MODE;
         db_info.include_requested_list *= B;
         db_info.exclude_list = B - A;
+
+        db_info.filter_timer = mali(gaddr);
         break;
 
 
@@ -169,6 +171,8 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         db_info.filter_mode = EXLCUDE_MODE;
         db_info.include_requested_list *= B;
         db_info.exclude_list = B - A;
+        
+        db_info.filter_timer = mali(gaddr);
         break;
 
 
@@ -222,6 +226,8 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
         X = A - Y;
         Y *= A;
+
+        db_info.filter_timer = mali(gaddr);
         break;
 
 
@@ -239,9 +245,10 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         //                                                   Delete (Y-A)
         //                                                   Filter Timer=MALI
     case  MODE_IS_EXCLUDE: //IS_EX(x)
-        db_info.m_filter_timer = mali(gaddr);
         X = (A - Y);
         Y *= A;
+        
+        db_info.filter_timer = mali(gaddr);
         break;
 
 
@@ -260,13 +267,65 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
 }
 
 
-void querier::timer_triggerd(){
+void querier::timer_triggerd(const std::shared_ptr<timer_msg>& msg)
+{
     HC_LOG_TRACE("");
 
-    
+    switch (msg->get_type()) {
+    case proxy_msg::FILTER_TIMER_MSG: {
+        if (msg.use_count() > 1) {
+            const std::shared_ptr<filter_timer>& ft = std::static_pointer_cast<filter_timer>(msg);
+
+            auto db_info = m_db.group_info.find(ft->get_g_addr());
+
+            if (db_info == end(m_db.group_info)) {
+                HC_LOG_ERROR("filter_timer message is still in use but cannot found");
+                return;
+            }
+
+            if (db_info->second.filter_timer.get() != ft.get() ){
+                HC_LOG_ERROR("found filter_timer differs from processing filter_timer");
+                return; 
+            }
+
+                  //Router               Filter
+                //Filter Mode          Timer Value          Actions/Comments
+                //-----------       -----------------       ----------------
+                  //EXCLUDE             Timer == 0          No more listeners in
+                                                          //EXCLUDE mode for the
+                                                          //multicast address.
+                                                          //If the Requested List
+                                                          //is empty, delete
+                                                          //Multicast Address
+                                                          //Record.  If not, switch
+                                                          //to INCLUDE filter mode;
+                                                          //the sources in the
+                                                          //Requested List are
+                                                          //moved to the Include
+                                                          //List, and the Exclude
+                                                          //List is deleted.
+                                         
+           if(db_info->second.filter_mode == EXLCUDE_MODE) {
+               if(db_info->second.include_requested_list.empty()){
+                   m_db.group_info.erase(db_info);
+               }else{
+                   db_info->second.filter_mode = INCLUDE_MODE;                 
+                   db_info->second.exclude_list.clear();
+               }  
+           } else {
+                HC_LOG_ERROR("filter_mode is not in expected mode EXCLUDE");
+           }
+
+        } else{
+            HC_LOG_DEBUG("filter_timer is outdate");
+        }
+    }
+    break;
+    default:
+        HC_LOG_ERROR("unknown timer message format");
+    }
+
 }
-
-
 
 std::shared_ptr<filter_timer> querier::mali(const addr_storage& gaddr) const
 {
@@ -276,70 +335,16 @@ std::shared_ptr<filter_timer> querier::mali(const addr_storage& gaddr) const
     return result;
 }
 
-void querier::test_querier(int addr_family, std::string if_name)
-{
-
-    using namespace std;
-    cout << "##-- querier test on interface " << if_name << " --##" << endl;
-
-    std::shared_ptr<igmp_sender> s = make_shared<igmp_sender>();
-    std::shared_ptr<timing> t = make_shared<timing>();
-
-    querier q(nullptr,AF_INET, if_nametoindex(if_name.c_str()), s, t);
-
-    source s1(addr_storage("1.1.1.1"));
-    source s2(addr_storage("2.2.2.2"));
-    source s3(addr_storage("3.3.3.3"));
-    source s4(addr_storage("4.4.4.4"));
-    source s5(addr_storage("5.5.5.5"));
-
-    addr_storage gaddr("224.1.1.1");
-
-    cout << q << endl << endl;
-
-    //in include mode
-    q.send_test_record(q, ALLOW_NEW_SOURCES, gaddr, source_list<source> {s1, s2, s3}, 3 );
-    cout << q << endl << endl;
-
-    //ininclude mode
-    q.send_test_record(q, CHANGE_TO_EXCLUDE_MODE, gaddr, source_list<source> {s3, s4, s5}, 3);
-    cout << q << endl << endl;
-
-    //in exclude mode
-    q.send_test_record(q, ALLOW_NEW_SOURCES, gaddr, source_list<source> {s3, s4}, 3);
-    cout << q << endl << endl;
-
-    //in exclude mode
-    q.send_test_record(q, BLOCK_OLD_SOURCES , gaddr, source_list<source> {s1, s5}, 3);
-    cout << q << endl << endl;
-
-    //in exclude mode
-    q.send_test_record(q, CHANGE_TO_EXCLUDE_MODE, gaddr, source_list<source> {s5, s2}, 3);
-    cout << q << endl << endl;
-
-    //in exclude mode
-    q.send_test_record(q, CHANGE_TO_INCLUDE_MODE, gaddr, source_list<source> {s5, s1, s2, s3}, 3);
-    cout << q << endl << endl;
-    sleep(1000);
-}
-
-void querier::send_test_record(querier& q, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& saddr_list, int report_version)
-{
-    using namespace std;
-    cout << "!!ACTION: receive record" << endl;
-    cout << "record_type: " << mcast_addr_record_type_name.at(record_type) << endl;
-    cout << "group address: " << gaddr << endl;
-    cout << "source list: " << saddr_list << endl;
-    cout << endl;
-
-    q.receive_record(record_type, gaddr, saddr_list, report_version);
-}
-
 querier::~querier()
 {
     HC_LOG_TRACE("");
 
     router_groups_function(&sender::send_leave);
+}
+
+timers_values& querier::get_timers_values(){
+    HC_LOG_TRACE("");
+    return m_timers_values; 
 }
 
 std::string querier::to_string() const

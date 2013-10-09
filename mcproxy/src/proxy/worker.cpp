@@ -60,7 +60,7 @@ void worker::start()
     }
 }
 
-void worker::add_msg(std::shared_ptr<proxy_msg> msg)
+void worker::add_msg(const std::shared_ptr<proxy_msg>& msg)
 {
     HC_LOG_TRACE("");
 

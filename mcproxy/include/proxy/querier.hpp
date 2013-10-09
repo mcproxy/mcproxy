@@ -66,20 +66,21 @@ public:
 
     virtual ~querier();
 
-    querier(proxy_instance* pr_i, int addr_family, int if_index, const std::shared_ptr<const sender> sender, const std::shared_ptr<timing> timing);
+    querier(proxy_instance* pr_i, int addr_family, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing);
 
     void receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version);
-    void timer_triggerd();
+
+    void timer_triggerd(const std::shared_ptr<timer_msg>& msg);
+
     void receive_query();
 
+    timers_values& get_timers_values();
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const querier& q);
 
     /**
      * @brief Test the functionality of the querier.
      */
-    static void test_querier(int addr_family, std::string if_name);
-    static void send_test_record(querier& q, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& saddr_list, int report_version);
 };
 
 #endif // QUERIER_HPP

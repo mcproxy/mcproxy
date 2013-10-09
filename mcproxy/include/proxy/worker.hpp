@@ -92,7 +92,7 @@ public:
     /**
      * @brief Add a message to the job queue.
      */
-    void add_msg(std::shared_ptr<proxy_msg> msg);
+    void add_msg(const std::shared_ptr<proxy_msg>& msg);
 
     static void test_worker();
 };

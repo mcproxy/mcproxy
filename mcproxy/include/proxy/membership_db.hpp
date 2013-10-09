@@ -186,7 +186,7 @@ struct source {
 struct gaddr_info {
     mc_filter filter_mode = INCLUDE_MODE;
 
-    std::shared_ptr<filter_timer> m_filter_timer;
+    std::shared_ptr<filter_timer> filter_timer;
     void* current_state;
 
     source_list<source> include_requested_list;

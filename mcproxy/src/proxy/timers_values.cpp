@@ -298,7 +298,7 @@ void timers_values::set_robustness_variable(unsigned int robustness_variable)
     tank->robustness_variable = robustness_variable;
 }
 
-void timers_values::set_query_interval_sec(std::chrono::seconds query_interval)
+void timers_values::set_query_interval(std::chrono::seconds query_interval)
 {
     HC_LOG_TRACE("");
     set_new_tank();

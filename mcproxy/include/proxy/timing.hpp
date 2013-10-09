@@ -84,7 +84,7 @@ public:
      * @param pr_msg message of the reminder
      *
      */
-    void add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, const std::shared_ptr<proxy_msg> pr_msg);
+    void add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, const std::shared_ptr<proxy_msg>& pr_msg);
 
     /**
      * @brief Delete all reminder from a specific proxy instance.
