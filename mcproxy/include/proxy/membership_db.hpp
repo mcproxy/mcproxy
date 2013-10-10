@@ -133,13 +133,13 @@ struct timer_msg : public proxy_msg {
         return m_if_index;
     }
 
-    std::string remaining_time() {
+    std::string get_remaining_time() {
         using namespace std::chrono;
         std::ostringstream s;
         auto current_time = steady_clock::now();
         auto time_span = m_end_time - current_time;
         double seconds = time_span.count()  * steady_clock::period::num / steady_clock::period::den;
-        s << seconds << " sec";
+        s << seconds << "sec";
         return s.str();
     }
 
@@ -154,21 +154,35 @@ private:
 
 
 struct filter_timer : public timer_msg {
-    filter_timer(unsigned int if_index, const addr_storage& g_addr, std::chrono::milliseconds duration): timer_msg(FILTER_TIMER_MSG, if_index, duration), m_g_addr(g_addr) {
+    filter_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): filter_timer(FILTER_TIMER_MSG, if_index, gaddr, duration) {
         HC_LOG_TRACE("");
     }
 
-    const addr_storage& get_g_addr() {
-        return m_g_addr;
+    const addr_storage& get_gaddr() {
+        return m_gaddr;
+    }
+protected:
+    filter_timer(message_type type, unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration)
+        : timer_msg(type
+                    , if_index, duration)
+        , m_gaddr(gaddr) {
+        HC_LOG_TRACE("");
     }
 private:
-    addr_storage m_g_addr;
+    addr_storage m_gaddr;
+};
+
+struct source_timer : public filter_timer {
+    source_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): filter_timer(SOURCE_TIMER_MSG, if_index, gaddr, duration) {
+        HC_LOG_TRACE("");
+    }
 };
 
 //------------------------------------------------------------------------
 struct source {
     addr_storage saddr;
-    void* source_timer;
+
+    mutable std::shared_ptr<source_timer> shared_source_timer;
     void* current_state;
 
     source();
@@ -186,7 +200,7 @@ struct source {
 struct gaddr_info {
     mc_filter filter_mode = INCLUDE_MODE;
 
-    std::shared_ptr<filter_timer> filter_timer;
+    std::shared_ptr<filter_timer> shared_filter_timer;
     void* current_state;
 
     source_list<source> include_requested_list;

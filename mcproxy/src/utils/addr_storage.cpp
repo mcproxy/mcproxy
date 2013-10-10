@@ -33,8 +33,6 @@
 
 void addr_storage::clean()
 {
-    HC_LOG_TRACE("");
-
     //memset(&m_addr,0, sizeof(m_addr));
     (( sockaddr_in6*)&m_addr)->sin6_family = AF_UNSPEC;
     (( sockaddr_in6*)&m_addr)->sin6_port = 0;
@@ -59,87 +57,63 @@ socklen_t addr_storage::get_addr_len(int addr_family) const
 
 addr_storage::addr_storage()
 {
-    HC_LOG_TRACE("");
-
     clean();
 }
 
 addr_storage::addr_storage(int addr_family)
 {
-    HC_LOG_TRACE("");
-
     memset(&m_addr, 0, sizeof(m_addr));
     m_addr.ss_family = addr_family;
 }
 
 addr_storage::addr_storage(const std::string& addr)
 {
-    HC_LOG_TRACE("");
-
     *this = addr;
 }
 
 addr_storage::addr_storage(const sockaddr_storage& addr)
 {
-    HC_LOG_TRACE("");
-
     *this = addr;
 }
 
 addr_storage::addr_storage(const addr_storage& addr)
 {
-    HC_LOG_TRACE("");
-
     *this = addr;
 }
 
 addr_storage::addr_storage(const in_addr& addr)
 {
-    HC_LOG_TRACE("");
-
     *this = addr;
 }
 
 addr_storage::addr_storage(const in6_addr& addr)
 {
-    HC_LOG_TRACE("");
-
     *this = addr;
 }
 
 addr_storage::addr_storage(const sockaddr& addr)
 {
-    HC_LOG_TRACE("");
-
     *this = addr;
 }
 
 addr_storage::addr_storage(const sockaddr_in6& addr)
 {
-    HC_LOG_TRACE("");
-
     *this = addr;
 }
 
 addr_storage::addr_storage(const sockaddr_in& addr)
 {
-    HC_LOG_TRACE("");
-
     *this = addr;
 }
 
 std::ostream& operator <<(std::ostream& s, const addr_storage a)
 {
-    HC_LOG_TRACE("");
-
     s << a.to_string();
     return s;
 }
 
 addr_storage& addr_storage::operator=(const addr_storage& s)
 {
-    HC_LOG_TRACE("");
-
     if (this != &s) {
         this->m_addr = s.m_addr;
     }
@@ -149,16 +123,12 @@ addr_storage& addr_storage::operator=(const addr_storage& s)
 
 addr_storage& addr_storage::operator=(const sockaddr_storage& s)
 {
-    HC_LOG_TRACE("");
-
     this->m_addr = s;
     return *this;
 }
 
 addr_storage& addr_storage::operator=(const std::string& s)
 {
-    HC_LOG_TRACE("");
-
     clean();
 
     if (s.find_first_of(':') == std::string::npos) { //==> IPv4
@@ -180,8 +150,6 @@ addr_storage& addr_storage::operator=(const std::string& s)
 
 addr_storage& addr_storage::operator=(const in_addr& s)
 {
-    HC_LOG_TRACE("");
-
     clean();
 
     m_addr.ss_family = AF_INET;
@@ -191,8 +159,6 @@ addr_storage& addr_storage::operator=(const in_addr& s)
 
 addr_storage& addr_storage::operator=(const in6_addr& s)
 {
-    HC_LOG_TRACE("");
-
     clean();
 
     m_addr.ss_family = AF_INET6;
@@ -202,8 +168,6 @@ addr_storage& addr_storage::operator=(const in6_addr& s)
 
 addr_storage& addr_storage::operator=(const sockaddr& s)
 {
-    HC_LOG_TRACE("");
-
     clean();
     memcpy(&m_addr, &s, get_addr_len(s.sa_family));
 
@@ -212,8 +176,6 @@ addr_storage& addr_storage::operator=(const sockaddr& s)
 
 addr_storage& addr_storage::operator=(const sockaddr_in& s)
 {
-    HC_LOG_TRACE("");
-
     clean();
 
     *this = *(const  sockaddr*)&s;
@@ -222,8 +184,6 @@ addr_storage& addr_storage::operator=(const sockaddr_in& s)
 
 addr_storage& addr_storage::operator=(const sockaddr_in6& s)
 {
-    HC_LOG_TRACE("");
-
     clean();
 
     *this = *(const  sockaddr_in*)&s;
@@ -232,8 +192,6 @@ addr_storage& addr_storage::operator=(const sockaddr_in6& s)
 
 bool addr_storage::operator==(const addr_storage& addr) const
 {
-    HC_LOG_TRACE("");
-
     std::string a, b;
     a = this->to_string();
     b = addr.to_string();
@@ -249,16 +207,12 @@ bool addr_storage::operator==(const addr_storage& addr) const
 
 bool addr_storage::operator!=(addr_storage& addr) const
 {
-    HC_LOG_TRACE("");
-
     return !(*this == addr);
 }
 
 
 bool operator< (const addr_storage& addr1, const addr_storage& addr2)
 {
-    HC_LOG_TRACE("");
-
     if (addr1.m_addr.ss_family == AF_INET && addr2.m_addr.ss_family == AF_INET) {
         return  ntohl(((sockaddr_in*)(&addr1))->sin_addr.s_addr) < ntohl(((sockaddr_in*)(&addr2))->sin_addr.s_addr);
     } else if (addr1.m_addr.ss_family == AF_INET6 && addr2.m_addr.ss_family == AF_INET6) {
@@ -361,8 +315,6 @@ const  sockaddr_in6& addr_storage::get_sockaddr_in6() const
 
 std::string addr_storage::to_string() const
 {
-    HC_LOG_TRACE("");
-
     int af = m_addr.ss_family;
     if (af == AF_INET) {
         char addressBuffer[INET_ADDRSTRLEN];

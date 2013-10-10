@@ -58,10 +58,18 @@ private:
 
     //join all router groups or leave them
     bool router_groups_function(std::function<bool(const sender&, int, addr_storage)> f) const;
-    void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
-    void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info);
+    void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& ginfo);
+    void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& ginfo);
 
-    std::shared_ptr<filter_timer> mali(const addr_storage& gaddr) const; //Multicast Address Listener Interval
+    //updates the filter_timer
+    void mali(const addr_storage& gaddr, gaddr_info& db_info) const; //Multicast Address Listener Interval
+
+    //updates a list of source_timers
+    void mali(const addr_storage& gaddr, source_list<source>& slist) const; //Multicast Address Listener Interval
+
+    //updates only special source timers of a list 
+    void mali(const addr_storage& gaddr, source_list<source>& slist, source_list<source>&& tmp_slist)const; //Multicast Address Listener Interval
+    
 public:
 
     virtual ~querier();
@@ -70,7 +78,7 @@ public:
 
     void receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version);
 
-    void timer_triggerd(const std::shared_ptr<timer_msg>& msg);
+    void timer_triggerd(const std::shared_ptr<proxy_msg>& msg);
 
     void receive_query();
 

@@ -82,38 +82,35 @@ void membership_db::test_arithmetic()
 
 std::string source::to_string() const
 {
-    HC_LOG_TRACE("");
     std::ostringstream s;
-    s << saddr << "(?timer?, ?current state?)";
+    s << saddr;
+    if(shared_source_timer.get() != nullptr){
+        s << "(" << shared_source_timer->get_remaining_time() << ")"; 
+    }
     return s.str();
 }
 
 std::ostream& operator<<(std::ostream& stream, const source& s)
 {
-    HC_LOG_TRACE("");
     return stream << s.to_string();
 }
 
 std::ostream& operator<<(std::ostream& stream, const gaddr_info& g)
 {
-    HC_LOG_TRACE("");
     return stream << g.to_string();
 }
 
 bool operator< (const source& s1, const source& s2)
 {
-    HC_LOG_TRACE("");
     return s1.saddr < s2.saddr;
 }
 
 source::source(addr_storage a): saddr(a)
 {
-    HC_LOG_TRACE("");
 }
 
 source::source()
 {
-    HC_LOG_TRACE("");
 }
 
 bool source::operator==(const source& s) const
@@ -125,11 +122,11 @@ bool source::operator==(const source& s) const
 std::string gaddr_info::to_string() const
 {
     using namespace std;
-    HC_LOG_TRACE("");
     ostringstream s;
     s << "filter mode: " << mc_filter_name.at(filter_mode) << endl;
-    s << "filter timer: " << "?filter_timer?" << endl;
-    s << "current state: " << "?current_state?" << endl;
+    if(shared_filter_timer.get() != nullptr){
+        s << "filter timer: " << shared_filter_timer->get_remaining_time() << endl;
+    }
     s << "included/requested list: " << include_requested_list << endl;
     s << "exclude_list: " << exclude_list;
     return s.str();
@@ -138,7 +135,6 @@ std::string gaddr_info::to_string() const
 std::string membership_db::to_string() const
 {
     using namespace std;
-    HC_LOG_TRACE("");
     ostringstream s;
     s << "compatibility mode variable: " << group_mem_protocol_name.at(compatibility_mode_variable) << endl;
     s << "is querier: " << (is_querier ? "true" : "false") << endl;
@@ -154,7 +150,6 @@ std::string membership_db::to_string() const
 
 std::ostream& operator<<(std::ostream& stream, const membership_db& mdb)
 {
-    HC_LOG_TRACE("");
     return stream << mdb.to_string();
 }
 

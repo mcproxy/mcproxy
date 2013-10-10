@@ -142,6 +142,7 @@ unsigned int interfaces::get_if_index(int virtual_if_index) const
     if (rc != end(m_vif_if)) {
         return rc->second;
     } else {
+        HC_LOG_WARN("cannot map virtual if_index (#" << virtual_if_index << ") to if_ index");
         return INTERFACES_UNKOWN_IF_INDEX;
     }
 }
@@ -152,6 +153,7 @@ int interfaces::get_virtual_if_index(unsigned int if_index) const
     if (rc != end(m_if_vif)) {
         return rc->second;
     } else {
+        HC_LOG_WARN("cannot map if_index (#" << if_index << ") to virutal if_index");
         return INTERFACES_UNKOWN_VIF_INDEX;
     }
     HC_LOG_TRACE("");
@@ -164,6 +166,7 @@ std::string interfaces::get_if_name(unsigned int if_index)
     char tmp[IF_NAMESIZE];
     const char* if_name = if_indextoname(if_index, tmp);
     if (if_name == nullptr) {
+        HC_LOG_WARN("cannot map if_index (#" << if_index << ") to if_name");
         return std::string();
     } else {
         return std::string(if_name);
@@ -196,6 +199,7 @@ unsigned int interfaces::get_if_index(const addr_storage& addr) const
         HC_LOG_ERROR("cannot map IPv6 addr to interface index:" << addr);
     }
 
+    HC_LOG_WARN("cannot map IPv6 addr to interface index:" << addr);
     return INTERFACES_UNKOWN_IF_INDEX;
 }
 

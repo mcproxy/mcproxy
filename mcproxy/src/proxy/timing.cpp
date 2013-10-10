@@ -60,22 +60,22 @@ void timing::worker_thread()
 
         timing_db_key now = std::chrono::steady_clock::now();
 
-        for (auto i = begin(m_db); i != end(m_db); ++i) {
-            if (i->first <= now) {
-                timing_db_value& db_value = i->second;
+        for (auto it = begin(m_db); it != end(m_db);) {
+            if (it->first <= now) {
+                timing_db_value& db_value = it->second;
                 (*std::get<1>(db_value).get())();
                 if (std::get<0>(db_value) != nullptr) {
                     std::get<0>(db_value)->add_msg(std::get<1>(db_value));
                 }
 
-                i = m_db.erase(i);
-                if (i == end(m_db)) {
-                    break;
-                }
+                it = m_db.erase(it);
+                continue;
 
             } else {
                 break;
             }
+
+            ++it;
         }
     }
 }
@@ -97,10 +97,12 @@ void timing::stop_all_time(const proxy_instance* pr_inst)
 
     std::lock_guard<std::mutex> lock(m_global_lock);
 
-    for (auto it = begin(m_db); it != end(m_db); ++it ) {
+    for (auto it = begin(m_db); it != end(m_db);) {
         if (std::get<0>(it->second) == pr_inst) {
             it = m_db.erase(it);
+            continue;
         }
+        ++it;
     }
 
 }

@@ -44,6 +44,7 @@ struct proxy_msg {
         TEST_MSG,       //Test message type to test the message queue and the intrusive pointer.
         EXIT_MSG,       //Message type to stop the proxy instances.
         FILTER_TIMER_MSG,
+        SOURCE_TIMER_MSG,
         CONFIG_MSG,     //Message type used from module @ref mod_proxy to set and delete interfaces of the proxy instances.
         RECEIVER_MSG,    //Message type used from module @ref mod_receiver.
         DEBUG_MSG      //Message type to collect debug information for the module @ref mod_proxy.
@@ -96,6 +97,7 @@ const std::map<proxy_msg::message_type, std::string> message_type_name = {
     {proxy_msg::TEST_MSG,             "TEST_MSG"    },
     {proxy_msg::EXIT_MSG,             "EXIT_MSG"    },
     {proxy_msg::FILTER_TIMER_MSG,     "FILTER_TIMER_MSG" },
+    {proxy_msg::SOURCE_TIMER_MSG,     "SOURCE_TIMER_MSG" },
     {proxy_msg::CONFIG_MSG,           "CONFIG_MSG"  },
     {proxy_msg::RECEIVER_MSG,         "RECEIVER_MSG"},
     {proxy_msg::DEBUG_MSG,            "DEBUG_MSG"   }

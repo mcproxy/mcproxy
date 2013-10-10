@@ -275,6 +275,7 @@ void timers_values::set_new_tank()
 {
     HC_LOG_TRACE("");
     if (is_default_timers_values_tank) {
+        HC_LOG_DEBUG("set a new tank");
         tank = new timers_values_tank();
         is_default_timers_values_tank = false;
     }
@@ -284,6 +285,7 @@ void timers_values::reset_to_default_tank()
 {
     HC_LOG_TRACE("");
     if (!is_default_timers_values_tank) {
+        HC_LOG_DEBUG("delete tank");
         delete tank;
         tank = &default_timers_values_tank;
         is_default_timers_values_tank = true;

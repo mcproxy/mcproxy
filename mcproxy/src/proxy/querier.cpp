@@ -99,34 +99,38 @@ void querier::receive_record(mcast_addr_record_type record_type, const addr_stor
 {
     HC_LOG_TRACE("record type: " << record_type << " gaddr: " << gaddr << " saddr_list: " << saddr_list << " report_version: " << report_version);
 
-    auto db_info = m_db.group_info.find(gaddr);
+    auto db_info_it = m_db.group_info.find(gaddr);
 
-    if (db_info == end(m_db.group_info)) {
+    if (db_info_it == end(m_db.group_info)) {
         //add an empty neutral record include( null )neutral record include( null ) to membership database
         HC_LOG_DEBUG("gaddr not found");
-        db_info = m_db.group_info.insert(gaddr_pair(gaddr, gaddr_info())).first;
+        db_info_it = m_db.group_info.insert(gaddr_pair(gaddr, gaddr_info())).first;
     }
 
-    switch (db_info->second.filter_mode) {
+    switch (db_info_it->second.filter_mode) {
     case  INCLUDE_MODE:
-        receive_record_in_include_mode(record_type, gaddr, saddr_list, report_version, db_info->second);
+        receive_record_in_include_mode(record_type, gaddr, saddr_list, report_version, db_info_it->second);
         break;
     case EXLCUDE_MODE:
-        receive_record_in_exclude_mode(record_type, gaddr, saddr_list, report_version, db_info->second);
+        receive_record_in_exclude_mode(record_type, gaddr, saddr_list, report_version, db_info_it->second);
         break;
     default :
-        HC_LOG_ERROR("wrong filter mode: " << db_info->second.filter_mode);
+        HC_LOG_ERROR("wrong filter mode: " << db_info_it->second.filter_mode);
         break;
     }
 
 }
 
-void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info)
+void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& ginfo)
 {
     HC_LOG_TRACE("record type: " << record_type);
+    //7.4.1.  Reception of Current State Records
+    //7.4.2.  Reception of Filter Mode Change and Source List Change Records
 
-    source_list<source>& A = db_info.include_requested_list;
+    source_list<source>& A = ginfo.include_requested_list;
     source_list<source>& B = saddr_list;
+
+    gaddr_info& filter_timer = ginfo;
 
     switch (record_type) {
 
@@ -134,6 +138,8 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         //------------  ---------------  ----------------     -------
         //INCLUDE (A)     ALLOW (B)      INCLUDE (A+B)        (B)=MALI
     case ALLOW_NEW_SOURCES: //ALLOW(x)
+        mali(gaddr, B);
+
         A += B;
         break;
 
@@ -149,17 +155,19 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         //                                                    Send Q(MA,A*B)
         //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
-        db_info.filter_mode = EXLCUDE_MODE;
-        db_info.include_requested_list *= B;
-        db_info.exclude_list = B - A;
+        mali(gaddr, filter_timer);
 
-        db_info.filter_timer = mali(gaddr);
+        ginfo.filter_mode = EXLCUDE_MODE;
+        ginfo.include_requested_list *= B;
+        ginfo.exclude_list = B - A;
         break;
 
 
         //INCLUDE (A)     TO_IN (B)      INCLUDE (A+B)        (B)=MALI
         //                                                    Send Q(MA,A-B)
     case CHANGE_TO_INCLUDE_MODE: //TO_IN(x)
+        mali(gaddr, B);
+
         A += B;
         break;
 
@@ -168,16 +176,18 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         //                                                    Delete (A-B)
         //                                                    Filter Timer=MALI
     case  MODE_IS_EXCLUDE: //IS_EX(x)
-        db_info.filter_mode = EXLCUDE_MODE;
-        db_info.include_requested_list *= B;
-        db_info.exclude_list = B - A;
-        
-        db_info.filter_timer = mali(gaddr);
+        mali(gaddr, filter_timer);
+
+        ginfo.filter_mode = EXLCUDE_MODE;
+        ginfo.include_requested_list *= B;
+        ginfo.exclude_list = B - A;
         break;
 
 
         //INCLUDE (A)       IS_IN (B)     INCLUDE (A+B)      (B)=MALI
     case MODE_IS_INCLUDE: //IS_IN(x)
+        mali(gaddr, B);
+
         A += B;
         break;
 
@@ -188,14 +198,17 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
     }
 }
 
-void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& db_info)
+void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& ginfo)
 {
     HC_LOG_TRACE("record type: " << record_type);
+    //7.4.1.  Reception of Current State Records
+    //7.4.2.  Reception of Filter Mode Change and Source List Change Records
 
-    source_list<source>& X = db_info.include_requested_list;
-    source_list<source>& Y = db_info.exclude_list;
+    source_list<source>& X = ginfo.include_requested_list;
+    source_list<source>& Y = ginfo.exclude_list;
 
     source_list<source>& A = saddr_list;
+    gaddr_info& filter_timer = ginfo;
 
     switch (record_type) {
 
@@ -204,6 +217,8 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         //------------  ---------------  ----------------     -------
         //EXCLUDE (X,Y)   ALLOW (A)      EXCLUDE (X+A,Y-A)    (A)=MALI
     case ALLOW_NEW_SOURCES: //ALLOW(x)
+        mali(gaddr, A);
+
         X += A;
         Y -= A;
         break;
@@ -224,10 +239,10 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         //                                                    Send Q(MA,A-Y)
         //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
-        X = A - Y;
-        Y *= A;
+        mali(gaddr, filter_timer);
 
-        db_info.filter_timer = mali(gaddr);
+        X = (A - Y);
+        Y *= A;
         break;
 
 
@@ -235,6 +250,8 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         //                                                    Send Q(MA,X-A)
         //                                                    Send Q(MA)
     case CHANGE_TO_INCLUDE_MODE: //TO_IN(x)
+        mali(gaddr, A);
+
         X += A;
         Y -= A;
         break;
@@ -245,15 +262,18 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         //                                                   Delete (Y-A)
         //                                                   Filter Timer=MALI
     case  MODE_IS_EXCLUDE: //IS_EX(x)
+        mali(gaddr, A, A - X - Y);
+        mali(gaddr, filter_timer);
+
         X = (A - Y);
         Y *= A;
-        
-        db_info.filter_timer = mali(gaddr);
         break;
 
 
         //EXCLUDE (X,Y)     IS_IN (A)     EXCLUDE (X+A, Y-A) (A)=MALI
     case MODE_IS_INCLUDE: //IS_IN(x)
+        mali(gaddr, A);
+
         X += A;
         Y -= A;
         break;
@@ -267,72 +287,170 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
 }
 
 
-void querier::timer_triggerd(const std::shared_ptr<timer_msg>& msg)
+void querier::timer_triggerd(const std::shared_ptr<proxy_msg>& msg)
 {
     HC_LOG_TRACE("");
+    gaddr_map::iterator db_info_it;
+    std::shared_ptr<filter_timer> ftimer;
 
-    switch (msg->get_type()) {
-    case proxy_msg::FILTER_TIMER_MSG: {
-        if (msg.use_count() > 1) {
-            const std::shared_ptr<filter_timer>& ft = std::static_pointer_cast<filter_timer>(msg);
+    if (!msg.unique()) {
+        switch (msg->get_type()) {
+        case proxy_msg::FILTER_TIMER_MSG:
+        case proxy_msg::SOURCE_TIMER_MSG: {
 
-            auto db_info = m_db.group_info.find(ft->get_g_addr());
+            ftimer = std::static_pointer_cast<filter_timer>(msg);
 
-            if (db_info == end(m_db.group_info)) {
+            db_info_it = m_db.group_info.find(ftimer->get_gaddr());
+
+            if (db_info_it == end(m_db.group_info)) {
                 HC_LOG_ERROR("filter_timer message is still in use but cannot found");
                 return;
             }
 
-            if (db_info->second.filter_timer.get() != ft.get() ){
-                HC_LOG_ERROR("found filter_timer differs from processing filter_timer");
-                return; 
+        }
+        break;
+        default:
+            HC_LOG_ERROR("unknown timer message format");
+            return;
+        }
+    } else {
+        HC_LOG_DEBUG("filter_timer is outdate");
+        return;
+    }
+
+
+    switch (msg->get_type()) {
+    case proxy_msg::FILTER_TIMER_MSG: {
+        gaddr_info& ginfo = db_info_it->second;
+
+        if (ginfo.shared_filter_timer.get() != ftimer.get() ) {
+            HC_LOG_ERROR("found filter_timer differs from processing filter_timer");
+            return;
+        }
+
+        //7.2.2.  Definition of Filter Timers
+        //Router               Filter
+        //Filter Mode          Timer Value        Actions/Comments
+        //-----------       -----------------     ----------------
+        //INCLUDE             Not Used            All listeners in
+        //                                        INCLUDE mode.
+        //
+        //EXCLUDE             Timer > 0           At least one listener
+        //                                        in EXCLUDE mode.
+        //                                        
+        //EXCLUDE             Timer == 0          No more listeners in
+        //                                        EXCLUDE mode for the
+        //                                        multicast address.
+        //                                        If the Requested List
+        //                                        is empty, delete
+        //                                        Multicast Address
+        //                                        Record.  If not, switch
+        //                                        to INCLUDE filter mode;
+        //                                        the sources in the
+        //                                        Requested List are
+        //                                        moved to the Include
+        //                                        List, and the Exclude
+        //                                        List is deleted.
+
+        if (ginfo.filter_mode == EXLCUDE_MODE) {
+            if (ginfo.include_requested_list.empty()) {
+                m_db.group_info.erase(db_info_it);
+            } else {
+                ginfo.filter_mode = INCLUDE_MODE;
+                ginfo.shared_filter_timer.reset();
+                ginfo.exclude_list.clear();
+            }
+        } else {
+            HC_LOG_ERROR("filter_mode is not in expected mode EXCLUDE");
+        }
+
+    }
+    break;
+    case proxy_msg::SOURCE_TIMER_MSG: {
+        std::shared_ptr<source_timer> stimer = std::static_pointer_cast<source_timer>(msg);
+        gaddr_info& ginfo = db_info_it->second;
+
+        switch (ginfo.filter_mode) {
+
+
+            //7.2.3.  Definition of Source Timers
+            //If the timer of a
+            //source from the Include List expires, the source is deleted from the
+            //Include List.  If there are no more source records left, the
+            //multicast address record is deleted from the router.
+        case INCLUDE_MODE:
+            for (auto it = std::begin(ginfo.include_requested_list); it != std::end(ginfo.include_requested_list);) {
+                if (it->shared_source_timer.get() == stimer.get()) {
+                    it = ginfo.include_requested_list.erase(it);
+                    continue;
+                }
+                ++it;
             }
 
-                  //Router               Filter
-                //Filter Mode          Timer Value          Actions/Comments
-                //-----------       -----------------       ----------------
-                  //EXCLUDE             Timer == 0          No more listeners in
-                                                          //EXCLUDE mode for the
-                                                          //multicast address.
-                                                          //If the Requested List
-                                                          //is empty, delete
-                                                          //Multicast Address
-                                                          //Record.  If not, switch
-                                                          //to INCLUDE filter mode;
-                                                          //the sources in the
-                                                          //Requested List are
-                                                          //moved to the Include
-                                                          //List, and the Exclude
-                                                          //List is deleted.
-                                         
-           if(db_info->second.filter_mode == EXLCUDE_MODE) {
-               if(db_info->second.include_requested_list.empty()){
-                   m_db.group_info.erase(db_info);
-               }else{
-                   db_info->second.filter_mode = INCLUDE_MODE;                 
-                   db_info->second.exclude_list.clear();
-               }  
-           } else {
-                HC_LOG_ERROR("filter_mode is not in expected mode EXCLUDE");
-           }
+            if (ginfo.include_requested_list.empty()) {
+                m_db.group_info.erase(db_info_it);
+            }
+            break;
 
-        } else{
-            HC_LOG_DEBUG("filter_timer is outdate");
+
+            //7.2.3.  Definition of Source Timers
+            //If the timer
+            //of a source from the Requested List expires, the source is moved to
+            //the Exclude List.
+        case EXLCUDE_MODE:
+            for (auto it = std::begin(ginfo.include_requested_list); it != std::end(ginfo.include_requested_list);) {
+                if (it->shared_source_timer.get() == stimer.get()) {
+                    it->shared_source_timer.reset();
+                    ginfo.exclude_list.insert(*it);
+
+                    it = ginfo.include_requested_list.erase(it);
+                    continue;
+                }
+                ++it;
+            }
+
+            break;
+        default:
+            HC_LOG_ERROR("unknown filter mode");
         }
+
     }
     break;
     default:
         HC_LOG_ERROR("unknown timer message format");
     }
-
 }
 
-std::shared_ptr<filter_timer> querier::mali(const addr_storage& gaddr) const
+void querier::mali(const addr_storage& gaddr, gaddr_info& db_info) const
 {
     HC_LOG_TRACE("");
-    auto result = std::make_shared<filter_timer>(m_if_index, gaddr, m_timers_values.get_multicast_address_listening_interval());
-    m_timing->add_time(m_timers_values.get_multicast_address_listening_interval(), m_proxy_instance, result);
-    return result;
+    auto ft = std::make_shared<filter_timer>(m_if_index, gaddr, m_timers_values.get_multicast_address_listening_interval());
+
+    db_info.shared_filter_timer = ft;
+
+    m_timing->add_time(m_timers_values.get_multicast_address_listening_interval(), m_proxy_instance, ft);
+}
+
+void querier::mali(const addr_storage& gaddr, source_list<source>& slist) const
+{
+    HC_LOG_TRACE("");
+    std::shared_ptr<source_timer> st = std::make_shared<source_timer>(m_if_index, gaddr, m_timers_values.get_multicast_address_listening_interval());
+
+    for (auto & e : slist) {
+        e.shared_source_timer = st; //shard_source_timer is mutable
+    }
+
+    m_timing->add_time(m_timers_values.get_multicast_address_listening_interval(), m_proxy_instance, st);
+}
+
+void querier::mali(const addr_storage& gaddr, source_list<source>& slist, source_list<source>&&   tmp_slist) const
+{
+    HC_LOG_TRACE("");
+    mali(gaddr, tmp_slist);
+
+    for (auto & e : tmp_slist) {
+        slist.find(e)->shared_source_timer = e.shared_source_timer;
+    }
 }
 
 querier::~querier()
@@ -342,9 +460,10 @@ querier::~querier()
     router_groups_function(&sender::send_leave);
 }
 
-timers_values& querier::get_timers_values(){
+timers_values& querier::get_timers_values()
+{
     HC_LOG_TRACE("");
-    return m_timers_values; 
+    return m_timers_values;
 }
 
 std::string querier::to_string() const
