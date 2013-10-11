@@ -23,14 +23,24 @@
 
 #include "include/hamcast_logging.h"
 #include "include/proxy/proxy_instance.hpp"
+
+#include "include/proxy/receiver.hpp"
 #include "include/proxy/igmp_receiver.hpp"
 #include "include/proxy/mld_receiver.hpp"
+#include "include/proxy/sender.hpp"
 #include "include/proxy/igmp_sender.hpp"
 #include "include/proxy/mld_sender.hpp"
+#include "include/proxy/routing.hpp"
+#include "include/proxy/querier.hpp"
+#include "include/proxy/interfaces.hpp"
+#include "include/proxy/timing.hpp"
 
-#include <net/if.h>
 #include <sstream>
+#include <iostream>
+#include <functional>
+
 #include <unistd.h>
+#include <net/if.h>
 
 proxy_instance::proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing)
     : m_addr_family(addr_family)
@@ -111,9 +121,9 @@ bool proxy_instance::init_receiver()
     HC_LOG_TRACE("");
 
     if (m_addr_family == AF_INET) {
-        m_receiver.reset(new igmp_receiver(m_mrt_sock, m_interfaces));
+        m_receiver.reset(new igmp_receiver(this, m_mrt_sock, m_interfaces));
     } else if (m_addr_family == AF_INET6) {
-        m_receiver.reset(new mld_receiver(m_mrt_sock, m_interfaces));
+        m_receiver.reset(new mld_receiver(this, m_mrt_sock, m_interfaces));
     } else {
         HC_LOG_ERROR("wrong address family");
         return false;
@@ -158,6 +168,19 @@ void proxy_instance::worker_thread()
             }
         }
         break;
+        case proxy_msg::GROUP_RECORD_MSG: {
+            auto r =  std::static_pointer_cast<group_record_msg>(msg);
+            auto it = m_querier.find(r->get_if_index());
+            if (it != std::end(m_querier)) {
+                it->second->receive_record(msg);
+            } else {
+                HC_LOG_DEBUG("failed to find querier of interface: " << interfaces::get_if_name(std::static_pointer_cast<timer_msg>(msg)->get_if_index()));
+            }
+        }
+        break;
+        case proxy_msg::DEBUG_MSG:
+            std::cout << *this << std::endl;
+            break;
         case proxy_msg::EXIT_MSG:
             HC_LOG_DEBUG("received exit command");
             stop();
@@ -214,6 +237,22 @@ void proxy_instance::worker_thread()
     //m_timing->stop_all_time(this);
 
     HC_LOG_DEBUG("worker thread proxy_instance end");
+}
+
+std::string proxy_instance::to_string() const
+{
+    HC_LOG_TRACE("");
+    std::ostringstream s;
+    std::cout << "@@##-- proxy instance: " << m_table_number << " --##@@";
+    for (auto it = std::begin(m_querier); it != std::end(m_querier); ++it) {
+        s << std::endl << *it->second;
+    }
+    return s.str();
+}
+
+std::ostream& operator<<(std::ostream& stream, const proxy_instance& pr_i)
+{
+    return stream << pr_i.to_string();
 }
 
 void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
@@ -315,76 +354,48 @@ void proxy_instance::test_querier(int addr_family, std::string if_name)
     using namespace std;
     cout << "##-- querier test on interface " << if_name << " --##" << endl;
 
-    std::shared_ptr<interfaces> ifs;
-    std::shared_ptr<timing> t = make_shared<timing>();
-
-    //create a proxy_instance
-    proxy_instance pr_i(addr_family, 0, ifs, t );
-
-    //add a donsteram
-    pr_i.add_msg(make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, interfaces::get_if_index(if_name)));
-    sleep(1);
-    querier& q = *pr_i.m_querier.find(interfaces::get_if_index(if_name))->second.get();
-
-    //set mali to 6 seconds
-    q.get_timers_values().set_query_interval(chrono::seconds(2));
-    q.get_timers_values().set_query_response_interval(chrono::seconds(2));
-
-    cout << q << endl << endl;
-
     source s1(addr_storage("1.1.1.1"));
     source s2(addr_storage("2.2.2.2"));
     source s3(addr_storage("3.3.3.3"));
     source s4(addr_storage("4.4.4.4"));
     source s5(addr_storage("5.5.5.5"));
 
-    addr_storage gaddr("224.1.1.1");
+    //create a proxy_instance
+    proxy_instance pr_i(addr_family, 0,  make_shared<interfaces>(AF_INET, false), make_shared<timing>());
 
+    //add a downstream
+    pr_i.add_msg(make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, interfaces::get_if_index(if_name)));
 
-    //in include mode
-    proxy_instance::send_test_record(q, MODE_IS_INCLUDE, gaddr, source_list<source> {s1, s2, s3}, 3 );
-    cout << q << endl << endl;
-
-    ////in include mode
-    //proxy_instance::send_test_record(q, MODE_IS_EXCLUDE, gaddr, source_list<source> {s3, s4, s5}, 3);
-    //cout << q << endl << endl;
-
-    ////in include mode
-    //proxy_instance::send_test_record(q, MODE_IS_EXCLUDE, gaddr, source_list<source> {s1, s2, s3}, 3);
-    //cout << q << endl << endl;
-
-
-    for (int i = 0; i < 3; ++i) {
-        sleep(3);
-        cout << q << endl << endl;
+    //set mali to 6 seconds
+    {
+        sleep(1);
+        querier* q = pr_i.m_querier.find(interfaces::get_if_index(if_name))->second.get();
+        q->get_timers_values().set_query_interval(chrono::seconds(4));
+        q->get_timers_values().set_query_response_interval(chrono::seconds(2));
     }
 
-    ////in exclude mode
-    //q.send_test_record(q, ALLOW_NEW_SOURCES, gaddr, source_list<source> {s3, s4}, 3);
-    //cout << q << endl << endl;
 
-    ////in exclude mode
-    //q.send_test_record(q, BLOCK_OLD_SOURCES , gaddr, source_list<source> {s1, s5}, 3);
-    //cout << q << endl << endl;
+    auto print_proxy_instance = bind(&proxy_instance::add_msg, &pr_i, make_shared<debug_msg>());
+    
+    
+    auto __tmp =[&, if_name](mcast_addr_record_type t, source_list<source>&& slist){return make_shared<group_record_msg>(interfaces::get_if_index(if_name), t, addr_storage("224.1.1.1"), move(slist), -1);};
 
-    ////in exclude mode
-    //q.send_test_record(q, CHANGE_TO_EXCLUDE_MODE, gaddr, source_list<source> {s5, s2}, 3);
-    //cout << q << endl << endl;
+    auto send_record = bind(&proxy_instance::send_test_record, &pr_i, bind(__tmp,placeholders::_1, placeholders::_2));
 
-    ////in exclude mode
-    //q.send_test_record(q, CHANGE_TO_INCLUDE_MODE, gaddr, source_list<source> {s5, s1, s2, s3}, 3);
-    //cout << q << endl << endl;
-    //sleep(1000);
+    //-----------------------------------------------------------------
+
+    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s2});
+    print_proxy_instance();
+
+    for (int i = 0; i < 3; ++i) {
+        sleep(2);
+        print_proxy_instance();
+    }
 }
 
-void proxy_instance::send_test_record(querier& q, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& saddr_list, int report_version)
+void proxy_instance::send_test_record(proxy_instance* const pr_i, std::shared_ptr<group_record_msg> m)
 {
-    using namespace std;
-    cout << "!!--ACTION: receive record" << endl;
-    cout << "record_type: " << mcast_addr_record_type_name.at(record_type) << endl;
-    cout << "group address: " << gaddr << endl;
-    cout << "source list: " << saddr_list << endl;
-    cout << endl;
-
-    q.receive_record(record_type, gaddr, saddr_list, report_version);
+    std::cout << "!!--ACTION: receive record" << std::endl;
+    std::cout << *m << std::endl;
+    pr_i->add_msg(m);
 }

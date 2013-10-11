@@ -23,6 +23,9 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/querier.hpp"
 #include "include/utils/addr_storage.hpp"
+#include "include/proxy/timing.hpp"
+
+#include "include/proxy/sender.hpp"
 #include "include/proxy/igmp_sender.hpp"
 #include "include/proxy/mld_sender.hpp"
 
@@ -95,24 +98,32 @@ bool querier::router_groups_function(std::function<bool(const sender&, int, addr
     return rc;
 }
 
-void querier::receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version)
+void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
 {
-    HC_LOG_TRACE("record type: " << record_type << " gaddr: " << gaddr << " saddr_list: " << saddr_list << " report_version: " << report_version);
+    HC_LOG_TRACE("");
 
-    auto db_info_it = m_db.group_info.find(gaddr);
+    if(msg->get_type() != proxy_msg::GROUP_RECORD_MSG){
+        HC_LOG_ERROR("wrong proxy message, it musst be be a GROUP_RECORD_MS");
+        return; 
+    }
+
+    auto gr = std::static_pointer_cast<group_record_msg>(msg);
+
+
+    auto db_info_it = m_db.group_info.find(gr->get_gaddr());
 
     if (db_info_it == end(m_db.group_info)) {
-        //add an empty neutral record include( null )neutral record include( null ) to membership database
+        //add an empty neutral record  to membership database
         HC_LOG_DEBUG("gaddr not found");
-        db_info_it = m_db.group_info.insert(gaddr_pair(gaddr, gaddr_info())).first;
+        db_info_it = m_db.group_info.insert(gaddr_pair(gr->get_gaddr(), gaddr_info())).first;
     }
 
     switch (db_info_it->second.filter_mode) {
     case  INCLUDE_MODE:
-        receive_record_in_include_mode(record_type, gaddr, saddr_list, report_version, db_info_it->second);
+        receive_record_in_include_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_report_version(), db_info_it->second);
         break;
     case EXLCUDE_MODE:
-        receive_record_in_exclude_mode(record_type, gaddr, saddr_list, report_version, db_info_it->second);
+        receive_record_in_exclude_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_report_version(), db_info_it->second);
         break;
     default :
         HC_LOG_ERROR("wrong filter mode: " << db_info_it->second.filter_mode);
@@ -121,14 +132,14 @@ void querier::receive_record(mcast_addr_record_type record_type, const addr_stor
 
 }
 
-void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& ginfo)
+void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo)
 {
     HC_LOG_TRACE("record type: " << record_type);
     //7.4.1.  Reception of Current State Records
     //7.4.2.  Reception of Filter Mode Change and Source List Change Records
 
     source_list<source>& A = ginfo.include_requested_list;
-    source_list<source>& B = saddr_list;
+    source_list<source>& B = slist;
 
     gaddr_info& filter_timer = ginfo;
 
@@ -198,7 +209,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
     }
 }
 
-void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& ginfo)
+void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo)
 {
     HC_LOG_TRACE("record type: " << record_type);
     //7.4.1.  Reception of Current State Records
@@ -207,7 +218,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     source_list<source>& X = ginfo.include_requested_list;
     source_list<source>& Y = ginfo.exclude_list;
 
-    source_list<source>& A = saddr_list;
+    source_list<source>& A = slist;
     gaddr_info& filter_timer = ginfo;
 
     switch (record_type) {

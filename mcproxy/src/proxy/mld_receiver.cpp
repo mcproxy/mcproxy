@@ -33,8 +33,8 @@
 //DEBUG
 #include <net/if.h>
 
-mld_receiver::mld_receiver(const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces)
-    : receiver(AF_INET6, mrt_sock,interfaces)
+mld_receiver::mld_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces)
+    : receiver(pr_i, AF_INET6, mrt_sock,interfaces)
 {
     HC_LOG_TRACE("");
     if (!m_mrt_sock->set_recv_icmpv6_msg()) {
@@ -70,7 +70,7 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
 
 
     struct mld_hdr* hdr = (struct mld_hdr*)msg->msg_iov->iov_base;
-    proxy_instance* pr_i;
+    //proxy_instance* pr_i;
     addr_storage g_addr;
 
     if (hdr->mld_type == MLD_RECEIVER_KERNEL_MSG) { //kernel
@@ -86,9 +86,9 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
                 return;
             }
 
-            if ((pr_i = get_proxy_instance(if_index)) == nullptr) {
-                return;
-            }
+            //if ((pr_i = get_proxy_instance(if_index)) == nullptr) {
+                //return;
+            //}
 
             //proxy_msg m;
             //m.type = proxy_msg::RECEIVER_MSG;
@@ -111,9 +111,9 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
             return;
         }
 
-        if ((pr_i = this->get_proxy_instance(packet_info->ipi6_ifindex)) == nullptr) {
-            return;    //?is ifindex registratet
-        }
+        //if ((pr_i = this->get_proxy_instance(packet_info->ipi6_ifindex)) == nullptr) {
+            //return;    //?is ifindex registratet
+        //}
         g_addr = hdr->mld_addr;
 
         //proxy_msg m;

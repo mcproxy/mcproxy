@@ -31,7 +31,7 @@
 
 
 
-igmp_receiver::igmp_receiver(const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces): receiver(AF_INET, mrt_sock, interfaces)
+igmp_receiver::igmp_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces): receiver(pr_i, AF_INET, mrt_sock, interfaces)
 {
     HC_LOG_TRACE("");
 
@@ -63,7 +63,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
     int if_index = 0;
     addr_storage g_addr;
     addr_storage src_addr;
-    proxy_instance* pr_i;
+    //proxy_instance* pr_i;
 
     //test_output::printPacket_IPv4_Infos(buf, msg_size);
     HC_LOG_DEBUG("received packet XXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
@@ -88,9 +88,9 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             }
             HC_LOG_DEBUG("\tif_index: " << if_index);
 
-            if ((pr_i = get_proxy_instance(if_index)) == nullptr) {
-                return;
-            }
+            //if ((pr_i = get_proxy_instance(if_index)) == nullptr) {
+                //return;
+            //}
 
             //proxy_msg m;
             //m.type = proxy_msg::RECEIVER_MSG;
@@ -117,9 +117,9 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             }
             HC_LOG_DEBUG("\tif_index: " << if_index);
 
-            if ((pr_i = this->get_proxy_instance(if_index)) == nullptr) {
-                return;
-            }
+            //if ((pr_i = this->get_proxy_instance(if_index)) == nullptr) {
+                //return;
+            //}
 
             //proxy_msg m;
             //m.type = proxy_msg::RECEIVER_MSG;
@@ -139,9 +139,9 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             }
             HC_LOG_DEBUG("\tif_index: " << if_index);
 
-            if ((pr_i = this->get_proxy_instance(if_index)) == nullptr) {
-                return;
-            }
+            //if ((pr_i = this->get_proxy_instance(if_index)) == nullptr) {
+                //return;
+            //}
 
             //proxy_msg m;
             //m.type = proxy_msg::RECEIVER_MSG;

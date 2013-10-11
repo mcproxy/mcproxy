@@ -31,48 +31,20 @@
 #define PROXY_INSTANCE_HPP
 
 #include "include/utils/addr_storage.hpp"
+#include "include/utils/mroute_socket.hpp"
+
 #include "include/proxy/message_format.hpp"
 #include "include/proxy/worker.hpp"
-#include "include/proxy/routing.hpp"
-#include "include/proxy/sender.hpp"
-#include "include/proxy/receiver.hpp"
-#include "include/proxy/check_source.hpp"
-#include "include/proxy/timing.hpp"
-#include "include/proxy/interfaces.hpp"
-#include "include/proxy/querier.hpp"
 
 #include <memory>
 #include <vector>
 
-
-struct config_msg : public proxy_msg {
-
-    enum config_instruction {
-        ADD_DOWNSTREAM,
-        DEL_DOWNSTREAM,
-        ADD_UPSTREAM,
-        DEL_UPSTREAM
-    };
-
-    config_msg(config_instruction instruction, unsigned int if_index)
-        : proxy_msg(CONFIG_MSG, SYSTEMIC)
-        , m_instruction(instruction)
-        , m_if_index(if_index) {
-        HC_LOG_TRACE("");
-    }
-
-    config_instruction get_instruction() {
-        return m_instruction;
-    }
-
-    unsigned int get_if_index() {
-        return m_if_index;
-    }
-
-private:
-    config_instruction m_instruction;
-    unsigned int m_if_index;
-};
+class querier;
+class interfaces;
+class timing;
+class receiver;
+class sender;
+class routing;
 
 /**
  * @brief Represent a multicast Proxy
@@ -118,6 +90,8 @@ private:
     //add and del interfaces
     void handle_config(const std::shared_ptr<config_msg>& msg);
 
+    std::string to_string() const; 
+    friend std::ostream& operator<<(std::ostream& stream, const proxy_instance& pr_i);
 public:
     /**
      * @brief Set default values of the class members.
@@ -130,7 +104,9 @@ public:
     virtual ~proxy_instance();
 
     static void test_querier(int addr_family, std::string if_name);
-    static void send_test_record(querier& q, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& saddr_list, int report_version);
+    static void send_test_record(proxy_instance* const pr_i, std::shared_ptr<group_record_msg> m);
+   
+
 };
 
 #endif // PROXY_INSTANCE_HPP

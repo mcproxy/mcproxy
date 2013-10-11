@@ -30,24 +30,26 @@
 
 #include "include/hamcast_logging.h"
 #include "include/utils/addr_storage.hpp"
+#include "include/proxy/def.hpp"
+#include "include/proxy/interfaces.hpp"
 
 #include <iostream>
 #include <string>
 #include <map>
 #include <memory>
-
+#include <chrono>
 
 struct proxy_msg {
 
     enum message_type {
         INIT_MSG,
-        TEST_MSG,       //Test message type to test the message queue and the intrusive pointer.
-        EXIT_MSG,       //Message type to stop the proxy instances.
+        TEST_MSG,
+        EXIT_MSG,
         FILTER_TIMER_MSG,
         SOURCE_TIMER_MSG,
-        CONFIG_MSG,     //Message type used from module @ref mod_proxy to set and delete interfaces of the proxy instances.
-        RECEIVER_MSG,    //Message type used from module @ref mod_receiver.
-        DEBUG_MSG      //Message type to collect debug information for the module @ref mod_proxy.
+        CONFIG_MSG,
+        GROUP_RECORD_MSG,
+        DEBUG_MSG
     };
 
     enum message_priority {
@@ -99,7 +101,7 @@ const std::map<proxy_msg::message_type, std::string> message_type_name = {
     {proxy_msg::FILTER_TIMER_MSG,     "FILTER_TIMER_MSG" },
     {proxy_msg::SOURCE_TIMER_MSG,     "SOURCE_TIMER_MSG" },
     {proxy_msg::CONFIG_MSG,           "CONFIG_MSG"  },
-    {proxy_msg::RECEIVER_MSG,         "RECEIVER_MSG"},
+    {proxy_msg::GROUP_RECORD_MSG,     "GROUP_RECORD_MSG"},
     {proxy_msg::DEBUG_MSG,            "DEBUG_MSG"   }
 };
 
@@ -110,6 +112,7 @@ const std::map<proxy_msg::message_priority, std::string> message_priority_name =
 };
 
 
+//------------------------------------------------------------------------
 struct test_msg : public proxy_msg {
     test_msg(int value, message_priority prio): proxy_msg(TEST_MSG, prio), m_value(value) {
         HC_LOG_TRACE("");
@@ -128,17 +131,199 @@ private:
     int m_value;
 };
 
+//------------------------------------------------------------------------
+struct timer_msg : public proxy_msg {
+    timer_msg(message_type type, unsigned int if_index, std::chrono::milliseconds duration): proxy_msg(type, SYSTEMIC), m_if_index(if_index) {
+        HC_LOG_TRACE("");
+        set_duration(duration);
+    }
+
+    unsigned int get_if_index() {
+        return m_if_index;
+    }
+
+    std::string get_remaining_time() {
+        using namespace std::chrono;
+        std::ostringstream s;
+        auto current_time = steady_clock::now();
+        auto time_span = m_end_time - current_time;
+        double seconds = time_span.count()  * steady_clock::period::num / steady_clock::period::den;
+        s << seconds << "sec";
+        return s.str();
+    }
+
+private:
+    void set_duration(std::chrono::milliseconds duration) {
+        m_end_time = std::chrono::steady_clock::now() + duration;
+    }
+
+    std::chrono::time_point<std::chrono::steady_clock> m_end_time;
+    unsigned int m_if_index;
+};
 
 
-struct receiver_msg : public proxy_msg {
-    receiver_msg(): proxy_msg(RECEIVER_MSG, SYSTEMIC) {
+struct filter_timer : public timer_msg {
+    filter_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): filter_timer(FILTER_TIMER_MSG, if_index, gaddr, duration) {
+        HC_LOG_TRACE("");
+    }
+
+    const addr_storage& get_gaddr() {
+        return m_gaddr;
+    }
+protected:
+    filter_timer(message_type type, unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration)
+        : timer_msg(type
+                    , if_index, duration)
+        , m_gaddr(gaddr) {
+        HC_LOG_TRACE("");
+    }
+private:
+    addr_storage m_gaddr;
+};
+
+struct source_timer : public filter_timer {
+    source_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): filter_timer(SOURCE_TIMER_MSG, if_index, gaddr, duration) {
         HC_LOG_TRACE("");
     }
 };
 
 
+//------------------------------------------------------------------------
 struct debug_msg : public proxy_msg {
     debug_msg(): proxy_msg(DEBUG_MSG, SYSTEMIC) {
+        HC_LOG_TRACE("");
+    }
+};
+
+//------------------------------------------------------------------------
+
+struct source {
+    source() = default;
+    source(source&&) = default;
+    source& operator=(source&&) = default;
+
+    source(const source&) =default;
+    source& operator=(const source& s) = default;
+
+    source(const addr_storage& saddr)
+        : saddr(saddr) {}
+
+    addr_storage saddr;
+
+    mutable std::shared_ptr<source_timer> shared_source_timer;
+    void* current_state;
+
+
+    std::string to_string() const {
+        std::ostringstream s;
+        s << saddr;
+        if (shared_source_timer.get() != nullptr) {
+            s << "(" << shared_source_timer->get_remaining_time() << ")";
+        }
+        return s.str();
+    }
+
+    friend std::ostream& operator<<(std::ostream& stream, const source& s) {
+        return stream << s.to_string();
+    }
+
+    friend bool operator< (const source& l, const source& r) {
+        return l.saddr < r.saddr;
+    }
+
+    friend bool operator==(const source& l,const source& r) {
+        return l.saddr == r.saddr;
+    }
+};
+
+struct group_record_msg : public proxy_msg {
+
+    group_record_msg()
+        : group_record_msg(0, MODE_IS_INCLUDE, addr_storage(), source_list<source>(), -1 ) {}
+
+    group_record_msg(unsigned int if_index, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& slist, int report_version)
+        : proxy_msg(GROUP_RECORD_MSG, SYSTEMIC)
+        , m_if_index(if_index)
+        , m_record_type(record_type)
+        , m_gaddr(gaddr)
+        , m_slist(slist)
+        , m_report_version(report_version) {}
+
+    friend std::ostream& operator<<(std::ostream& stream, const group_record_msg& r) {
+        return stream << r.to_string();
+    }
+
+    std::string to_string() const {
+        HC_LOG_TRACE("");
+        std::ostringstream s;
+        s << "interface: " << interfaces::get_if_name(m_if_index) << std::endl;
+        s << "record_type: " << mcast_addr_record_type_name.at(m_record_type) << std::endl;
+        s << "group address: " << m_gaddr << std::endl;
+        s << "source list: " << m_slist << std::endl;
+        s << "report version: " << m_report_version;
+        return s.str();
+    }
+
+    unsigned int get_if_index() {
+        return m_if_index;
+    }
+
+    mcast_addr_record_type get_record_type(){
+        return m_record_type; 
+    }
+
+    const addr_storage& get_gaddr(){
+        return m_gaddr;     
+    }
+
+    source_list<source>& get_slist(){
+        return m_slist;      
+    }
+    
+    int get_report_version(){
+        return m_record_type; 
+    }
+
+private:
+    unsigned int m_if_index;
+    mcast_addr_record_type m_record_type;
+    addr_storage m_gaddr;
+    source_list<source> m_slist;
+    int m_report_version;
+};
+
+//------------------------------------------------------------------------
+struct config_msg : public proxy_msg {
+
+    enum config_instruction {
+        ADD_DOWNSTREAM,
+        DEL_DOWNSTREAM,
+        ADD_UPSTREAM,
+        DEL_UPSTREAM
+    };
+
+    config_msg(config_instruction instruction, unsigned int if_index)
+        : proxy_msg(CONFIG_MSG, SYSTEMIC)
+        , m_instruction(instruction)
+        , m_if_index(if_index) {
+        HC_LOG_TRACE("");
+    }
+
+    config_instruction get_instruction() {
+        return m_instruction;
+    }
+
+    unsigned int get_if_index() {
+        return m_if_index;
+    }
+
+private:
+    config_instruction m_instruction;
+    unsigned int m_if_index;
+};
+
+struct exit_cmd : public proxy_msg {
+    exit_cmd(): proxy_msg(EXIT_MSG, USER_INPUT) {
         HC_LOG_TRACE("");
     }
 };

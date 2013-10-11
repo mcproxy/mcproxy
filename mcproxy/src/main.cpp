@@ -32,6 +32,7 @@
 #include "include/proxy/querier.hpp"
 #include "include/proxy/timers_values.hpp"
 #include "include/proxy/proxy_configuration.hpp"
+#include "include/proxy/proxy_instance.hpp"
 
 #include <iostream>
 

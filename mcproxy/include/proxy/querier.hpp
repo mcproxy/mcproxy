@@ -29,15 +29,14 @@
 #define QUERIER_HPP
 
 #include "include/proxy/membership_db.hpp"
-#include "include/proxy/sender.hpp"
 #include "include/proxy/timers_values.hpp"
-#include "include/proxy/timing.hpp"
 
 #include <functional>
 #include <string>
 #include <memory>
-//#include <chrono>
 
+class timing;
+class sender;
 class proxy_instance;
 /**
  * @brief define the behaviour of a multicast querier for a specific interface
@@ -45,7 +44,7 @@ class proxy_instance;
 class querier
 {
 private:
-    proxy_instance* m_proxy_instance; 
+    proxy_instance* const m_proxy_instance; 
     int m_addr_family;
     int m_if_index;
     membership_db m_db;
@@ -58,8 +57,8 @@ private:
 
     //join all router groups or leave them
     bool router_groups_function(std::function<bool(const sender&, int, addr_storage)> f) const;
-    void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& ginfo);
-    void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version, gaddr_info& ginfo);
+    void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo);
+    void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo);
 
     //updates the filter_timer
     void mali(const addr_storage& gaddr, gaddr_info& db_info) const; //Multicast Address Listener Interval
@@ -76,8 +75,7 @@ public:
 
     querier(proxy_instance* pr_i, int addr_family, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing);
 
-    void receive_record(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& saddr_list, int report_version);
-
+    void receive_record(const std::shared_ptr<proxy_msg>& msg);
     void timer_triggerd(const std::shared_ptr<proxy_msg>& msg);
 
     void receive_query();

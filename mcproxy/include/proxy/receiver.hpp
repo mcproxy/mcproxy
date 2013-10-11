@@ -34,11 +34,14 @@
 #include "include/utils/mroute_socket.hpp"
 #include "include/utils/addr_storage.hpp"
 #include "include/proxy/interfaces.hpp"
+#include "include/proxy/message_format.hpp"
+#include "include/proxy/def.hpp"
 
-#include <map>
+#include <set>
 #include <thread>
 #include <mutex>
 #include <memory>
+#include <sstream>
 
 class proxy_instance;
 
@@ -46,22 +49,6 @@ class proxy_instance;
  * @brief Receive timout set to have not a blocking receive funktion.
  */
 #define RECEIVER_RECV_TIMEOUT 100 //msec
-
-//--------------------------------------------------
-//             if_index, proxy_instance
-/**
- * @brief Data structure to save the interface index with the incidental Proxy Instance.
- * @param first interface index
- * @param second pointer to the incidental Proxy Instance
- */
-using if_poxy_instance_map = std::map<int, proxy_instance*>;
-
-/**
- * @brief Pair for #if_poxy_instance_map.
- * @param first interface index
- * @param second pointer to the incidental Proxy Instance
- */
-using if_proxy_instance_pair = std::pair<int, proxy_instance*>;
 
 /**
  * @brief Abstract basic receiver class.
@@ -72,6 +59,9 @@ private:
 
     bool m_running;
     std::unique_ptr<std::thread> m_thread;
+
+    std::set<unsigned int> m_relevant_if_index;
+
     void worker_thread();
 
     std::mutex m_data_lock;
@@ -79,17 +69,18 @@ private:
     void stop();
     void join();
 protected:
+    proxy_instance * const m_proxy_instance;
+
     int m_addr_family;
 
-    if_poxy_instance_map m_if_proxy_map;
-
     const std::shared_ptr<const mroute_socket> m_mrt_sock;
-    
-    const std::shared_ptr<const interfaces> m_interfaces; 
+
+    const std::shared_ptr<const interfaces> m_interfaces;
 
 
     void start();
 
+    bool is_if_index_relevant(unsigned int if_index);
     /**
      * @brief Get the size for the control buffer for recvmsg().
      */
@@ -107,19 +98,11 @@ protected:
      */
     virtual void analyse_packet(struct msghdr* msg, int info_size) = 0;
 
-    //return prody instance pointer and on error NULL
-    /**
-     * @brief Get the proxy instance pointer to the interface index. Search in #m_if_proxy_map.
-     * @param if_index interface index
-     * @return pointer of the proxy instance or NULL if not found
-     */
-    proxy_instance* get_proxy_instance(int if_index);
-
 public:
     /**
       * @brief Create a receiver.
      */
-    receiver(int addr_family,const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces);
+    receiver(proxy_instance* pr_i, int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces);
 
     /**
      * @brief Release all resources.
@@ -133,7 +116,7 @@ public:
      * @param vif virtual interface indxe of the inteface
      * @param proxy_instance* who register the interface
      */
-    void registrate_interface(int if_index, proxy_instance* p);
+    void registrate_interface(int if_index);
 
     /**
      * @brief Delete an registerd interface

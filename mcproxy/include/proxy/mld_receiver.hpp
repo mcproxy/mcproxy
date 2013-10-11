@@ -45,7 +45,7 @@ private:
     int get_iov_min_size() override; //size in byte
     void analyse_packet(struct msghdr* msg, int info_size) override;
 public:
-    mld_receiver(std::shared_ptr<const mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces);
+    mld_receiver(proxy_instance* pr_i, std::shared_ptr<const mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces);
 };
 
 #endif // MLD_RECEIVER_HPP

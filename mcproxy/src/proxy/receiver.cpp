@@ -26,11 +26,12 @@
 
 #include <unistd.h>
 
-receiver::receiver(int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces)
+receiver::receiver(proxy_instance* pr_i, int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces)
     : m_running(false)
     , m_thread(nullptr)
+    , m_proxy_instance(pr_i)
     , m_addr_family(addr_family)
-    , m_mrt_sock(mrt_sock) 
+    , m_mrt_sock(mrt_sock)
     , m_interfaces(interfaces)
 {
     HC_LOG_TRACE("");
@@ -48,24 +49,19 @@ receiver::~receiver()
     join();
 }
 
-proxy_instance* receiver::get_proxy_instance(int if_index)
+bool receiver::is_if_index_relevant(unsigned int if_index)
 {
     HC_LOG_TRACE("");
-    auto it =  m_if_proxy_map.find(if_index);
-    if (it != end(m_if_proxy_map)) {
-        return it->second;
-    } else {
-        return nullptr;
-    }
+    return m_relevant_if_index.find(if_index) != std::end(m_relevant_if_index);
 }
 
-void receiver::registrate_interface(int if_index, proxy_instance* p)
+void receiver::registrate_interface(int if_index)
 {
     HC_LOG_TRACE("");
 
     std::lock_guard<std::mutex> lock(m_data_lock);
-
-    m_if_proxy_map.insert(if_proxy_instance_pair(if_index, p));
+    
+    m_relevant_if_index.insert(if_index);
 }
 
 void receiver::del_interface(int if_index)
@@ -74,7 +70,7 @@ void receiver::del_interface(int if_index)
 
     std::lock_guard<std::mutex> lock(m_data_lock);
 
-    m_if_proxy_map.erase(if_index);
+    m_relevant_if_index.erase(if_index);
 }
 
 void receiver::worker_thread()

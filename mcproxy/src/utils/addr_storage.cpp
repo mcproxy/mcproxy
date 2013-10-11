@@ -76,11 +76,6 @@ addr_storage::addr_storage(const sockaddr_storage& addr)
     *this = addr;
 }
 
-addr_storage::addr_storage(const addr_storage& addr)
-{
-    *this = addr;
-}
-
 addr_storage::addr_storage(const in_addr& addr)
 {
     *this = addr;
@@ -110,15 +105,6 @@ std::ostream& operator <<(std::ostream& s, const addr_storage a)
 {
     s << a.to_string();
     return s;
-}
-
-addr_storage& addr_storage::operator=(const addr_storage& s)
-{
-    if (this != &s) {
-        this->m_addr = s.m_addr;
-    }
-
-    return *this;
 }
 
 addr_storage& addr_storage::operator=(const sockaddr_storage& s)
@@ -205,7 +191,7 @@ bool addr_storage::operator==(const addr_storage& addr) const
     }
 }
 
-bool addr_storage::operator!=(addr_storage& addr) const
+bool addr_storage::operator!=(const addr_storage& addr) const
 {
     return !(*this == addr);
 }

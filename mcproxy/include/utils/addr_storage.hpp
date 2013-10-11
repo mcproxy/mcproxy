@@ -39,8 +39,12 @@ private:
     inline void clean();
     inline socklen_t get_addr_len(int addr_family) const;
 public:
+
     addr_storage(addr_storage&&) = default;
     addr_storage& operator=(addr_storage&&) = default;
+
+    addr_storage(const addr_storage& addr) = default;
+    addr_storage& operator=(const addr_storage& s) = default;
 
     /**
      * @brief Create an empty and invalid addr_storage.
@@ -50,7 +54,6 @@ public:
     /**
      * @brief Copy constructor
      */
-    addr_storage(const addr_storage& addr);
 
     /**
      * @brief Create a zero address specific storage.
@@ -93,11 +96,6 @@ public:
     explicit addr_storage(const sockaddr_in6& addr);
 
 //-----------------------------------------------------------
-
-    /**
-     * @brief default copy operator
-     */
-    addr_storage& operator=(const addr_storage& s);
 
     /**
      * @brief copy operator sockaddr_storage to class addr_storage
@@ -144,7 +142,7 @@ public:
     /**
      * @brief disjunction to operator==
      */
-    bool operator!=(addr_storage& addr) const;
+    bool operator!=(const addr_storage& addr) const;
 
     /**
      * @brief lower then operator 

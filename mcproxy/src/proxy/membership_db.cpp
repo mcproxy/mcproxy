@@ -20,8 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/proxy/membership_db.hpp"
+#include "include/hamcast_logging.h"
 
 #include <iostream>
 #include <sstream>
@@ -80,43 +80,10 @@ void membership_db::test_arithmetic()
 
 }
 
-std::string source::to_string() const
-{
-    std::ostringstream s;
-    s << saddr;
-    if(shared_source_timer.get() != nullptr){
-        s << "(" << shared_source_timer->get_remaining_time() << ")"; 
-    }
-    return s.str();
-}
-
-std::ostream& operator<<(std::ostream& stream, const source& s)
-{
-    return stream << s.to_string();
-}
 
 std::ostream& operator<<(std::ostream& stream, const gaddr_info& g)
 {
     return stream << g.to_string();
-}
-
-bool operator< (const source& s1, const source& s2)
-{
-    return s1.saddr < s2.saddr;
-}
-
-source::source(addr_storage a): saddr(a)
-{
-}
-
-source::source()
-{
-}
-
-bool source::operator==(const source& s) const
-{
-    HC_LOG_TRACE("");
-    return this->saddr == s.saddr;
 }
 
 std::string gaddr_info::to_string() const

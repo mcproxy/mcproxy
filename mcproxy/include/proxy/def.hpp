@@ -26,7 +26,9 @@
 #include <netinet/in.h>
 
 #include <map>
+#include <set>
 #include <string>
+#include <iostream>
 
 enum mc_filter {INCLUDE_MODE = MCAST_INCLUDE, EXLCUDE_MODE = MCAST_EXCLUDE};
 const std::map<mc_filter, std::string> mc_filter_name = {
@@ -53,5 +55,89 @@ const std::map<mcast_addr_record_type, std::string> mcast_addr_record_type_name 
     {BLOCK_OLD_SOURCES,      "BLOCK_OLD_SOURCES"     }
 };
 
+//------------------------------------------------------------------------
+template<typename T> using source_list = std::set<T>;
+
+//A+B means the union of set A and B
+template<typename T>
+inline source_list<T>& operator+=(source_list<T>& l, const source_list<T>& r)
+{
+    l.insert(r.cbegin(), r.cend());
+    return l;
+}
+
+template<typename T>
+inline source_list<T> operator+(const source_list<T>& l, const source_list<T>& r)
+{
+    source_list<T> new_sl(l);
+    new_sl += r;
+    return new_sl;
+}
+
+//A*B means the intersection of set A and B
+template<typename T>
+inline source_list<T>& operator*=(source_list<T>& l, const source_list<T>& r)
+{
+    auto cur_l = std::begin(l);
+    auto cur_r = std::begin(r);
+
+    while (cur_l != std::end(l) && cur_r != std::end(r)) {
+        if (*cur_l == *cur_r) {
+            cur_l++;
+            cur_r++;
+        } else if (*cur_l < *cur_r) {
+            cur_l = l.erase(cur_l);
+        } else { //cur_l > cur_r
+            cur_r++;
+        }
+    }
+
+    if (cur_l != std::end(l)) {
+        l.erase(cur_l, std::end(l));
+    }
+
+    return l;
+}
+
+template<typename T>
+inline source_list<T> operator*(const source_list<T>& l, const source_list<T>& r)
+{
+    source_list<T> new_sl(l);
+    new_sl *= r;
+    return new_sl;
+}
+
+//A-B means the removal of all elements of set B from set A
+template<typename T>
+inline source_list<T>& operator-=(source_list<T>& l, const source_list<T>& r)
+{
+    for (auto e : r) {
+        l.erase(e);
+    }
+
+    return l;
+}
+
+template<typename T>
+inline source_list<T> operator-(const source_list<T>& l, const source_list<T>& r)
+{
+    source_list<T> new_sl(l);
+    new_sl -= r;
+    return new_sl;
+}
+
+template<typename T>
+inline std::ostream& operator<<(std::ostream& stream, const source_list<T> sl)
+{
+    int i = 1;
+    for (auto e : sl) {
+        if (i % 3 == 0 ) {
+            stream << std::endl << "\t";
+        }
+        stream << e << "; ";
+        i++;
+    }
+    return stream;
+}
 #endif //DEF_HPP
 

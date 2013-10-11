@@ -31,15 +31,15 @@
 #ifndef PROXY_HPP
 #define PROXY_HPP
 
-#include "include/proxy/proxy_instance.hpp"
-#include "include/proxy/proxy_configuration.hpp"
-#include "include/proxy/timing.hpp"
 
 #include <vector>
 #include <string>
 #include <memory>
 #include <map>
 
+class proxy_configuration;
+class timing;
+class proxy_instance;
 /**
   * @brief Instanced the multicast proxy
   */

@@ -25,6 +25,9 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/proxy.hpp"
 #include "include/proxy/check_kernel.hpp"
+#include "include/proxy/timing.hpp"
+#include "include/proxy/proxy_instance.hpp"
+#include "include/proxy/proxy_configuration.hpp"
 
 #include <iostream>
 #include <sstream>
