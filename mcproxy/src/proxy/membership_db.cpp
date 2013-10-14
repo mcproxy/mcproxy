@@ -80,6 +80,13 @@ void membership_db::test_arithmetic()
 
 }
 
+gaddr_info::gaddr_info(group_mem_protocol compatibility_mode_variable)
+    : filter_mode(INCLUDE_MODE)
+    , compatibility_mode_variable(compatibility_mode_variable)
+    , shared_filter_timer(nullptr)
+{
+    HC_LOG_TRACE("");
+}
 
 std::ostream& operator<<(std::ostream& stream, const gaddr_info& g)
 {
@@ -90,20 +97,28 @@ std::string gaddr_info::to_string() const
 {
     using namespace std;
     ostringstream s;
-    s << "filter mode: " << mc_filter_name.at(filter_mode) << endl;
-    if(shared_filter_timer.get() != nullptr){
+    s << "filter mode: " << get_mc_filter_name(filter_mode) << endl;
+    s << "compatibility_mode_variable: " << get_group_mem_protocol_name(compatibility_mode_variable) << endl;
+    if (shared_filter_timer.get() != nullptr) {
         s << "filter timer: " << shared_filter_timer->get_remaining_time() << endl;
     }
-    s << "included/requested list: " << include_requested_list << endl;
-    s << "exclude_list: " << exclude_list;
+    s << "included/requested list(#" << include_requested_list.max_size() << "): " << include_requested_list << endl;
+    s << "exclude_list(#" << exclude_list.max_size() << "): " << exclude_list;
     return s.str();
+}
+
+membership_db::membership_db(group_mem_protocol querier_version_mode)
+    : querier_version_mode(querier_version_mode)
+    , is_querier(true)
+{
+    HC_LOG_TRACE("");
 }
 
 std::string membership_db::to_string() const
 {
     using namespace std;
     ostringstream s;
-    s << "compatibility mode variable: " << group_mem_protocol_name.at(compatibility_mode_variable) << endl;
+    s << "compatibility mode variable: " << get_group_mem_protocol_name(querier_version_mode) << endl;
     s << "is querier: " << (is_querier ? "true" : "false") << endl;
     s << "subscribed groups: " << group_info.size();
 
@@ -131,7 +146,7 @@ std::string membership_db::indention(std::string str) const
         cpos = str.find("\n", cpos + 1);
     }
 
-    str.insert(0,"\t");
+    str.insert(0, "\t");
 
     return str;
 }

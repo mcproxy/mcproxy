@@ -64,7 +64,7 @@ void worker::add_msg(const std::shared_ptr<proxy_msg>& msg)
 {
     HC_LOG_TRACE("");
 
-    HC_LOG_DEBUG("message type:" << message_type_name.at(msg->get_type()));
+    HC_LOG_DEBUG("message type:" << proxy_msg::get_message_type_name(msg->get_type()));
     if (msg->get_priority() == proxy_msg::LOSEABLE) {
         m_job_queue.enqueue_loseable(msg);
     } else {

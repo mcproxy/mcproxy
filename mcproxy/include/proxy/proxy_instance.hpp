@@ -30,11 +30,8 @@
 #ifndef PROXY_INSTANCE_HPP
 #define PROXY_INSTANCE_HPP
 
-#include "include/utils/addr_storage.hpp"
-#include "include/utils/mroute_socket.hpp"
-
-#include "include/proxy/message_format.hpp"
 #include "include/proxy/worker.hpp"
+#include "include/proxy/def.hpp"
 
 #include <memory>
 #include <vector>
@@ -45,6 +42,7 @@ class timing;
 class receiver;
 class sender;
 class routing;
+class mroute_socket;
 
 /**
  * @brief Represent a multicast Proxy
@@ -52,7 +50,7 @@ class routing;
 class proxy_instance: public worker
 {
 private:
-    int m_addr_family; //AF_INET or AF_INET6
+    group_mem_protocol m_group_mem_protocol; //AF_INET or AF_INET6
     int m_table_number; // 0 means no table number
 
 
@@ -78,15 +76,6 @@ private:
 
     void worker_thread();
 
-    //processed joins and leaves
-    //void handle_igmp(struct receiver_msg* r);
-
-    ////processed clock events
-    //void handle_clock(struct clock_msg* c);
-
-    ////create debug output
-    //void handle_debug_msg(struct debug_msg* db);
-
     //add and del interfaces
     void handle_config(const std::shared_ptr<config_msg>& msg);
 
@@ -96,14 +85,14 @@ public:
     /**
      * @brief Set default values of the class members.
      */
-    proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing);
+    proxy_instance(group_mem_protocol group_mem_protocol, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing);
 
     /**
      * @brief Release all resources.
      */
     virtual ~proxy_instance();
 
-    static void test_querier(int addr_family, std::string if_name);
+    static void test_querier(std::string if_name);
     static void send_test_record(proxy_instance* const pr_i, std::shared_ptr<group_record_msg> m);
    
 

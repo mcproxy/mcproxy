@@ -39,9 +39,16 @@
 #include <chrono>
 #include <memory>
 
-
 struct gaddr_info {
-    mc_filter filter_mode = INCLUDE_MODE;
+    gaddr_info(group_mem_protocol compatibility_mode_variable);
+    gaddr_info(const gaddr_info&) = default;
+    gaddr_info& operator=(const gaddr_info&) = default;
+    gaddr_info(gaddr_info&&) = default;
+    gaddr_info& operator=(gaddr_info&&) = default;
+
+    mc_filter filter_mode;
+
+    group_mem_protocol compatibility_mode_variable; //RFC3810 - 8.3.2. In the Presence of MLDv1 Multicast Address Listeners
 
     std::shared_ptr<timer_msg> shared_filter_timer;
     void* current_state;
@@ -60,7 +67,13 @@ using gaddr_pair = std::pair<addr_storage, gaddr_info>;
  * @brief The Membership Database maintaines the membership records for one specific interface (RFC 4605)
  */
 struct membership_db {
-    group_mem_protocol compatibility_mode_variable; //RFC3810 - Section 6
+    membership_db(group_mem_protocol querier_version_mode);
+    membership_db(const membership_db&) = default;
+    membership_db& operator=(const membership_db&) = default;
+    membership_db(membership_db&&) = default;
+    membership_db& operator=(membership_db&&) = default;
+
+    group_mem_protocol querier_version_mode; //RFC3810 - 8.3.1. In the Presence of MLDv1 Routers
     bool is_querier;
     gaddr_map group_info; //subscribed multicast group with there source lists
 

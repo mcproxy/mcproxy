@@ -37,15 +37,14 @@
 
 class timing;
 class sender;
-class worker; 
+class worker;
 /**
  * @brief define the behaviour of a multicast querier for a specific interface
  */
 class querier
 {
 private:
-    worker* const m_msg_worker; 
-    int m_addr_family;
+    worker* const m_msg_worker;
     int m_if_index;
     membership_db m_db;
     timers_values m_timers_values;
@@ -53,30 +52,30 @@ private:
     const std::shared_ptr<const sender> m_sender;
     const std::shared_ptr<timing> m_timing;
 
-    bool init_db();
-
     //join all router groups or leave them
     bool router_groups_function(std::function<bool(const sender&, int, addr_storage)> f) const;
     void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo);
     void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo);
 
     //updates the filter_timer
-    void mali(const addr_storage& gaddr, gaddr_info& db_info) const; //Multicast Address Listener Interval
+    void mali(const addr_storage& gaddr, gaddr_info& ginfo) const; //Multicast Address Listener Interval
 
     //updates a list of source_timers
     void mali(const addr_storage& gaddr, source_list<source>& slist) const; //Multicast Address Listener Interval
 
-    //updates only specific source timers of a list 
-    void mali(const addr_storage& gaddr, source_list<source>& slist, source_list<source>&& tmp_slist)const; //Multicast Address Listener Interval
+    //updates only specific source timers of a list
+    void mali(const addr_storage& gaddr, source_list<source>& slist, source_list<source>&& tmp_slist) const; //Multicast Address Listener Interval
 
     //set only specific source timers to the corresponding filter time
-    void filter_time(const addr_storage& gaddr, gaddr_info& db_info,source_list<source>& slist, source_list<source>&& tmp_slist);
-    
+    void filter_time(gaddr_info& ginfo, source_list<source>& slist, source_list<source>&& tmp_slist);
+
+    void timer_triggerd_filter_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
+    void timer_triggerd_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
 public:
 
     virtual ~querier();
 
-    querier(worker* msg_worker, int addr_family, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing);
+    querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing);
 
     void receive_record(const std::shared_ptr<proxy_msg>& msg);
     void timer_triggerd(const std::shared_ptr<proxy_msg>& msg);

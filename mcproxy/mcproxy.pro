@@ -53,7 +53,8 @@ SOURCES += src/main.cpp \
            src/proxy/querier.cpp \
            src/proxy/timers_values.cpp \
            src/proxy/interfaces.cpp \
-           src/proxy/proxy_configuration.cpp 
+           src/proxy/proxy_configuration.cpp \
+           src/proxy/def.cpp
 
 HEADERS += include/hamcast_logging.h \
                 #utils

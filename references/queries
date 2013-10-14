@@ -1,0 +1,86 @@
+##-- Queries --##
+
+#Nachrichtenformat
+
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Type = 130   |      Code     |           Checksum            |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |    Maximum Response Code      |           Reserved            |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    *                                                               *
+    |                                                               |
+    *                       Multicast Address                       *
+    |                                                               |
+    *                                                               *
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    | Resv  |S| QRV |     QQIC      |     Number of Sources (N)     |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    *                                                               *
+    |                                                               |
+    *                       Source Address [1]                      *
+    |                                                               |
+    *                                                               *
+    |                                                               |
+    +-                                                             -+
+    |                                                               |
+    *                                                               *
+    |                                                               |
+    *                       Source Address [2]                      *
+    |                                                               |
+    *                                                               *
+    |                                                               |
+    +-                              .                              -+
+    .                               .                               .
+    .                               .                               .
+    +-                                                             -+
+    |                                                               |
+    *                                                               *
+    |                                                               |
+    *                       Source Address [N]                      *
+    |                                                               |
+    *                                                               *
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+#Nachrichten
+Queries
+    -> General Query
+    -> Multicast Address Specific Query
+    -> Mulitcast Address and Source Specific Query
+
+#General Query
+ -timing 
+    - on startup 
+       - Startup Queriy Interval
+       - Startup Query Count
+    - after startup
+       - Query Interval  
+
+Type = 130
+Code = 0
+Checksum = ..
+Maximum Response Code = ... !dynamic
+Resverd = 0
+Multicast Address = 0
+Resv = 0
+S = !dynamic
+QRV = ... !dynamic
+QQIC = ... !dynamic
+Number of Sources (N) = 0
+Source Address = nullptr
+
+#downward compatibility
+ - In the Presence of MLDv1 Routers
+    - querier musst use the lowest version of MLD present on the network.
+      - administraively assured
+ - In the Presence of MLDv1 Multicast Address Listeners 
+      - MLDv2 Routers must operatin v1 compatibility mode
+      - the Comp_mode_var is set to MLDv1 whenever an MLDV1 listener report is received
+          per Multicast address
+#Querier vs Non-Querier
+

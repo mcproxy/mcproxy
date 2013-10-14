@@ -89,6 +89,6 @@ void test_test()
     //proxy_configuration::test_proxy_configuration(); 
     //worker::test_worker();
 
-    proxy_instance::test_querier(AF_INET, "dummy0");
+    proxy_instance::test_querier("dummy0");
 
 }

@@ -58,6 +58,29 @@ struct proxy_msg {
         LOSEABLE = 100 //low
     };
 
+    static std::string get_message_type_name(message_type mt) {
+        std::map<proxy_msg::message_type, std::string> name_map = {
+            {proxy_msg::INIT_MSG,             "INIT_MSG"         },
+            {proxy_msg::TEST_MSG,             "TEST_MSG"         },
+            {proxy_msg::EXIT_MSG,             "EXIT_MSG"         },
+            {proxy_msg::FILTER_TIMER_MSG,     "FILTER_TIMER_MSG" },
+            {proxy_msg::SOURCE_TIMER_MSG,     "SOURCE_TIMER_MSG" },
+            {proxy_msg::CONFIG_MSG,           "CONFIG_MSG"       },
+            {proxy_msg::GROUP_RECORD_MSG,     "GROUP_RECORD_MSG" },
+            {proxy_msg::DEBUG_MSG,            "DEBUG_MSG"        }
+        };
+        return name_map[mt];
+    }
+
+    static std::string get_message_priority_name(message_priority mp) {
+        std::map<proxy_msg::message_priority, std::string> name_map = {
+            {proxy_msg::SYSTEMIC,     "SYSTEMIC"  },
+            {proxy_msg::USER_INPUT,   "USER_INPUT"},
+            {proxy_msg::LOSEABLE,     "LOSEABLE"  },
+        };
+        return name_map[mp];
+    }
+
     proxy_msg(): m_type(INIT_MSG), m_prio(SYSTEMIC) {
         HC_LOG_TRACE("");
     }
@@ -94,22 +117,6 @@ protected:
 };
 
 
-const std::map<proxy_msg::message_type, std::string> message_type_name = {
-    {proxy_msg::INIT_MSG,             "INIT_MSG"    },
-    {proxy_msg::TEST_MSG,             "TEST_MSG"    },
-    {proxy_msg::EXIT_MSG,             "EXIT_MSG"    },
-    {proxy_msg::FILTER_TIMER_MSG,     "FILTER_TIMER_MSG" },
-    {proxy_msg::SOURCE_TIMER_MSG,     "SOURCE_TIMER_MSG" },
-    {proxy_msg::CONFIG_MSG,           "CONFIG_MSG"  },
-    {proxy_msg::GROUP_RECORD_MSG,     "GROUP_RECORD_MSG"},
-    {proxy_msg::DEBUG_MSG,            "DEBUG_MSG"   }
-};
-
-const std::map<proxy_msg::message_priority, std::string> message_priority_name = {
-    {proxy_msg::SYSTEMIC,     "SYSTEMIC"  },
-    {proxy_msg::USER_INPUT,   "USER_INPUT"},
-    {proxy_msg::LOSEABLE,     "LOSEABLE"  },
-};
 
 
 //------------------------------------------------------------------------
@@ -124,7 +131,7 @@ struct test_msg : public proxy_msg {
 
     virtual void operator()() override {
         HC_LOG_TRACE("");
-        std::cout << "Test Message value: "  << m_value << " prio: " << message_priority_name.at(get_priority()) << std::endl;
+        std::cout << "Test Message value: "  << m_value << " prio: " << proxy_msg::get_message_priority_name(get_priority()) << std::endl;
     }
 
 private:
@@ -166,12 +173,12 @@ struct filter_timer : public timer_msg {
         HC_LOG_TRACE("");
     }
 
-    bool is_used_as_source_timer(){
-        return m_is_used_as_source_timer; 
+    bool is_used_as_source_timer() {
+        return m_is_used_as_source_timer;
     }
 
-    void set_as_soure_timer(){
-        m_is_used_as_source_timer = true; 
+    void set_as_source_timer() {
+        m_is_used_as_source_timer = true;
     }
 
 private:
@@ -254,7 +261,7 @@ struct group_record_msg : public proxy_msg {
         HC_LOG_TRACE("");
         std::ostringstream s;
         s << "interface: " << interfaces::get_if_name(m_if_index) << std::endl;
-        s << "record_type: " << mcast_addr_record_type_name.at(m_record_type) << std::endl;
+        s << "record_type: " << get_mcast_addr_record_type_name(m_record_type) << std::endl;
         s << "group address: " << m_gaddr << std::endl;
         s << "source list: " << m_slist << std::endl;
         s << "report version: " << m_report_version;

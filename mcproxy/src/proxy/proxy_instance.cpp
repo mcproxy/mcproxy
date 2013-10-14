@@ -42,8 +42,8 @@
 #include <unistd.h>
 #include <net/if.h>
 
-proxy_instance::proxy_instance(int addr_family, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing)
-    : m_addr_family(addr_family)
+proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing)
+    : m_group_mem_protocol(group_mem_protocol)
     , m_table_number(table_number)
     , m_interfaces(interfaces)
     , m_timing(shared_timing)
@@ -77,12 +77,12 @@ bool proxy_instance::init_mrt_socket()
 {
     HC_LOG_TRACE("");
     m_mrt_sock = std::make_shared<mroute_socket>();
-    if (m_addr_family == AF_INET) {
+    if (is_IPv4(m_group_mem_protocol)) {
         m_mrt_sock->create_raw_ipv4_socket();
-    } else if (m_addr_family == AF_INET6) {
+    } else if (is_IPv6(m_group_mem_protocol)) {
         m_mrt_sock->create_raw_ipv6_socket();
     } else {
-        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
+        HC_LOG_ERROR("unknown ip version");
         return false;
     }
 
@@ -104,12 +104,12 @@ bool proxy_instance::init_mrt_socket()
 bool proxy_instance::init_sender()
 {
     HC_LOG_TRACE("");
-    if (m_addr_family == AF_INET) {
+    if (is_IPv4(m_group_mem_protocol)) {
         m_sender = std::make_shared<igmp_sender>();
-    } else if (m_addr_family == AF_INET6) {
+    } else if (is_IPv6(m_group_mem_protocol)) {
         m_sender = std::make_shared<mld_sender>();
     } else {
-        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
+        HC_LOG_ERROR("unknown ip version");
         return false;
     }
 
@@ -120,12 +120,12 @@ bool proxy_instance::init_receiver()
 {
     HC_LOG_TRACE("");
 
-    if (m_addr_family == AF_INET) {
+    if (is_IPv4(m_group_mem_protocol)) {
         m_receiver.reset(new igmp_receiver(this, m_mrt_sock, m_interfaces));
-    } else if (m_addr_family == AF_INET6) {
+    } else if (is_IPv6(m_group_mem_protocol)) {
         m_receiver.reset(new mld_receiver(this, m_mrt_sock, m_interfaces));
     } else {
-        HC_LOG_ERROR("wrong address family");
+        HC_LOG_ERROR("unknown ip version");
         return false;
     }
 
@@ -135,7 +135,7 @@ bool proxy_instance::init_receiver()
 bool proxy_instance::init_routing()
 {
     HC_LOG_TRACE("");
-    m_routing.reset(new routing(m_addr_family, m_mrt_sock, m_table_number));
+    m_routing.reset(new routing(get_addr_family(m_group_mem_protocol), m_mrt_sock, m_table_number));
     return true;
 }
 
@@ -262,8 +262,8 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
 
     switch (msg->get_instruction()) {
     case config_msg::ADD_DOWNSTREAM: {
-        std::unique_ptr<querier> q(new querier(this, m_addr_family, msg->get_if_index(), m_sender, m_timing));
-        m_querier.insert(std::pair<int, std::unique_ptr<querier>>(msg->get_if_index(), move(q)));
+        //std::unique_ptr<querier> q(new querier(this, m_addr_family, msg->get_if_index(), m_sender, m_timing));
+        //m_querier.insert(std::pair<int, std::unique_ptr<querier>>(msg->get_if_index(), move(q)));
     }
     break;
     case config_msg::DEL_DOWNSTREAM: {
@@ -349,7 +349,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
 //}
 
 
-void proxy_instance::test_querier(int addr_family, std::string if_name)
+void proxy_instance::test_querier(std::string if_name)
 {
 
     using namespace std;
@@ -361,8 +361,9 @@ void proxy_instance::test_querier(int addr_family, std::string if_name)
     source s5(addr_storage("5.5.5.5"));
     addr_storage gaddr("224.1.1.1");
 
+    group_mem_protocol memproto = IGMPv3; 
     //create a proxy_instance
-    proxy_instance pr_i(addr_family, 0,  make_shared<interfaces>(AF_INET, false), make_shared<timing>());
+    proxy_instance pr_i(memproto, 0,  make_shared<interfaces>(get_addr_family(memproto), false), make_shared<timing>());
 
     //add a downstream
     pr_i.add_msg(make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, interfaces::get_if_index(if_name)));
@@ -389,14 +390,18 @@ void proxy_instance::test_querier(int addr_family, std::string if_name)
 
     send_record(MODE_IS_INCLUDE, source_list<source> {s1, s2});
     print_proxy_instance();
-    
-    sleep(2);
-    send_record(MODE_IS_EXCLUDE, source_list<source>{s2,s3,s4});
-    print_proxy_instance();
 
     sleep(2);
-    send_record(MODE_IS_INCLUDE, source_list<source>{s4});
+    send_record(ALLOW_NEW_SOURCES, source_list<source>{s1});
     print_proxy_instance();
+
+    //sleep(2);
+    //send_record(MODE_IS_EXCLUDE, source_list<source>{s2,s3,s4});
+    //print_proxy_instance();
+
+    //sleep(2);
+    //send_record(MODE_IS_INCLUDE, source_list<source>{s4});
+    //print_proxy_instance();
 
     for (int i = 0; i < 6; ++i) {
         sleep(2);

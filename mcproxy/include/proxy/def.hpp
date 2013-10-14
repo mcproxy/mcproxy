@@ -31,29 +31,16 @@
 #include <iostream>
 
 enum mc_filter {INCLUDE_MODE = MCAST_INCLUDE, EXLCUDE_MODE = MCAST_EXCLUDE};
-const std::map<mc_filter, std::string> mc_filter_name = {
-    {INCLUDE_MODE, "INCLUDE_MODE"},
-    {EXLCUDE_MODE, "EXLCUDE_MODE"}
-};
+std::string get_mc_filter_name(mc_filter mf);
 
-enum group_mem_protocol {IGMPv1, IGMPv2, IGMPv3, MLDv1, MLDv2};
-const std::map<group_mem_protocol, std::string> group_mem_protocol_name = {
-    {IGMPv1, "IGMPv1"},
-    {IGMPv2, "IGMPv2"},
-    {IGMPv3, "IGMPv3"},
-    {MLDv1,  "MLDv1" },
-    {MLDv2,  "MLDv2" }
-};
+enum group_mem_protocol {IGMPv1 = 0x1, IGMPv2 = 0x2, IGMPv3 = 0x4, MLDv1 = 0x8, MLDv2 = 0x10};
+bool is_IPv4(group_mem_protocol gmp);
+bool is_IPv6(group_mem_protocol gmp);
+int get_addr_family(group_mem_protocol gmp);
+std::string get_group_mem_protocol_name(group_mem_protocol gmp);
 
 enum mcast_addr_record_type {MODE_IS_INCLUDE = 1, MODE_IS_EXCLUDE = 2, CHANGE_TO_INCLUDE_MODE = 3, CHANGE_TO_EXCLUDE_MODE = 4, ALLOW_NEW_SOURCES = 5, BLOCK_OLD_SOURCES = 6};
-const std::map<mcast_addr_record_type, std::string> mcast_addr_record_type_name = {
-    {MODE_IS_INCLUDE,        "MODE_IS_INCLUDE"       },
-    {MODE_IS_EXCLUDE,        "MODE_IS_EXCLUDE"       },
-    {CHANGE_TO_INCLUDE_MODE, "CHANGE_TO_INCLUDE_MODE"},
-    {CHANGE_TO_EXCLUDE_MODE, "CHANGE_TO_EXCLUDE_MODE"},
-    {ALLOW_NEW_SOURCES,      "ALLOW_NEW_SOURCES"     },
-    {BLOCK_OLD_SOURCES,      "BLOCK_OLD_SOURCES"     }
-};
+std::string get_mcast_addr_record_type_name(mcast_addr_record_type art);
 
 //------------------------------------------------------------------------
 template<typename T> using source_list = std::set<T>;
