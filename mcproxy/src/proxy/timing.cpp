@@ -22,7 +22,7 @@
 
 #include "include/hamcast_logging.h"
 #include "include/proxy/timing.hpp"
-#include "include/proxy/proxy_instance.hpp"
+#include "include/proxy/worker.hpp"
 
 #include <iostream>
 #include <unistd.h>
@@ -80,25 +80,25 @@ void timing::worker_thread()
     }
 }
 
-    void timing::add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, const std::shared_ptr<proxy_msg>& pr_msg)
+    void timing::add_time(std::chrono::milliseconds delay, worker* msg_worker, const std::shared_ptr<proxy_msg>& pr_msg)
 {
     HC_LOG_TRACE("");
     timing_db_key until = std::chrono::steady_clock::now() + delay;
 
     std::lock_guard<std::mutex> lock(m_global_lock);
 
-    m_db.insert(timing_db_pair(until, std::make_tuple(pr_inst, pr_msg)));
+    m_db.insert(timing_db_pair(until, std::make_tuple(msg_worker, pr_msg)));
     m_con_var.notify_one();
 }
 
-void timing::stop_all_time(const proxy_instance* pr_inst)
+void timing::stop_all_time(const worker* msg_worker)
 {
     HC_LOG_TRACE("");
 
     std::lock_guard<std::mutex> lock(m_global_lock);
 
     for (auto it = begin(m_db); it != end(m_db);) {
-        if (std::get<0>(it->second) == pr_inst) {
+        if (std::get<0>(it->second) == msg_worker) {
             it = m_db.erase(it);
             continue;
         }

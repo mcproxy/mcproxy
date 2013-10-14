@@ -45,7 +45,7 @@ std::vector<int> check_if::init(std::vector<int>& check_lst, int addr_family)
 
     for (std::vector<int>::iterator i = m_check_lst.begin(); i != m_check_lst.end(); i++) {
         char cstr[IF_NAMESIZE];
-        std::string if_name(if_indextoname(*i, cstr));
+        std::string if_name(if_indextoname(*i, cstr)); //fehler wenn null?????????????????????
 
         const struct ifaddrs* prop;
         if (m_addr_family == AF_INET) {
@@ -88,7 +88,7 @@ bool check_if::check()
 
     for (std::vector<int>::iterator i = m_check_lst.begin(); i != m_check_lst.end(); i++) {
         char cstr[IF_NAMESIZE];
-        std::string if_name(if_indextoname(*i, cstr));
+        std::string if_name(if_indextoname(*i, cstr)); //fehler wenn null??????????????????
 
         const struct ifaddrs* prop_new = m_current_prop->get_ip4_if(if_name);
         const struct ifaddrs* prop_old = if_property_old->get_ip4_if(if_name);

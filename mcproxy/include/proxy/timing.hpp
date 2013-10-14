@@ -43,9 +43,9 @@
 
 #define TIMING_IDLE_POLLING_INTERVAL 1 //sec
 
-class proxy_instance;
+class worker;
 
-using timing_db_value = std::tuple<proxy_instance*, std::shared_ptr<proxy_msg>>;
+using timing_db_value = std::tuple<worker*, std::shared_ptr<proxy_msg>>;
 using timing_db_key = std::chrono::time_point<std::chrono::steady_clock>;
 using timing_db = std::map<timing_db_key, timing_db_value>; 
 using timing_db_pair = std::pair<timing_db_key, timing_db_value>;
@@ -84,13 +84,13 @@ public:
      * @param pr_msg message of the reminder
      *
      */
-    void add_time(std::chrono::milliseconds delay, proxy_instance* pr_inst, const std::shared_ptr<proxy_msg>& pr_msg);
+    void add_time(std::chrono::milliseconds delay, worker* msg_worker, const std::shared_ptr<proxy_msg>& pr_msg);
 
     /**
      * @brief Delete all reminder from a specific proxy instance.
      * @param proxy_instance* pointer to the specific proxy instance
      */
-    void stop_all_time(const proxy_instance* pr_inst);
+    void stop_all_time(const worker* msg_worker);
 
 
     virtual ~timing();

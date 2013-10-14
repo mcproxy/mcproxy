@@ -24,18 +24,18 @@
 #include "include/proxy/querier.hpp"
 #include "include/utils/addr_storage.hpp"
 #include "include/proxy/timing.hpp"
+#include "include/proxy/interfaces.hpp"
 
 #include "include/proxy/sender.hpp"
 #include "include/proxy/igmp_sender.hpp"
 #include "include/proxy/mld_sender.hpp"
 
 #include <unistd.h>
-#include <net/if.h>
 #include <iostream>
 #include <sstream>
 
-querier::querier(proxy_instance* pr_i, int addr_family, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing)
-    : m_proxy_instance(pr_i)
+querier::querier(worker* msg_worker, int addr_family, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing)
+    : m_msg_worker(msg_worker)
     , m_addr_family(addr_family)
     , m_if_index(if_index)
     , m_sender(sender)
@@ -167,7 +167,8 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: //TO_EX(x)
         mali(gaddr, filter_timer);
-
+        //(B-A) = 0 is the default value
+        
         ginfo.filter_mode = EXLCUDE_MODE;
         ginfo.include_requested_list *= B;
         ginfo.exclude_list = B - A;
@@ -188,6 +189,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         //                                                    Filter Timer=MALI
     case  MODE_IS_EXCLUDE: //IS_EX(x)
         mali(gaddr, filter_timer);
+        //(B-A) = 0 is the default value
 
         ginfo.filter_mode = EXLCUDE_MODE;
         ginfo.include_requested_list *= B;
@@ -439,7 +441,7 @@ void querier::mali(const addr_storage& gaddr, gaddr_info& db_info) const
 
     db_info.shared_filter_timer = ft;
 
-    m_timing->add_time(m_timers_values.get_multicast_address_listening_interval(), m_proxy_instance, ft);
+    m_timing->add_time(m_timers_values.get_multicast_address_listening_interval(), m_msg_worker, ft);
 }
 
 void querier::mali(const addr_storage& gaddr, source_list<source>& slist) const
@@ -451,7 +453,7 @@ void querier::mali(const addr_storage& gaddr, source_list<source>& slist) const
         e.shared_source_timer = st; //shard_source_timer is mutable
     }
 
-    m_timing->add_time(m_timers_values.get_multicast_address_listening_interval(), m_proxy_instance, st);
+    m_timing->add_time(m_timers_values.get_multicast_address_listening_interval(), m_msg_worker, st);
 }
 
 void querier::mali(const addr_storage& gaddr, source_list<source>& slist, source_list<source>&&   tmp_slist) const
@@ -462,6 +464,12 @@ void querier::mali(const addr_storage& gaddr, source_list<source>& slist, source
     for (auto & e : tmp_slist) {
         slist.find(e)->shared_source_timer = e.shared_source_timer;
     }
+}
+
+void querier::filter_time(const addr_storage& gaddr, gaddr_info& db_info,source_list<source>& slist, source_list<source>&& tmp_slist){
+    HC_LOG_TRACE("");
+    
+    
 }
 
 querier::~querier()
@@ -480,11 +488,7 @@ timers_values& querier::get_timers_values()
 std::string querier::to_string() const
 {
     std::ostringstream s;
-
-    char cstr[IF_NAMESIZE];
-    std::string if_name(if_indextoname(m_if_index, cstr));
-
-    s << "##-- interface: " << if_name << " (index: " << m_if_index << ") --##" << std::endl;
+    s << "##-- interface: " << interfaces::get_if_name(m_if_index) << " (index: " << m_if_index << ") --##" << std::endl;
     s << m_db;
     return s.str();
 }

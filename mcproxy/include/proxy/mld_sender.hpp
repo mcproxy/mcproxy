@@ -39,7 +39,7 @@
  * @brief Size of the router alert option.
  */
 #define MC_MASSAGES_IPV6_ROUTER_ALERT_OPT_SIZE 0  //RFC 2711
-
+    
 /**
  * @brief Hob-by-Hob Option Header padding size.
  */

@@ -180,6 +180,7 @@ void proxy_instance::worker_thread()
         break;
         case proxy_msg::DEBUG_MSG:
             std::cout << *this << std::endl;
+            std::cout << std::endl;
             break;
         case proxy_msg::EXIT_MSG:
             HC_LOG_DEBUG("received exit command");
@@ -243,7 +244,7 @@ std::string proxy_instance::to_string() const
 {
     HC_LOG_TRACE("");
     std::ostringstream s;
-    std::cout << "@@##-- proxy instance: " << m_table_number << " --##@@";
+    s << "@@##-- proxy instance: " << m_table_number << " --##@@";
     for (auto it = std::begin(m_querier); it != std::end(m_querier); ++it) {
         s << std::endl << *it->second;
     }
@@ -352,13 +353,13 @@ void proxy_instance::test_querier(int addr_family, std::string if_name)
 {
 
     using namespace std;
-    cout << "##-- querier test on interface " << if_name << " --##" << endl;
 
     source s1(addr_storage("1.1.1.1"));
     source s2(addr_storage("2.2.2.2"));
     source s3(addr_storage("3.3.3.3"));
     source s4(addr_storage("4.4.4.4"));
     source s5(addr_storage("5.5.5.5"));
+    addr_storage gaddr("224.1.1.1");
 
     //create a proxy_instance
     proxy_instance pr_i(addr_family, 0,  make_shared<interfaces>(AF_INET, false), make_shared<timing>());
@@ -366,8 +367,8 @@ void proxy_instance::test_querier(int addr_family, std::string if_name)
     //add a downstream
     pr_i.add_msg(make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, interfaces::get_if_index(if_name)));
 
-    //set mali to 6 seconds
     {
+        //set mali to 10 seconds
         sleep(1);
         querier* q = pr_i.m_querier.find(interfaces::get_if_index(if_name))->second.get();
         q->get_timers_values().set_query_interval(chrono::seconds(4));
@@ -378,24 +379,37 @@ void proxy_instance::test_querier(int addr_family, std::string if_name)
     auto print_proxy_instance = bind(&proxy_instance::add_msg, &pr_i, make_shared<debug_msg>());
     
     
-    auto __tmp =[&, if_name](mcast_addr_record_type t, source_list<source>&& slist){return make_shared<group_record_msg>(interfaces::get_if_index(if_name), t, addr_storage("224.1.1.1"), move(slist), -1);};
+    auto __tmp =[&, if_name](mcast_addr_record_type t, source_list<source>&& slist){return make_shared<group_record_msg>(interfaces::get_if_index(if_name), t, gaddr, move(slist), 0);};
 
     auto send_record = bind(&proxy_instance::send_test_record, &pr_i, bind(__tmp,placeholders::_1, placeholders::_2));
 
     //-----------------------------------------------------------------
+    cout << "##-- querier test on interface " << if_name << " --##" << endl;
+    print_proxy_instance();
 
     send_record(MODE_IS_INCLUDE, source_list<source> {s1, s2});
     print_proxy_instance();
+    
+    sleep(2);
+    send_record(MODE_IS_EXCLUDE, source_list<source>{s2,s3,s4});
+    print_proxy_instance();
 
-    for (int i = 0; i < 3; ++i) {
+    sleep(2);
+    send_record(MODE_IS_INCLUDE, source_list<source>{s4});
+    print_proxy_instance();
+
+    for (int i = 0; i < 6; ++i) {
         sleep(2);
         print_proxy_instance();
     }
+    sleep(1);
+    cout << "##-- querier end --##" << endl;
 }
 
 void proxy_instance::send_test_record(proxy_instance* const pr_i, std::shared_ptr<group_record_msg> m)
 {
     std::cout << "!!--ACTION: receive record" << std::endl;
     std::cout << *m << std::endl;
+    std::cout << std::endl;
     pr_i->add_msg(m);
 }

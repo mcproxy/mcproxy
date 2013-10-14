@@ -24,7 +24,6 @@
 #ifndef INTERFACES_HPP
 #define INTERFACES_HPP
 
-#include "include/utils/addr_storage.hpp"
 #include "include/utils/if_prop.hpp"
 #include "include/utils/reverse_path_filter.hpp"
 
@@ -32,6 +31,8 @@
 #include <map>
 #include <vector>
 #include <sstream>
+
+class addr_storage;
 
 #define INTERFACES_UNKOWN_IF_INDEX 0
 #define INTERFACES_UNKOWN_VIF_INDEX -1

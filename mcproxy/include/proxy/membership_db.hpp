@@ -43,7 +43,7 @@
 struct gaddr_info {
     mc_filter filter_mode = INCLUDE_MODE;
 
-    std::shared_ptr<filter_timer> shared_filter_timer;
+    std::shared_ptr<timer_msg> shared_filter_timer;
     void* current_state;
 
     source_list<source> include_requested_list;

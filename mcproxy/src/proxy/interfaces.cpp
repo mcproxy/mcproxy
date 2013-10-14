@@ -23,6 +23,7 @@
 
 #include "include/hamcast_logging.h"
 #include "include/proxy/interfaces.hpp"
+#include "include/utils/addr_storage.hpp"
 #include <linux/mroute.h>
 #include <linux/mroute6.h>
 

@@ -133,13 +133,16 @@ private:
 
 //------------------------------------------------------------------------
 struct timer_msg : public proxy_msg {
-    timer_msg(message_type type, unsigned int if_index, std::chrono::milliseconds duration): proxy_msg(type, SYSTEMIC), m_if_index(if_index) {
+    timer_msg(message_type type, unsigned int if_index, const addr_storage& gaddr, const std::chrono::milliseconds& duration): proxy_msg(type, SYSTEMIC), m_if_index(if_index), m_gaddr(gaddr), m_end_time(std::chrono::steady_clock::now() + duration) {
         HC_LOG_TRACE("");
-        set_duration(duration);
     }
 
     unsigned int get_if_index() {
         return m_if_index;
+    }
+
+    const addr_storage& get_gaddr() {
+        return m_gaddr;
     }
 
     std::string get_remaining_time() {
@@ -153,36 +156,30 @@ struct timer_msg : public proxy_msg {
     }
 
 private:
-    void set_duration(std::chrono::milliseconds duration) {
-        m_end_time = std::chrono::steady_clock::now() + duration;
-    }
-
-    std::chrono::time_point<std::chrono::steady_clock> m_end_time;
     unsigned int m_if_index;
+    addr_storage m_gaddr;
+    std::chrono::time_point<std::chrono::steady_clock> m_end_time;
 };
-
 
 struct filter_timer : public timer_msg {
-    filter_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): filter_timer(FILTER_TIMER_MSG, if_index, gaddr, duration) {
+    filter_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(FILTER_TIMER_MSG, if_index, gaddr, duration), m_is_used_as_source_timer(false) {
         HC_LOG_TRACE("");
     }
 
-    const addr_storage& get_gaddr() {
-        return m_gaddr;
+    bool is_used_as_source_timer(){
+        return m_is_used_as_source_timer; 
     }
-protected:
-    filter_timer(message_type type, unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration)
-        : timer_msg(type
-                    , if_index, duration)
-        , m_gaddr(gaddr) {
-        HC_LOG_TRACE("");
+
+    void set_as_soure_timer(){
+        m_is_used_as_source_timer = true; 
     }
+
 private:
-    addr_storage m_gaddr;
+    bool m_is_used_as_source_timer;
 };
 
-struct source_timer : public filter_timer {
-    source_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): filter_timer(SOURCE_TIMER_MSG, if_index, gaddr, duration) {
+struct source_timer : public timer_msg {
+    source_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(SOURCE_TIMER_MSG, if_index, gaddr, duration) {
         HC_LOG_TRACE("");
     }
 };
@@ -200,9 +197,9 @@ struct debug_msg : public proxy_msg {
 struct source {
     source() = default;
     source(source&&) = default;
-    source& operator=(source&&) = default;
+    source& operator=(source && ) = default;
 
-    source(const source&) =default;
+    source(const source&) = default;
     source& operator=(const source& s) = default;
 
     source(const addr_storage& saddr)
@@ -210,7 +207,7 @@ struct source {
 
     addr_storage saddr;
 
-    mutable std::shared_ptr<source_timer> shared_source_timer;
+    mutable std::shared_ptr<timer_msg> shared_source_timer;
     void* current_state;
 
 
@@ -231,7 +228,7 @@ struct source {
         return l.saddr < r.saddr;
     }
 
-    friend bool operator==(const source& l,const source& r) {
+    friend bool operator==(const source& l, const source& r) {
         return l.saddr == r.saddr;
     }
 };
@@ -242,7 +239,7 @@ struct group_record_msg : public proxy_msg {
         : group_record_msg(0, MODE_IS_INCLUDE, addr_storage(), source_list<source>(), -1 ) {}
 
     group_record_msg(unsigned int if_index, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& slist, int report_version)
-        : proxy_msg(GROUP_RECORD_MSG, SYSTEMIC)
+        : proxy_msg(GROUP_RECORD_MSG, LOSEABLE)
         , m_if_index(if_index)
         , m_record_type(record_type)
         , m_gaddr(gaddr)
@@ -268,20 +265,20 @@ struct group_record_msg : public proxy_msg {
         return m_if_index;
     }
 
-    mcast_addr_record_type get_record_type(){
-        return m_record_type; 
+    mcast_addr_record_type get_record_type() {
+        return m_record_type;
     }
 
-    const addr_storage& get_gaddr(){
-        return m_gaddr;     
+    const addr_storage& get_gaddr() {
+        return m_gaddr;
     }
 
-    source_list<source>& get_slist(){
-        return m_slist;      
+    source_list<source>& get_slist() {
+        return m_slist;
     }
-    
-    int get_report_version(){
-        return m_record_type; 
+
+    int get_report_version() {
+        return m_record_type;
     }
 
 private:
