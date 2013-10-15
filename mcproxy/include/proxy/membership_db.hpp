@@ -39,6 +39,7 @@
 #include <chrono>
 #include <memory>
 
+
 struct gaddr_info {
     gaddr_info(group_mem_protocol compatibility_mode_variable);
     gaddr_info(const gaddr_info&) = default;
@@ -51,11 +52,13 @@ struct gaddr_info {
     group_mem_protocol compatibility_mode_variable; //RFC3810 - 8.3.2. In the Presence of MLDv1 Multicast Address Listeners
 
     std::shared_ptr<timer_msg> shared_filter_timer;
-    void* current_state;
+    int current_retransmission_count;
 
     source_list<source> include_requested_list;
     source_list<source> exclude_list;
 
+    std::list<source_list<source>::iterator> retransmission_list;
+    
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const gaddr_info& g);
 };

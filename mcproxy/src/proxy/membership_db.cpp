@@ -84,6 +84,7 @@ gaddr_info::gaddr_info(group_mem_protocol compatibility_mode_variable)
     : filter_mode(INCLUDE_MODE)
     , compatibility_mode_variable(compatibility_mode_variable)
     , shared_filter_timer(nullptr)
+    , current_retransmission_count(NOT_IN_RETRANSMISSION_STATE)
 {
     HC_LOG_TRACE("");
 }
@@ -101,6 +102,10 @@ std::string gaddr_info::to_string() const
     s << "compatibility_mode_variable: " << get_group_mem_protocol_name(compatibility_mode_variable) << endl;
     if (shared_filter_timer.get() != nullptr) {
         s << "filter timer: " << shared_filter_timer->get_remaining_time() << endl;
+    }
+
+    if (current_retransmission_count != NOT_IN_RETRANSMISSION_STATE) {
+        s << "retransmission_count:" << current_retransmission_count << ")";
     }
     s << "included/requested list(#" << include_requested_list.size() << "): " << include_requested_list << endl;
     s << "exclude_list(#" << exclude_list.size() << "): " << exclude_list;

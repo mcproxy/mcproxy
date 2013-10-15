@@ -210,19 +210,24 @@ struct source {
     source& operator=(const source& s) = default;
 
     source(const addr_storage& saddr)
-        : saddr(saddr) {}
+        : saddr(saddr)
+        , shared_source_timer(nullptr)
+        , current_retransmission_count(NOT_IN_RETRANSMISSION_STATE)  
+    {}
 
     addr_storage saddr;
 
     mutable std::shared_ptr<timer_msg> shared_source_timer;
-    void* current_state;
-
+    int current_retransmission_count;
 
     std::string to_string() const {
         std::ostringstream s;
         s << saddr;
         if (shared_source_timer.get() != nullptr) {
-            s << "(" << shared_source_timer->get_remaining_time() << ")";
+            s << "(c:" << shared_source_timer->get_remaining_time() << ")";
+        }
+        if (current_retransmission_count != NOT_IN_RETRANSMISSION_STATE) {
+            s << "(rt:" << shared_source_timer->get_remaining_time() << ")";
         }
         return s.str();
     }
@@ -511,10 +516,7 @@ struct exit_cmd : public proxy_msg {
 //type(type), if_index(if_index), src_addr(src_addr), g_addr(g_addr) {
 //HC_LOG_TRACE("");
 //}
-
-////JOIN, LEAVE
-/**
-* @brief Constructor used for the actions JOIN and LEAVE.
+/* @brief Constructor used for the actions JOIN and LEAVE.
 * @param type type of the receiver action
 * @param if_index action for a specific interface index
 * @param g_addr action for a specific multicast group

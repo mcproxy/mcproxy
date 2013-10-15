@@ -74,6 +74,108 @@ QQIC = ... !dynamic
 Number of Sources (N) = 0
 Source Address = nullptr
 
+#query
+MLDv2
+   In order to maintain protocol robustness, queries defined in the
+   Actions column of the table below need to be transmitted [Last
+   Listener Query Count] times, once every [Last Listener Query
+   Interval] period.
+
+   Query       Action
+   -----       ------
+   Q(MA,A)     Source Timers for sources in A are lowered to LLQT
+   Q(MA)       Filter Timer is lowered to LLQT
+
+ 7.6.3.1.  Building and Sending Multicast Address Specific Queries
+
+   When a table action "Send Q(MA)" is encountered, the Filter Timer
+   must be lowered to LLQT.  The Querier must then immediately send a
+   Multicast Address Specific query as well as schedule [Last Listener
+   Query Count - 1] query retransmissions to be sent every [Last
+   Listener Query Interval], over [Last Listener Query Time].
+
+   When transmitting a Multicast Address Specific Query, if the Filter
+   Timer is larger than LLQT, the "Suppress Router-Side Processing" bit
+   is set in the query message.
+
+ 7.6.3.2.  Building and Sending Multicast Address and Source Specific
+          Queries
+
+   When a table action "Send Q(MA,X)" is encountered by the Querier in
+   the table in section 7.4.2, the following actions must be performed
+   for each of the sources in X that send to multicast address MA, with
+   source timer larger than LLQT:
+
+   o  Lower source timer to LLQT;
+
+   o  Add the sources to the Retransmission List;
+
+   o  Set the Source Retransmission Counter for each source to [Last
+      Listener Query Count].
+
+   The Querier must then immediately send a Multicast Address and Source
+   Specific Query as well as schedule [Last Listener Query Count -1]
+   query retransmissions to be sent every [Last Listener Query
+   Interval], over [Last Listener Query Time].  The contents of these
+   queries are calculated as follows.
+
+   When building a Multicast Address and Source Specific Query for a
+   multicast address MA, two separate query messages are sent for the
+   multicast address.  The first one has the "Suppress Router-Side
+   Processing" bit set and contains all the sources with retransmission
+   state (i.e., sources from the Retransmission List of that multicast
+   address), and timers greater than LLQT.  The second has the "Suppress
+   Router-Side Processing" bit clear and contains all the sources with
+   retransmission state and timers lower or equal to LLQT.  If either of
+   the two calculated messages does not contain any sources, then its
+   transmission is suppressed.
+
+   Note: If a Multicast Address Specific query is scheduled to be
+   transmitted at the same time as a Multicast Address and Source
+   specific query for the same multicast address, then transmission of
+   the Multicast Address and Source Specific message with the "Suppress
+   Router-Side Processing" bit set may be suppressed.  
+
+#Multicast Address Specific Query
+Type = 130
+Code = 0
+Checksum = ..
+Maximum Response Code = ... !dynamic
+Resverd = 0
+Multicast Address = gaddr !dynamic 
+Resv = 0
+S = !dynamic
+QRV = ... !dynamic
+QQIC = ... !dynamic
+Number of Sources (N) = 0
+Source Address = nullptr
+
+#Mulitcast Address and Source Specific Query
+   o  Lower source timer to LLQT;
+   o  Add the sources to the Retransmission List;
+   o  Set the Source Retransmission Counter for each source to [Last
+      Listener Query Count].
+
+      The query has the "Suppress Router-Side
+   Processing" bit set and contains all the sources with retransmission
+   state
+      The second has the "Suppress
+   Router-Side Processing" bit clear and contains all the sources with
+   retransmission state and timers lower or equal to LLQT.
+
+Type = 130
+Code = 0
+Checksum = ..
+Maximum Response Code = ... !dynamic
+Resverd = 0
+Multicast Address = gaddr !dynamic 
+Resv = 0
+S = !dynamic
+QRV = ... !dynamic
+QQIC = ... !dynamic
+Number of Sources (N) = x !dynamic
+Source Address = ... !dynamic 
+
 #downward compatibility
  - In the Presence of MLDv1 Routers
     - querier musst use the lowest version of MLD present on the network.
@@ -81,6 +183,19 @@ Source Address = nullptr
  - In the Presence of MLDv1 Multicast Address Listeners 
       - MLDv2 Routers must operatin v1 compatibility mode
       - the Comp_mode_var is set to MLDv1 whenever an MLDV1 listener report is received
-          per Multicast address
+          per Multicast address, (start "Older Version Host Present Timer")
+        - ist der timer abgelaufen wird zurück nach MLDv2 geswitched und und erst nach
+            einem Multicast Address Listening Interval werden wieder source geblockt
+
+                       MLDv1 Message                 MLDv2 Equivalent
+                       -------------                 ----------------
+
+                          Report                        IS_EX( {} )
+
+                          Done                          TO_IN( {} )
+
+    MLDv2 BLOCK messages are ignored (i.e., any TO_EX() message is treated as TO_EX( {} ))
+
 #Querier vs Non-Querier
+...
 
