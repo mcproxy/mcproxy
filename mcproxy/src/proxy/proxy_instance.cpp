@@ -262,8 +262,8 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
 
     switch (msg->get_instruction()) {
     case config_msg::ADD_DOWNSTREAM: {
-        //std::unique_ptr<querier> q(new querier(this, m_addr_family, msg->get_if_index(), m_sender, m_timing));
-        //m_querier.insert(std::pair<int, std::unique_ptr<querier>>(msg->get_if_index(), move(q)));
+        std::unique_ptr<querier> q(new querier(this, m_group_mem_protocol, msg->get_if_index(), m_sender, m_timing));
+        m_querier.insert(std::pair<int, std::unique_ptr<querier>>(msg->get_if_index(), move(q)));
     }
     break;
     case config_msg::DEL_DOWNSTREAM: {
@@ -353,7 +353,6 @@ void proxy_instance::test_querier(std::string if_name)
 {
 
     using namespace std;
-
     source s1(addr_storage("1.1.1.1"));
     source s2(addr_storage("2.2.2.2"));
     source s3(addr_storage("3.3.3.3"));
@@ -364,7 +363,6 @@ void proxy_instance::test_querier(std::string if_name)
     group_mem_protocol memproto = IGMPv3; 
     //create a proxy_instance
     proxy_instance pr_i(memproto, 0,  make_shared<interfaces>(get_addr_family(memproto), false), make_shared<timing>());
-
     //add a downstream
     pr_i.add_msg(make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, interfaces::get_if_index(if_name)));
 

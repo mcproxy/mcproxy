@@ -24,6 +24,7 @@
 #define PROXY_CONFIGURATION_HPP
 
 #include "include/proxy/interfaces.hpp"
+#include "include/proxy/def.hpp"
 
 #include <memory>
 #include <set>
@@ -59,8 +60,7 @@ class proxy_configuration
 {
 private:
     std::shared_ptr<interfaces> m_interfaces;
-    int m_addr_family; //AF_INET or AF_INET6
-    int m_version; //for AF_INET (1,2,3) to use IGMPv1/2/3, for AF_INET6 (1,2) to use MLDv1/2
+    group_mem_protocol m_group_mem_protocol;
     upstream_downstream_map m_upstream_downstream_map;
 
     upstream_downstream_map parse_config(const std::string& path);
@@ -77,8 +77,7 @@ public:
     const upstream_downstream_map& get_upstream_downstream_map() const;
     const std::shared_ptr<const interfaces> get_interfaces() const;
 
-    int get_addr_family() const;
-    int get_version() const;
+    group_mem_protocol get_group_mem_protocol() const;
 
     std::string to_string() const;
     

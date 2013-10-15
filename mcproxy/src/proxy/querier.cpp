@@ -298,6 +298,7 @@ void querier::timer_triggerd(const std::shared_ptr<proxy_msg>& msg)
         switch (msg->get_type()) {
         case proxy_msg::FILTER_TIMER_MSG:
         case proxy_msg::SOURCE_TIMER_MSG: {
+            tm = std::static_pointer_cast<timer_msg>(msg);
 
             db_info_it = m_db.group_info.find(tm->get_gaddr());
 

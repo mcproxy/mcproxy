@@ -199,7 +199,7 @@ void proxy::start_proxy_instances()
         }
         unsigned int upstream = e.first;
         auto& downstreams = e.second;
-        std::unique_ptr<proxy_instance> pr_i(new proxy_instance(m_proxy_configuration->get_addr_family(), table, m_proxy_configuration->get_interfaces(), m_timing));
+        std::unique_ptr<proxy_instance> pr_i(new proxy_instance(m_proxy_configuration->get_group_mem_protocol(), table, m_proxy_configuration->get_interfaces(), m_timing));
 
         pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_UPSTREAM, upstream));
 

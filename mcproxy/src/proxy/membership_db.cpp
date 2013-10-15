@@ -102,8 +102,8 @@ std::string gaddr_info::to_string() const
     if (shared_filter_timer.get() != nullptr) {
         s << "filter timer: " << shared_filter_timer->get_remaining_time() << endl;
     }
-    s << "included/requested list(#" << include_requested_list.max_size() << "): " << include_requested_list << endl;
-    s << "exclude_list(#" << exclude_list.max_size() << "): " << exclude_list;
+    s << "included/requested list(#" << include_requested_list.size() << "): " << include_requested_list << endl;
+    s << "exclude_list(#" << exclude_list.size() << "): " << exclude_list;
     return s.str();
 }
 

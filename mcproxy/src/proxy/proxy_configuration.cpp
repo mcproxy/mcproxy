@@ -33,13 +33,11 @@
 
 proxy_configuration::proxy_configuration(const std::string& path, bool reset_reverse_path_filter)
     : m_interfaces(nullptr)
-    , m_addr_family(0)
-    , m_version(-1)
-
+    , m_group_mem_protocol(MLDv2)
 {
     HC_LOG_TRACE("");
     upstream_downstream_map rc = parse_config(path);
-    m_interfaces.reset(new interfaces(m_addr_family, reset_reverse_path_filter));
+    m_interfaces.reset(new interfaces(get_addr_family(m_group_mem_protocol), reset_reverse_path_filter));
     if (!rc.empty()) {
         for (auto & e : rc) {
             if (!add_upstream(e.first)) {
@@ -125,24 +123,19 @@ upstream_downstream_map proxy_configuration::parse_config(const std::string& pat
                                 strline >> comp_str;
                                 if (comp_str.compare("IGMPv1") == 0) {
                                     HC_LOG_DEBUG("protocol IGMPv1");
-                                    m_addr_family = AF_INET;
-                                    m_version = 1;
+                                    m_group_mem_protocol = IGMPv1;
                                 } else if (comp_str.compare("IGMPv2") == 0) {
                                     HC_LOG_DEBUG("protocol IGMPv2");
-                                    m_addr_family = AF_INET;
-                                    m_version = 2;
+                                    m_group_mem_protocol = IGMPv2;
                                 } else if (comp_str.compare("IGMPv3") == 0) {
                                     HC_LOG_DEBUG("protocol IGMPv3");
-                                    m_addr_family = AF_INET;
-                                    m_version = 3;
+                                    m_group_mem_protocol = IGMPv3;
                                 } else if (comp_str.compare("MLDv1") == 0) {
                                     HC_LOG_DEBUG("protocol MLDv1");
-                                    m_addr_family = AF_INET6;
-                                    m_version = 1;
+                                    m_group_mem_protocol = MLDv1;
                                 } else if (comp_str.compare("MLDv2") == 0) {
                                     HC_LOG_DEBUG("protocol MLDv2");
-                                    m_addr_family = AF_INET6;
-                                    m_version = 2;
+                                    m_group_mem_protocol = MLDv2;
                                 } else {
                                     HC_LOG_ERROR("unknown protocol: " << comp_str << " <line " << linecount << ">");
                                     return upstream_downstream_map();
@@ -221,7 +214,7 @@ upstream_downstream_map proxy_configuration::parse_config(const std::string& pat
         }
     }
 
-    HC_LOG_DEBUG("m_addr_family: " << m_addr_family << ";  m_version: " << m_version );
+    HC_LOG_DEBUG("group membership protocol: " << m_group_mem_protocol);
     return rc; 
 }
 
@@ -296,16 +289,10 @@ const std::shared_ptr<const interfaces> proxy_configuration::get_interfaces() co
     return m_interfaces;
 }
 
-int proxy_configuration::get_addr_family() const
+group_mem_protocol proxy_configuration::get_group_mem_protocol() const
 {
     HC_LOG_TRACE("");
-    return m_addr_family;
-}
-
-int proxy_configuration::get_version() const
-{
-    HC_LOG_TRACE("");
-    return m_version;
+    return m_group_mem_protocol;
 }
 
 proxy_configuration::~proxy_configuration()
@@ -321,38 +308,7 @@ std::string proxy_configuration::to_string() const
     stringstream str;
 
     str << "protocol: " << endl;
-
-    if (m_addr_family == AF_INET) {
-        switch (m_version) {
-        case 1:
-            str << "\tIGMPv1" << endl;
-            break;
-        case 2:
-            str << "\tIGMPv2" << endl;
-            break;
-        case 3:
-            str << "\tIGMPv3" << endl;
-            break;
-        default:
-            HC_LOG_ERROR("IPv4 with unknown protocol");
-            str << "\tIPv4 with unknown protocol" << endl;
-        }
-    } else if (m_addr_family == AF_INET6) {
-        switch (m_version) {
-        case 1:
-            str << "\tMLDv1" << endl;
-            break;
-        case 2:
-            str << "\tMLDv2" << endl;
-            break;
-        default:
-            HC_LOG_ERROR("IPv6 with unknown protocol");
-            str << "\tIPv6 with unknown protocol" << endl;
-        }
-    } else {
-        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
-        str << "\tunknown IP version" << endl;
-    }
+    str << "\t" << get_group_mem_protocol_name(m_group_mem_protocol) << endl;
 
     str << endl;
 
