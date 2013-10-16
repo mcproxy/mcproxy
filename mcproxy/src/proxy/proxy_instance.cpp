@@ -159,7 +159,9 @@ void proxy_instance::worker_thread()
             handle_config(std::static_pointer_cast<config_msg>(msg));
             break;
         case proxy_msg::FILTER_TIMER_MSG:
-        case proxy_msg::SOURCE_TIMER_MSG: {
+        case proxy_msg::SOURCE_TIMER_MSG:
+        case proxy_msg::RET_FILTER_TIMER_MSG:
+        case proxy_msg::RET_SOURCE_TIMER_MSG: {
             auto it = m_querier.find(std::static_pointer_cast<timer_msg>(msg)->get_if_index());
             if (it != std::end(m_querier)) {
                 it->second->timer_triggerd(msg);

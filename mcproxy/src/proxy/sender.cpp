@@ -23,7 +23,9 @@
 
 #include "include/hamcast_logging.h"
 #include "include/proxy/sender.hpp"
+#include "include/proxy/message_format.hpp" //source
 
+#include <iostream>
 sender::sender(int addr_family)
 {
     HC_LOG_TRACE("");
@@ -47,7 +49,51 @@ sender::sender(int addr_family)
     }
 }
 
-sender::~sender(){
+bool sender::send_general_query(const std::chrono::milliseconds& max_response_time, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi) const
+{
+    using namespace std;
+    HC_LOG_TRACE("");
+    
+    cout << "!!--ACTION: send general query" << endl;
+    cout << "max response time: " << max_response_time.count() << "msec" << endl; 
+    cout << "s-flag: " << s_flag << endl;
+    cout << "qrv: " << qrv << endl;
+    cout << "qqi: " << qqi.count() << "sec" << endl;
+    return true;
+}
+
+bool sender::send_mc_addr_specific_query(const std::chrono::milliseconds& max_response_time, const addr_storage& gaddr, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi) const
+{
+    using namespace std;
+    HC_LOG_TRACE("");
+
+    cout << "!!--ACTION: send multicast address specific query" << endl;
+    cout << "max response time: " << max_response_time.count() << "msec" << endl; 
+    cout << "group address: " << gaddr << endl;
+    cout << "s-flag: " << s_flag << endl;
+    cout << "qrv: " << qrv << endl;
+    cout << "qqi: " << qqi.count() << "sec" << endl;
+    return true;
+}
+
+bool sender::send_mc_addr_and_src_specific_query(const std::chrono::milliseconds& max_response_time, const addr_storage& gaddr, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi, const source_list<source>& slist) const
+{
+    using namespace std;
+    HC_LOG_TRACE("");
+
+    cout << "!!--ACTION: send multicast address specific query" << endl;
+    cout << "max response time: " << max_response_time.count() << "msec" << endl; 
+    cout << "group address: " << gaddr << endl;
+    cout << "s-flag: " << s_flag << endl;
+    cout << "qrv: " << qrv << endl;
+    cout << "qqi: " << qqi.count() << "sec" << endl;
+    cout << "source list size: " << slist.size() << endl;
+    cout << "source list: " << slist << endl; 
+    return true;
+}
+
+sender::~sender()
+{
     HC_LOG_TRACE("");
 
 }

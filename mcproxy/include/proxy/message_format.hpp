@@ -47,6 +47,8 @@ struct proxy_msg {
         EXIT_MSG,
         FILTER_TIMER_MSG,
         SOURCE_TIMER_MSG,
+        RET_FILTER_TIMER_MSG,
+        RET_SOURCE_TIMER_MSG,
         CONFIG_MSG,
         GROUP_RECORD_MSG,
         DEBUG_MSG
@@ -60,14 +62,16 @@ struct proxy_msg {
 
     static std::string get_message_type_name(message_type mt) {
         std::map<proxy_msg::message_type, std::string> name_map = {
-            {proxy_msg::INIT_MSG,             "INIT_MSG"         },
-            {proxy_msg::TEST_MSG,             "TEST_MSG"         },
-            {proxy_msg::EXIT_MSG,             "EXIT_MSG"         },
-            {proxy_msg::FILTER_TIMER_MSG,     "FILTER_TIMER_MSG" },
-            {proxy_msg::SOURCE_TIMER_MSG,     "SOURCE_TIMER_MSG" },
-            {proxy_msg::CONFIG_MSG,           "CONFIG_MSG"       },
-            {proxy_msg::GROUP_RECORD_MSG,     "GROUP_RECORD_MSG" },
-            {proxy_msg::DEBUG_MSG,            "DEBUG_MSG"        }
+            {proxy_msg::INIT_MSG,             "INIT_MSG"            },
+            {proxy_msg::TEST_MSG,             "TEST_MSG"            },
+            {proxy_msg::EXIT_MSG,             "EXIT_MSG"            },
+            {proxy_msg::FILTER_TIMER_MSG,     "FILTER_TIMER_MSG"    },
+            {proxy_msg::SOURCE_TIMER_MSG,     "SOURCE_TIMER_MSG"    },
+            {RET_FILTER_TIMER_MSG,            "RET_FILTER_TIMER_MSG"},
+            {RET_SOURCE_TIMER_MSG,            "RET_SOURCE_TIMER_MSG"},
+            {proxy_msg::CONFIG_MSG,           "CONFIG_MSG"          },
+            {proxy_msg::GROUP_RECORD_MSG,     "GROUP_RECORD_MSG"    },
+            {proxy_msg::DEBUG_MSG,            "DEBUG_MSG"           }
         };
         return name_map[mt];
     }
@@ -191,7 +195,17 @@ struct source_timer : public timer_msg {
     }
 };
 
+struct retransmit_filter_timer : public timer_msg {
+    retransmit_filter_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(RET_FILTER_TIMER_MSG, if_index, gaddr, duration) {
+        HC_LOG_TRACE("");
+    }
+};
 
+struct retransmit_source_timer : public timer_msg {
+    retransmit_source_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(RET_SOURCE_TIMER_MSG, if_index, gaddr, duration) {
+        HC_LOG_TRACE("");
+    }
+};
 //------------------------------------------------------------------------
 struct debug_msg : public proxy_msg {
     debug_msg(): proxy_msg(DEBUG_MSG, SYSTEMIC) {
@@ -212,13 +226,13 @@ struct source {
     source(const addr_storage& saddr)
         : saddr(saddr)
         , shared_source_timer(nullptr)
-        , current_retransmission_count(NOT_IN_RETRANSMISSION_STATE)  
-    {}
+        , current_retransmission_count(0) {
+    }
 
     addr_storage saddr;
 
     mutable std::shared_ptr<timer_msg> shared_source_timer;
-    int current_retransmission_count;
+    mutable int current_retransmission_count;
 
     std::string to_string() const {
         std::ostringstream s;
@@ -226,9 +240,9 @@ struct source {
         if (shared_source_timer.get() != nullptr) {
             s << "(c:" << shared_source_timer->get_remaining_time() << ")";
         }
-        if (current_retransmission_count != NOT_IN_RETRANSMISSION_STATE) {
-            s << "(rt:" << shared_source_timer->get_remaining_time() << ")";
-        }
+
+        s << "(rt:" << current_retransmission_count << ")";
+
         return s.str();
     }
 

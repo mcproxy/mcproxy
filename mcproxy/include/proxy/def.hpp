@@ -127,11 +127,5 @@ inline std::ostream& operator<<(std::ostream& stream, const source_list<T> sl)
     return stream;
 }
 
-
-//------------------------------------------------------------------------
-//Retransmission state definition
-#define NOT_IN_RETRANSMISSION_STATE -1
-#define READY_TO_DELETE 0;
-
 #endif //DEF_HPP
 

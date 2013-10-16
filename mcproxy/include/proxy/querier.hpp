@@ -69,8 +69,19 @@ private:
     //set only specific source timers to the corresponding filter time
     void filter_time(gaddr_info& ginfo, source_list<source>& slist, source_list<source>&& tmp_slist);
 
+    //send multicast address specific query
+    void send_Q(const addr_storage& gaddr, gaddr_info& ginfo);
+
+    //send multicast address and source specific query
+    void send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<source>& slist);
+
+    //send multicast address and source specific and include only elements of tmp_list
+    void send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<source>& slist, source_list<source>&& tmp_list);
+
     void timer_triggerd_filter_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
+    void timer_triggerd_ret_filter_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
+    void timer_triggerd_ret_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
 public:
 
     virtual ~querier();

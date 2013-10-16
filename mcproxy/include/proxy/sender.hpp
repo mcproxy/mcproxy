@@ -30,9 +30,12 @@
 #define SENDER_HPP
 
 #include "include/utils/mroute_socket.hpp"
-#include "include/utils/addr_storage.hpp"
-#include "include/utils/if_prop.hpp"
+#include "include/proxy/def.hpp"
 
+#include <chrono>
+
+struct source;
+class addr_storage;
 /**
  * @brief Abstract basic sender class.
  */
@@ -88,6 +91,12 @@ public:
      */
     virtual bool send_leave(int if_index, const addr_storage& g_addr) const = 0;
 
+    virtual bool send_general_query(const std::chrono::milliseconds& max_response_time, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi) const;
+
+    virtual bool send_mc_addr_specific_query(const std::chrono::milliseconds& max_response_time, const addr_storage& gaddr, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi) const;
+
+    virtual bool send_mc_addr_and_src_specific_query(const std::chrono::milliseconds& max_response_time, const addr_storage& gaddr, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi, const source_list<source>& slist) const;
+    
     virtual ~sender();
 };
 
