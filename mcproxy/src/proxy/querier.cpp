@@ -563,8 +563,7 @@ void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo)
         m_timing->add_time(llqi, m_msg_worker, rtimer);
 
         if (ginfo.group_retransmission_count > 0) {
-            HC_LOG_ERROR("false not implemented");
-            m_sender->send_mc_addr_specific_query(m_timers_values, gaddr, false, ginfo.compatibility_mode_variable);
+            m_sender->send_mc_addr_specific_query(m_timers_values, gaddr, ginfo.shared_filter_timer->is_remaining_time_greater_than(m_timers_values.get_last_listener_query_time()), ginfo.compatibility_mode_variable);
         }
 
     } else { //reset itself

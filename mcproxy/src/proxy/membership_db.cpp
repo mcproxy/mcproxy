@@ -84,8 +84,9 @@ gaddr_info::gaddr_info(group_mem_protocol compatibility_mode_variable)
     : filter_mode(INCLUDE_MODE)
     , compatibility_mode_variable(compatibility_mode_variable)
     , shared_filter_timer(nullptr)
-    , shared_retransmission_timer(nullptr)
-    , current_retransmission_count(0)
+    , group_retransmission_timer(nullptr)
+    , group_retransmission_count(0)
+    , source_retransmission_timer(nullptr)
 {
     HC_LOG_TRACE("");
 }
@@ -106,7 +107,7 @@ std::string gaddr_info::to_string() const
         s << "filter timer: " << shared_filter_timer->get_remaining_time() << endl;
     }
 
-    s << "retransmission_count:" << current_retransmission_count << endl;
+    s << "retransmission_count:" << group_retransmission_count << endl;
 
     s << "included/requested list(#" << include_requested_list.size() << "): " << include_requested_list << endl;
     s << "exclude_list(#" << exclude_list.size() << "): " << exclude_list;

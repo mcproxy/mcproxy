@@ -156,6 +156,10 @@ struct timer_msg : public proxy_msg {
         return m_gaddr;
     }
 
+    bool is_remaining_time_greater_than(std::chrono::milliseconds comp_time){
+        return (std::chrono::steady_clock::now() + comp_time) > m_end_time;
+    }
+
     std::string get_remaining_time() {
         using namespace std::chrono;
         std::ostringstream s;
