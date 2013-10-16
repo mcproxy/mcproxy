@@ -24,6 +24,7 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/sender.hpp"
 #include "include/proxy/message_format.hpp" //source
+#include "include/proxy/timers_values.hpp"
 
 #include <iostream>
 sender::sender(int addr_family)
@@ -49,46 +50,55 @@ sender::sender(int addr_family)
     }
 }
 
-bool sender::send_general_query(const std::chrono::milliseconds& max_response_time, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi) const
+bool sender::send_general_query(const timers_values& tv, group_mem_protocol gmp) const
 {
     using namespace std;
     HC_LOG_TRACE("");
     
     cout << "!!--ACTION: send general query" << endl;
-    cout << "max response time: " << max_response_time.count() << "msec" << endl; 
-    cout << "s-flag: " << s_flag << endl;
-    cout << "qrv: " << qrv << endl;
-    cout << "qqi: " << qqi.count() << "sec" << endl;
+    cout << "max response time: " << tv.get_query_response_interval().count() << "msec" << endl; 
+    cout << "qrv: " << tv.get_robustness_variable() << endl;
+    cout << "qqi: " << tv.get_query_interval().count() << "sec" << endl;
+    cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
     return true;
 }
 
-bool sender::send_mc_addr_specific_query(const std::chrono::milliseconds& max_response_time, const addr_storage& gaddr, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi) const
+bool sender::send_mc_addr_specific_query(const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const
 {
     using namespace std;
     HC_LOG_TRACE("");
 
     cout << "!!--ACTION: send multicast address specific query" << endl;
-    cout << "max response time: " << max_response_time.count() << "msec" << endl; 
+    cout << "max response time: " << tv.get_query_response_interval().count() << "msec" << endl; 
     cout << "group address: " << gaddr << endl;
     cout << "s-flag: " << s_flag << endl;
-    cout << "qrv: " << qrv << endl;
-    cout << "qqi: " << qqi.count() << "sec" << endl;
+    cout << "qrv: " << tv.get_robustness_variable() << endl;
+    cout << "qqi: " << tv.get_query_interval().count() << "sec" << endl;
+    cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
     return true;
 }
 
-bool sender::send_mc_addr_and_src_specific_query(const std::chrono::milliseconds& max_response_time, const addr_storage& gaddr, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi, const source_list<source>& slist) const
+bool sender::send_mc_addr_and_src_specific_query(const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const
 {
     using namespace std;
     HC_LOG_TRACE("");
+    source_list<source> list_lower;
+    source_list<source> list_higher;    
+    for(auto & e: slist){
+       if(e.retransmission_count > 0){
+            e.retransmission_count--;
+            aösldfjöasldfj
+       }    
+    }
 
-    cout << "!!--ACTION: send multicast address specific query" << endl;
-    cout << "max response time: " << max_response_time.count() << "msec" << endl; 
+    cout << "!!--ACTION: send one or two multicast address specific queries" << endl;
+    cout << "max response time: " << tv.get_query_response_interval().count() << "msec" << endl; 
     cout << "group address: " << gaddr << endl;
-    cout << "s-flag: " << s_flag << endl;
-    cout << "qrv: " << qrv << endl;
-    cout << "qqi: " << qqi.count() << "sec" << endl;
-    cout << "source list size: " << slist.size() << endl;
-    cout << "source list: " << slist << endl; 
+    cout << "qrv: " << tv.get_robustness_variable() << endl;
+    cout << "qqi: " << tv.get_query_interval().count() << "sec" << endl;
+    cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
+    cout << "source list with without S-flag: " << list_lower << endl; 
+    cout << "source list with with S-flag: " << list_higher << endl; 
     return true;
 }
 

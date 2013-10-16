@@ -47,7 +47,7 @@ struct proxy_msg {
         EXIT_MSG,
         FILTER_TIMER_MSG,
         SOURCE_TIMER_MSG,
-        RET_FILTER_TIMER_MSG,
+        RET_GROUP_TIMER_MSG,
         RET_SOURCE_TIMER_MSG,
         CONFIG_MSG,
         GROUP_RECORD_MSG,
@@ -67,7 +67,7 @@ struct proxy_msg {
             {proxy_msg::EXIT_MSG,             "EXIT_MSG"            },
             {proxy_msg::FILTER_TIMER_MSG,     "FILTER_TIMER_MSG"    },
             {proxy_msg::SOURCE_TIMER_MSG,     "SOURCE_TIMER_MSG"    },
-            {RET_FILTER_TIMER_MSG,            "RET_FILTER_TIMER_MSG"},
+            {RET_GROUP_TIMER_MSG,             "RET_GROUP_TIMER_MSG" },
             {RET_SOURCE_TIMER_MSG,            "RET_SOURCE_TIMER_MSG"},
             {proxy_msg::CONFIG_MSG,           "CONFIG_MSG"          },
             {proxy_msg::GROUP_RECORD_MSG,     "GROUP_RECORD_MSG"    },
@@ -195,8 +195,8 @@ struct source_timer : public timer_msg {
     }
 };
 
-struct retransmit_filter_timer : public timer_msg {
-    retransmit_filter_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(RET_FILTER_TIMER_MSG, if_index, gaddr, duration) {
+struct retransmit_group_timer : public timer_msg {
+    retransmit_group_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(RET_GROUP_TIMER_MSG, if_index, gaddr, duration) {
         HC_LOG_TRACE("");
     }
 };
@@ -226,13 +226,8 @@ struct source {
     source(const addr_storage& saddr)
         : saddr(saddr)
         , shared_source_timer(nullptr)
-        , current_retransmission_count(0) {
+        , retransmission_count(0) {
     }
-
-    addr_storage saddr;
-
-    mutable std::shared_ptr<timer_msg> shared_source_timer;
-    mutable int current_retransmission_count;
 
     std::string to_string() const {
         std::ostringstream s;
@@ -241,7 +236,7 @@ struct source {
             s << "(c:" << shared_source_timer->get_remaining_time() << ")";
         }
 
-        s << "(rt:" << current_retransmission_count << ")";
+        s << "(rt:" << retransmission_count << ")";
 
         return s.str();
     }
@@ -257,6 +252,10 @@ struct source {
     friend bool operator==(const source& l, const source& r) {
         return l.saddr == r.saddr;
     }
+
+    addr_storage saddr;
+    mutable std::shared_ptr<timer_msg> shared_source_timer;
+    mutable int retransmission_count;
 };
 
 struct group_record_msg : public proxy_msg {

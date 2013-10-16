@@ -305,7 +305,7 @@ void querier::timer_triggerd(const std::shared_ptr<proxy_msg>& msg)
         switch (msg->get_type()) {
         case proxy_msg::FILTER_TIMER_MSG:
         case proxy_msg::SOURCE_TIMER_MSG:
-        case proxy_msg::RET_FILTER_TIMER_MSG:
+        case proxy_msg::RET_GROUP_TIMER_MSG:
         case proxy_msg::RET_SOURCE_TIMER_MSG: {
             tm = std::static_pointer_cast<timer_msg>(msg);
 
@@ -335,8 +335,8 @@ void querier::timer_triggerd(const std::shared_ptr<proxy_msg>& msg)
     case proxy_msg::SOURCE_TIMER_MSG:
         timer_triggerd_source_timer(db_info_it, tm);
         break;
-    case proxy_msg::RET_FILTER_TIMER_MSG:
-        timer_triggerd_ret_filter_timer(db_info_it, tm);
+    case proxy_msg::RET_GROUP_TIMER_MSG:
+        timer_triggerd_ret_group_timer(db_info_it, tm);
         break;
     case proxy_msg::RET_SOURCE_TIMER_MSG:
         timer_triggerd_ret_source_timer(db_info_it, tm);
@@ -452,13 +452,13 @@ void querier::timer_triggerd_source_timer(gaddr_map::iterator db_info_it, const 
     }
 }
 
-void querier::timer_triggerd_ret_filter_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg)
+void querier::timer_triggerd_ret_group_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg)
 {
     HC_LOG_TRACE("");
 
     gaddr_info& ginfo = db_info_it->second;
 
-    if (ginfo.shared_retransmission_timer.get() == msg.get()) { //msg is an retransmit filter timer message
+    if (ginfo.group_retransmission_timer.get() == msg.get()) { //msg is an retransmit filter timer message
         send_Q(msg->get_gaddr(), ginfo);
     } else { //msg is an retransmit source timer message
         HC_LOG_ERROR("retransmission timer not found");
@@ -470,6 +470,13 @@ void querier::timer_triggerd_ret_source_timer(gaddr_map::iterator db_info_it, co
 {
     HC_LOG_TRACE("");
 
+    gaddr_info& ginfo = db_info_it->second;
+
+    if (ginfo.source_retransmission_timer.get() == msg.get()) { //msg is an retransmit filter timer message
+        send_Q(msg->get_gaddr(), ginfo, ginfo.include_requested_list , source_list<source>(), true);
+    } else { //msg is an retransmit source timer message
+        HC_LOG_ERROR("retransmission timer not found");
+    }
 }
 
 void querier::mali(const addr_storage& gaddr, gaddr_info& ginfo) const
@@ -537,76 +544,70 @@ void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo)
     //Timer is larger than LLQT, the "Suppress Router-Side Processing" bit
     //is set in the query message.
 
-    if (ginfo.shared_retransmission_timer == nullptr) {
-        ginfo.current_retransmission_count = m_timers_values.get_last_listener_query_count();
-
-        auto ftimer = std::make_shared<filter_timer>(m_if_index, gaddr, m_timers_values.get_last_listener_query_time());
+    if (ginfo.group_retransmission_timer == nullptr) {
+        ginfo.group_retransmission_count = m_timers_values.get_last_listener_query_count();
+        auto llqt = m_timers_values.get_last_listener_query_time();
+        auto ftimer = std::make_shared<filter_timer>(m_if_index, gaddr, llqt);
 
         ginfo.shared_filter_timer = ftimer;
 
-        m_timing->add_time(m_timers_values.get_last_listener_query_time(), m_msg_worker, ftimer);
+        m_timing->add_time(llqt, m_msg_worker, ftimer);
     }
 
-    if (ginfo.current_retransmission_count >= 0) {
-        ginfo.current_retransmission_count--;
+    if (ginfo.group_retransmission_count >= 0) {
+        ginfo.group_retransmission_count--;
 
         auto llqi = m_timers_values.get_last_listener_query_interval();
-        auto rtimer = std::make_shared<retransmit_filter_timer>(m_if_index, gaddr, llqi);
-        ginfo.shared_retransmission_timer = rtimer;
+        auto rtimer = std::make_shared<retransmit_group_timer>(m_if_index, gaddr, llqi);
+        ginfo.group_retransmission_timer = rtimer;
         m_timing->add_time(llqi, m_msg_worker, rtimer);
 
-        if (ginfo.current_retransmission_count > 0) {
+        if (ginfo.group_retransmission_count > 0) {
             HC_LOG_ERROR("false not implemented");
-            m_sender->send_mc_addr_specific_query(llqi, gaddr, false, m_timers_values.get_robustness_variable(), m_timers_values.get_query_interval());
+            m_sender->send_mc_addr_specific_query(m_timers_values, gaddr, false, ginfo.compatibility_mode_variable);
         }
 
     } else { //reset itself
-        ginfo.shared_retransmission_timer = nullptr;
-        ginfo.current_retransmission_count = 0;
+        ginfo.group_retransmission_timer = nullptr;
+        ginfo.group_retransmission_count = 0;
     }
 }
 
-void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<source>& slist)
+
+void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<source>& slist, source_list<source>&& tmp_list, bool in_retransmission_state)
 {
     HC_LOG_TRACE("");
 
-    //7.6.3.2.  Building and Sending Multicast Address and Source Specific Queries
-    //Lower source timer to LLQT;
-    //Add the sources to the Retransmission List;
-    //Set the Source Retransmission Counter for each source to [Last
-    //Listener Query
+    bool is_used = false;
 
-    bool used = false;
-    //auto rt = std::make_shared<retransmit_timer>(m_if_index, gaddr, m_timers_values.get_last_listener_query_time());
-
-    for (source_list<source>::const_iterator it = std::begin(slist); it != std::end(slist); ++it) {
-        //if (ginfo.current_retransmission_count == NOT_IN_RETRANSMISSION_STATE) {
-        used = true;
-        //it->shared_source_timer = rt;
-        it->current_retransmission_count = m_timers_values.get_last_listener_query_count() - 1;
-        ginfo.retransmission_list.push_back(it);
-        //}
-    }
-
-    if (used) {
-        //m_timing->add_time(m_timers_values.get_last_listener_query_time(), m_msg_worker, rt);
-    }
-
-    m_sender->send_mc_addr_and_src_specific_query(m_timers_values.get_last_listener_query_time(), gaddr, false, m_timers_values.get_robustness_variable(), m_timers_values.get_query_interval(), slist);
-}
-
-void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<source>& slist, source_list<source>&&  tmp_list)
-{
-    HC_LOG_TRACE("");
-
-    send_Q(gaddr, ginfo, tmp_list);
+    auto llqt = m_timers_values.get_last_listener_query_time();
+    auto st = std::make_shared<source_timer>(m_if_index, gaddr, llqt);
 
     for (auto & e : tmp_list) {
         auto it = slist.find(e);
         if (it != std::end(slist)) {
-            it->shared_source_timer = e.shared_source_timer;
+            if (it->retransmission_count == 0) {
+                is_used = true;
+
+                it->shared_source_timer = st;
+                it->retransmission_count = m_timers_values.get_last_listener_query_count();
+            }
         }
     }
+
+    if (is_used) {
+        m_timing->add_time(llqt, m_msg_worker, st);
+    }
+
+    if (is_used  || in_retransmission_state) {
+        auto llqi = m_timers_values.get_last_listener_query_interval();
+        auto rst = std::make_shared<retransmit_source_timer>(m_if_index, gaddr, llqi);
+        ginfo.source_retransmission_timer = rst;
+        m_timing->add_time(llqi, m_msg_worker, rst);
+
+        m_sender->send_mc_addr_and_src_specific_query(m_timers_values, gaddr, slist, ginfo.compatibility_mode_variable);
+    }
+
 }
 
 querier::~querier()

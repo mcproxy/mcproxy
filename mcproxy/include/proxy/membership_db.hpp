@@ -53,14 +53,14 @@ struct gaddr_info {
 
     std::shared_ptr<timer_msg> shared_filter_timer;
 
-    std::shared_ptr<timer_msg> shared_retransmission_timer;
-    int current_retransmission_count;
+    std::shared_ptr<timer_msg> group_retransmission_timer;
+    int group_retransmission_count;
+
+    std::shared_ptr<timer_msg> source_retransmission_timer;
 
     source_list<source> include_requested_list;
     source_list<source> exclude_list;
 
-    std::list<source_list<source>::const_iterator> retransmission_list;
-    
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const gaddr_info& g);
 };

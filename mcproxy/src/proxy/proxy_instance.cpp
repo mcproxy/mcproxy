@@ -160,7 +160,7 @@ void proxy_instance::worker_thread()
             break;
         case proxy_msg::FILTER_TIMER_MSG:
         case proxy_msg::SOURCE_TIMER_MSG:
-        case proxy_msg::RET_FILTER_TIMER_MSG:
+        case proxy_msg::RET_GROUP_TIMER_MSG:
         case proxy_msg::RET_SOURCE_TIMER_MSG: {
             auto it = m_querier.find(std::static_pointer_cast<timer_msg>(msg)->get_if_index());
             if (it != std::end(m_querier)) {

@@ -34,6 +34,7 @@
 
 #include <chrono>
 
+class timers_values;
 struct source;
 class addr_storage;
 /**
@@ -91,11 +92,14 @@ public:
      */
     virtual bool send_leave(int if_index, const addr_storage& g_addr) const = 0;
 
-    virtual bool send_general_query(const std::chrono::milliseconds& max_response_time, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi) const;
 
-    virtual bool send_mc_addr_specific_query(const std::chrono::milliseconds& max_response_time, const addr_storage& gaddr, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi) const;
 
-    virtual bool send_mc_addr_and_src_specific_query(const std::chrono::milliseconds& max_response_time, const addr_storage& gaddr, bool s_flag, unsigned int qrv, const std::chrono::seconds& qqi, const source_list<source>& slist) const;
+
+    virtual bool send_general_query(const timers_values& tv, group_mem_protocol gmp) const;
+
+    virtual bool send_mc_addr_specific_query(const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const;
+
+    virtual bool send_mc_addr_and_src_specific_query(const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const;
     
     virtual ~sender();
 };
