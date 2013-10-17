@@ -35,6 +35,7 @@
 
 #include <memory>
 #include <vector>
+#include <functional>
 
 class querier;
 class interfaces;
@@ -94,8 +95,11 @@ public:
 
     static void test_querier(std::string if_name);
     static void send_test_record(proxy_instance* const pr_i, std::shared_ptr<group_record_msg> m);
-   
 
+    static void test_a(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
+
+    static void quick_test(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
+    static void rand_test(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
 };
 
 #endif // PROXY_INSTANCE_HPP

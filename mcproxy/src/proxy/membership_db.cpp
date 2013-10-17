@@ -107,7 +107,7 @@ std::string gaddr_info::to_string() const
         s << "filter timer: " << shared_filter_timer->get_remaining_time() << endl;
     }
 
-    s << "retransmission_count:" << group_retransmission_count << endl;
+    s << "group retransmission_count: " << group_retransmission_count << endl;
 
     s << "included/requested list(#" << include_requested_list.size() << "): " << include_requested_list << endl;
     s << "exclude_list(#" << exclude_list.size() << "): " << exclude_list;

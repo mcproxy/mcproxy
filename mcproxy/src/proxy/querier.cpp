@@ -243,10 +243,14 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: {//TO_EX(x)
         filter_time(ginfo, A, (A - X) - Y);
-        X = (A - Y);
+        
+        //X = (A - Y);
+        //this is bad!! if in request_list is IP 1.1.1.1 and in A 1.1.1.1 then you create a zombie in X (without a running timer)
+        X *= A;
+        X -= Y;
 
         Y *= A;
-        send_Q(gaddr, ginfo, X);
+        send_Q(gaddr, ginfo, X, (A - Y)); //bad style, but i haven't a better solution right now ???????
         mali(gaddr, filter_timer);
     }
     break;
@@ -273,7 +277,11 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     case  MODE_IS_EXCLUDE: {//IS_EX(x)
         mali(gaddr, A, (A - X) - Y);
 
-        X = (A - Y);
+        //X = (A - Y);
+        //this is bad!! if in request_list is IP 1.1.1.1 and in A 1.1.1.1 then you create a zombie in X (without a running timer)
+        X *= A;
+        X -= Y;
+
         Y *= A;
 
         mali(gaddr, filter_timer);

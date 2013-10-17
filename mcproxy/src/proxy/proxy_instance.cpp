@@ -37,7 +37,7 @@
 
 #include <sstream>
 #include <iostream>
-#include <functional>
+#include <random>
 
 #include <unistd.h>
 #include <net/if.h>
@@ -353,16 +353,10 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
 
 void proxy_instance::test_querier(std::string if_name)
 {
-
     using namespace std;
-    source s1(addr_storage("1.1.1.1"));
-    source s2(addr_storage("2.2.2.2"));
-    source s3(addr_storage("3.3.3.3"));
-    source s4(addr_storage("4.4.4.4"));
-    source s5(addr_storage("5.5.5.5"));
     addr_storage gaddr("224.1.1.1");
 
-    group_mem_protocol memproto = IGMPv3; 
+    group_mem_protocol memproto = IGMPv3;
     //create a proxy_instance
     proxy_instance pr_i(memproto, 0,  make_shared<interfaces>(get_addr_family(memproto), false), make_shared<timing>());
     //add a downstream
@@ -378,33 +372,154 @@ void proxy_instance::test_querier(std::string if_name)
 
 
     auto print_proxy_instance = bind(&proxy_instance::add_msg, &pr_i, make_shared<debug_msg>());
-    
-    
-    auto __tmp =[&, if_name](mcast_addr_record_type t, source_list<source>&& slist){return make_shared<group_record_msg>(interfaces::get_if_index(if_name), t, gaddr, move(slist), 0);};
 
-    auto send_record = bind(&proxy_instance::send_test_record, &pr_i, bind(__tmp,placeholders::_1, placeholders::_2));
+
+    auto __tmp = [&, if_name](mcast_addr_record_type t, source_list<source> && slist) {
+        return make_shared<group_record_msg>(interfaces::get_if_index(if_name), t, gaddr, move(slist), 0);
+    };
+
+    auto send_record = bind(&proxy_instance::send_test_record, &pr_i, bind(__tmp, placeholders::_1, placeholders::_2));
 
     //-----------------------------------------------------------------
-    cout << "##-- querier test on interface " << if_name << " --##" << endl;
+    //quick_test(send_record, print_proxy_instance);
+    //test_a(send_record,print_proxy_instance);
+    rand_test(send_record, print_proxy_instance);
+}
+
+void proxy_instance::quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
+{
+
+    using namespace std;
+    source s1(addr_storage("1.1.1.1"));
+    source s2(addr_storage("2.2.2.2"));
+    source s3(addr_storage("3.3.3.3"));
+    source s4(addr_storage("4.4.4.4"));
+    source s5(addr_storage("5.5.5.5"));
+    source s6(addr_storage("6.6.6.6"));
+    source s7(addr_storage("7.7.7.7"));
+
+    cout << "##-- querier test A --##" << endl;
     print_proxy_instance();
 
+
+    sleep(1);
+    send_record(MODE_IS_EXCLUDE, source_list<source> {s3, s4});
+    print_proxy_instance();
+
+    sleep(1);
     send_record(MODE_IS_INCLUDE, source_list<source> {s1, s2});
     print_proxy_instance();
 
-    sleep(2);
-    send_record(ALLOW_NEW_SOURCES, source_list<source>{s1});
+    sleep(1);
+    send_record(MODE_IS_EXCLUDE, source_list<source> {s2, s3});
     print_proxy_instance();
-
-    //sleep(2);
-    //send_record(MODE_IS_EXCLUDE, source_list<source>{s2,s3,s4});
-    //print_proxy_instance();
-
-    //sleep(2);
-    //send_record(MODE_IS_INCLUDE, source_list<source>{s4});
-    //print_proxy_instance();
 
     for (int i = 0; i < 6; ++i) {
         sleep(2);
+        print_proxy_instance();
+    }
+
+    sleep(1);
+    cout << "##-- querier end --##" << endl;
+}
+
+void proxy_instance::test_a(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
+{
+    using namespace std;
+    source s1(addr_storage("1.1.1.1"));
+    source s2(addr_storage("2.2.2.2"));
+    source s3(addr_storage("3.3.3.3"));
+    source s4(addr_storage("4.4.4.4"));
+    source s5(addr_storage("5.5.5.5"));
+    source s6(addr_storage("6.6.6.6"));
+    source s7(addr_storage("7.7.7.7"));
+
+    cout << "##-- querier test A --##" << endl;
+    print_proxy_instance();
+
+    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s2, s3, s4, s5});
+    print_proxy_instance();
+
+    sleep(4);
+    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s3, s5});
+    print_proxy_instance();
+
+    sleep(5);
+    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s3, s5});
+    print_proxy_instance();
+
+    sleep(2);
+    print_proxy_instance();
+
+    sleep(1);
+    send_record(MODE_IS_EXCLUDE, source_list<source> {s1, s2, s3});
+    print_proxy_instance();
+
+    sleep(5);
+    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s2});
+    print_proxy_instance();
+
+    sleep(1);
+    send_record(MODE_IS_EXCLUDE, source_list<source> {s6, s7});
+    print_proxy_instance();
+
+    sleep(1);
+    send_record(MODE_IS_EXCLUDE, source_list<source> {s6, s7});
+    print_proxy_instance();
+
+    for (int i = 0; i < 6; ++i) {
+        sleep(2);
+        print_proxy_instance();
+    }
+
+    sleep(1);
+    cout << "##-- querier end --##" << endl;
+}
+
+
+void proxy_instance::rand_test(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
+{
+    using namespace std;
+    default_random_engine re;
+    int time;
+
+    vector<mcast_addr_record_type> r_type {MODE_IS_INCLUDE, MODE_IS_EXCLUDE, CHANGE_TO_INCLUDE_MODE, CHANGE_TO_EXCLUDE_MODE, ALLOW_NEW_SOURCES, BLOCK_OLD_SOURCES};
+    uniform_int_distribution<int> d_r_type(0, r_type.size() - 1);
+
+    vector<source> src;
+    src.push_back(addr_storage("1.1.1.1"));
+    src.push_back(addr_storage("2.2.2.2"));
+    src.push_back(addr_storage("3.3.3.3"));
+    src.push_back(addr_storage("4.4.4.4"));
+    src.push_back(addr_storage("5.5.5.5"));
+    src.push_back(addr_storage("6.6.6.6"));
+    src.push_back(addr_storage("7.7.7.7"));
+    src.push_back(addr_storage("8.8.8.8"));
+    src.push_back(addr_storage("9.9.9.9"));
+    src.push_back(addr_storage("10.10.10.10"));
+    src.push_back(addr_storage("11.11.11.11"));
+    src.push_back(addr_storage("12.12.12.12"));
+    uniform_int_distribution<int> d_src(0, 8);
+
+    cout << "##-- querier test A --##" << endl;
+    print_proxy_instance();
+
+    auto get_src_list = [&]() {
+        source_list<source> s;
+        int max = d_src(re);
+        for (int i = 0; i <= max; i++) {
+            s.insert(src[d_src(re)]);
+        }
+        return s;
+    };
+
+    for (int i = 0; i < 10; i++) {
+        time = d_src(re);
+        cout << "!!--wait: " << time << "sec" << endl;
+        cout << endl;
+
+        sleep(time);
+        send_record(r_type[d_r_type(re)], get_src_list());
         print_proxy_instance();
     }
     sleep(1);

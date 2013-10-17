@@ -156,7 +156,7 @@ struct timer_msg : public proxy_msg {
         return m_gaddr;
     }
 
-    bool is_remaining_time_greater_than(std::chrono::milliseconds comp_time){
+    bool is_remaining_time_greater_than(std::chrono::milliseconds comp_time) {
         return (std::chrono::steady_clock::now() + comp_time) > m_end_time;
     }
 
@@ -236,11 +236,13 @@ struct source {
     std::string to_string() const {
         std::ostringstream s;
         s << saddr;
-        if (shared_source_timer.get() != nullptr) {
-            s << "(c:" << shared_source_timer->get_remaining_time() << ")";
+        if ((shared_source_timer.get() != nullptr) && (retransmission_count > 0)) {
+            s << "(" << shared_source_timer->get_remaining_time() << "," << retransmission_count << "x)";
+        } else if (shared_source_timer.get() != nullptr) {
+            s << "(" << shared_source_timer->get_remaining_time() << ")";
+        } else if (retransmission_count > 0) {
+            s << "(" << retransmission_count << "x)";
         }
-
-        s << "(rt:" << retransmission_count << ")";
 
         return s.str();
     }

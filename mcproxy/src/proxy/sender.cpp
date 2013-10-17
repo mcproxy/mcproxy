@@ -60,6 +60,7 @@ bool sender::send_general_query(const timers_values& tv, group_mem_protocol gmp)
     cout << "qrv: " << tv.get_robustness_variable() << endl;
     cout << "qqi: " << tv.get_query_interval().count() << "sec" << endl;
     cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
+    cout << endl;
     return true;
 }
 
@@ -75,6 +76,7 @@ bool sender::send_mc_addr_specific_query(const timers_values& tv, const addr_sto
     cout << "qrv: " << tv.get_robustness_variable() << endl;
     cout << "qqi: " << tv.get_query_interval().count() << "sec" << endl;
     cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
+    cout << endl;
     return true;
 }
 
@@ -104,6 +106,7 @@ bool sender::send_mc_addr_and_src_specific_query(const timers_values& tv, const 
     cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
     cout << "source list with without S-flag: " << list_lower << endl;
     cout << "source list with with S-flag: " << list_higher << endl;
+    cout << endl;
     return true;
 }
 
