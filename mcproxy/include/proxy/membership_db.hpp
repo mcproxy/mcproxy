@@ -56,7 +56,7 @@ struct gaddr_info {
     std::shared_ptr<timer_msg> group_retransmission_timer;
     int group_retransmission_count;
 
-    std::shared_ptr<timer_msg> source_retransmission_timer;
+    std::shared_ptr<timer_msg> source_retransmission_timer; //runs as long as a source in include_requested_list has an retransmission timer greater than zero
 
     source_list<source> include_requested_list;
     source_list<source> exclude_list;
@@ -78,9 +78,13 @@ struct membership_db {
     membership_db(membership_db&&) = default;
     membership_db& operator=(membership_db&&) = default;
 
+    std::shared_ptr<timer_msg> general_query_timer;
+    int startup_query_count;
+
     group_mem_protocol querier_version_mode; //RFC3810 - 8.3.1. In the Presence of MLDv1 Routers
     bool is_querier;
     gaddr_map group_info; //subscribed multicast group with there source lists
+
 
 
     static void test_arithmetic();

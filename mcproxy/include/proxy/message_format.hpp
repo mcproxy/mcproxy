@@ -32,6 +32,7 @@
 #include "include/utils/addr_storage.hpp"
 #include "include/proxy/def.hpp"
 #include "include/proxy/interfaces.hpp"
+#include "include/proxy/timers_values.hpp"
 
 #include <iostream>
 #include <string>
@@ -49,6 +50,7 @@ struct proxy_msg {
         SOURCE_TIMER_MSG,
         RET_GROUP_TIMER_MSG,
         RET_SOURCE_TIMER_MSG,
+        GENERAL_QUERY_MSG,
         CONFIG_MSG,
         GROUP_RECORD_MSG,
         DEBUG_MSG
@@ -62,25 +64,26 @@ struct proxy_msg {
 
     static std::string get_message_type_name(message_type mt) {
         std::map<proxy_msg::message_type, std::string> name_map = {
-            {proxy_msg::INIT_MSG,             "INIT_MSG"            },
-            {proxy_msg::TEST_MSG,             "TEST_MSG"            },
-            {proxy_msg::EXIT_MSG,             "EXIT_MSG"            },
-            {proxy_msg::FILTER_TIMER_MSG,     "FILTER_TIMER_MSG"    },
-            {proxy_msg::SOURCE_TIMER_MSG,     "SOURCE_TIMER_MSG"    },
-            {RET_GROUP_TIMER_MSG,             "RET_GROUP_TIMER_MSG" },
-            {RET_SOURCE_TIMER_MSG,            "RET_SOURCE_TIMER_MSG"},
-            {proxy_msg::CONFIG_MSG,           "CONFIG_MSG"          },
-            {proxy_msg::GROUP_RECORD_MSG,     "GROUP_RECORD_MSG"    },
-            {proxy_msg::DEBUG_MSG,            "DEBUG_MSG"           }
+            {INIT_MSG,             "INIT_MSG"            },
+            {TEST_MSG,             "TEST_MSG"            },
+            {EXIT_MSG,             "EXIT_MSG"            },
+            {FILTER_TIMER_MSG,     "FILTER_TIMER_MSG"    },
+            {SOURCE_TIMER_MSG,     "SOURCE_TIMER_MSG"    },
+            {RET_GROUP_TIMER_MSG,  "RET_GROUP_TIMER_MSG" },
+            {RET_SOURCE_TIMER_MSG, "RET_SOURCE_TIMER_MSG"},
+            {GENERAL_QUERY_MSG,    "GENERAL_QUERY_MSG"   },
+            {CONFIG_MSG,           "CONFIG_MSG"          },
+            {GROUP_RECORD_MSG,     "GROUP_RECORD_MSG"    },
+            {DEBUG_MSG,            "DEBUG_MSG"           }
         };
         return name_map[mt];
     }
 
     static std::string get_message_priority_name(message_priority mp) {
         std::map<proxy_msg::message_priority, std::string> name_map = {
-            {proxy_msg::SYSTEMIC,     "SYSTEMIC"  },
-            {proxy_msg::USER_INPUT,   "USER_INPUT"},
-            {proxy_msg::LOSEABLE,     "LOSEABLE"  },
+            {SYSTEMIC,   "SYSTEMIC"  },
+            {USER_INPUT, "USER_INPUT"},
+            {LOSEABLE,   "LOSEABLE"  },
         };
         return name_map[mp];
     }
@@ -157,7 +160,7 @@ struct timer_msg : public proxy_msg {
     }
 
     bool is_remaining_time_greater_than(std::chrono::milliseconds comp_time) {
-        return (std::chrono::steady_clock::now() + comp_time) > m_end_time;
+        return (std::chrono::steady_clock::now() + comp_time) <= m_end_time;
     }
 
     std::string get_remaining_time() {
@@ -207,6 +210,12 @@ struct retransmit_group_timer : public timer_msg {
 
 struct retransmit_source_timer : public timer_msg {
     retransmit_source_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(RET_SOURCE_TIMER_MSG, if_index, gaddr, duration) {
+        HC_LOG_TRACE("");
+    }
+};
+
+struct general_query_timer : public timer_msg {
+    general_query_timer(unsigned int if_index, std::chrono::milliseconds duration): timer_msg(GENERAL_QUERY_MSG, if_index, addr_storage(), duration) {
         HC_LOG_TRACE("");
     }
 };
@@ -330,10 +339,11 @@ struct config_msg : public proxy_msg {
         DEL_UPSTREAM
     };
 
-    config_msg(config_instruction instruction, unsigned int if_index)
+    config_msg(config_instruction instruction, unsigned int if_index, std::unique_ptr<timers_values> tv)
         : proxy_msg(CONFIG_MSG, SYSTEMIC)
         , m_instruction(instruction)
-        , m_if_index(if_index) {
+        , m_if_index(if_index)
+        , m_tv(move(tv)) {
         HC_LOG_TRACE("");
     }
 
@@ -345,9 +355,14 @@ struct config_msg : public proxy_msg {
         return m_if_index;
     }
 
+    const timers_values& get_timers_values(){
+        return *m_tv.get(); 
+    }
+
 private:
     config_instruction m_instruction;
     unsigned int m_if_index;
+    std::unique_ptr<timers_values> m_tv;
 };
 
 struct exit_cmd : public proxy_msg {

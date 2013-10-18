@@ -53,6 +53,7 @@ class proxy_instance: public worker
 private:
     group_mem_protocol m_group_mem_protocol; //AF_INET or AF_INET6
     int m_table_number; // 0 means no table number
+    bool m_in_debug_testing_mode;
 
 
     //check_source m_check_source;
@@ -86,7 +87,7 @@ public:
     /**
      * @brief Set default values of the class members.
      */
-    proxy_instance(group_mem_protocol group_mem_protocol, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing);
+    proxy_instance(group_mem_protocol group_mem_protocol, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode = false);
 
     /**
      * @brief Release all resources.
@@ -94,9 +95,11 @@ public:
     virtual ~proxy_instance();
 
     static void test_querier(std::string if_name);
-    static void send_test_record(proxy_instance* const pr_i, std::shared_ptr<group_record_msg> m);
 
     static void test_a(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
+    static void test_b(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
+    static void test_c(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
+    static void test_d(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
 
     static void quick_test(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
     static void rand_test(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   

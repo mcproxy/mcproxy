@@ -54,6 +54,8 @@ private:
 
     //join all router groups or leave them
     bool router_groups_function(std::function<bool(const sender&, int, addr_storage)> f) const;
+    bool send_general_query();  
+
     void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo);
     void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo);
 
@@ -79,11 +81,12 @@ private:
     void timer_triggerd_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_ret_group_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_ret_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
+    void timer_triggerd_general_query_timer(const std::shared_ptr<timer_msg>& msg);
 public:
 
     virtual ~querier();
 
-    querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing);
+    querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv);
 
     void receive_record(const std::shared_ptr<proxy_msg>& msg);
     void timer_triggerd(const std::shared_ptr<proxy_msg>& msg);

@@ -106,7 +106,10 @@ std::string gaddr_info::to_string() const
     if (shared_filter_timer.get() != nullptr) {
         s << "filter timer: " << shared_filter_timer->get_remaining_time() << endl;
     }
-
+    
+    if (group_retransmission_timer.get() != nullptr){
+        s << "group retransmission timer: " << group_retransmission_timer->get_remaining_time() << endl;
+    } 
     s << "group retransmission_count: " << group_retransmission_count << endl;
 
     s << "included/requested list(#" << include_requested_list.size() << "): " << include_requested_list << endl;
@@ -115,8 +118,11 @@ std::string gaddr_info::to_string() const
 }
 
 membership_db::membership_db(group_mem_protocol querier_version_mode)
-    : querier_version_mode(querier_version_mode)
+    : general_query_timer(nullptr)
+    , startup_query_count(0)
+    , querier_version_mode(querier_version_mode)
     , is_querier(true)
+
 {
     HC_LOG_TRACE("");
 }
@@ -127,8 +133,12 @@ std::string membership_db::to_string() const
     ostringstream s;
     s << "compatibility mode variable: " << get_group_mem_protocol_name(querier_version_mode) << endl;
     s << "is querier: " << (is_querier ? "true" : "false") << endl;
-    s << "subscribed groups: " << group_info.size();
+    if(general_query_timer.get() != nullptr){
+        s << "general query timer: " << general_query_timer->get_remaining_time() << endl;
+    }
+    s << "startup query count: " << startup_query_count << endl; 
 
+    s << "subscribed groups: " << group_info.size();
     for (auto & e : group_info) {
         s << endl << "-- group address: " << e.first << endl;
         s << indention(e.second.to_string());

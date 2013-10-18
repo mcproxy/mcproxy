@@ -201,10 +201,10 @@ void proxy::start_proxy_instances()
         auto& downstreams = e.second;
         std::unique_ptr<proxy_instance> pr_i(new proxy_instance(m_proxy_configuration->get_group_mem_protocol(), table, m_proxy_configuration->get_interfaces(), m_timing));
 
-        pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_UPSTREAM, upstream));
+        pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_UPSTREAM, upstream, nullptr));
 
         for (auto f : downstreams) {
-            pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, f));
+            pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, f, std::unique_ptr<timers_values>(new timers_values)));
         }
 
         m_proxy_instances.insert(std::pair<int, std::unique_ptr<proxy_instance>>(table, move(pr_i)));

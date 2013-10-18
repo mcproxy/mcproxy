@@ -72,7 +72,7 @@ bool sender::send_mc_addr_specific_query(const timers_values& tv, const addr_sto
     cout << "!!--ACTION: send multicast address specific query" << endl;
     cout << "max response time: " << tv.get_query_response_interval().count() << "msec" << endl;
     cout << "group address: " << gaddr << endl;
-    cout << "s-flag: " << s_flag << endl;
+    cout << "s-flag: " << (s_flag? "true": "false") << endl;
     cout << "qrv: " << tv.get_robustness_variable() << endl;
     cout << "qqi: " << tv.get_query_interval().count() << "sec" << endl;
     cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
@@ -98,16 +98,20 @@ bool sender::send_mc_addr_and_src_specific_query(const timers_values& tv, const 
         }
     }
 
-    cout << "!!--ACTION: send one or two multicast address specific queries" << endl;
-    cout << "max response time: " << tv.get_query_response_interval().count() << "msec" << endl;
-    cout << "group address: " << gaddr << endl;
-    cout << "qrv: " << tv.get_robustness_variable() << endl;
-    cout << "qqi: " << tv.get_query_interval().count() << "sec" << endl;
-    cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
-    cout << "source list with without S-flag: " << list_lower << endl;
-    cout << "source list with with S-flag: " << list_higher << endl;
-    cout << endl;
-    return true;
+    if (!list_lower.empty() || !list_higher.empty() ) {
+        cout << "!!--ACTION: send one or two multicast address and source specific queries" << endl;
+        cout << "max response time: " << tv.get_query_response_interval().count() << "msec" << endl;
+        cout << "group address: " << gaddr << endl;
+        cout << "qrv: " << tv.get_robustness_variable() << endl;
+        cout << "qqi: " << tv.get_query_interval().count() << "sec" << endl;
+        cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
+        cout << "source list with without S-flag: " << list_lower << endl;
+        cout << "source list with with S-flag: " << list_higher << endl;
+        cout << endl;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 sender::~sender()

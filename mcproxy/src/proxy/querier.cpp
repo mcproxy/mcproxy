@@ -35,10 +35,11 @@
 #include <iostream>
 #include <sstream>
 
-querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing)
+querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing,const timers_values& tv)
     : m_msg_worker(msg_worker)
     , m_if_index(if_index)
     , m_db(querier_version_mode)
+    , m_timers_values(tv)
     , m_sender(sender)
     , m_timing(timing)
 {
@@ -48,6 +49,11 @@ querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, in
     if (!router_groups_function(&sender::send_report)) {
         HC_LOG_ERROR("failed to subscribe multicast router groups");
         throw "failed to subscribe multicast router groups";
+    }
+
+    if (!send_general_query()) {
+        HC_LOG_ERROR("failed to initialise query startup");
+        throw "failed to initialise query startup";
     }
 }
 
@@ -74,6 +80,27 @@ bool querier::router_groups_function(std::function<bool(const sender&, int, addr
         return false;
     }
     return rc;
+}
+bool querier::send_general_query()
+{
+    HC_LOG_TRACE("");
+    if (m_db.general_query_timer.get() == nullptr) {
+        m_db.startup_query_count = m_timers_values.get_startup_query_count();
+    }
+
+    std::chrono::seconds t;
+    if (m_db.startup_query_count > 0) {
+        m_db.startup_query_count--;
+        t  = m_timers_values.get_startup_query_interval();
+    } else {
+        t = m_timers_values.get_query_interval();
+    }
+
+    auto gqt = std::make_shared<general_query_timer>(m_if_index, t);
+    m_db.general_query_timer = gqt;
+
+    m_timing->add_time(t, m_msg_worker, gqt);
+    return m_sender->send_general_query(m_timers_values, m_db.querier_version_mode);
 }
 
 void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
@@ -226,11 +253,11 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     //                                                          Filter Timer
     //                                                    Send Q(MA,A-Y)
     case BLOCK_OLD_SOURCES: { //BLOCK(x)
-        auto tmpX = X;
+        //auto tmpX = X;
         X += (A - Y);
 
+        //filter_time(ginfo, X, (A - tmpX) - Y); this is useless the source timer will be update again in send_Q()??????????????????
         send_Q(gaddr, ginfo, X, (A - Y));
-        filter_time(ginfo, X, (A - tmpX) - Y);
     }
     break;
 
@@ -242,15 +269,16 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     //                                                    Send Q(MA,A-Y)
     //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: {//TO_EX(x)
-        filter_time(ginfo, A, (A - X) - Y);
-        
+        //filter_time(ginfo, A, (A - X) - Y); this is useless the source timer will be update again in send_Q()??????????????????
+
+
         //X = (A - Y);
-        //this is bad!! if in request_list is IP 1.1.1.1 and in A 1.1.1.1 then you create a zombie in X (without a running timer)
+        //this is bad!! if in request_list is IP 1.1.1.1 and in A 1.1.1.1 then you create a zombie in X (without a running timer)???????????????
         X *= A;
-        X -= Y;
+        X += (A - Y);
 
         Y *= A;
-        send_Q(gaddr, ginfo, X, (A - Y)); //bad style, but i haven't a better solution right now ???????
+        send_Q(gaddr, ginfo, X, (A - Y)); //bad style, but i haven't a better solution right now ???????????
         mali(gaddr, filter_timer);
     }
     break;
@@ -278,9 +306,9 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         mali(gaddr, A, (A - X) - Y);
 
         //X = (A - Y);
-        //this is bad!! if in request_list is IP 1.1.1.1 and in A 1.1.1.1 then you create a zombie in X (without a running timer)
+        //this is bad!! if in request_list is IP 1.1.1.1 and in A 1.1.1.1 then you create a zombie in X (without a running timer)?????????????????????
         X *= A;
-        X -= Y;
+        X += (A - Y);
 
         Y *= A;
 
@@ -323,10 +351,10 @@ void querier::timer_triggerd(const std::shared_ptr<proxy_msg>& msg)
                 HC_LOG_ERROR("filter_timer message is still in use but cannot found");
                 return;
             }
-
         }
         break;
-
+        case proxy_msg::GENERAL_QUERY_MSG:
+            break;
         default:
             HC_LOG_ERROR("unknown timer message format");
             return;
@@ -348,6 +376,9 @@ void querier::timer_triggerd(const std::shared_ptr<proxy_msg>& msg)
         break;
     case proxy_msg::RET_SOURCE_TIMER_MSG:
         timer_triggerd_ret_source_timer(db_info_it, tm);
+        break;
+    case proxy_msg::GENERAL_QUERY_MSG:
+        timer_triggerd_general_query_timer(std::static_pointer_cast<timer_msg>(msg));
         break;
     default:
         HC_LOG_ERROR("unknown timer message format");
@@ -471,7 +502,6 @@ void querier::timer_triggerd_ret_group_timer(gaddr_map::iterator db_info_it, con
     } else { //msg is an retransmit source timer message
         HC_LOG_ERROR("retransmission timer not found");
     }
-
 }
 
 void querier::timer_triggerd_ret_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg)
@@ -484,6 +514,17 @@ void querier::timer_triggerd_ret_source_timer(gaddr_map::iterator db_info_it, co
         send_Q(msg->get_gaddr(), ginfo, ginfo.include_requested_list , source_list<source>(), true);
     } else { //msg is an retransmit source timer message
         HC_LOG_ERROR("retransmission timer not found");
+    }
+}
+
+void querier::timer_triggerd_general_query_timer(const std::shared_ptr<timer_msg>& msg)
+{
+    HC_LOG_TRACE("");
+
+    if (m_db.general_query_timer.get() == msg.get()) {
+        send_general_query();
+    } else {
+        HC_LOG_ERROR("general query timer not found");
     }
 }
 
@@ -607,14 +648,13 @@ void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<s
     }
 
     if (is_used  || in_retransmission_state) {
-        auto llqi = m_timers_values.get_last_listener_query_interval();
-        auto rst = std::make_shared<retransmit_source_timer>(m_if_index, gaddr, llqi);
-        ginfo.source_retransmission_timer = rst;
-        m_timing->add_time(llqi, m_msg_worker, rst);
-
-        m_sender->send_mc_addr_and_src_specific_query(m_timers_values, gaddr, slist, ginfo.compatibility_mode_variable);
+        if (m_sender->send_mc_addr_and_src_specific_query(m_timers_values, gaddr, slist, ginfo.compatibility_mode_variable)) {
+            auto llqi = m_timers_values.get_last_listener_query_interval();
+            auto rst = std::make_shared<retransmit_source_timer>(m_if_index, gaddr, llqi);
+            ginfo.source_retransmission_timer = rst;
+            m_timing->add_time(llqi, m_msg_worker, rst);
+        }
     }
-
 }
 
 querier::~querier()
