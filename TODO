@@ -28,7 +28,6 @@ struct mfcctl {
 };
 
 
-  
 overwork class timing with pipe and pselect
 
 exchange boost stuff (hamcast_logging)
