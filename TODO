@@ -29,7 +29,8 @@ struct mfcctl {
 
 
 overwork class timing with pipe and pselect
+implement RFC specific conditions for timers_vaules set operators 
+exchange boost stuff (hamcast_logging, README)
 
-exchange boost stuff (hamcast_logging)
 
 

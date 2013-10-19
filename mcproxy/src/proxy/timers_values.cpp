@@ -48,7 +48,7 @@ timers_values& timers_values::operator=(const timers_values& tv)
     reset_to_default_tank();
 
     if (!tv.is_default_timers_values_tank) {
-        is_default_timers_values_tank = true;
+        is_default_timers_values_tank = false;
         tank = new timers_values_tank;
         *tank = *tv.tank;
     }
@@ -333,6 +333,7 @@ void timers_values::set_unsolicited_report_interval(std::chrono::milliseconds un
 
 timers_values::~timers_values()
 {
+    HC_LOG_TRACE("");
     reset_to_default_tank();
 }
 
@@ -464,7 +465,20 @@ void timers_values::test_timers_values_copy()
     std::cout << "##-- test timers and values copy function --##" << std::endl;
     std::cout << "--------------------------------------" << std::endl;
 
-    cout << "my timers_values:" << tv << endl;
+    cout << "my timers_values:" << endl;
+    cout << tv << endl;
+
+    {
+        timers_values tv_copy;
+        tv_copy = tv;
+
+        cout << "timers_values copy:" << endl;
+        cout << tv_copy << endl;
+    }
+
+    cout << "my timers_values:" << endl;
+    cout << tv << endl;
+
 
 
 

@@ -373,10 +373,10 @@ void proxy_instance::test_querier(std::string if_name)
     timers_values tv;
 
     //set mali to 10 seconds
-    tv.set_query_interval(chrono::seconds(10));
-    tv.set_startup_query_interval(chrono::seconds(4));
-    tv.set_startup_query_count(4);
-    tv.set_query_response_interval(chrono::seconds(4));
+    tv.set_query_interval(chrono::seconds(4));
+    tv.set_startup_query_interval(chrono::seconds(2));
+    tv.set_startup_query_count(3);
+    tv.set_query_response_interval(chrono::seconds(2));
 
     cout << tv << endl;
     cout << endl;
@@ -404,7 +404,7 @@ void proxy_instance::test_querier(std::string if_name)
 void proxy_instance::quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
 {
     using namespace std;
-    cout << "##-- querier test A --##" << endl;
+    cout << "##-- querier quick test --##" << endl;
     print_proxy_instance();
 
     for (int i = 0; i < 120; ++i) {
