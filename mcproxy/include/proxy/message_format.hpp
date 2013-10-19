@@ -339,11 +339,20 @@ struct config_msg : public proxy_msg {
         DEL_UPSTREAM
     };
 
-    config_msg(config_instruction instruction, unsigned int if_index, std::unique_ptr<timers_values> tv)
+    config_msg(config_instruction instruction, unsigned int if_index)
+        : config_msg(instruction, if_index, timers_values()){
+        HC_LOG_TRACE("");
+        if(instruction != DEL_DOWNSTREAM && instruction != ADD_UPSTREAM && instruction != DEL_UPSTREAM){
+            HC_LOG_ERROR("config_msg is incomplet, missing parameter timer_values");
+            throw "config_msg is incomplet, missing parameter timer_values"; 
+        }
+    }
+    
+    config_msg(config_instruction instruction, unsigned int if_index, const timers_values& tv)
         : proxy_msg(CONFIG_MSG, SYSTEMIC)
         , m_instruction(instruction)
         , m_if_index(if_index)
-        , m_tv(move(tv)) {
+        , m_tv(tv) {
         HC_LOG_TRACE("");
     }
 
@@ -355,14 +364,14 @@ struct config_msg : public proxy_msg {
         return m_if_index;
     }
 
-    const timers_values& get_timers_values(){
-        return *m_tv.get(); 
+    const timers_values& get_timers_values() {
+        return m_tv;
     }
 
 private:
     config_instruction m_instruction;
     unsigned int m_if_index;
-    std::unique_ptr<timers_values> m_tv;
+    timers_values m_tv;
 };
 
 struct exit_cmd : public proxy_msg {

@@ -36,46 +36,24 @@ std::string to_hex_string(T n)
     return s.str();
 }
 
-
-std::string to_time_string(const std::chrono::seconds& sec)
-{
-    std::ostringstream s;
-    s << sec.count() << " sec";
-    return s.str();
-}
-
-std::string to_time_string(const std::chrono::milliseconds& msec)
-{
-    std::ostringstream s;
-    s << msec.count() << " msec";
-    return s.str();
-}
-
-std::string timers_values_tank::to_string() const
+timers_values::timers_values(const timers_values& tv)
 {
     HC_LOG_TRACE("");
-    std::ostringstream s;
-    //s << "Robustness Variable: " << robustness_variable << std::endl;
-    s << "Query Interval: " << to_time_string(query_interval) << std::endl;
-    s << "Query Response Interval: " << to_time_string(query_response_interval) << std::endl;
-    s << "Multicast Address Listining Interval: " << to_time_string(robustness_variable * query_interval + query_response_interval) << std::endl;
-    s << "Other Querier Present Interval: " << to_time_string(robustness_variable * query_interval * 1000 + (query_response_interval / 2)) << std::endl;;
-    s << "Startup Query Interval: " << to_time_string(startup_query_interval) << std::endl;
-    s << "Startup Query Count: " << startup_query_count << std::endl;
-    s << "Last Listener Query Interval: " << to_time_string(last_listener_query_interval) << std::endl;
-    s << "Last Listener Query Count: " << last_listener_query_count << std::endl;
-    s << "Last Listener Query Time: " << to_time_string(last_listener_query_interval * last_listener_query_count) << std::endl;
-    s << "Unsolicited Report Interval: " << to_time_string(unsolicited_report_interval) << std::endl;
-    s << "Older Host Present Interval: " << to_time_string((robustness_variable * query_interval) + query_response_interval) << std::endl;
-
-
-    return s.str();
+    *this = tv;
 }
 
-std::ostream& operator<<(std::ostream& stream, const timers_values_tank& tvt)
+timers_values& timers_values::operator=(const timers_values& tv)
 {
     HC_LOG_TRACE("");
-    return stream << tvt.to_string();
+    reset_to_default_tank();
+
+    if (!tv.is_default_timers_values_tank) {
+        is_default_timers_values_tank = true;
+        tank = new timers_values_tank;
+        *tank = *tv.tank;
+    }
+
+    return *this;
 }
 
 
@@ -123,7 +101,7 @@ uint8_t timers_values::qqi_to_qqic(const std::chrono::seconds& sec) const
             }
         }
 
-        HC_LOG_ERROR("unknown qqic sec: " << to_time_string(sec));
+        HC_LOG_ERROR("unknown qqic sec: " << time_to_string(sec));
         return 0;
     }
 }
@@ -192,7 +170,7 @@ uint16_t timers_values::maxrespi_to_maxrespc_mldv2(std::chrono::milliseconds mse
                 return (1 << 15) | (exp << 12) | mant;
             }
         }
-        HC_LOG_ERROR("unknown max response code: " << to_time_string(msec));
+        HC_LOG_ERROR("unknown max response code: " << time_to_string(msec));
         return 0;
     }
 }
@@ -364,7 +342,19 @@ std::string timers_values::to_string() const
     HC_LOG_TRACE("");
     std::ostringstream s;
     s << "is_default_timers_values_tank: " << (is_default_timers_values_tank ? "true" : "false") << std::endl;
-    s << tank->to_string() << std::endl;
+    s << "Robustness Variable: " << get_robustness_variable() << std::endl;
+    s << "Query Interval: " << time_to_string(get_query_interval()) << std::endl;
+    s << "Query Response Interval: " << time_to_string(get_query_response_interval()) << std::endl;
+    s << "Multicast Address Listining Interval: " << time_to_string(get_robustness_variable() * get_query_interval() + get_query_response_interval()) << std::endl;
+    s << "Other Querier Present Interval: " << time_to_string(get_robustness_variable() * get_query_interval() + (get_query_response_interval() / 2)) << std::endl;;
+    s << "Startup Query Interval: " << time_to_string(get_startup_query_interval()) << std::endl;
+    s << "Startup Query Count: " << get_startup_query_count() << std::endl;
+    s << "Last Listener Query Interval: " << time_to_string(get_last_listener_query_interval()) << std::endl;
+    s << "Last Listener Query Count: " << get_last_listener_query_count() << std::endl;
+    s << "Last Listener Query Time: " << time_to_string(get_last_listener_query_interval() * get_last_listener_query_count()) << std::endl;
+    s << "Unsolicited Report Interval: " << time_to_string(get_unsolicited_report_interval()) << std::endl;
+    s << "Older Host Present Interval: " << time_to_string((get_robustness_variable() * get_query_interval()) + get_query_response_interval()) << std::endl;
+
     return s.str();
 }
 
@@ -380,27 +370,27 @@ void timers_values::test_timers_values()
     timers_values tv;
     std::cout << "##-- test timers and values --##" << std::endl;
     std::cout << "--------------------------------------" << std::endl;
-    std::cout << "qqic_to_qqi(1): " << to_time_string((tv.qqic_to_qqi(1))) << std::endl;
-    std::cout << "qqic_to_qqi(20): " << to_time_string((tv.qqic_to_qqi(20))) << std::endl;
-    std::cout << "qqic_to_qqi(100): " << to_time_string((tv.qqic_to_qqi(100))) << std::endl;
-    std::cout << "qqic_to_qqi(127): " << to_time_string((tv.qqic_to_qqi(127))) << std::endl;
-    std::cout << "qqic_to_qqi(128): " << to_time_string((tv.qqic_to_qqi(128))) << std::endl;
-    std::cout << "qqic_to_qqi(129): " << to_time_string((tv.qqic_to_qqi(129))) << std::endl;
-    std::cout << "qqic_to_qqi(0xFF): " << to_time_string((tv.qqic_to_qqi(0xFF))) << std::endl;
+    std::cout << "qqic_to_qqi(1): " << time_to_string((tv.qqic_to_qqi(1))) << std::endl;
+    std::cout << "qqic_to_qqi(20): " << time_to_string((tv.qqic_to_qqi(20))) << std::endl;
+    std::cout << "qqic_to_qqi(100): " << time_to_string((tv.qqic_to_qqi(100))) << std::endl;
+    std::cout << "qqic_to_qqi(127): " << time_to_string((tv.qqic_to_qqi(127))) << std::endl;
+    std::cout << "qqic_to_qqi(128): " << time_to_string((tv.qqic_to_qqi(128))) << std::endl;
+    std::cout << "qqic_to_qqi(129): " << time_to_string((tv.qqic_to_qqi(129))) << std::endl;
+    std::cout << "qqic_to_qqi(0xFF): " << time_to_string((tv.qqic_to_qqi(0xFF))) << std::endl;
     std::cout << "--------------------------------------" << std::endl;
-    std::cout << "qqic_to_qqi(false,0,1): " << to_time_string((tv.qqic_to_qqi(false, 0, 1))) << std::endl;
-    std::cout << "qqic_to_qqi(false,0,7): " << to_time_string((tv.qqic_to_qqi(false, 0, 7))) << std::endl;
-    std::cout << "qqic_to_qqi(false,0,15): " << to_time_string((tv.qqic_to_qqi(false, 0, 15))) << std::endl;
-    std::cout << "qqic_to_qqi(false,0,16): " << to_time_string((tv.qqic_to_qqi(false, 0, 16))) << std::endl;
-    std::cout << "qqic_to_qqi(false,1,0): " << to_time_string((tv.qqic_to_qqi(false, 1, 0))) << std::endl;
-    std::cout << "qqic_to_qqi(false,7,0): " << to_time_string((tv.qqic_to_qqi(false, 7, 0))) << std::endl;
-    std::cout << "qqic_to_qqi(false,8,0): " << to_time_string((tv.qqic_to_qqi(false, 8, 0))) << std::endl;
-    std::cout << "qqic_to_qqi(false,7,15): " << to_time_string((tv.qqic_to_qqi(false, 7, 15))) << std::endl;
-    std::cout << "qqic_to_qqi(true,0,0): " << to_time_string((tv.qqic_to_qqi(true, 0, 0))) << std::endl;
-    std::cout << "qqic_to_qqi(true,0,1): " << to_time_string((tv.qqic_to_qqi(true, 0, 1))) << std::endl;
-    std::cout << "qqic_to_qqi(true,1,0): " << to_time_string((tv.qqic_to_qqi(true, 1, 0))) << std::endl;
-    std::cout << "qqic_to_qqi(true,1,1): " << to_time_string((tv.qqic_to_qqi(true, 1, 1))) << std::endl;
-    std::cout << "qqic_to_qqi(true,7,15): " << to_time_string((tv.qqic_to_qqi(true, 7, 15))) << std::endl;
+    std::cout << "qqic_to_qqi(false,0,1): " << time_to_string((tv.qqic_to_qqi(false, 0, 1))) << std::endl;
+    std::cout << "qqic_to_qqi(false,0,7): " << time_to_string((tv.qqic_to_qqi(false, 0, 7))) << std::endl;
+    std::cout << "qqic_to_qqi(false,0,15): " << time_to_string((tv.qqic_to_qqi(false, 0, 15))) << std::endl;
+    std::cout << "qqic_to_qqi(false,0,16): " << time_to_string((tv.qqic_to_qqi(false, 0, 16))) << std::endl;
+    std::cout << "qqic_to_qqi(false,1,0): " << time_to_string((tv.qqic_to_qqi(false, 1, 0))) << std::endl;
+    std::cout << "qqic_to_qqi(false,7,0): " << time_to_string((tv.qqic_to_qqi(false, 7, 0))) << std::endl;
+    std::cout << "qqic_to_qqi(false,8,0): " << time_to_string((tv.qqic_to_qqi(false, 8, 0))) << std::endl;
+    std::cout << "qqic_to_qqi(false,7,15): " << time_to_string((tv.qqic_to_qqi(false, 7, 15))) << std::endl;
+    std::cout << "qqic_to_qqi(true,0,0): " << time_to_string((tv.qqic_to_qqi(true, 0, 0))) << std::endl;
+    std::cout << "qqic_to_qqi(true,0,1): " << time_to_string((tv.qqic_to_qqi(true, 0, 1))) << std::endl;
+    std::cout << "qqic_to_qqi(true,1,0): " << time_to_string((tv.qqic_to_qqi(true, 1, 0))) << std::endl;
+    std::cout << "qqic_to_qqi(true,1,1): " << time_to_string((tv.qqic_to_qqi(true, 1, 1))) << std::endl;
+    std::cout << "qqic_to_qqi(true,7,15): " << time_to_string((tv.qqic_to_qqi(true, 7, 15))) << std::endl;
     std::cout << "--------------------------------------" << std::endl;
     std::cout << "qqi_to_qqic(1 sec): " << to_hex_string((tv.qqi_to_qqic(std::chrono::seconds(1)))) << std::endl;
     std::cout << "qqi_to_qqic(7 sec): " << to_hex_string((tv.qqi_to_qqic(std::chrono::seconds(7)))) << std::endl;
@@ -419,8 +409,8 @@ void timers_values::test_timers_values()
     }
 
     std::cout << "--------------------------------------" << std::endl;
-    std::cout << "maxrespc_igmpv3_to_maxrespi(true,1,1): " << to_time_string(tv.maxrespc_igmpv3_to_maxrespi(true, 1, 1)) << std::endl;
-    std::cout << "maxrespc_igmpv3_to_maxrespi(0xFF): " << to_time_string(tv.maxrespc_igmpv3_to_maxrespi(0xFF)) << std::endl;
+    std::cout << "maxrespc_igmpv3_to_maxrespi(true,1,1): " << time_to_string(tv.maxrespc_igmpv3_to_maxrespi(true, 1, 1)) << std::endl;
+    std::cout << "maxrespc_igmpv3_to_maxrespi(0xFF): " << time_to_string(tv.maxrespc_igmpv3_to_maxrespi(0xFF)) << std::endl;
 
     std::cout << "maxrespi_to_maxrespc_igmpv3(3174400 msec): " << to_hex_string(tv.maxrespi_to_maxrespc_igmpv3(std::chrono::milliseconds(3174400))) << std::endl;
 
@@ -435,16 +425,16 @@ void timers_values::test_timers_values()
     }
 
     std::cout << "--------------------------------------" << std::endl;
-    std::cout << "tv.maxrespc_mldv2_to_maxrespi(false,0,0): " << to_time_string(tv.maxrespc_mldv2_to_maxrespi(false, 0, 0)) << std::endl;
-    std::cout << "tv.maxrespc_mldv2_to_maxrespi(false,0,0): " << to_time_string(tv.maxrespc_mldv2_to_maxrespi(0)) << std::endl;
-    std::cout << "tv.maxrespc_mldv2_to_maxrespi(true,0,0): " << to_time_string(tv.maxrespc_mldv2_to_maxrespi(true, 0, 0)) << std::endl;
-    std::cout << "tv.maxrespc_mldv2_to_maxrespi(0x8000): " << to_time_string(tv.maxrespc_mldv2_to_maxrespi(0x8000)) << std::endl;
-    std::cout << "tv.maxrespc_mldv2_to_maxrespi(true,0,1): " << to_time_string(tv.maxrespc_mldv2_to_maxrespi(true, 0, 1)) << std::endl;
-    std::cout << "tv.maxrespc_mldv2_to_maxrespi(0x8001): " << to_time_string(tv.maxrespc_mldv2_to_maxrespi(0x8001)) << std::endl;
-    std::cout << "tv.maxrespc_mldv2_to_maxrespi(true,1,1): " << to_time_string(tv.maxrespc_mldv2_to_maxrespi(true, 1, 1)) << std::endl;
-    std::cout << "tv.maxrespc_mldv2_to_maxrespi(0x9001): " << to_time_string(tv.maxrespc_mldv2_to_maxrespi(0x9001)) << std::endl;
+    std::cout << "tv.maxrespc_mldv2_to_maxrespi(false,0,0): " << time_to_string(tv.maxrespc_mldv2_to_maxrespi(false, 0, 0)) << std::endl;
+    std::cout << "tv.maxrespc_mldv2_to_maxrespi(false,0,0): " << time_to_string(tv.maxrespc_mldv2_to_maxrespi(0)) << std::endl;
+    std::cout << "tv.maxrespc_mldv2_to_maxrespi(true,0,0): " << time_to_string(tv.maxrespc_mldv2_to_maxrespi(true, 0, 0)) << std::endl;
+    std::cout << "tv.maxrespc_mldv2_to_maxrespi(0x8000): " << time_to_string(tv.maxrespc_mldv2_to_maxrespi(0x8000)) << std::endl;
+    std::cout << "tv.maxrespc_mldv2_to_maxrespi(true,0,1): " << time_to_string(tv.maxrespc_mldv2_to_maxrespi(true, 0, 1)) << std::endl;
+    std::cout << "tv.maxrespc_mldv2_to_maxrespi(0x8001): " << time_to_string(tv.maxrespc_mldv2_to_maxrespi(0x8001)) << std::endl;
+    std::cout << "tv.maxrespc_mldv2_to_maxrespi(true,1,1): " << time_to_string(tv.maxrespc_mldv2_to_maxrespi(true, 1, 1)) << std::endl;
+    std::cout << "tv.maxrespc_mldv2_to_maxrespi(0x9001): " << time_to_string(tv.maxrespc_mldv2_to_maxrespi(0x9001)) << std::endl;
 
-    std::cout << "tv.maxrespc_mldv2_to_maxrespi(5274==" << to_hex_string(5274) << "): " << to_time_string(tv.maxrespc_mldv2_to_maxrespi(5274)) << std::endl;
+    std::cout << "tv.maxrespc_mldv2_to_maxrespi(5274==" << to_hex_string(5274) << "): " << time_to_string(tv.maxrespc_mldv2_to_maxrespi(5274)) << std::endl;
     std::cout << "tv.calc_msec_to_max_resp_code_mldv2(5274==" << to_hex_string(5274) << "): " << to_hex_string(tv.maxrespi_to_maxrespc_mldv2(std::chrono::milliseconds(5274))) << std::endl;
     std::cout << "--------------------------------------" << std::endl;
     for (int i = 1000; i <= 0xFFFF; i += 2137) {
@@ -455,5 +445,27 @@ void timers_values::test_timers_values()
             std::cout << "FAILED!" << std::endl;
         }
     }
+
+}
+void timers_values::test_timers_values_copy()
+{
+    using namespace std;
+    using namespace chrono;
+    timers_values tv;
+    tv.set_robustness_variable(99);
+    tv.set_query_interval(seconds(100));
+    tv.set_query_response_interval(milliseconds(101));
+    tv.set_startup_query_interval(seconds(102));
+    tv.set_startup_query_count(103);
+    tv.set_last_listener_query_interval(milliseconds(104));
+    tv.set_last_listener_query_count(105);
+    tv.set_unsolicited_report_interval(milliseconds(106));
+
+    std::cout << "##-- test timers and values copy function --##" << std::endl;
+    std::cout << "--------------------------------------" << std::endl;
+
+    cout << "my timers_values:" << tv << endl;
+
+
 
 }

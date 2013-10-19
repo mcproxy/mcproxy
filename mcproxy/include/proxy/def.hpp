@@ -29,6 +29,7 @@
 #include <set>
 #include <string>
 #include <iostream>
+#include <chrono>
 
 enum mc_filter {INCLUDE_MODE = MCAST_INCLUDE, EXLCUDE_MODE = MCAST_EXCLUDE};
 std::string get_mc_filter_name(mc_filter mf);
@@ -42,6 +43,9 @@ std::string get_group_mem_protocol_name(group_mem_protocol gmp);
 enum mcast_addr_record_type {MODE_IS_INCLUDE = 1, MODE_IS_EXCLUDE = 2, CHANGE_TO_INCLUDE_MODE = 3, CHANGE_TO_EXCLUDE_MODE = 4, ALLOW_NEW_SOURCES = 5, BLOCK_OLD_SOURCES = 6};
 std::string get_mcast_addr_record_type_name(mcast_addr_record_type art);
 
+//------------------------------------------------------------------------
+std::string time_to_string(const std::chrono::seconds& sec);
+std::string time_to_string(const std::chrono::milliseconds& msec);
 //------------------------------------------------------------------------
 template<typename T> using source_list = std::set<T>;
 

@@ -42,8 +42,6 @@ struct timers_values_tank {
     std::chrono::milliseconds last_listener_query_interval = std::chrono::milliseconds(1000);
     unsigned int last_listener_query_count = robustness_variable;
     std::chrono::milliseconds unsolicited_report_interval = std::chrono::milliseconds(1000);
-    std::string to_string() const;
-    friend std::ostream& operator<<(std::ostream& stream, const timers_values_tank& tvt);
 };
 
 
@@ -87,6 +85,12 @@ private:
     uint16_t maxrespi_to_maxrespc_mldv2(std::chrono::milliseconds msec) const;
 
 public:
+    timers_values() = default;
+    timers_values(const timers_values& tv);
+    timers_values& operator=(const timers_values& tv);
+    timers_values(timers_values&& tv) = default;
+    timers_values& operator=(timers_values&& tv) = default;
+
     unsigned int get_robustness_variable() const;
     std::chrono::seconds get_query_interval() const;
     std::chrono::milliseconds get_query_response_interval() const;
@@ -117,6 +121,7 @@ public:
     friend std::ostream& operator<<(std::ostream& stream, const timers_values& tv);
 
     static void test_timers_values();
+    static void test_timers_values_copy();
 };
 
 

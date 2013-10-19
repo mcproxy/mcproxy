@@ -370,18 +370,18 @@ void proxy_instance::test_querier(std::string if_name)
     proxy_instance pr_i(memproto, 0,  make_shared<interfaces>(get_addr_family(memproto), false), make_shared<timing>(), true);
 
     //add a downstream
-    unique_ptr<timers_values> tv{new timers_values};
-    tv->set_query_interval(chrono::seconds(20));
-    tv->set_startup_query_interval(chrono::seconds(5));
-??????????????ßß
-    //set mali to 10 seconds
-    //tv->set_query_interval(chrono::seconds(4));
-    //tv->set_query_response_interval(chrono::seconds(2));
+    timers_values tv;
 
-    cout << *tv << endl;
+    //set mali to 10 seconds
+    tv.set_query_interval(chrono::seconds(10));
+    tv.set_startup_query_interval(chrono::seconds(4));
+    tv.set_startup_query_count(4);
+    tv.set_query_response_interval(chrono::seconds(4));
+
+    cout << tv << endl;
     cout << endl;
 
-    pr_i.add_msg(make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, interfaces::get_if_index(if_name), move(tv)));
+    pr_i.add_msg(make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, interfaces::get_if_index(if_name), tv));
 
     auto print_proxy_instance = bind(&proxy_instance::add_msg, &pr_i, make_shared<debug_msg>());
 
@@ -407,8 +407,8 @@ void proxy_instance::quick_test(std::function < void(mcast_addr_record_type, sou
     cout << "##-- querier test A --##" << endl;
     print_proxy_instance();
 
-    for (int i = 0; i < 50; ++i) {
-        sleep(5);
+    for (int i = 0; i < 120; ++i) {
+        sleep(1);
         print_proxy_instance();
     }
 

@@ -56,10 +56,11 @@ bool sender::send_general_query(const timers_values& tv, group_mem_protocol gmp)
     HC_LOG_TRACE("");
 
     cout << "!!--ACTION: send general query" << endl;
-    cout << "max response time: " << tv.get_query_response_interval().count() << "msec" << endl;
-    cout << "qrv: " << tv.get_robustness_variable() << endl;
-    cout << "qqi: " << tv.get_query_interval().count() << "sec" << endl;
-    cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
+    //cout << "max response time: " << time_to_string(tv.get_query_response_interval()) << endl;
+    //cout << "qrv: " << tv.get_robustness_variable() << endl;
+    //cout << "qqi: " << time_to_string(tv.get_query_interval()) << endl;
+    //cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
+    cout << tv << endl;
     cout << endl;
     return true;
 }
@@ -70,11 +71,11 @@ bool sender::send_mc_addr_specific_query(const timers_values& tv, const addr_sto
     HC_LOG_TRACE("");
 
     cout << "!!--ACTION: send multicast address specific query" << endl;
-    cout << "max response time: " << tv.get_query_response_interval().count() << "msec" << endl;
+    cout << "max response time: " << time_to_string(tv.get_query_response_interval()) << endl;
     cout << "group address: " << gaddr << endl;
     cout << "s-flag: " << (s_flag? "true": "false") << endl;
     cout << "qrv: " << tv.get_robustness_variable() << endl;
-    cout << "qqi: " << tv.get_query_interval().count() << "sec" << endl;
+    cout << "qqi: " << time_to_string(tv.get_query_interval())  << endl;
     cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
     cout << endl;
     return true;
@@ -100,10 +101,10 @@ bool sender::send_mc_addr_and_src_specific_query(const timers_values& tv, const 
 
     if (!list_lower.empty() || !list_higher.empty() ) {
         cout << "!!--ACTION: send one or two multicast address and source specific queries" << endl;
-        cout << "max response time: " << tv.get_query_response_interval().count() << "msec" << endl;
+        cout << "max response time: " << time_to_string(tv.get_query_response_interval()) << endl;
         cout << "group address: " << gaddr << endl;
         cout << "qrv: " << tv.get_robustness_variable() << endl;
-        cout << "qqi: " << tv.get_query_interval().count() << "sec" << endl;
+        cout << "qqi: " << time_to_string(tv.get_query_interval()) << endl;
         cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
         cout << "source list with without S-flag: " << list_lower << endl;
         cout << "source list with with S-flag: " << list_higher << endl;

@@ -21,6 +21,9 @@
  */
 #include "include/proxy/def.hpp"
 
+#include <chrono>
+#include <sstream>
+
 bool is_IPv4(group_mem_protocol gmp)
 {
     return (IGMPv1 | IGMPv2 | IGMPv3) & gmp;
@@ -75,3 +78,16 @@ std::string get_mcast_addr_record_type_name(mcast_addr_record_type art)
     return name_map[art];
 }
 
+std::string time_to_string(const std::chrono::seconds& sec)
+{
+    std::ostringstream s;
+    s << sec.count() << " sec";
+    return s.str();
+}
+
+std::string time_to_string(const std::chrono::milliseconds& msec)
+{
+    std::ostringstream s;
+    s << msec.count() << " msec";
+    return s.str();
+}

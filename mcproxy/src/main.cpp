@@ -85,10 +85,10 @@ void test_test()
     //addr_storage::test_addr_sto_b();
     //membership_db::test_arithmetic();
     //timers_values::test_timers_values();
+    timers_values::test_timers_values_copy();
     //timing::test_timing();
     //proxy_configuration::test_proxy_configuration(); 
     //worker::test_worker();
-
-    proxy_instance::test_querier("dummy0");
+    //proxy_instance::test_querier("dummy0");
 
 }
