@@ -92,6 +92,7 @@ public:
     void timer_triggerd(const std::shared_ptr<proxy_msg>& msg);
    
     bool suggest_to_forward_traffic(const addr_storage& gaddr,const addr_storage& saddr) const;
+    bool suggest_to_forward_traffic(const addr_storage& gaddr,const addr_storage& saddr, mc_filter& filter_mode, source_list<source>& slist) const; //4.2.  Per-Interface State (merge your own multicast state)
 
     void receive_query();
 

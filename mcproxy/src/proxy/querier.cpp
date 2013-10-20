@@ -680,12 +680,38 @@ bool querier::suggest_to_forward_traffic(const addr_storage& gaddr, const addr_s
             if (db_info_it->second.filter_mode == INCLUDE_MODE) {
                 auto irl_it = db_info_it->second.include_requested_list.find(saddr);
                 if (irl_it != std::end(db_info_it->second.include_requested_list) ) {
-                    return true;    
+                    return true;
                 }
             } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
-                auto el_it= db_info_it->second.exclude_list.find(saddr);
+                auto el_it = db_info_it->second.exclude_list.find(saddr);
                 if (el_it == std::end(db_info_it->second.exclude_list) ) {
-                    return true;    
+                    return true;
+                }
+            } else {
+                HC_LOG_ERROR("unknown filter mode");
+            }
+        }
+    }
+
+    return false;
+}
+
+bool querier::suggest_to_forward_traffic(const addr_storage& gaddr, const addr_storage& saddr, mc_filter& filter_mode, source_list<source>& slist) const
+{
+    HC_LOG_TRACE("");
+
+    if (m_db.is_querier == true) {
+        auto db_info_it = m_db.group_info.find(gaddr);
+        if (db_info_it != std::end(m_db.group_info)) {
+            if (db_info_it->second.filter_mode == INCLUDE_MODE) {
+                auto irl_it = db_info_it->second.include_requested_list.find(saddr);
+                if (irl_it != std::end(db_info_it->second.include_requested_list) ) {
+                    return true;
+                }
+            } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
+                auto el_it = db_info_it->second.exclude_list.find(saddr);
+                if (el_it == std::end(db_info_it->second.exclude_list) ) {
+                    return true;
                 }
             } else {
                 HC_LOG_ERROR("unknown filter mode");
