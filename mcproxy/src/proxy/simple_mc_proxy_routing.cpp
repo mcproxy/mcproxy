@@ -24,6 +24,10 @@
 #include "include/proxy/simple_mc_proxy_routing.hpp"
 #include "include/proxy/interfaces.hpp"
 #include "include/utils/addr_storage.hpp"
+#include "include/proxy/proxy_instance.hpp"
+#include "include/proxy/querier.hpp"
+#include "include/proxy/routing.hpp"
+#include "include/proxy/interfaces.hpp"
 
 simple_mc_proxy_routing::simple_mc_proxy_routing(const proxy_instance* p)
     : routing_management(p)
@@ -32,133 +36,61 @@ simple_mc_proxy_routing::simple_mc_proxy_routing(const proxy_instance* p)
 
 }
 
-void simple_mc_proxy_routing::add_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
-{
-    HC_LOG_TRACE("");
-    auto data_it = m_data.find(if_index);
-    if (data_it != std::end(m_data)) {
-        add_source(data_it, gaddr, saddr);
-    } else {
-        m_data.insert(routing_data_pair(if_index, { group_data_pair(gaddr, {saddr}) } ));
-    }
-
-}
-
-void simple_mc_proxy_routing::add_source(routing_data::iterator data_it, const addr_storage& gaddr, const addr_storage& saddr)
-{
-    HC_LOG_TRACE("");
-    auto gaddr_it = data_it->second.find(gaddr);
-    if (gaddr_it != std::end(data_it->second)) {
-        add_source(gaddr_it, saddr);
-    } else {
-        data_it->second.insert(group_data_pair(gaddr, {saddr}));
-    }
-}
-
-void simple_mc_proxy_routing::add_source(group_data::iterator gaddr_it, const addr_storage& saddr)
-{
-    HC_LOG_TRACE("");
-    gaddr_it->second.insert(saddr);
-}
-
-
-void simple_mc_proxy_routing::del_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
-{
-    HC_LOG_TRACE("");
-    auto data_it = m_data.find(if_index);
-    if (data_it != std::end(m_data)) {
-        del_source(data_it, gaddr, saddr);
-        if (data_it->second.empty()) {
-            m_data.erase(data_it);
-        }
-    }
-
-}
-
-void simple_mc_proxy_routing::del_source(routing_data::iterator data_it, const addr_storage& gaddr, const addr_storage& saddr)
-{
-    HC_LOG_TRACE("");
-    auto gaddr_it = data_it->second.find(gaddr);
-    if (gaddr_it != std::end(data_it->second)) {
-        del_source(gaddr_it, saddr);
-        if (gaddr_it->second.empty()) {
-            data_it->second.erase(gaddr_it);
-        }
-    }
-}
-
-void simple_mc_proxy_routing::del_source(group_data::iterator gaddr_it, const addr_storage& saddr)
-{
-    HC_LOG_TRACE("");
-    gaddr_it->second.erase(saddr);
-}
-
 void simple_mc_proxy_routing::event_new_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
 {
     HC_LOG_TRACE("");
-
+    add_proxy_route(if_index, gaddr, saddr, collect_interested_interfaces(if_index, gaddr, saddr));
 }
 
 void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
 {
     HC_LOG_TRACE("");
-
-
+    add_proxy_route(if_index, gaddr, saddr, collect_interested_interfaces(if_index, gaddr, saddr));
 }
 
-void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg)
+bool simple_mc_proxy_routing::is_upstream(unsigned int if_index)
 {
     HC_LOG_TRACE("");
 
-
-
+    if (m_p->m_upstream == if_index) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
-std::string simple_mc_proxy_routing::to_string() const
+std::list<unsigned int> simple_mc_proxy_routing::collect_interested_interfaces(unsigned int receiver_if, const addr_storage& gaddr, const addr_storage& saddr)
 {
-    using  namespace std;
     HC_LOG_TRACE("");
-    ostringstream s;
-    s << "##-- simple multicast routing information base --##" << endl;;
-    for (auto a : m_data) {
-        s << "-- " << interfaces::get_if_name(a.first) << " --" << endl;
+    std::list<unsigned int> rt;
 
-        for (auto b : a.second) {
-            s << "\tgroup: " << b.first << endl;
-            s << "\t\tsources (#" << a.second.size() << "): ";
+    if (!is_upstream(receiver_if)) {
+        rt.push_back(receiver_if);
+    }
 
-            int i = 1;
-            for (auto & c : b.second) {
-                ++i;
-                if (i % 4 == 0) {
-                    s << endl<< "\t";
-                }
-                s << c.to_string() << " ";
+    for (auto & e : m_p->m_querier) {
+        if (e.first != receiver_if) {
+            if (e.second->suggest_to_forward_traffic(gaddr, saddr)) {
+                rt.push_back(receiver_if);
             }
-            s << endl;
         }
     }
 
-    return s.str();
+    return rt;
 }
 
-void simple_mc_proxy_routing::test_simple_mc_proxy_routing()
+void simple_mc_proxy_routing::add_proxy_route(unsigned int input_if_index, const addr_storage& gaddr, const addr_storage& saddr, const std::list<unsigned int>& output_if_index)
 {
-    using namespace std;
-    simple_mc_proxy_routing sr(nullptr);
-    cout << sr << endl; 
-    sr.add_source(1, addr_storage("10.1.1.1"), addr_storage("1.1.1.1")); 
-    sr.add_source(1, addr_storage("10.1.1.1"), addr_storage("1.1.1.2")); 
-    sr.add_source(1, addr_storage("10.1.1.1"), addr_storage("1.1.1.3")); 
-    sr.add_source(1, addr_storage("10.1.1.2"), addr_storage("1.1.1.1")); 
-    sr.add_source(1, addr_storage("10.1.1.2"), addr_storage("1.1.1.2")); 
-    sr.add_source(1, addr_storage("10.1.1.3"), addr_storage("1.1.1.1")); 
-    sr.add_source(0, addr_storage("10.1.1.1"), addr_storage("1.1.1.1")); 
-    sr.add_source(0, addr_storage("10.1.1.1"), addr_storage("1.1.1.2")); 
-    cout << sr << endl; 
-    sr.del_source(1, addr_storage("10.1.1.2"), addr_storage("1.1.1.1")); 
-    sr.del_source(1, addr_storage("10.1.1.2"), addr_storage("1.1.1.1")); 
-    sr.del_source(0, addr_storage("10.1.1.1"), addr_storage("1.1.1.1")); 
-    sr.del_source(0, addr_storage("10.1.1.1"), addr_storage("1.1.1.2")); 
-    cout << sr << endl; 
+    HC_LOG_TRACE("");
+
+    if (output_if_index.empty()) {
+        m_p->m_routing->del_route(m_p->m_interfaces->get_virtual_if_index(input_if_index), gaddr, saddr);
+    } else {
+        std::list<int> vif_out;
+        for (auto e : output_if_index) {
+            vif_out.push_back(m_p->m_interfaces->get_virtual_if_index(e));
+        }
+
+        m_p->m_routing->add_route(m_p->m_interfaces->get_virtual_if_index(input_if_index), gaddr, saddr, vif_out);
+    }
 }

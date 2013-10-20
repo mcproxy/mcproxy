@@ -44,6 +44,8 @@ class receiver;
 class sender;
 class routing;
 class mroute_socket;
+
+class simple_mc_proxy_routing;
 class routing_management;
 
 /**
@@ -109,6 +111,7 @@ public:
     static void rand_test(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
 
     friend routing_management;
+    friend simple_mc_proxy_routing;
 };
 
 #endif // PROXY_INSTANCE_HPP

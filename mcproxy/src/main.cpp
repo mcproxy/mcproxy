@@ -91,5 +91,4 @@ void test_test()
     //proxy_configuration::test_proxy_configuration(); 
     //worker::test_worker();
     //proxy_instance::test_querier("dummy0");
-    simple_mc_proxy_routing::test_simple_mc_proxy_routing();
 }

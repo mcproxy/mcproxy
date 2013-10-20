@@ -92,7 +92,7 @@ bool routing::add_vif(int if_index, int vif) const
     return true;
 }
 
-bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr, const std::list<unsigned int>& output_vif) const 
+bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr, const std::list<int>& output_vif) const 
 {
     HC_LOG_TRACE("");
 

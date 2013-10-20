@@ -186,7 +186,7 @@ public:
      * @param vif_index virtual index of the interface
      * @return Return true on success.
      */
-    bool del_vif(vifi_t vif_index) const;
+    bool del_vif(int vif_index) const;
 
     /**
      * @brief Adds a multicast route to the kernel.
@@ -199,7 +199,7 @@ public:
      * @param output_vifNum_size size of the interface indexes
      * @return Return true on success.
      */
-    bool add_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif) const;
+    bool add_mroute(int vif_index, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<int>& output_vif) const;
 
     /**
      * @brief Delete a multicast route.
@@ -208,7 +208,7 @@ public:
      * @param group_addr from the receiving packet
      * @return Return true on success.
      */
-    bool del_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr) const;
+    bool del_mroute(int vif_index, const addr_storage& source_addr, const addr_storage& group_addr) const;
 
     /**
      * @brief Get various statistics per interface.
@@ -217,7 +217,7 @@ public:
      * @param req_v6 musst point to a sioc_mif_req6 struct and will filled by this function when ipv6 is used
      * @return Return true on success.
      */
-    bool get_vif_stats(vifi_t vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6) const;
+    bool get_vif_stats(int vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6) const;
 
     /**
      * @brief Get various statistics per multicast route.
@@ -244,7 +244,7 @@ public:
 #define  MROUTE_SOCKET_IF_STR_TWO "wlan0"
 #define  MROUTE_SOCKET_IF_STR_THREE "tun0"
 
-    void print_vif_stats(vifi_t vif_index) const;
+    void print_vif_stats(int vif_index) const;
     void print_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr) const;
 
     static void print_struct_mf6cctl(struct mf6cctl* mc);

@@ -438,7 +438,7 @@ bool mroute_socket::add_vif(int vifNum, uint32_t if_index, const addr_storage& i
     }
 }
 
-bool mroute_socket::del_vif(vifi_t vif_index) const
+bool mroute_socket::del_vif(int vif_index) const
 {
     HC_LOG_TRACE("");
 
@@ -569,7 +569,7 @@ bool mroute_socket::unbind_vif_form_table(uint32_t if_index, int table) const
 
 //source_addr is the source address of the received multicast packet
 //group_addr group address of the received multicast packet
-bool mroute_socket::add_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<unsigned int>& output_vif) const
+bool mroute_socket::add_mroute(int vif_index, const addr_storage& source_addr, const addr_storage& group_addr, const std::list<int>& output_vif) const
 {
 
 //unsigned int* output_vifTTL, unsigned int output_vifTTL_Ncount){
@@ -641,7 +641,7 @@ bool mroute_socket::add_mroute(vifi_t vif_index, const addr_storage& source_addr
 
 }
 
-bool mroute_socket::del_mroute(vifi_t vif_index, const addr_storage& source_addr, const addr_storage& group_addr) const
+bool mroute_socket::del_mroute(int vif_index, const addr_storage& source_addr, const addr_storage& group_addr) const
 {
     HC_LOG_TRACE("");
 
@@ -690,7 +690,7 @@ bool mroute_socket::del_mroute(vifi_t vif_index, const addr_storage& source_addr
     return false;
 }
 
-bool mroute_socket::get_vif_stats(vifi_t vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6) const
+bool mroute_socket::get_vif_stats(int vif_index, struct sioc_vif_req* req_v4, struct sioc_mif_req6* req_v6) const
 {
     HC_LOG_TRACE("");
 
@@ -799,7 +799,7 @@ bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr
     return false;
 }
 
-void mroute_socket::print_vif_stats(vifi_t vif_index) const
+void mroute_socket::print_vif_stats(int vif_index) const
 {
     using namespace std;
     HC_LOG_TRACE("");
@@ -1120,7 +1120,7 @@ void mroute_socket::test_add_route(mroute_socket* m)
 
     cout << "-- addRoute test --" << endl;
     //unsigned int output_vifs[]={[>if_three,<] if_two}; //if_two
-    list<unsigned int> output_vifs = { if_two };
+    list<int> output_vifs = { if_two };
     if (m->add_mroute(if_one, src_addr, g_addr , output_vifs)) {
         cout << "addRoute (" << str_if_one << " ==> " << str_if_two << ") OK!" << endl;
     } else {
