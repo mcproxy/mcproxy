@@ -90,6 +90,8 @@ public:
 
     void receive_record(const std::shared_ptr<proxy_msg>& msg);
     void timer_triggerd(const std::shared_ptr<proxy_msg>& msg);
+   
+    bool suggest_to_forward_traffic(const addr_storage& gaddr,const addr_storage& saddr) const;
 
     void receive_query();
 

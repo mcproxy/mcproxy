@@ -54,7 +54,8 @@ SOURCES += src/main.cpp \
            src/proxy/timers_values.cpp \
            src/proxy/interfaces.cpp \
            src/proxy/proxy_configuration.cpp \
-           src/proxy/def.cpp
+           src/proxy/def.cpp \
+           src/proxy/simple_mc_proxy_routing.cpp
 
 HEADERS += include/hamcast_logging.h \
                 #utils
@@ -86,7 +87,9 @@ HEADERS += include/hamcast_logging.h \
            include/proxy/querier.hpp \
            include/proxy/timers_values.hpp \
            include/proxy/interfaces.hpp \
-           include/proxy/proxy_configuration.hpp
+           include/proxy/proxy_configuration.hpp \
+           include/proxy/routing_management.hpp \
+           include/proxy/simple_mc_proxy_routing.hpp
 
 LIBS += -L/usr/lib -lboost_thread \
         -lboost_date_time \

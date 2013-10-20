@@ -34,6 +34,7 @@
 #include "include/proxy/querier.hpp"
 #include "include/proxy/interfaces.hpp"
 #include "include/proxy/timing.hpp"
+#include "include/proxy/routing_management.hpp"
 
 #include <sstream>
 #include <iostream>
@@ -52,6 +53,7 @@ proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, int table_
     , m_sender(nullptr)
     , m_receiver(nullptr)
     , m_routing(nullptr)
+    , m_upstream(0)
 {
     HC_LOG_TRACE("");
 
@@ -288,8 +290,10 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     }
     break;
     case config_msg::ADD_UPSTREAM:
+        m_upstream = msg->get_if_index();
         break;
     case config_msg::DEL_UPSTREAM:
+        m_upstream = 0;
         break;
     default:
         HC_LOG_ERROR("unknown config message format");

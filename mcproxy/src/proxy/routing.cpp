@@ -42,7 +42,7 @@ routing::routing(int addr_family, const std::shared_ptr<const mroute_socket> mrt
     }
 }
 
-bool routing::add_vif(int if_index, int vif)
+bool routing::add_vif(int if_index, int vif) const
 {
     HC_LOG_TRACE("");
 
@@ -92,8 +92,7 @@ bool routing::add_vif(int if_index, int vif)
     return true;
 }
 
-bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr,
-                        const std::list<unsigned int>& output_vif)
+bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr, const std::list<unsigned int>& output_vif) const 
 {
     HC_LOG_TRACE("");
 
@@ -117,7 +116,7 @@ bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_st
     return true;
 }
 
-bool routing::del_route(int vif, const addr_storage& g_addr, const addr_storage& src_addr)
+bool routing::del_route(int vif, const addr_storage& g_addr, const addr_storage& src_addr) const
 {
     HC_LOG_TRACE("");
 
@@ -128,7 +127,7 @@ bool routing::del_route(int vif, const addr_storage& g_addr, const addr_storage&
     return true;
 }
 
-bool routing::del_vif(int if_index, int vif)
+bool routing::del_vif(int if_index, int vif) const
 {
     HC_LOG_TRACE("");
 

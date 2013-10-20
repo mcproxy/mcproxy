@@ -55,26 +55,25 @@ public:
       * @brief Add a virtual interface to the linux kernel table.
       * @return Return true on success.
       */
-    bool add_vif(int if_index, int vif);
+    bool add_vif(int if_index, int vif) const;
 
     /**
       * @brief Delete a virtual interface from the linux kernel table.
       * @return Return true on success.
       */
-    bool del_vif(int if_index, int vif);
+    bool del_vif(int if_index, int vif) const;
 
     /**
       * @brief Add a multicast route to the linux kernel table.
       * @return Return true on success.
       */
-    bool add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr,
-                   const std::list<unsigned int>& output_vif);
+    bool add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr, const std::list<unsigned int>& output_vif) const;
 
     /**
       * @brief Delete a multicast route from the linux kernel table.
       * @return Return true on success.
       */
-    bool del_route(int vif, const addr_storage& g_addr, const addr_storage& src_addr);
+    bool del_route(int vif, const addr_storage& g_addr, const addr_storage& src_addr) const;
 
 };
 

@@ -44,6 +44,7 @@ class receiver;
 class sender;
 class routing;
 class mroute_socket;
+class routing_management;
 
 /**
  * @brief Represent a multicast Proxy
@@ -51,9 +52,9 @@ class mroute_socket;
 class proxy_instance: public worker
 {
 private:
-    group_mem_protocol m_group_mem_protocol; //AF_INET or AF_INET6
-    int m_table_number; // 0 means no table number
-    bool m_in_debug_testing_mode;
+    const group_mem_protocol m_group_mem_protocol; //AF_INET or AF_INET6
+    const int m_table_number; // 0 means no table number
+    const bool m_in_debug_testing_mode;
 
 
     //check_source m_check_source;
@@ -66,9 +67,12 @@ private:
 
     std::unique_ptr<receiver> m_receiver;
     std::unique_ptr<routing> m_routing;
+    std::unique_ptr<routing_management> m_routing_management;
+
+    unsigned int m_upstream;
 
     //if_index, querier
-    std::map<int, std::unique_ptr<querier>> m_querier;
+    std::map<unsigned int, std::unique_ptr<querier>> m_querier;
 
     //init
     bool init_mrt_socket();
@@ -103,6 +107,8 @@ public:
 
     static void quick_test(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
     static void rand_test(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
+
+    friend routing_management;
 };
 
 #endif // PROXY_INSTANCE_HPP

@@ -35,7 +35,7 @@
 #include <iostream>
 #include <sstream>
 
-querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing,const timers_values& tv)
+querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv)
     : m_msg_worker(msg_worker)
     , m_if_index(if_index)
     , m_db(querier_version_mode)
@@ -668,6 +668,32 @@ timers_values& querier::get_timers_values()
 {
     HC_LOG_TRACE("");
     return m_timers_values;
+}
+
+bool querier::suggest_to_forward_traffic(const addr_storage& gaddr, const addr_storage& saddr) const
+{
+    HC_LOG_TRACE("");
+
+    if (m_db.is_querier == true) {
+        auto db_info_it = m_db.group_info.find(gaddr);
+        if (db_info_it != std::end(m_db.group_info)) {
+            if (db_info_it->second.filter_mode == INCLUDE_MODE) {
+                auto irl_it = db_info_it->second.include_requested_list.find(saddr);
+                if (irl_it != std::end(db_info_it->second.include_requested_list) ) {
+                    return true;    
+                }
+            } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
+                auto el_it= db_info_it->second.exclude_list.find(saddr);
+                if (el_it == std::end(db_info_it->second.exclude_list) ) {
+                    return true;    
+                }
+            } else {
+                HC_LOG_ERROR("unknown filter mode");
+            }
+        }
+    }
+
+    return false;
 }
 
 std::string querier::to_string() const
