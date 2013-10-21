@@ -34,10 +34,15 @@
 #include <functional>
 #include <string>
 #include <memory>
+#include <functional>
 
 class timing;
 class sender;
 class worker;
+
+//interface index, group address, source adress
+using call_back_querier_state_change = std::function<void(unsigned int, const addr_storage&, const addr_storage& )>;
+
 /**
  * @brief define the behaviour of a multicast querier for a specific interface
  */
@@ -48,13 +53,14 @@ private:
     int m_if_index;
     membership_db m_db;
     timers_values m_timers_values;
+    call_back_querier_state_change m_cb_state_change;
 
     const std::shared_ptr<const sender> m_sender;
     const std::shared_ptr<timing> m_timing;
 
     //join all router groups or leave them
     bool router_groups_function(std::function<bool(const sender&, int, addr_storage)> f) const;
-    bool send_general_query();  
+    bool send_general_query();
 
     void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo);
     void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo);
@@ -75,24 +81,25 @@ private:
     void send_Q(const addr_storage& gaddr, gaddr_info& ginfo);
 
     //send multicast address and source specific and include only elements of tmp_list
-    void send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<source>& slist, source_list<source>&& tmp_list,bool in_retransmission_state = false);
+    void send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<source>& slist, source_list<source>&& tmp_list, bool in_retransmission_state = false);
 
     void timer_triggerd_filter_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_ret_group_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_ret_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_general_query_timer(const std::shared_ptr<timer_msg>& msg);
+
+    void state_change_notification(const addr_storage& gaddr, source_list<source>&& slist);
 public:
 
     virtual ~querier();
 
-    querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv);
+    querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv,call_back_querier_state_change cb_state_change);
 
     void receive_record(const std::shared_ptr<proxy_msg>& msg);
     void timer_triggerd(const std::shared_ptr<proxy_msg>& msg);
-   
-    bool suggest_to_forward_traffic(const addr_storage& gaddr,const addr_storage& saddr) const;
-    bool suggest_to_forward_traffic(const addr_storage& gaddr,const addr_storage& saddr, mc_filter& filter_mode, source_list<source>& slist) const; //4.2.  Per-Interface State (merge your own multicast state)
+
+    bool suggest_to_forward_traffic(const addr_storage& gaddr, const addr_storage& saddr, mc_filter* filter_mode = nullptr, source_list<source>* slist = nullptr) const; //4.2.  Per-Interface State (merge your own multicast state)
 
     void receive_query();
 

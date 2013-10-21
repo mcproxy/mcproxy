@@ -28,6 +28,7 @@
 #include "include/proxy/querier.hpp"
 #include "include/proxy/routing.hpp"
 #include "include/proxy/interfaces.hpp"
+#include "include/proxy/sender.hpp"
 
 simple_mc_proxy_routing::simple_mc_proxy_routing(const proxy_instance* p)
     : routing_management(p)
@@ -45,7 +46,10 @@ void simple_mc_proxy_routing::event_new_source(unsigned int if_index, const addr
 void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
 {
     HC_LOG_TRACE("");
-    add_proxy_route(if_index, gaddr, saddr, collect_interested_interfaces(if_index, gaddr, saddr));
+    mc_filter filter_mode = INCLUDE_MODE;
+    source_list<source> slist;
+    add_proxy_route(if_index, gaddr, saddr, collect_interested_interfaces(if_index, gaddr, saddr, &filter_mode, &slist));
+    send_record(if_index, gaddr, saddr, filter_mode, slist);
 }
 
 bool simple_mc_proxy_routing::is_upstream(unsigned int if_index)
@@ -59,7 +63,7 @@ bool simple_mc_proxy_routing::is_upstream(unsigned int if_index)
     }
 }
 
-std::list<unsigned int> simple_mc_proxy_routing::collect_interested_interfaces(unsigned int receiver_if, const addr_storage& gaddr, const addr_storage& saddr)
+std::list<unsigned int> simple_mc_proxy_routing::collect_interested_interfaces(unsigned int receiver_if, const addr_storage& gaddr, const addr_storage& saddr, mc_filter* filter_mode, source_list<source>* slist )
 {
     HC_LOG_TRACE("");
     std::list<unsigned int> rt;
@@ -70,7 +74,7 @@ std::list<unsigned int> simple_mc_proxy_routing::collect_interested_interfaces(u
 
     for (auto & e : m_p->m_querier) {
         if (e.first != receiver_if) {
-            if (e.second->suggest_to_forward_traffic(gaddr, saddr)) {
+            if (e.second->suggest_to_forward_traffic(gaddr, saddr, filter_mode, slist)) {
                 rt.push_back(receiver_if);
             }
         }
@@ -79,7 +83,7 @@ std::list<unsigned int> simple_mc_proxy_routing::collect_interested_interfaces(u
     return rt;
 }
 
-void simple_mc_proxy_routing::add_proxy_route(unsigned int input_if_index, const addr_storage& gaddr, const addr_storage& saddr, const std::list<unsigned int>& output_if_index)
+void simple_mc_proxy_routing::add_proxy_route(unsigned int input_if_index, const addr_storage& gaddr, const addr_storage& saddr, const std::list<unsigned int>& output_if_index) const
 {
     HC_LOG_TRACE("");
 
@@ -93,4 +97,12 @@ void simple_mc_proxy_routing::add_proxy_route(unsigned int input_if_index, const
 
         m_p->m_routing->add_route(m_p->m_interfaces->get_virtual_if_index(input_if_index), gaddr, saddr, vif_out);
     }
+}
+
+void simple_mc_proxy_routing::send_record(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr, mc_filter filter_mode, const source_list<source>& slist) const
+{
+    HC_LOG_TRACE("");
+
+    m_p->m_sender->send_report(if_index, filter_mode, gaddr, slist);
+
 }

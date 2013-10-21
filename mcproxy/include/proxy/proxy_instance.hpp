@@ -81,6 +81,7 @@ private:
     bool init_sender();
     bool init_receiver();
     bool init_routing();
+    bool init_routing_management();
 
     void worker_thread();
 

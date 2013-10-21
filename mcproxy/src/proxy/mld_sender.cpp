@@ -29,11 +29,11 @@
 
 #include <memory>
 
-mld_sender::mld_sender(): sender(AF_INET6)
+mld_sender::mld_sender(): sender(MLDv2)
 {
     HC_LOG_TRACE("");
 
-    if (m_addr_family == AF_INET6) {
+    if (is_IPv6(m_group_mem_protocol)) {
         if (!m_sock.set_default_icmp6_checksum_calc(true)) {
             throw "failed to set default icmmpv6 checksum";
         }
@@ -41,118 +41,118 @@ mld_sender::mld_sender(): sender(AF_INET6)
             throw "failed to add hop by hop header";
         }
     } else {
-        HC_LOG_ERROR("wrong address family: " << m_addr_family);
+        HC_LOG_ERROR("wrong address family: " <<get_group_mem_protocol_name(m_group_mem_protocol));
         throw "wrong address family";
     }
 
 }
 
-bool mld_sender::send_general_query(int if_index) const
-{
-    HC_LOG_TRACE("");
+//bool mld_sender::send_general_query(int if_index) const
+//{
+    //HC_LOG_TRACE("");
 
-    int size = get_msg_min_size();
-    if (size < 0) {
-        return false;
-    }
+    //int size = get_msg_min_size();
+    //if (size < 0) {
+        //return false;
+    //}
 
-    if (!m_sock.choose_if(if_index)) {
-        return false;
-    }
+    //if (!m_sock.choose_if(if_index)) {
+        //return false;
+    //}
 
-    std::unique_ptr<unsigned char[]> buf {new unsigned char[size] };
-    //unsigned char buf[size];
-    if (!create_mc_query(GENERAL_QUERY, buf.get())) {
-        return false;
-    }
+    //std::unique_ptr<unsigned char[]> buf {new unsigned char[size] };
+    ////unsigned char buf[size];
+    //if (!create_mc_query(GENERAL_QUERY, buf.get())) {
+        //return false;
+    //}
 
-    return m_sock.send_packet(addr_storage(IPV6_ALL_NODES_ADDR), buf.get(), size);
-}
+    //return m_sock.send_packet(addr_storage(IPV6_ALL_NODES_ADDR), buf.get(), size);
+//}
 
-bool mld_sender::send_group_specific_query(int if_index, const addr_storage& g_addr) const
-{
-    HC_LOG_TRACE("");
+//bool mld_sender::send_group_specific_query(int if_index, const addr_storage& g_addr) const
+//{
+    //HC_LOG_TRACE("");
 
-    int size = get_msg_min_size();
-    if (size < 0) {
-        return false;
-    }
+    //int size = get_msg_min_size();
+    //if (size < 0) {
+        //return false;
+    //}
 
-    if (!m_sock.choose_if(if_index)) {
-        return false;
-    }
+    //if (!m_sock.choose_if(if_index)) {
+        //return false;
+    //}
 
-    std::unique_ptr<unsigned char[]> buf {new unsigned char[size] };
-    //unsigned char buf[size];
-    if (!create_mc_query(MC_ADDR_SPECIFIC_QUERY, buf.get(), &g_addr)) {
-        return false;
-    }
+    //std::unique_ptr<unsigned char[]> buf {new unsigned char[size] };
+    ////unsigned char buf[size];
+    //if (!create_mc_query(MC_ADDR_SPECIFIC_QUERY, buf.get(), &g_addr)) {
+        //return false;
+    //}
 
-    return m_sock.send_packet(g_addr, buf.get(), size);
-}
+    //return m_sock.send_packet(g_addr, buf.get(), size);
+//}
 
-int mld_sender::get_msg_min_size() const
-{
-    HC_LOG_TRACE("");
+//int mld_sender::get_msg_min_size() const
+//{
+    //HC_LOG_TRACE("");
 
-    //if (m_version == 1) {
-    //return sizeof(struct mld_hdr);
-    //} else {
-    //HC_LOG_ERROR("IPv6 version: " << m_version << " not supported");
+    ////if (m_version == 1) {
+    ////return sizeof(struct mld_hdr);
+    ////} else {
+    ////HC_LOG_ERROR("IPv6 version: " << m_version << " not supported");
+    ////return -1;
+    ////}
     //return -1;
-    //}
-    return -1;
-}
+//}
 
-bool mld_sender::send_report(int if_index, const addr_storage& g_addr) const
-{
-    HC_LOG_TRACE("");
+//bool mld_sender::send_report(int if_index, const addr_storage& g_addr) const
+//{
+    //HC_LOG_TRACE("");
 
-    return m_sock.join_group(g_addr, if_index);
-}
+    //return m_sock.join_group(g_addr, if_index);
+//}
 
-bool mld_sender::send_leave(int if_index, const addr_storage& g_addr) const
-{
-    HC_LOG_TRACE("");
+//bool mld_sender::send_leave(int if_index, const addr_storage& g_addr) const
+//{
+    //HC_LOG_TRACE("");
 
-    return m_sock.leave_group(g_addr, if_index);
-}
+    //return m_sock.leave_group(g_addr, if_index);
+//}
 
-bool mld_sender::create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr) const
-{
-    HC_LOG_TRACE("");
+//bool mld_sender::create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr) const
+//{
+    //HC_LOG_TRACE("");
 
-    //if (m_version == 1) {
-    //struct mld_hdr* mld_Hdr = (struct mld_hdr*)buf;
+    ////if (m_version == 1) {
+    ////struct mld_hdr* mld_Hdr = (struct mld_hdr*)buf;
 
-    //mld_Hdr->mld_type = MLD_LISTENER_QUERY;
-    //mld_Hdr->mld_code = 0;
-    //mld_Hdr->mld_cksum = MC_MASSAGES_AUTO_FILL;
-    //mld_Hdr->mld_reserved = 0;
+    ////mld_Hdr->mld_type = MLD_LISTENER_QUERY;
+    ////mld_Hdr->mld_code = 0;
+    ////mld_Hdr->mld_cksum = MC_MASSAGES_AUTO_FILL;
+    ////mld_Hdr->mld_reserved = 0;
 
-    //if (type == GENERAL_QUERY) {
-    //mld_Hdr->mld_maxdelay = htons(MC_TV_QUERY_RESPONSE_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
-    //mld_Hdr->mld_addr = addr_storage(m_addr_family).get_in6_addr(); //0.0.0.0
-    //} else if (type == MC_ADDR_SPECIFIC_QUERY) {
-    //if (!g_addr) {
-    //HC_LOG_ERROR("g_addr is NULL");
-    //return false;
-    //}
+    ////if (type == GENERAL_QUERY) {
+    ////mld_Hdr->mld_maxdelay = htons(MC_TV_QUERY_RESPONSE_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
+    ////mld_Hdr->mld_addr = addr_storage(m_addr_family).get_in6_addr(); //0.0.0.0
+    ////} else if (type == MC_ADDR_SPECIFIC_QUERY) {
+    ////if (!g_addr) {
+    ////HC_LOG_ERROR("g_addr is NULL");
+    ////return false;
+    ////}
 
-    //mld_Hdr->mld_maxdelay = htons(MC_TV_LAST_LISTENER_QUERY_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
-    //mld_Hdr->mld_addr = g_addr->get_in6_addr();
-    //} else {
-    //HC_LOG_ERROR("wrong type: " << type);
-    //return false;
-    //}
+    ////mld_Hdr->mld_maxdelay = htons(MC_TV_LAST_LISTENER_QUERY_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
+    ////mld_Hdr->mld_addr = g_addr->get_in6_addr();
+    ////} else {
+    ////HC_LOG_ERROR("wrong type: " << type);
+    ////return false;
+    ////}
 
+    ////return true;
+    ////} else {
+    ////HC_LOG_ERROR("wrong verson: " << m_version);
+    ////return false;
+    ////}
     //return true;
-    //} else {
-    //HC_LOG_ERROR("wrong verson: " << m_version);
-    //return false;
-    //}
-    return true;
-}
+//}
 
 bool mld_sender::add_hbh_opt_header() const
 {

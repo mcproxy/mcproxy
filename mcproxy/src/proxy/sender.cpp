@@ -27,21 +27,21 @@
 #include "include/proxy/timers_values.hpp"
 
 #include <iostream>
-sender::sender(int addr_family)
+sender::sender(group_mem_protocol gmp)
 {
     HC_LOG_TRACE("");
-    m_addr_family = addr_family;
+    m_group_mem_protocol = gmp;
 
-    if (m_addr_family == AF_INET) {
+    if (is_IPv4(m_group_mem_protocol)) {
         if (!m_sock.create_raw_ipv4_socket()) {
             throw "failed to create raw ipv4 socket";
         }
-    } else if (m_addr_family == AF_INET6) {
+    } else if (is_IPv6(m_group_mem_protocol)) {
         if (!m_sock.create_raw_ipv6_socket()) {
             throw "failed to create raw ipv6 socket";
         }
     } else {
-        HC_LOG_ERROR("wrong addr_family: " << m_addr_family);
+        HC_LOG_ERROR("wrong addr_family: " << get_group_mem_protocol_name(m_group_mem_protocol));
         throw "wrong addr_family";
     }
 
@@ -50,30 +50,43 @@ sender::sender(int addr_family)
     }
 }
 
-bool sender::send_general_query(const timers_values& tv, group_mem_protocol gmp) const
+bool sender::send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const
 {
     using namespace std;
     HC_LOG_TRACE("");
-
-    cout << "!!--ACTION: send general query" << endl;
-    //cout << "max response time: " << time_to_string(tv.get_query_response_interval()) << endl;
-    //cout << "qrv: " << tv.get_robustness_variable() << endl;
-    //cout << "qqi: " << time_to_string(tv.get_query_interval()) << endl;
-    //cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
-    cout << tv << endl;
+    cout << "!!--ACTION: send report" << endl;
+    cout << "interface: " << interfaces::get_if_name(if_index) << endl;
+    cout << "group address: " << gaddr << endl;
+    cout << "filter mode: " << get_mc_filter_name(filter_mode) << endl;
+    cout << "source list: " << slist << endl;
     cout << endl;
     return true;
 }
 
-bool sender::send_mc_addr_specific_query(const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const
+bool sender::send_general_query(unsigned int if_index, const timers_values& tv, group_mem_protocol gmp) const
+{
+    using namespace std;
+    HC_LOG_TRACE("");
+    cout << "!!--ACTION: send general query" << endl;
+    cout << "interface: " << interfaces::get_if_name(if_index) << endl;
+    cout << "max response time: " << time_to_string(tv.get_query_response_interval()) << endl;
+    cout << "qrv: " << tv.get_robustness_variable() << endl;
+    cout << "qqi: " << time_to_string(tv.get_query_interval()) << endl;
+    cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
+    cout << endl;
+    return true;
+}
+
+bool sender::send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const
 {
     using namespace std;
     HC_LOG_TRACE("");
 
     cout << "!!--ACTION: send multicast address specific query" << endl;
+    cout << "interface: " << interfaces::get_if_name(if_index) << endl;
     cout << "max response time: " << time_to_string(tv.get_query_response_interval()) << endl;
     cout << "group address: " << gaddr << endl;
-    cout << "s-flag: " << (s_flag? "true": "false") << endl;
+    cout << "s-flag: " << (s_flag ? "true" : "false") << endl;
     cout << "qrv: " << tv.get_robustness_variable() << endl;
     cout << "qqi: " << time_to_string(tv.get_query_interval())  << endl;
     cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
@@ -81,7 +94,7 @@ bool sender::send_mc_addr_specific_query(const timers_values& tv, const addr_sto
     return true;
 }
 
-bool sender::send_mc_addr_and_src_specific_query(const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const
+bool sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const
 {
     using namespace std;
     HC_LOG_TRACE("");
@@ -101,6 +114,7 @@ bool sender::send_mc_addr_and_src_specific_query(const timers_values& tv, const 
 
     if (!list_lower.empty() || !list_higher.empty() ) {
         cout << "!!--ACTION: send one or two multicast address and source specific queries" << endl;
+        cout << "interface: " << interfaces::get_if_name(if_index) << endl;
         cout << "max response time: " << time_to_string(tv.get_query_response_interval()) << endl;
         cout << "group address: " << gaddr << endl;
         cout << "qrv: " << tv.get_robustness_variable() << endl;

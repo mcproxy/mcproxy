@@ -35,6 +35,7 @@
 #include "include/proxy/interfaces.hpp"
 #include "include/proxy/timing.hpp"
 #include "include/proxy/routing_management.hpp"
+#include "include/proxy/simple_mc_proxy_routing.hpp"
 
 #include <sstream>
 #include <iostream>
@@ -70,6 +71,10 @@ proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, int table_
     }
 
     if (!init_routing()) {
+        throw "failed to initialise routing";
+    }
+
+    if (!init_routing_management()) {
         throw "failed to initialise routing";
     }
 
@@ -139,6 +144,13 @@ bool proxy_instance::init_routing()
 {
     HC_LOG_TRACE("");
     m_routing.reset(new routing(get_addr_family(m_group_mem_protocol), m_mrt_sock, m_table_number));
+    return true;
+}
+
+bool proxy_instance::init_routing_management()
+{
+    HC_LOG_TRACE("");
+    m_routing_management.reset(new simple_mc_proxy_routing(this));
     return true;
 }
 
@@ -275,7 +287,13 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
 
     switch (msg->get_instruction()) {
     case config_msg::ADD_DOWNSTREAM: {
-        std::unique_ptr<querier> q(new querier(this, m_group_mem_protocol, msg->get_if_index(), m_sender, m_timing, msg->get_timers_values()));
+
+//using call_back_querier_state_change = std::function<void(unsigned int, const addr_storage&, const addr_storage& )>;
+
+        //auto print_proxy_instance = bind(&proxy_instance::add_msg, &pr_i, make_shared<debug_msg>());
+        //virtual void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) = 0;
+        std::function<void(unsigned int, const addr_storage&, const addr_storage&)> cb_state_change = std::bind(&routing_management::event_querier_state_change, m_routing_management.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+        std::unique_ptr<querier> q(new querier(this, m_group_mem_protocol, msg->get_if_index(), m_sender, m_timing, msg->get_timers_values(), cb_state_change));
         m_querier.insert(std::pair<int, std::unique_ptr<querier>>(msg->get_if_index(), move(q)));
     }
     break;

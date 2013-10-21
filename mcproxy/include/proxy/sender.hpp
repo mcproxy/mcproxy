@@ -47,7 +47,7 @@ protected:
     /**
      * @brief Used IP version (AF_INET or AF_INET6).
      */
-    int m_addr_family; //AF_INET or AF_INET6
+    group_mem_protocol m_group_mem_protocol;
 
     /**
      * @brief Abstracted multicast socket, that use raw-socket to send the messages.
@@ -59,14 +59,14 @@ public:
     /**
      * @brief Create a sender.
      */
-    sender(int addr_family);
+    sender(group_mem_protocol gmp);
 
     /**
      * @brief Send a General Query to a specific interface.
      * @param if_index used interface
      * @return Return true on success.
      */
-    virtual bool send_general_query(int if_index) const = 0;
+    //virtual bool send_general_query(int if_index) const = 0;
 
     /**
      * @brief Send a Group Specific Query to a multicast group and a specific interface.
@@ -74,7 +74,7 @@ public:
      * @param g_addr used multicast group
      * @return Return true on success.
      */
-    virtual bool send_group_specific_query(int if_index, const addr_storage& g_addr) const = 0;
+    //virtual bool send_group_specific_query(int if_index, const addr_storage& g_addr) const = 0;
 
     /**
      * @brief Send a Membership Report to a multicast group and a specific interface.
@@ -82,7 +82,7 @@ public:
      * @param g_addr used multicast group
      * @return Return true on success.
      */
-    virtual bool send_report(int if_index, const addr_storage& g_addr) const = 0;
+    //virtual bool send_report(int if_index, const addr_storage& g_addr) const = 0;
 
     /**
      * @brief Send a leave Message to a multicast group and a specific interface.
@@ -90,17 +90,20 @@ public:
      * @param g_addr used multicast group
      * @return Return true on success.
      */
-    virtual bool send_leave(int if_index, const addr_storage& g_addr) const = 0;
+    //virtual bool send_leave(int if_index, const addr_storage& g_addr) const = 0;
 
 
 
 
-    virtual bool send_general_query(const timers_values& tv, group_mem_protocol gmp) const;
 
-    virtual bool send_mc_addr_specific_query(const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const;
+    virtual bool send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const;
 
-    virtual bool send_mc_addr_and_src_specific_query(const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const;
-    
+    virtual bool send_general_query(unsigned int if_index, const timers_values& tv, group_mem_protocol gmp) const;
+
+    virtual bool send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const;
+
+    virtual bool send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const;
+
     virtual ~sender();
 };
 
