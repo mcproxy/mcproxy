@@ -41,6 +41,15 @@ using routing_data_pair = std::pair<unsigned int, group_data>;
 class simple_mc_proxy_routing : public routing_management
 {
 private:
+    routing_data m_data;
+    void add_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
+    void add_source(routing_data::iterator data_it, const addr_storage& gaddr, const addr_storage& saddr);
+    void add_source(group_data::iterator gaddr_it, const addr_storage& saddr);
+
+    void del_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
+    void del_source(routing_data::iterator data_it, const addr_storage& gaddr, const addr_storage& saddr);
+    void del_source(group_data::iterator gaddr_it, const addr_storage& saddr);
+
     bool is_upstream(unsigned int if_index);
     std::list<unsigned int> collect_interested_interfaces(unsigned int receiver_if, const addr_storage& gaddr, const addr_storage& saddr, mc_filter* filter_mode= nullptr, source_list<source>* slist= nullptr);
     void add_proxy_route(unsigned int input_if_index, const addr_storage &gaddr, const addr_storage &saddr, const std::list<unsigned int> &output_if_index) const;
@@ -50,6 +59,10 @@ public:
 
     void event_new_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) override;
     void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) override;
+
+    std::string to_string() const override;
+    static void test_simple_mc_proxy_routing();
+
 };
 
 
