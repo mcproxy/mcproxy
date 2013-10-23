@@ -616,6 +616,7 @@ bool mc_socket::get_source_filter(uint32_t if_index, const addr_storage& gaddr, 
     uint32_t new_numsrc;
     //get the the number of sources
     rc = getsourcefilter(m_sock, if_index, &gaddr.get_sockaddr(), gaddr.get_addr_len(), &filter_mode, &old_numsrc, nullptr);
+
     if (rc == -1) {
         HC_LOG_ERROR("failed to get current number of sources! Error: " << strerror(errno) << " errno: " << errno);
         return false;
@@ -632,7 +633,7 @@ bool mc_socket::get_source_filter(uint32_t if_index, const addr_storage& gaddr, 
         HC_LOG_ERROR("failed to get source filter! Error: " << strerror(errno) << " errno: " << errno);
         return false;
     } else {
-        for (uint32_t i = 0; i < old_numsrc; i++) {
+        for (uint32_t i = 0; (i < old_numsrc) && (i < new_numsrc); i++) {
             src_list.push_back(addr_storage(slist[i]));
         }
         return true;
@@ -783,7 +784,6 @@ void mc_socket::test_mc_source_delta_based_api(std::string ipversion, std::strin
     }
     sleep(sleepTime);
 
-    cout << "--<" << count++ << "> Unblock source " << saddr << " --" << endl;
     if (m.unblock_source(addr_storage(gaddr), addr_storage(saddr), if_nametoindex(interface.c_str()))) {
         cout << "unblock OK!" << endl;
     } else {
@@ -841,6 +841,13 @@ void mc_socket::test_mc_source_advanced_api(std::string ipversion, std::string i
     } else {
         cout << "Unknown ip version: " << ipversion << endl;
         return;
+    }
+
+    cout << "--<" << count++ << "> Join group " << gaddr << " --" << endl;
+    if (m.join_group(addr_storage(gaddr), if_nametoindex(interface.c_str()))) {
+        cout << "join OK!" << endl;
+    } else {
+        cout << "join FAILED!" << endl;
     }
 
     cout << "--<" << count++ << "> Join group " << gaddr << " --" << endl;
@@ -915,12 +922,12 @@ void mc_socket::test_all()
 
     int port = 9845;
 
-    mc_socket::test_mc_group_functions("AF_INET", "Hallo", if_name, gaddr_v4.to_string(), port);
-    mc_socket::test_mc_group_functions("AF_INET6", "Hallo", if_name, gaddr_v6.to_string(), port);
-    mc_socket::test_mc_source_delta_based_api("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4.to_string());
-    mc_socket::test_mc_source_delta_based_api("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6.to_string());
+    //mc_socket::test_mc_group_functions("AF_INET", "Hallo", if_name, gaddr_v4.to_string(), port);
+    //mc_socket::test_mc_group_functions("AF_INET6", "Hallo", if_name, gaddr_v6.to_string(), port);
+    //mc_socket::test_mc_source_delta_based_api("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4.to_string());
+    //mc_socket::test_mc_source_delta_based_api("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6.to_string());
     test_mc_source_advanced_api("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4.to_string(), saddr_v4a.to_string());
-    test_mc_source_advanced_api("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6.to_string(), saddr_v6a.to_string());
+    //test_mc_source_advanced_api("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6.to_string(), saddr_v6a.to_string());
 }
 
 mc_socket::~mc_socket()

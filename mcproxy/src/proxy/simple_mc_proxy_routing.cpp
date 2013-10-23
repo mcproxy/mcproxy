@@ -60,19 +60,13 @@ void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, 
 {
     HC_LOG_TRACE("");
 
-    //zum einen ist die source list für die routenfindung gedacht (source für source)
-    //und zum andern für die membership agregation (alle sourcen könnnen auf einmal behandelt werden)
-
-    //routenfindung
+    //route calculation
     auto available_sources = m_data.get_available_sources(if_index, gaddr, slist);
     add_route(if_index, gaddr, collect_interested_interfaces(if_index, gaddr, available_sources));
 
     //membership agregation
-       
-
-
-    //add_proxy_route(if_index, gaddr, saddr, collect_interested_interfaces(if_index, gaddr, saddr, &filter_mode, &slist));
-    //send_record(if_index, gaddr, saddr, filter_mode, slist);
+    auto mem_info = collect_group_membership_infos(gaddr);
+    send_record(get_upstream(), gaddr, mem_info.first, mem_info.second);
 }
 
 void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg)
@@ -118,6 +112,12 @@ bool simple_mc_proxy_routing::is_upstream(unsigned int if_index) const
     }
 }
 
+unsigned int simple_mc_proxy_routing::get_upstream() const
+{
+    HC_LOG_TRACE("");
+    return m_p->m_upstream;
+}
+
 std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::collect_interested_interfaces(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) const
 {
     HC_LOG_TRACE("");
@@ -136,6 +136,46 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
     }
 
     return rt_list;
+}
+
+std::pair<mc_filter, source_list<source>> simple_mc_proxy_routing::collect_group_membership_infos(const addr_storage& gaddr)
+{
+    HC_LOG_TRACE("");
+    std::pair<mc_filter, source_list<source>> rt_pair;
+    rt_pair.first = INCLUDE_MODE;
+    rt_pair.second = {};
+
+    for (auto & e : m_p->m_querier) {
+        merge_membership_infos(rt_pair, e.second->get_group_mebership_infos(gaddr));
+    }
+
+    return rt_pair;
+}
+
+void simple_mc_proxy_routing::merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from ) const
+{
+    HC_LOG_TRACE("");
+
+    if (merge_to.first == INCLUDE_MODE) {
+        if (merge_from.first == INCLUDE_MODE) {
+            merge_to.second += merge_from.second;
+        } else if (merge_from.first == EXLCUDE_MODE) {
+            merge_to.first = EXLCUDE_MODE;
+            merge_to.second = merge_from.second - merge_to.second;
+        } else {
+            HC_LOG_ERROR("unknown filter mode in parameter merge_from");
+        }
+    } else if (merge_to.first == EXLCUDE_MODE) {
+        if (merge_from.first == INCLUDE_MODE) {
+            merge_to.second -= merge_from.second;
+        } else if (merge_from.first == EXLCUDE_MODE) {
+            merge_to.second *= merge_from.second;
+        } else {
+            HC_LOG_ERROR("unknown filter mode in parameter merge_from");
+        }
+    } else {
+        HC_LOG_ERROR("unknown filter mode in parameter merge_to");
+    }
 }
 
 void simple_mc_proxy_routing::add_route(unsigned int input_if_index, const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const

@@ -198,7 +198,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         send_Q(gaddr, ginfo, A, (A - B));
         mali(gaddr, A, std::move(B));
 
-        state_change_notification(gaddr, std::move(tmpB)); 
+        state_change_notification(gaddr, std::move(tmpB));
     }
     break;
 
@@ -225,7 +225,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
 
         mali(gaddr, A, move(B));
 
-        state_change_notification(gaddr, std::move(B)); 
+        state_change_notification(gaddr, std::move(B));
     }
     break;
 
@@ -297,11 +297,12 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         X += (A - Y);
 
         Y *= A;
-        ???????here is a mistake Y wurde verändert
-        send_Q(gaddr, ginfo, X, (A - Y)); //bad style, but i haven't a better solution right now ???????????
+
+        auto tmpXa = X;
+        send_Q(gaddr, ginfo, X, move(tmpXa)); //bad style, but i haven't a better solution right now ???????????
         mali(gaddr, filter_timer);
 
-        state_change_notification(gaddr, (A + tmpX)); ?? ist das richtig
+        state_change_notification(gaddr, (A + tmpX));
     }
     break;
 
@@ -318,7 +319,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         send_Q(gaddr, ginfo);
         mali(gaddr, X, std::move(A));
 
-        state_change_notification(gaddr, std::move(tmpA)); 
+        state_change_notification(gaddr, std::move(tmpA));
     }
     break;
 
@@ -328,6 +329,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     //                                                   Delete (Y-A)
     //                                                   Filter Timer=MALI
     case  MODE_IS_EXCLUDE: {//IS_EX(x)
+        auto tmpX = X;
         mali(gaddr, A, (A - X) - Y);
 
         //X = (A - Y);
@@ -339,7 +341,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
 
         mali(gaddr, filter_timer);
 
-        state_change_notification(gaddr, std::move(A)); 
+        state_change_notification(gaddr, A + tmpX);
     }
     break;
 
@@ -352,7 +354,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
 
         mali(gaddr, X, std::move(A));
 
-        state_change_notification(gaddr, std::move(tmpA)); 
+        state_change_notification(gaddr, std::move(tmpA));
     }
     break;
     default:
@@ -758,30 +760,26 @@ void querier::suggest_to_forward_traffic(const addr_storage& gaddr, std::list<st
         }
     }
 
-    //in include mode
-    //if (filter_mode != nullptr && slist != nullptr) {
-    //if (*filter_mode == INCLUDE_MODE) {
-    //*slist += db_info_it->second.include_requested_list;
-    //} else if (*filter_mode == EXLCUDE_MODE) {
-    //*slist -= db_info_it->second.include_requested_list;
-    //} else {
-    //HC_LOG_ERROR("unknown filter mode");
-    //return false;
-    //}
-    //}
+}
 
-    //in exlcude mode
-    //if (filter_mode != nullptr && slist != nullptr) {
-    //if (*filter_mode == INCLUDE_MODE) {
-    //*filter_mode = EXLCUDE_MODE;
-    //*slist = (db_info_it->second.exclude_list - *slist);
-    //} else if (*filter_mode == EXLCUDE_MODE) {
-    //*slist *= db_info_it->second.exclude_list;
-    //} else {
-    //HC_LOG_ERROR("unknown filter mode");
-    //return false;
-    //}
-    //}
+std::pair<mc_filter, source_list<source>> querier::get_group_mebership_infos(const addr_storage& gaddr)
+{
+    HC_LOG_TRACE("");
+    std::pair<mc_filter, source_list<source>> rt_pair;
+    rt_pair.first = INCLUDE_MODE;
+    rt_pair.second = {};
+
+    auto db_info_it = m_db.group_info.find(gaddr);
+    if (db_info_it != std::end(m_db.group_info)) {
+        rt_pair.first = db_info_it->second.filter_mode;
+        if (db_info_it->second.filter_mode == INCLUDE_MODE) {
+            rt_pair.second = db_info_it->second.include_requested_list;
+        } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
+            rt_pair.second = db_info_it->second.exclude_list;
+        }
+    }
+
+    return rt_pair;
 }
 
 std::string querier::to_string() const

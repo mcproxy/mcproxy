@@ -48,12 +48,6 @@ public:
      */
     igmp_sender();
 
-
-    //bool send_general_query(int if_index) const override;
-    //bool send_group_specific_query(int if_index, const addr_storage& g_addr) const override;
-    //bool send_report(int if_index, const addr_storage& g_addr) const override;
-    //bool send_leave(int if_index, const addr_storage& g_addr) const override;
-    
     bool send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const override;
 
     virtual bool send_general_query(unsigned int if_index, const timers_values& tv, group_mem_protocol gmp) const override;

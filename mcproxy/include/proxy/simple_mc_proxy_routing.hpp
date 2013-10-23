@@ -43,8 +43,13 @@ private:
     std::chrono::seconds get_source_life_time();
 
     bool is_upstream(unsigned int if_index) const;
+    unsigned int get_upstream() const;
 
     std::list<std::pair<source, std::list<unsigned int>>> collect_interested_interfaces(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) const;
+
+    std::pair<mc_filter, source_list<source>> collect_group_membership_infos(const addr_storage& gaddr);
+
+    void merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from ) const;
 
     void add_route(unsigned int input_if_index, const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const;
 

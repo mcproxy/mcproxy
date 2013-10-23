@@ -23,6 +23,7 @@
 
 #include "include/hamcast_logging.h"
 #include "include/proxy/igmp_sender.hpp"
+#include "include/proxy/message_format.hpp"
 
 #include <netinet/igmp.h>
 #include <netinet/ip.h>
@@ -39,8 +40,19 @@ igmp_sender::igmp_sender(): sender(IGMPv3)
 bool igmp_sender::send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const
 {
     HC_LOG_TRACE("");
+    
+    if(filter_mode == INCLUDE_MODE && slist.empty() ){
+        m_sock.leave_group(gaddr, if_index);
+        return true;
+    }else{
+        m_sock.join_group(gaddr, if_index);     
+        std::list<addr_storage> src_list;
+        for(auto& e: slist){
+            src_list.push_back(e.saddr);
+        }
 
-
+        return m_sock.set_source_filter(if_index, gaddr, filter_mode,src_list); 
+    }
 }
 
 bool igmp_sender::send_general_query(unsigned int if_index, const timers_values& tv, group_mem_protocol gmp) const

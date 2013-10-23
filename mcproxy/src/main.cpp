@@ -82,7 +82,7 @@ void test_mcproxy(int arg_count, char* args[])
 
 void test_test()
 {
-    //mc_socket::test_all();
+    mc_socket::test_all();
     //addr_storage::test_addr_storage_a();
     //addr_storage::test_addr_sto_b();
     //membership_db::test_arithmetic();
@@ -92,5 +92,5 @@ void test_test()
     //proxy_configuration::test_proxy_configuration(); 
     //worker::test_worker();
     //proxy_instance::test_querier("dummy0");
-    simple_routing_data::test_simple_routing_data();
+    //simple_routing_data::test_simple_routing_data();
 }

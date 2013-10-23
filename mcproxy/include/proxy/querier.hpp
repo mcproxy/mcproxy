@@ -103,6 +103,8 @@ public:
     //bool suggest_to_forward_traffic(const addr_storage& gaddr, const addr_storage& saddr, mc_filter* filter_mode = nullptr, source_list<source>* slist = nullptr) const; //4.2.  Per-Interface State (merge your own multicast state)
     void suggest_to_forward_traffic(const addr_storage& gaddr, std::list<std::pair<source, std::list<unsigned int>>>& rt_slist) const; 
 
+    std::pair<mc_filter, source_list<source>> get_group_mebership_infos(const addr_storage& gaddr);
+
     void receive_query();
 
     timers_values& get_timers_values();

@@ -44,7 +44,6 @@ mld_sender::mld_sender(): sender(MLDv2)
         HC_LOG_ERROR("wrong address family: " <<get_group_mem_protocol_name(m_group_mem_protocol));
         throw "wrong address family";
     }
-
 }
 
 //bool mld_sender::send_general_query(int if_index) const
