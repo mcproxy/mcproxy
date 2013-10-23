@@ -66,7 +66,7 @@ protected:
     /**
      * @brief Job queue to process proxy_msg.
      */
-    message_queue<std::shared_ptr<proxy_msg>,comp_proxy_msg> m_job_queue;
+    mutable message_queue<std::shared_ptr<proxy_msg>,comp_proxy_msg> m_job_queue;
     void join() const;
     void start();
     void stop();
@@ -82,12 +82,12 @@ public:
     virtual ~worker();
 
 
-    bool is_running();
+    bool is_running() const;
 
     /**
      * @brief Add a message to the job queue.
      */
-    void add_msg(const std::shared_ptr<proxy_msg>& msg);
+    void add_msg(const std::shared_ptr<proxy_msg>& msg) const;
 
     static void test_worker();
 };

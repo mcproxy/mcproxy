@@ -160,7 +160,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
 
         mali(gaddr, A, std::move(B));
 
-        state_change_notification(gaddr, std::move(tmpB)); //only B
+        state_change_notification(gaddr, std::move(tmpB));
     }
     break;
 
@@ -198,7 +198,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         send_Q(gaddr, ginfo, A, (A - B));
         mali(gaddr, A, std::move(B));
 
-        state_change_notification(gaddr, std::move(tmpB)); //only B
+        state_change_notification(gaddr, std::move(tmpB)); 
     }
     break;
 
@@ -225,7 +225,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
 
         mali(gaddr, A, move(B));
 
-        state_change_notification(gaddr, std::move(B)); //only B
+        state_change_notification(gaddr, std::move(B)); 
     }
     break;
 
@@ -262,7 +262,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
 
         mali(gaddr, X, std::move(A));
 
-        state_change_notification(gaddr, std::move(tmpA)); //only A
+        state_change_notification(gaddr, std::move(tmpA));
     }
     break;
 
@@ -297,10 +297,11 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         X += (A - Y);
 
         Y *= A;
+        ???????here is a mistake Y wurde verändert
         send_Q(gaddr, ginfo, X, (A - Y)); //bad style, but i haven't a better solution right now ???????????
         mali(gaddr, filter_timer);
 
-        state_change_notification(gaddr, (A + tmpX));
+        state_change_notification(gaddr, (A + tmpX)); ?? ist das richtig
     }
     break;
 
@@ -315,9 +316,9 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
 
         send_Q(gaddr, ginfo, X, (X - A));
         send_Q(gaddr, ginfo);
-        mali(gaddr, X, move(A));
+        mali(gaddr, X, std::move(A));
 
-        state_change_notification(gaddr, std::move(tmpA)); //only A
+        state_change_notification(gaddr, std::move(tmpA)); 
     }
     break;
 
@@ -338,7 +339,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
 
         mali(gaddr, filter_timer);
 
-        state_change_notification(gaddr, std::move(A)); //only A
+        state_change_notification(gaddr, std::move(A)); 
     }
     break;
 
@@ -349,9 +350,9 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         X += A;
         Y -= A;
 
-        mali(gaddr, X, move(A));
+        mali(gaddr, X, std::move(A));
 
-        state_change_notification(gaddr, std::move(tmpA)); //only A
+        state_change_notification(gaddr, std::move(tmpA)); 
     }
     break;
     default:
@@ -457,14 +458,14 @@ void querier::timer_triggerd_filter_timer(gaddr_map::iterator db_info_it, const 
 
     if (ginfo.filter_mode == EXLCUDE_MODE) {
         if (ginfo.include_requested_list.empty()) {
-            source_list<source> notify_list= ginfo.exclude_list;
+            source_list<source> notify_list = ginfo.exclude_list;
             addr_storage notify_gaddr = db_info_it->first;
 
             m_db.group_info.erase(db_info_it);
 
             state_change_notification(notify_gaddr, std::move(notify_list)); //only A
         } else {
-            source_list<source> notify_list= ginfo.exclude_list + ginfo.include_requested_list;
+            source_list<source> notify_list = ginfo.exclude_list + ginfo.include_requested_list;
             addr_storage notify_gaddr = db_info_it->first;
 
             ginfo.filter_mode = INCLUDE_MODE;
@@ -714,9 +715,7 @@ void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<s
 void querier::state_change_notification(const addr_storage& gaddr, source_list<source>&& slist)
 {
     HC_LOG_TRACE("");
-    for (auto & e : slist) {
-        m_cb_state_change(m_if_index, gaddr, e.saddr);
-    }
+    m_cb_state_change(m_if_index, gaddr, slist);
 }
 querier::~querier()
 {
@@ -732,7 +731,7 @@ timers_values& querier::get_timers_values()
     return m_timers_values;
 }
 
-bool querier::suggest_to_forward_traffic(const addr_storage& gaddr, const addr_storage& saddr, mc_filter* filter_mode, source_list<source>* slist) const
+void querier::suggest_to_forward_traffic(const addr_storage& gaddr, std::list<std::pair<source, std::list<unsigned int>>>& rt_slist) const
 {
     HC_LOG_TRACE("");
 
@@ -740,39 +739,18 @@ bool querier::suggest_to_forward_traffic(const addr_storage& gaddr, const addr_s
         auto db_info_it = m_db.group_info.find(gaddr);
         if (db_info_it != std::end(m_db.group_info)) {
             if (db_info_it->second.filter_mode == INCLUDE_MODE) {
-                auto irl_it = db_info_it->second.include_requested_list.find(saddr);
-                if (irl_it != std::end(db_info_it->second.include_requested_list) ) {
-
-                    if (filter_mode != nullptr && slist != nullptr) {
-                        if (*filter_mode == INCLUDE_MODE) {
-                            *slist += db_info_it->second.include_requested_list;
-                        } else if (*filter_mode == EXLCUDE_MODE) {
-                            *slist -= db_info_it->second.include_requested_list;
-                        } else {
-                            HC_LOG_ERROR("unknown filter mode");
-                            return false;
-                        }
+                for (auto & e : rt_slist) {
+                    auto irl_it = db_info_it->second.include_requested_list.find(e.first);
+                    if (irl_it != std::end(db_info_it->second.include_requested_list) ) {
+                        e.second.push_back(m_if_index);
                     }
-
-                    return true;
                 }
             } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
-                auto el_it = db_info_it->second.exclude_list.find(saddr);
-                if (el_it == std::end(db_info_it->second.exclude_list) ) {
-
-                    if (filter_mode != nullptr && slist != nullptr) {
-                        if (*filter_mode == INCLUDE_MODE) {
-                            *filter_mode = EXLCUDE_MODE;
-                            *slist = (db_info_it->second.exclude_list - *slist);
-                        } else if (*filter_mode == EXLCUDE_MODE) {
-                            *slist *= db_info_it->second.exclude_list;
-                        } else {
-                            HC_LOG_ERROR("unknown filter mode");
-                            return false;
-                        }
+                for (auto & e : rt_slist) {
+                    auto el_it = db_info_it->second.exclude_list.find(e.first);
+                    if (el_it == std::end(db_info_it->second.exclude_list) ) {
+                        e.second.push_back(m_if_index);
                     }
-
-                    return true;
                 }
             } else {
                 HC_LOG_ERROR("unknown filter mode");
@@ -780,7 +758,30 @@ bool querier::suggest_to_forward_traffic(const addr_storage& gaddr, const addr_s
         }
     }
 
-    return false;
+    //in include mode
+    //if (filter_mode != nullptr && slist != nullptr) {
+    //if (*filter_mode == INCLUDE_MODE) {
+    //*slist += db_info_it->second.include_requested_list;
+    //} else if (*filter_mode == EXLCUDE_MODE) {
+    //*slist -= db_info_it->second.include_requested_list;
+    //} else {
+    //HC_LOG_ERROR("unknown filter mode");
+    //return false;
+    //}
+    //}
+
+    //in exlcude mode
+    //if (filter_mode != nullptr && slist != nullptr) {
+    //if (*filter_mode == INCLUDE_MODE) {
+    //*filter_mode = EXLCUDE_MODE;
+    //*slist = (db_info_it->second.exclude_list - *slist);
+    //} else if (*filter_mode == EXLCUDE_MODE) {
+    //*slist *= db_info_it->second.exclude_list;
+    //} else {
+    //HC_LOG_ERROR("unknown filter mode");
+    //return false;
+    //}
+    //}
 }
 
 std::string querier::to_string() const

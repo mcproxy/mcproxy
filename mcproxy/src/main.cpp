@@ -34,6 +34,7 @@
 #include "include/proxy/proxy_configuration.hpp"
 #include "include/proxy/proxy_instance.hpp"
 #include "include/proxy/simple_mc_proxy_routing.hpp"
+#include "include/proxy/simple_routing_data.hpp"
 
 #include <iostream>
 
@@ -91,4 +92,5 @@ void test_test()
     //proxy_configuration::test_proxy_configuration(); 
     //worker::test_worker();
     //proxy_instance::test_querier("dummy0");
+    simple_routing_data::test_simple_routing_data();
 }

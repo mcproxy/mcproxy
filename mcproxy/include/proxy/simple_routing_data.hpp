@@ -20,38 +20,44 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#ifndef ROUTING_MANAGEMENT_HPP
-#define ROUTING_MANAGEMENT_HPP
+#ifndef SIMPLE_ROUTING_DATA_HPP 
+#define SIMPLE_ROUTING_DATA_HPP
 
 #include "include/proxy/def.hpp"
-
+#include <map>
 #include <memory>
 #include <string>
-#include <sstream>
+#include <set>
 
-struct proxy_msg;
-struct source;
-class proxy_instance;
 class addr_storage;
+struct source;
+struct timer_msg;
 
-class routing_management
+
+using s_group_data = std::map<addr_storage, source_list<source>>;
+using s_group_data_pair = std::pair<addr_storage, source_list<source>>;
+
+using s_routing_data = std::map<unsigned int, s_group_data>;
+using s_routing_data_pair = std::pair<unsigned int, s_group_data>;
+
+class simple_routing_data 
 {
-protected:
-    const proxy_instance* const m_p;
+private:
+    s_routing_data m_data;
+
 public:
-    routing_management(const proxy_instance* p): m_p(p) {}
+    void add_source(unsigned int if_index, const addr_storage& gaddr, const source& saddr);
 
-    virtual void event_new_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) = 0;
-    virtual void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) = 0;
-    virtual void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg) = 0;
+    void del_source(unsigned int if_index, const addr_storage& gaddr, const source& saddr);
 
-    virtual std::string to_string() const {return std::string();}
+    source_list<source> get_available_sources(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) const;
 
-    friend std::ostream& operator<<(std::ostream& stream, const routing_management& rm) {
-        return stream << rm.to_string();
-    }
+    std::string to_string() const;
+    friend std::ostream& operator<<(std::ostream& stream, const simple_routing_data& srd); 
 
-    virtual ~routing_management() {};
+    static void test_simple_routing_data();
 };
 
-#endif // ROUTING_MANAGEMENT_HPP
+
+
+#endif // SIMPLE_ROUTING_DATA_HPP

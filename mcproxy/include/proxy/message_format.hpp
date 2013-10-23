@@ -48,6 +48,7 @@ struct proxy_msg {
         EXIT_MSG,
         FILTER_TIMER_MSG,
         SOURCE_TIMER_MSG,
+        NEW_SOURCE_TIMER_MSG,
         RET_GROUP_TIMER_MSG,
         RET_SOURCE_TIMER_MSG,
         GENERAL_QUERY_MSG,
@@ -219,6 +220,22 @@ struct general_query_timer : public timer_msg {
         HC_LOG_TRACE("");
     }
 };
+
+struct new_source_timer : public timer_msg {
+    new_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr, std::chrono::milliseconds duration)
+        : timer_msg(NEW_SOURCE_TIMER_MSG, if_index, gaddr, duration)
+        , m_saddr(saddr)  {
+        HC_LOG_TRACE("");
+    }
+
+    const addr_storage& get_saddr() {
+        HC_LOG_TRACE("");
+        return m_saddr;
+    }
+
+private:
+    addr_storage m_saddr;
+};
 //------------------------------------------------------------------------
 struct debug_msg : public proxy_msg {
     debug_msg(): proxy_msg(DEBUG_MSG, SYSTEMIC) {
@@ -340,14 +357,14 @@ struct config_msg : public proxy_msg {
     };
 
     config_msg(config_instruction instruction, unsigned int if_index)
-        : config_msg(instruction, if_index, timers_values()){
+        : config_msg(instruction, if_index, timers_values()) {
         HC_LOG_TRACE("");
-        if(instruction != DEL_DOWNSTREAM && instruction != ADD_UPSTREAM && instruction != DEL_UPSTREAM){
+        if (instruction != DEL_DOWNSTREAM && instruction != ADD_UPSTREAM && instruction != DEL_UPSTREAM) {
             HC_LOG_ERROR("config_msg is incomplet, missing parameter timer_values");
-            throw "config_msg is incomplet, missing parameter timer_values"; 
+            throw "config_msg is incomplet, missing parameter timer_values";
         }
     }
-    
+
     config_msg(config_instruction instruction, unsigned int if_index, const timers_values& tv)
         : proxy_msg(CONFIG_MSG, SYSTEMIC)
         , m_instruction(instruction)

@@ -203,6 +203,9 @@ void proxy_instance::worker_thread()
             }
         }
         break;
+        case proxy_msg::NEW_SOURCE_TIMER_MSG:
+            m_routing_management->timer_triggerd_maintain_routing_table(msg);
+            break;
         case proxy_msg::DEBUG_MSG:
             std::cout << *this << std::endl;
             std::cout << std::endl;
@@ -292,7 +295,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
 
         //auto print_proxy_instance = bind(&proxy_instance::add_msg, &pr_i, make_shared<debug_msg>());
         //virtual void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) = 0;
-        std::function<void(unsigned int, const addr_storage&, const addr_storage&)> cb_state_change = std::bind(&routing_management::event_querier_state_change, m_routing_management.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+        std::function<void(unsigned int, const addr_storage&, const source_list<source>&)> cb_state_change = std::bind(&routing_management::event_querier_state_change, m_routing_management.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
         std::unique_ptr<querier> q(new querier(this, m_group_mem_protocol, msg->get_if_index(), m_sender, m_timing, msg->get_timers_values(), cb_state_change));
         m_querier.insert(std::pair<int, std::unique_ptr<querier>>(msg->get_if_index(), move(q)));
     }

@@ -80,7 +80,7 @@ void timing::worker_thread()
     }
 }
 
-    void timing::add_time(std::chrono::milliseconds delay, worker* msg_worker, const std::shared_ptr<proxy_msg>& pr_msg)
+    void timing::add_time(std::chrono::milliseconds delay, const worker* msg_worker, const std::shared_ptr<proxy_msg>& pr_msg)
 {
     HC_LOG_TRACE("");
     timing_db_key until = std::chrono::steady_clock::now() + delay;

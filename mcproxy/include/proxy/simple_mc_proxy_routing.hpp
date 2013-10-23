@@ -24,44 +24,45 @@
 #define SIMPLE_MC_PROXY_ROUTING_HPP
 
 #include "include/proxy/routing_management.hpp"
-#include "include/proxy/def.hpp"
+#include "include/proxy/simple_routing_data.hpp"
 
-#include <map>
-#include <set>
 #include <list>
+#include <memory>
+#include <chrono>
 
-
+struct timer_msg;
 struct source;
 
-using group_data = std::map<addr_storage, std::set<addr_storage>>;
-using group_data_pair = std::pair<addr_storage, std::set<addr_storage>>;
-using routing_data = std::map<unsigned int, group_data>;
-using routing_data_pair = std::pair<unsigned int, group_data>;
+
 
 class simple_mc_proxy_routing : public routing_management
 {
 private:
-    routing_data m_data;
-    void add_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
-    void add_source(routing_data::iterator data_it, const addr_storage& gaddr, const addr_storage& saddr);
-    void add_source(group_data::iterator gaddr_it, const addr_storage& saddr);
+    simple_routing_data m_data;
 
-    void del_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
-    void del_source(routing_data::iterator data_it, const addr_storage& gaddr, const addr_storage& saddr);
-    void del_source(group_data::iterator gaddr_it, const addr_storage& saddr);
+    std::chrono::seconds get_source_life_time();
 
-    bool is_upstream(unsigned int if_index);
-    std::list<unsigned int> collect_interested_interfaces(unsigned int receiver_if, const addr_storage& gaddr, const addr_storage& saddr, mc_filter* filter_mode= nullptr, source_list<source>* slist= nullptr);
-    void add_proxy_route(unsigned int input_if_index, const addr_storage &gaddr, const addr_storage &saddr, const std::list<unsigned int> &output_if_index) const;
-    void send_record(unsigned int receiver_if, const addr_storage& gaddr, const addr_storage& saddr, mc_filter filter_mode, const source_list<source>& slist) const;
+    bool is_upstream(unsigned int if_index) const;
+
+    std::list<std::pair<source, std::list<unsigned int>>> collect_interested_interfaces(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) const;
+
+    void add_route(unsigned int input_if_index, const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const;
+
+    void del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
+
+    void send_record(unsigned int if_index, const addr_storage& gaddr, mc_filter filter_mode, const source_list<source>& slist) const;
+
+    void set_timer(const std::shared_ptr<timer_msg>& msg);
+
 public:
     simple_mc_proxy_routing(const proxy_instance* p);
 
     void event_new_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) override;
-    void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) override;
+    void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) override;
+
+    void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg) override;
 
     std::string to_string() const override;
-    static void test_simple_mc_proxy_routing();
 
 };
 

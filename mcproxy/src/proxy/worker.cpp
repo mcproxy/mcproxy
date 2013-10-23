@@ -60,7 +60,7 @@ void worker::start()
     }
 }
 
-void worker::add_msg(const std::shared_ptr<proxy_msg>& msg)
+void worker::add_msg(const std::shared_ptr<proxy_msg>& msg) const
 {
     HC_LOG_TRACE("");
 
@@ -72,7 +72,7 @@ void worker::add_msg(const std::shared_ptr<proxy_msg>& msg)
     }
 }
 
-bool worker::is_running()
+bool worker::is_running() const
 {
     HC_LOG_TRACE("");
     return m_running;

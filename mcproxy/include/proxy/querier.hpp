@@ -41,7 +41,7 @@ class sender;
 class worker;
 
 //interface index, group address, source adress
-using call_back_querier_state_change = std::function<void(unsigned int, const addr_storage&, const addr_storage& )>;
+using call_back_querier_state_change = std::function<void(unsigned int, const addr_storage&, const source_list<source>&)>;
 
 /**
  * @brief define the behaviour of a multicast querier for a specific interface
@@ -89,6 +89,7 @@ private:
     void timer_triggerd_ret_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_general_query_timer(const std::shared_ptr<timer_msg>& msg);
 
+    //routen veranderliche anderungen werden benachrichtigt 
     void state_change_notification(const addr_storage& gaddr, source_list<source>&& slist);
 public:
 
@@ -99,7 +100,8 @@ public:
     void receive_record(const std::shared_ptr<proxy_msg>& msg);
     void timer_triggerd(const std::shared_ptr<proxy_msg>& msg);
 
-    bool suggest_to_forward_traffic(const addr_storage& gaddr, const addr_storage& saddr, mc_filter* filter_mode = nullptr, source_list<source>* slist = nullptr) const; //4.2.  Per-Interface State (merge your own multicast state)
+    //bool suggest_to_forward_traffic(const addr_storage& gaddr, const addr_storage& saddr, mc_filter* filter_mode = nullptr, source_list<source>* slist = nullptr) const; //4.2.  Per-Interface State (merge your own multicast state)
+    void suggest_to_forward_traffic(const addr_storage& gaddr, std::list<std::pair<source, std::list<unsigned int>>>& rt_slist) const; 
 
     void receive_query();
 
