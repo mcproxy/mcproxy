@@ -56,45 +56,7 @@ protected:
 
 public:
 
-    /**
-     * @brief Create a sender.
-     */
     sender(group_mem_protocol gmp);
-
-    /**
-     * @brief Send a General Query to a specific interface.
-     * @param if_index used interface
-     * @return Return true on success.
-     */
-    //virtual bool send_general_query(int if_index) const = 0;
-
-    /**
-     * @brief Send a Group Specific Query to a multicast group and a specific interface.
-     * @param if_index used interface
-     * @param g_addr used multicast group
-     * @return Return true on success.
-     */
-    //virtual bool send_group_specific_query(int if_index, const addr_storage& g_addr) const = 0;
-
-    /**
-     * @brief Send a Membership Report to a multicast group and a specific interface.
-     * @param if_index used interface
-     * @param g_addr used multicast group
-     * @return Return true on success.
-     */
-    //virtual bool send_report(int if_index, const addr_storage& g_addr) const = 0;
-
-    /**
-     * @brief Send a leave Message to a multicast group and a specific interface.
-     * @param if_index used interface
-     * @param g_addr used multicast group
-     * @return Return true on success.
-     */
-    //virtual bool send_leave(int if_index, const addr_storage& g_addr) const = 0;
-
-
-
-
 
     virtual bool send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const;
 

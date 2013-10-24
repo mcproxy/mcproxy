@@ -27,7 +27,8 @@ struct mfcctl {
 	int	     mfcc_expire; <======== the kernel could delete its rules by itself 
 };
 
- 
+clean class routing 
+overwork recvmsg() buffer size
 overwork state_change_notification //call_back function 
 overwork class timing with pipe and pselect
 implement RFC specific conditions for timers_vaules set operators 

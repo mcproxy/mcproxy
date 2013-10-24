@@ -41,7 +41,7 @@ igmp_receiver::igmp_receiver(proxy_instance* pr_i, const std::shared_ptr<const m
 int igmp_receiver::get_iov_min_size()
 {
     HC_LOG_TRACE("");
-    int size_ip = sizeof(struct ip) + sizeof(struct igmp) + IGMP_RECEIVER_IPV4_ROUTER_ALERT_OPT_SIZE;
+    int size_ip = sizeof(struct ip) + sizeof(struct igmp) + IGMP_RECEIVER_IPV4_ROUTER_ALERT_OPT_SIZE + 10000; //random number plz fix it??????????????????????????
     int size_kernel = sizeof(struct igmpmsg);
     return (size_ip < size_kernel) ? size_kernel : size_ip;
 }
@@ -89,7 +89,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             HC_LOG_DEBUG("\tif_index: " << if_index);
 
             //if ((pr_i = get_proxy_instance(if_index)) == nullptr) {
-                //return;
+            //return;
             //}
 
             //proxy_msg m;
@@ -118,7 +118,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             HC_LOG_DEBUG("\tif_index: " << if_index);
 
             //if ((pr_i = this->get_proxy_instance(if_index)) == nullptr) {
-                //return;
+            //return;
             //}
 
             //proxy_msg m;
@@ -140,7 +140,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             HC_LOG_DEBUG("\tif_index: " << if_index);
 
             //if ((pr_i = this->get_proxy_instance(if_index)) == nullptr) {
-                //return;
+            //return;
             //}
 
             //proxy_msg m;

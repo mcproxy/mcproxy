@@ -59,7 +59,7 @@ private:
     const std::shared_ptr<timing> m_timing;
 
     //join all router groups or leave them
-    bool router_groups_function(std::function<bool(const sender&, int, addr_storage)> f) const;
+    bool router_groups_function(bool subscribe) const;
     bool send_general_query();
 
     void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo);
@@ -89,19 +89,19 @@ private:
     void timer_triggerd_ret_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_general_query_timer(const std::shared_ptr<timer_msg>& msg);
 
-    //routen veranderliche anderungen werden benachrichtigt 
+    //routen veranderliche anderungen werden benachrichtigt
     void state_change_notification(const addr_storage& gaddr, source_list<source>&& slist);
 public:
 
     virtual ~querier();
 
-    querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv,call_back_querier_state_change cb_state_change);
+    querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv, call_back_querier_state_change cb_state_change);
 
     void receive_record(const std::shared_ptr<proxy_msg>& msg);
     void timer_triggerd(const std::shared_ptr<proxy_msg>& msg);
 
     //bool suggest_to_forward_traffic(const addr_storage& gaddr, const addr_storage& saddr, mc_filter* filter_mode = nullptr, source_list<source>* slist = nullptr) const; //4.2.  Per-Interface State (merge your own multicast state)
-    void suggest_to_forward_traffic(const addr_storage& gaddr, std::list<std::pair<source, std::list<unsigned int>>>& rt_slist) const; 
+    void suggest_to_forward_traffic(const addr_storage& gaddr, std::list<std::pair<source, std::list<unsigned int>>>& rt_slist) const;
 
     std::pair<mc_filter, source_list<source>> get_group_mebership_infos(const addr_storage& gaddr);
 

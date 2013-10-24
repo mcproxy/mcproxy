@@ -47,10 +47,10 @@ querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, in
     HC_LOG_TRACE("");
 
     //join all router groups
-    //if (!router_groups_function(&sender::send_report)) {
-    HC_LOG_ERROR("failed to subscribe multicast router groups");
-    throw "failed to subscribe multicast router groups";
-    //}
+    if (!router_groups_function(true)) {
+        HC_LOG_ERROR("failed to subscribe multicast router groups");
+        throw "failed to subscribe multicast router groups";
+    }
 
     if (!send_general_query()) {
         HC_LOG_ERROR("failed to initialise query startup");
@@ -58,7 +58,9 @@ querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, in
     }
 }
 
-bool querier::router_groups_function(std::function<bool(const sender&, int, addr_storage)> f) const
+//unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist
+
+bool querier::router_groups_function(bool subscribe) const
 {
     HC_LOG_TRACE("");
 
@@ -68,18 +70,26 @@ bool querier::router_groups_function(std::function<bool(const sender&, int, addr
 //IGMPv2 RFC 2236: Section 9. ALL-ROUTERS (224.0.0.2)
 //IGMPv3 IANA: IGMP (224.0.0.22)
 
+    mc_filter mf;
+
+    if (subscribe) {
+        mf = EXLCUDE_MODE;
+    } else {
+        mf = INCLUDE_MODE;
+    }
+
     bool rc = true;
-    //if (is_IPv4(m_db.querier_version_mode)) {
-    //rc = rc && f(*m_sender.get(), m_if_index, addr_storage(IPV4_ALL_IGMP_ROUTERS_ADDR));
-    //rc = rc && f(*m_sender.get(), m_if_index, addr_storage(IPV4_IGMPV3_ADDR));
-    //} else if (is_IPv6(m_db.querier_version_mode)) {
-    //rc = rc && f(*m_sender.get(), m_if_index, addr_storage(IPV6_ALL_NODE_LOCAL_ROUTER));
-    //rc = rc && f(*m_sender.get(), m_if_index, addr_storage(IPV6_ALL_SITE_LOCAL_ROUTER));
-    //rc = rc && f(*m_sender.get(), m_if_index, addr_storage(IPV6_ALL_MLDv2_CAPABLE_ROUTERS));
-    //} else {
-    //HC_LOG_ERROR("unknown ip version");
-    //return false;
-    //}
+    if (is_IPv4(m_db.querier_version_mode)) {
+        m_sender->send_report(m_if_index, mf, addr_storage(IPV4_ALL_IGMP_ROUTERS_ADDR), source_list<source>());
+        m_sender->send_report(m_if_index, mf, addr_storage(IPV4_IGMPV3_ADDR), source_list<source>());
+    } else if (is_IPv6(m_db.querier_version_mode)) {
+        m_sender->send_report(m_if_index, mf, addr_storage(IPV6_ALL_NODE_LOCAL_ROUTER), source_list<source>());
+        m_sender->send_report(m_if_index, mf, addr_storage(IPV6_ALL_SITE_LOCAL_ROUTER), source_list<source>());
+        m_sender->send_report(m_if_index, mf, addr_storage(IPV6_ALL_MLDv2_CAPABLE_ROUTERS), source_list<source>());
+    } else {
+        HC_LOG_ERROR("unknown ip version");
+        return false;
+    }
     return rc;
 }
 bool querier::send_general_query()
@@ -722,9 +732,7 @@ void querier::state_change_notification(const addr_storage& gaddr, source_list<s
 querier::~querier()
 {
     HC_LOG_TRACE("");
-    HC_LOG_ERROR("");
-    throw "~querier";
-    //router_groups_function(&sender::send_leave);
+    router_groups_function(false);
 }
 
 timers_values& querier::get_timers_values()

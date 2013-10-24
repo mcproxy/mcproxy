@@ -69,7 +69,7 @@ private:
     void stop();
     void join();
 protected:
-    proxy_instance * const m_proxy_instance;
+    const proxy_instance * const m_proxy_instance;
 
     int m_addr_family;
 
@@ -80,7 +80,8 @@ protected:
 
     void start();
 
-    bool is_if_index_relevant(unsigned int if_index);
+    bool is_if_index_relevant(unsigned int if_index) const;
+
     /**
      * @brief Get the size for the control buffer for recvmsg().
      */

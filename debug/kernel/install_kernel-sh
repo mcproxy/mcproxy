@@ -2,11 +2,11 @@
 # reference http://wiki.ubuntuusers.de/Kernel/Kompilierung
 
 if [ "$1" = "all" ]; then
-  ./config-sh 1
-  ./config-sh 2
-  ./config-sh 3
-  ./config-sh 4
-  ./config-sh 5
+  ./install_kernel-sh 1
+  ./install_kernel-sh 2
+  ./install_kernel-sh 3
+  ./install_kernel-sh 4
+  ./install_kernel-sh 5
 elif [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "" ]; then
 
   echo "This script download, configure, compile and install a linux kernel."
@@ -23,7 +23,7 @@ elif [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "" ]; then
 else 
 
   if [ "$1" = "1" ]; then
-    sudo apt-get install linux-source build-essential kernel-package 
+    sudo apt-get install linux-source build-essential kernel-package ncurses-dev
   fi
 
   if [ "$1" = "2" ]; then

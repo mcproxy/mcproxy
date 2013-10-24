@@ -29,12 +29,17 @@
 #ifndef ROUTING_HPP
 #define ROUTING_HPP
 
-#include "include/utils/mroute_socket.hpp"
+//#include "include/utils/mroute_socket.hpp"
 #include "include/utils/if_prop.hpp"
 
-#include <map>
+#include <set>
 #include <list>
 #include <memory>
+
+class interfaces;
+class mroute_socket;
+class addr_storage;
+
 /**
  * @brief Set and delete virtual interfaces and forwarding rules in the Linux kernel.
  */
@@ -44,11 +49,14 @@ private:
     int m_table_number;
     int m_addr_family; //AF_INET or AF_INET6
 
+    const std::shared_ptr<const interfaces> m_interfaces;
     const std::shared_ptr<const mroute_socket> m_mrt_sock;
     if_prop m_if_prop; //return interface properties
 
+    mutable std::set<unsigned int> m_added_ifs; 
+
 public:
-    routing(int addr_family, std::shared_ptr<const mroute_socket> mrt_sock, int table_number);
+    routing(int addr_family, std::shared_ptr<const mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces, int table_number);
 
     virtual ~routing();
     /**

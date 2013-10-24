@@ -23,16 +23,19 @@
 
 #include "include/hamcast_logging.h"
 #include "include/proxy/routing.hpp"
+#include "include/proxy/interfaces.hpp"
 #include "include/utils/addr_storage.hpp"
+#include "include/utils/mroute_socket.hpp"
 
 #include <net/if.h>
 #include <linux/mroute.h>
 #include <linux/mroute6.h>
 #include <iostream>
 
-routing::routing(int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, int table_number)
+routing::routing(int addr_family, std::shared_ptr<const mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces, int table_number)
     : m_table_number(table_number)
     , m_addr_family(addr_family)
+    , m_interfaces(interfaces)
     , m_mrt_sock(mrt_sock)
 {
     HC_LOG_TRACE("");
@@ -48,7 +51,7 @@ bool routing::add_vif(int if_index, int vif) const
 
     char cstr[IF_NAMESIZE];
     const struct ifaddrs* item = nullptr;
-    
+
     std::string if_name(if_indextoname(if_index, cstr)); //fehler!!!!!! könnte abastürzten ???????????????????????ßß<F8><F8><F8>
 
     //useless ????????????????????????????????????????????????????????????????????
@@ -78,6 +81,10 @@ bool routing::add_vif(int if_index, int vif) const
     } else { //phyint
         if (!m_mrt_sock->add_vif(vif, if_index, addr_storage())) {
             return false;
+        } else {
+            if (!m_added_ifs.insert(if_index).second) {
+                HC_LOG_ERROR("inconsistent database");
+            }
         }
 
     }
@@ -92,7 +99,7 @@ bool routing::add_vif(int if_index, int vif) const
     return true;
 }
 
-bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr, const std::list<int>& output_vif) const 
+bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_storage& src_addr, const std::list<int>& output_vif) const
 {
     HC_LOG_TRACE("");
 
@@ -141,10 +148,21 @@ bool routing::del_vif(int if_index, int vif) const
         }
     }
 
+    if (m_added_ifs.erase(if_index) < 1) {
+        HC_LOG_ERROR("inconsistent database");
+
+    };
+
     HC_LOG_DEBUG("removed interface with vif number: " << vif) ;
     return true;
 }
 
-routing::~routing(){
+routing::~routing()
+{
     HC_LOG_TRACE("");
+
+    //clean up all added interfaces
+    for (auto e : m_added_ifs) {
+        del_vif(e, m_interfaces->get_virtual_if_index(e));
+    }
 }

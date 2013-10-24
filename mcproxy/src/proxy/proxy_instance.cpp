@@ -143,7 +143,7 @@ bool proxy_instance::init_receiver()
 bool proxy_instance::init_routing()
 {
     HC_LOG_TRACE("");
-    m_routing.reset(new routing(get_addr_family(m_group_mem_protocol), m_mrt_sock, m_table_number));
+    m_routing.reset(new routing(get_addr_family(m_group_mem_protocol), m_mrt_sock, m_interfaces, m_table_number));
     return true;
 }
 
@@ -291,22 +291,35 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     switch (msg->get_instruction()) {
     case config_msg::ADD_DOWNSTREAM: {
 
-//using call_back_querier_state_change = std::function<void(unsigned int, const addr_storage&, const addr_storage& )>;
+        if (m_querier.find(msg->get_if_index()) == std::end(m_querier) ) {
+            //register interface
+            m_routing->add_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
+            m_receiver->registrate_interface(msg->get_if_index());
+            HC_LOG_DEBUG("register interface: " << interfaces::get_if_name(msg->get_if_index()) << "with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
 
-        //auto print_proxy_instance = bind(&proxy_instance::add_msg, &pr_i, make_shared<debug_msg>());
-        //virtual void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) = 0;
-        std::function<void(unsigned int, const addr_storage&, const source_list<source>&)> cb_state_change = std::bind(&routing_management::event_querier_state_change, m_routing_management.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-        std::unique_ptr<querier> q(new querier(this, m_group_mem_protocol, msg->get_if_index(), m_sender, m_timing, msg->get_timers_values(), cb_state_change));
-        m_querier.insert(std::pair<int, std::unique_ptr<querier>>(msg->get_if_index(), move(q)));
+            //create a querier
+            std::function<void(unsigned int, const addr_storage&, const source_list<source>&)> cb_state_change = std::bind(&routing_management::event_querier_state_change, m_routing_management.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+            std::unique_ptr<querier> q(new querier(this, m_group_mem_protocol, msg->get_if_index(), m_sender, m_timing, msg->get_timers_values(), cb_state_change));
+            m_querier.insert(std::pair<int, std::unique_ptr<querier>>(msg->get_if_index(), move(q)));
+        } else {
+            HC_LOG_WARN("querier for interface: " << interfaces::get_if_name(msg->get_if_index()) << " allready exists");
+        }
+
+
+
     }
     break;
     case config_msg::DEL_DOWNSTREAM: {
         auto it = m_querier.find(msg->get_if_index());
         if (it != std::end(m_querier)) {
+            //delete querier
             m_querier.erase(it);
-        } else {
-            HC_LOG_ERROR("failed to delete downstream interface: " << interfaces::get_if_name(msg->get_if_index()));
 
+            //unregister interface
+            m_routing->del_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
+            m_receiver->del_interface(msg->get_if_index());
+        } else {
+            HC_LOG_WARN("failed to delete downstream interface: " << interfaces::get_if_name(msg->get_if_index()));
         }
     }
     break;
@@ -426,7 +439,7 @@ void proxy_instance::test_querier(std::string if_name)
     //test_d(send_record, print_proxy_instance);
 }
 
-void proxy_instance::quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
+void proxy_instance::quick_test(std::function <void(mcast_addr_record_type, source_list<source>&&)> send_record, std::function<void()> print_proxy_instance)
 {
     using namespace std;
     cout << "##-- querier quick test --##" << endl;

@@ -49,7 +49,7 @@ receiver::~receiver()
     join();
 }
 
-bool receiver::is_if_index_relevant(unsigned int if_index)
+bool receiver::is_if_index_relevant(unsigned int if_index) const
 {
     HC_LOG_TRACE("");
     return m_relevant_if_index.find(if_index) != std::end(m_relevant_if_index);
@@ -60,7 +60,7 @@ void receiver::registrate_interface(int if_index)
     HC_LOG_TRACE("");
 
     std::lock_guard<std::mutex> lock(m_data_lock);
-    
+
     m_relevant_if_index.insert(if_index);
 }
 
