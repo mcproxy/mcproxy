@@ -102,7 +102,7 @@ bool sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const ti
     source_list<source> list_higher;
     for (auto & e : slist) {
         if (e.retransmission_count > 0) {
-            e.retransmission_count--;
+            e.retransmission_count--; //side effect!!!!!!!!! 
 
             if (e.shared_source_timer->is_remaining_time_greater_than(tv.get_last_listener_query_time())) {
                 list_higher.insert(e);

@@ -41,7 +41,11 @@ private:
     };
 
     bool create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr = nullptr) const;
-    int get_msg_min_size() const;
+
+    //with side affect ....
+    bool send_igmpv3_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, source_list<source>& slist) const;
+
+    //int get_msg_min_size() const;
 public:
     /**
      * @brief Create an igmp_sender.

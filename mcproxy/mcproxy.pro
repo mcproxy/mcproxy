@@ -63,9 +63,10 @@ HEADERS += include/hamcast_logging.h \
            include/utils/mc_socket.hpp \
            include/utils/addr_storage.hpp \
            include/utils/reverse_path_filter.hpp \
-           #include/utils/mc_timers_values.hpp \
            include/utils/mroute_socket.hpp \
            include/utils/if_prop.hpp \
+           include/utils/extended_mld_defines.hpp \
+           include/utils/extended_igmp_defines.hpp \
                #proxy
            include/proxy/proxy.hpp \
            include/proxy/sender.hpp \

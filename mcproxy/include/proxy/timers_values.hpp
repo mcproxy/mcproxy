@@ -54,42 +54,27 @@ private:
     timers_values_tank* tank = &default_timers_values_tank;
 
     void set_new_tank();
-    //--------------------------------------
-    //return in seconds
-    std::chrono::seconds qqic_to_qqi(bool first_bit, unsigned int exp, unsigned int mant) const;
-
-    //return in seconds
-    std::chrono::seconds qqic_to_qqi(uint8_t qqic) const;
-
-    //retrun qqic
-    uint8_t qqi_to_qqic(const std::chrono::seconds& sec) const;
-
-    //--------------------------------------
-    //return in milli seconds
-    std::chrono::milliseconds maxrespc_igmpv3_to_maxrespi(bool first_bit, unsigned int exp, unsigned int mant) const;
-
-    //return in milli seconds
-    std::chrono::milliseconds maxrespc_igmpv3_to_maxrespi(uint8_t max_resp_code) const;
-
-    //retrun qqic
-    uint8_t maxrespi_to_maxrespc_igmpv3(const std::chrono::milliseconds& msec) const;
-
-    //--------------------------------------
-    //return in milli seconds
-    std::chrono::milliseconds maxrespc_mldv2_to_maxrespi(bool first_bit, unsigned int exp, unsigned int mant) const;
-
-    //return in milli seconds
-    std::chrono::milliseconds maxrespc_mldv2_to_maxrespi(uint16_t max_resp_code) const;
-
-    //retrun qqic
-    uint16_t maxrespi_to_maxrespc_mldv2(std::chrono::milliseconds msec) const;
-
 public:
     timers_values() = default;
     timers_values(const timers_values& tv);
     timers_values& operator=(const timers_values& tv);
     timers_values(timers_values&& tv) = default;
     timers_values& operator=(timers_values&& tv) = default;
+
+    //--------------------------------------
+    std::chrono::seconds qqic_to_qqi(bool first_bit, unsigned int exp, unsigned int mant) const;
+    std::chrono::seconds qqic_to_qqi(uint8_t qqic) const;
+    uint8_t qqi_to_qqic(const std::chrono::seconds& sec) const;
+
+    //--------------------------------------
+    std::chrono::milliseconds maxrespc_igmpv3_to_maxrespi(bool first_bit, unsigned int exp, unsigned int mant) const;
+    std::chrono::milliseconds maxrespc_igmpv3_to_maxrespi(uint8_t max_resp_code) const;
+    uint8_t maxrespi_to_maxrespc_igmpv3(const std::chrono::milliseconds& msec) const;
+
+    //--------------------------------------
+    std::chrono::milliseconds maxrespc_mldv2_to_maxrespi(bool first_bit, unsigned int exp, unsigned int mant) const;
+    std::chrono::milliseconds maxrespc_mldv2_to_maxrespi(uint16_t max_resp_code) const;
+    uint16_t maxrespi_to_maxrespc_mldv2(std::chrono::milliseconds msec) const;
 
     unsigned int get_robustness_variable() const;
     std::chrono::seconds get_query_interval() const;
