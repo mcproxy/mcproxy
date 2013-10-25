@@ -31,6 +31,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 
 #include <signal.h>
 #include <unistd.h>
@@ -203,8 +204,13 @@ void proxy::start_proxy_instances()
 
         pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_UPSTREAM, upstream));
 
+        std::cout << "here I mod the timers and values for debug aim" << std::endl;
+        timers_values tv;
+        tv.set_query_interval(std::chrono::seconds(30));
+        tv.set_startup_query_interval(std::chrono::seconds(10));
+
         for (auto f : downstreams) {
-            pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, f, timers_values()));
+            pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, f, tv));
         }
 
         m_proxy_instances.insert(std::pair<int, std::unique_ptr<proxy_instance>>(table, move(pr_i)));
@@ -216,15 +222,31 @@ void proxy::start()
     using namespace std;
     HC_LOG_TRACE("");
 
-    cout << *this << endl;    
+    cout << *this << endl;
+    cout << endl;
 
     m_running = true;
     while (m_running) {
-        for(auto & e: m_proxy_instances){
-            e.second->add_msg(std::make_shared<debug_msg>());         
+        for (auto & e : m_proxy_instances) {
+            e.second->add_msg(std::make_shared<debug_msg>());
             sleep(2);
         }
     }
+
+
+    //kill all proxy_instances
+    std::for_each(begin(m_proxy_instances), end(m_proxy_instances), [](pair<const int, std::unique_ptr<proxy_instance>>& e) {
+    e.second->add_msg(std::make_shared<exit_cmd>());
+    });
+
+    //for (pair<const int, std::unique_ptr<proxy_instance>>& e : m_proxy_instances) {
+        //e.second->add_msg(std::make_shared<exit_cmd>());
+    //}
+
+
+
+
+
 
 
     //vif_map::iterator it_vif;
@@ -356,8 +378,9 @@ std::string proxy::to_string() const
     return s.str();
 }
 
-std::ostream& operator<<(std::ostream& stream, const proxy& p){
-   return stream << p.to_string();
-    
+std::ostream& operator<<(std::ostream& stream, const proxy& p)
+{
+    return stream << p.to_string();
+
 }
 

@@ -80,12 +80,12 @@ bool querier::router_groups_function(bool subscribe) const
 
     bool rc = true;
     if (is_IPv4(m_db.querier_version_mode)) {
-        m_sender->send_report(m_if_index, mf, addr_storage(IPV4_ALL_IGMP_ROUTERS_ADDR), source_list<source>());
-        m_sender->send_report(m_if_index, mf, addr_storage(IPV4_IGMPV3_ADDR), source_list<source>());
+        rc = rc && m_sender->send_report(m_if_index, mf, addr_storage(IPV4_ALL_IGMP_ROUTERS_ADDR), source_list<source>());
+        rc = rc && m_sender->send_report(m_if_index, mf, addr_storage(IPV4_IGMPV3_ADDR), source_list<source>());
     } else if (is_IPv6(m_db.querier_version_mode)) {
-        m_sender->send_report(m_if_index, mf, addr_storage(IPV6_ALL_NODE_LOCAL_ROUTER), source_list<source>());
-        m_sender->send_report(m_if_index, mf, addr_storage(IPV6_ALL_SITE_LOCAL_ROUTER), source_list<source>());
-        m_sender->send_report(m_if_index, mf, addr_storage(IPV6_ALL_MLDv2_CAPABLE_ROUTERS), source_list<source>());
+        rc = rc && m_sender->send_report(m_if_index, mf, addr_storage(IPV6_ALL_NODE_LOCAL_ROUTER), source_list<source>());
+        rc = rc && m_sender->send_report(m_if_index, mf, addr_storage(IPV6_ALL_SITE_LOCAL_ROUTER), source_list<source>());
+        rc = rc && m_sender->send_report(m_if_index, mf, addr_storage(IPV6_ALL_MLDv2_CAPABLE_ROUTERS), source_list<source>());
     } else {
         HC_LOG_ERROR("unknown ip version");
         return false;

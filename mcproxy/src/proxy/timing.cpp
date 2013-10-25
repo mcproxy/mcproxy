@@ -122,8 +122,8 @@ void timing::start()
 void timing::stop()
 {
     HC_LOG_TRACE("");
-
     m_running = false;
+    m_con_var.notify_one();
 }
 
 void timing::join() const

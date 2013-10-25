@@ -275,7 +275,7 @@ std::string proxy_instance::to_string() const
 {
     HC_LOG_TRACE("");
     std::ostringstream s;
-    s << "@@##-- proxy instance: " << m_table_number << " --##@@";
+    s << "@@##-- proxy instance: " << m_table_number << " --##@@" << std::endl;;
     s << *m_routing_management << std::endl;
     for (auto it = std::begin(m_querier); it != std::end(m_querier); ++it) {
         s << std::endl << *it->second;

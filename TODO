@@ -28,6 +28,8 @@ struct mfcctl {
 
 
 General stuff
+ -- pimp debug output
+ -- overwork exception concept 
  -- clean class routing 
  -- overwork recvmsg() buffer size
  -- overwork state_change_notification //call_back function 
