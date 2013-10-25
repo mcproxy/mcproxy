@@ -35,6 +35,7 @@
 #include "include/proxy/proxy_instance.hpp"
 #include "include/proxy/simple_mc_proxy_routing.hpp"
 #include "include/proxy/simple_routing_data.hpp"
+#include "include/proxy/igmp_sender.hpp"
 
 #include <iostream>
 
@@ -49,10 +50,10 @@ int main(int arg_count, char* args[])
 {
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
 
-    //test_mcproxy(arg_count, args);
+    test_mcproxy(arg_count, args);
 
 
-    test_test();
+    //test_test();
     return 0;
 }
 
@@ -82,7 +83,7 @@ void test_mcproxy(int arg_count, char* args[])
 
 void test_test()
 {
-    mc_socket::test_all();
+    //mc_socket::test_all();
     //addr_storage::test_addr_storage_a();
     //addr_storage::test_addr_sto_b();
     //membership_db::test_arithmetic();
@@ -93,4 +94,5 @@ void test_test()
     //worker::test_worker();
     //proxy_instance::test_querier("dummy0");
     //simple_routing_data::test_simple_routing_data();
+    //igmp_sender::test_igmp_sender();
 }

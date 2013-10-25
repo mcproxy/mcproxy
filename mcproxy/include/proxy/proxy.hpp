@@ -68,7 +68,6 @@ private:
 
     void start();
 
-    std::string to_string();
 public:
     /**
      * @brief Set default values of the class members and add signal handlers for the signal SIGINT and SIGTERM.
@@ -80,6 +79,8 @@ public:
      */
     virtual ~proxy();
 
+    std::string to_string() const;
+    friend std::ostream& operator<<(std::ostream& stream, const proxy& p);
 };
 
 #endif // PROXY_HPP

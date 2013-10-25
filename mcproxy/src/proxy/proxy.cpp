@@ -213,11 +213,17 @@ void proxy::start_proxy_instances()
 
 void proxy::start()
 {
+    using namespace std;
     HC_LOG_TRACE("");
+
+    cout << *this << endl;    
 
     m_running = true;
     while (m_running) {
-        sleep(1);
+        for(auto & e: m_proxy_instances){
+            e.second->add_msg(std::make_shared<debug_msg>());         
+            sleep(2);
+        }
     }
 
 
@@ -333,7 +339,7 @@ void proxy::signal_handler(int)
     proxy::m_running = false;
 }
 
-std::string proxy::to_string()
+std::string proxy::to_string() const
 {
     using namespace std;
     HC_LOG_TRACE("");
@@ -349,3 +355,9 @@ std::string proxy::to_string()
     s << m_proxy_configuration.get()->to_string() << endl;
     return s.str();
 }
+
+std::ostream& operator<<(std::ostream& stream, const proxy& p){
+   return stream << p.to_string();
+    
+}
+

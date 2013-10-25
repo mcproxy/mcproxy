@@ -241,7 +241,7 @@ private:
 };
 //------------------------------------------------------------------------
 struct debug_msg : public proxy_msg {
-    debug_msg(): proxy_msg(DEBUG_MSG, SYSTEMIC) {
+    debug_msg(): proxy_msg(DEBUG_MSG, USER_INPUT) {
         HC_LOG_TRACE("");
     }
 };

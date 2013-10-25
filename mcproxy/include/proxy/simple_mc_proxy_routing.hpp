@@ -68,7 +68,6 @@ public:
     void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg) override;
 
     std::string to_string() const override;
-
 };
 
 
