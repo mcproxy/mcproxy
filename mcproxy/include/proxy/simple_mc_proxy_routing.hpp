@@ -62,7 +62,7 @@ private:
 public:
     simple_mc_proxy_routing(const proxy_instance* p);
 
-    void event_new_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) override;
+    void event_new_source(const std::shared_ptr<proxy_msg>& msg) override;
     void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) override;
 
     void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg) override;

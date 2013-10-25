@@ -23,6 +23,8 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/igmp_receiver.hpp"
 #include "include/proxy/proxy_instance.hpp"
+#include "include/proxy/message_format.hpp"
+#include "include/utils/extended_igmp_defines.hpp"
 
 #include <net/if.h>
 #include <linux/mroute.h>
@@ -60,9 +62,9 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
     struct ip* ip_hdr = (struct ip*)msg->msg_iov->iov_base;
     struct igmp* igmp_hdr = (struct igmp*) ((char*)msg->msg_iov->iov_base + ip_hdr->ip_hl * 4);
 
-    int if_index = 0;
-    addr_storage g_addr;
-    addr_storage src_addr;
+    unsigned int if_index = 0;
+    addr_storage gaddr;
+    addr_storage saddr;
     //proxy_instance* pr_i;
 
     //test_output::printPacket_IPv4_Infos(buf, msg_size);
@@ -76,43 +78,40 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
 
         switch (igmpctl->im_msgtype) {
         case IGMPMSG_NOCACHE: {
-            src_addr = igmpctl->im_src;
-            HC_LOG_DEBUG("\tsrc: " << src_addr);
+            saddr = igmpctl->im_src;
+            HC_LOG_DEBUG("\tsrc: " << saddr);
 
-            g_addr = igmpctl->im_dst;
-            HC_LOG_DEBUG("\tgroup: " << g_addr);
+            gaddr = igmpctl->im_dst;
+            HC_LOG_DEBUG("\tgroup: " << gaddr);
 
             HC_LOG_DEBUG("\tvif: " << (int)igmpctl->im_vif);
             if ((if_index = m_interfaces->get_if_index(igmpctl->im_vif)) == 0) {
                 return;
             }
+
+            if (is_if_index_relevant(if_index)) { //I think this is not nessessary (see line above)???????????????? and next message types
+                return;
+            }
+
             HC_LOG_DEBUG("\tif_index: " << if_index);
-
-            //if ((pr_i = get_proxy_instance(if_index)) == nullptr) {
-            //return;
-            //}
-
-            //proxy_msg m;
-            //m.type = proxy_msg::RECEIVER_MSG;
-            //m.msg = new struct receiver_msg(receiver_msg::CACHE_MISS, if_index, src_addr, g_addr);
-            //pr_i->add_msg(m);
+            m_proxy_instance->add_msg(std::make_shared<new_source_msg>(if_index, gaddr, saddr));
             break;
         }
         default:
             HC_LOG_WARN("unknown kernel message");
         }
-    } else if (ip_hdr->ip_p == IPPROTO_IGMP && ntohs(ip_hdr->ip_len) == get_iov_min_size()) {
+    } else if (ip_hdr->ip_p == IPPROTO_IGMP && ntohs(ip_hdr->ip_len) <= get_iov_min_size()) { //???????
         //test_output::printPaket_IPv4_IgmpInfos(buf);
         if (igmp_hdr->igmp_type == IGMP_V2_MEMBERSHIP_REPORT) {
             HC_LOG_DEBUG("\tjoin");
 
-            src_addr = ip_hdr->ip_src;
-            HC_LOG_DEBUG("\tsrc: " << src_addr);
+            saddr = ip_hdr->ip_src;
+            HC_LOG_DEBUG("\tsrc: " << saddr);
 
-            g_addr = igmp_hdr->igmp_group;
-            HC_LOG_DEBUG("\tgroup: " << g_addr);
+            gaddr = igmp_hdr->igmp_group;
+            HC_LOG_DEBUG("\tgroup: " << gaddr);
 
-            if ((if_index = m_interfaces->get_if_index(src_addr)) == 0) {
+            if ((if_index = m_interfaces->get_if_index(saddr)) == 0) {
                 return;
             }
             HC_LOG_DEBUG("\tif_index: " << if_index);
@@ -125,16 +124,17 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             //m.type = proxy_msg::RECEIVER_MSG;
             //m.msg = new struct receiver_msg(receiver_msg::JOIN, if_index, g_addr);
             //pr_i->add_msg(m);
+            HC_LOG_ERROR("protocoll not supported igmpv2 mem report");
         } else if (igmp_hdr->igmp_type == IGMP_V2_LEAVE_GROUP) {
             HC_LOG_DEBUG("\tleave");
 
-            src_addr = ip_hdr->ip_src;
-            HC_LOG_DEBUG("\tsrc: " << src_addr);
+            saddr = ip_hdr->ip_src;
+            HC_LOG_DEBUG("\tsrc: " << saddr);
 
-            g_addr = igmp_hdr->igmp_group;
-            HC_LOG_DEBUG("\tgroup: " << g_addr);
+            gaddr = igmp_hdr->igmp_group;
+            HC_LOG_DEBUG("\tgroup: " << gaddr);
 
-            if ((if_index = m_interfaces->get_if_index(src_addr)) == 0) {
+            if ((if_index = m_interfaces->get_if_index(saddr)) == 0) {
                 return ;
             }
             HC_LOG_DEBUG("\tif_index: " << if_index);
@@ -147,6 +147,28 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             //m.type = proxy_msg::RECEIVER_MSG;
             //m.msg = new struct receiver_msg(receiver_msg::LEAVE, if_index, g_addr);
             //pr_i->add_msg(m);
+
+            HC_LOG_ERROR("protocoll not supported igmpv2 leave group");
+        } else if (igmp_hdr->igmp_type == IGMP_V3_MEMBERSHIP_REPORT) {
+            igmpv3_mc_report* v3_report = reinterpret_cast<igmpv3_mc_report*>(igmp_hdr);
+            igmpv3_mc_record* rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(v3_report) + sizeof(igmpv3_mc_report));
+
+            int num_records = v3_report->num_of_mc_records;
+
+            saddr = ip_hdr->ip_src;
+            if ((if_index = m_interfaces->get_if_index(saddr)) == 0) {
+                return ;
+            }
+
+            for (int i = 0; i < num_records; ++i) {
+                mcast_addr_record_type rec_type = static_cast<mcast_addr_record_type>(rec->type);
+                int nos =  
+
+                
+            }
+
+            //group_record_msg(unsigned int if_index, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& slist, int report_version)
+
         } else {
             HC_LOG_DEBUG("unknown IGMP-packet");
             HC_LOG_DEBUG("type: " << igmp_hdr->igmp_type);

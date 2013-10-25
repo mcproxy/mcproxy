@@ -48,6 +48,7 @@ struct proxy_msg {
         EXIT_MSG,
         FILTER_TIMER_MSG,
         SOURCE_TIMER_MSG,
+        NEW_SOURCE_MSG,
         NEW_SOURCE_TIMER_MSG,
         RET_GROUP_TIMER_MSG,
         RET_SOURCE_TIMER_MSG,
@@ -70,6 +71,8 @@ struct proxy_msg {
             {EXIT_MSG,             "EXIT_MSG"            },
             {FILTER_TIMER_MSG,     "FILTER_TIMER_MSG"    },
             {SOURCE_TIMER_MSG,     "SOURCE_TIMER_MSG"    },
+            {NEW_SOURCE_MSG,       "NEW_SOURCE_MSG"      },
+            {NEW_SOURCE_TIMER_MSG, "NEW_SOURCE_TIMER_MSG"},
             {RET_GROUP_TIMER_MSG,  "RET_GROUP_TIMER_MSG" },
             {RET_SOURCE_TIMER_MSG, "RET_SOURCE_TIMER_MSG"},
             {GENERAL_QUERY_MSG,    "GENERAL_QUERY_MSG"   },
@@ -243,8 +246,8 @@ struct debug_msg : public proxy_msg {
     }
 };
 
-//------------------------------------------------------------------------
 
+//------------------------------------------------------------------------
 struct source {
     source() = default;
     source(source&&) = default;
@@ -344,6 +347,34 @@ private:
     addr_storage m_gaddr;
     source_list<source> m_slist;
     int m_report_version;
+};
+
+struct new_source_msg : public proxy_msg {
+    new_source_msg(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
+        : proxy_msg(NEW_SOURCE_MSG, LOSEABLE)
+        , m_if_index(if_index)
+        , m_gaddr(gaddr)
+        , m_saddr(saddr)
+    {
+        HC_LOG_TRACE("");
+    }
+
+    unsigned int get_if_index() {
+        return m_if_index;
+    }
+
+    const addr_storage& get_gaddr() {
+        return m_gaddr;
+    }
+
+    const addr_storage& get_saddr() {
+        return m_saddr;
+    }
+
+private:
+    unsigned int m_if_index;
+    addr_storage m_gaddr;
+    addr_storage m_saddr;
 };
 
 //------------------------------------------------------------------------

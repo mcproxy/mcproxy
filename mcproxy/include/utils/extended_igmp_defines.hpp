@@ -50,7 +50,7 @@ struct igmpv3_mc_record {
     in_addr gaddr;
 } __attribute__ ((packed));
 
-struct mldv2_mc_report {
+struct igmpv3_mc_report {
     uint8_t type;
     uint8_t reservedA;
     uint16_t checksum;

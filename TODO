@@ -4,18 +4,17 @@ TODO list
 create a Ncurses based multicast test tool 
 
 Could change or modify the behavior of the mcproxy:
- - http://tools.ietf.org/html/draft-ietf-multimob-pmipv6-source-04
- - http://tools.ietf.org/html/rfc6224
- - draft-zhang-pim-multi-upstream-igmp-mld-proxy-01
- - draft-asaeda-pim-mldproxy-multif-01
- - http://tools.ietf.org/html/rfc6636
- - http://tools.ietf.org/html/draft-ietf-multimob-handover-optimization-03
- - http://tools.ietf.org/html/draft-contreras-multimob-multiple-upstreams-01 
- - IGMP/MLD-Based Explicit Membership Tracking Function for Multicast Routers draft-ietf-pim-explicit-tracking-08
+ -- http://tools.ietf.org/html/draft-ietf-multimob-pmipv6-source-04
+ -- http://tools.ietf.org/html/rfc6224
+ -- draft-zhang-pim-multi-upstream-igmp-mld-proxy-01
+ -- draft-asaeda-pim-mldproxy-multif-01
+ -- http://tools.ietf.org/html/rfc6636
+ -- http://tools.ietf.org/html/draft-ietf-multimob-handover-optimization-03
+ -- http://tools.ietf.org/html/draft-contreras-multimob-multiple-upstreams-01 
+ -- IGMP/MLD-Based Explicit Membership Tracking Function for Multicast Routers draft-ietf-pim-explicit-tracking-08
 
- - Timer should settable per-interface
 
- - add und delete mroute optimisation 
+add und delete mroute optimisation 
 struct mfcctl {
 	struct in_addr mfcc_origin;		/* Origin of mcast	*/
 	struct in_addr mfcc_mcastgrp;		/* Group in question	*/
@@ -27,12 +26,15 @@ struct mfcctl {
 	int	     mfcc_expire; <======== the kernel could delete its rules by itself 
 };
 
-clean class routing 
-overwork recvmsg() buffer size
-overwork state_change_notification //call_back function 
-overwork class timing with pipe and pselect
-implement RFC specific conditions for timers_vaules set operators 
-exchange boost stuff (hamcast_logging, README)
+
+General stuff
+ -- clean class routing 
+ -- overwork recvmsg() buffer size
+ -- overwork state_change_notification //call_back function 
+ -- overwork class timing with pipe and pselect
+ -- implement RFC specific conditions for timers_vaules set operators 
+ -- exchange boost stuff (hamcast_logging, README)
+ -- remove all ???????? from the code
 
 
 

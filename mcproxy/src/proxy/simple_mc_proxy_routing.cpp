@@ -35,7 +35,6 @@ simple_mc_proxy_routing::simple_mc_proxy_routing(const proxy_instance* p)
     : routing_management(p)
 {
     HC_LOG_TRACE("");
-
 }
 
 std::chrono::seconds simple_mc_proxy_routing::get_source_life_time()
@@ -44,16 +43,26 @@ std::chrono::seconds simple_mc_proxy_routing::get_source_life_time()
     return std::chrono::seconds(100);
 }
 
-void simple_mc_proxy_routing::event_new_source(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
+void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>& msg)
 {
     HC_LOG_TRACE("");
 
-    auto nst = std::make_shared<new_source_timer>(if_index, gaddr, saddr, get_source_life_time());
-    source s(saddr);
-    s.shared_source_timer = nst;
-    m_data.add_source(if_index, gaddr, s);
-    set_timer(nst);
-    add_route(if_index, gaddr, collect_interested_interfaces(if_index, gaddr, {saddr}));
+    switch (msg->get_type()) {
+    case proxy_msg::NEW_SOURCE_MSG: {
+        auto sm = std::static_pointer_cast<new_source_msg>(msg);
+        auto nst = std::make_shared<new_source_timer>(sm->get_if_index(), sm->get_gaddr(), sm->get_saddr(), get_source_life_time());
+        source s(sm->get_saddr());
+        s.shared_source_timer = nst;
+        m_data.add_source(sm->get_if_index(), sm->get_gaddr(), s);
+        set_timer(nst);
+        add_route(sm->get_if_index(), sm->get_gaddr(), collect_interested_interfaces(sm->get_if_index(), sm->get_gaddr(), {sm->get_saddr()}));
+    }
+    break;
+    default:
+        HC_LOG_ERROR("unknown message format");
+        return;
+    }
+
 }
 
 void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist)

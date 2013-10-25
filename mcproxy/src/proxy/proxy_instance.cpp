@@ -203,6 +203,9 @@ void proxy_instance::worker_thread()
             }
         }
         break;
+        case proxy_msg::NEW_SOURCE_MSG:
+            m_routing_management->event_new_source(msg);
+            break;
         case proxy_msg::NEW_SOURCE_TIMER_MSG:
             m_routing_management->timer_triggerd_maintain_routing_table(msg);
             break;
