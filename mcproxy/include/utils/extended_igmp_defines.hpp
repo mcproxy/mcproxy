@@ -25,28 +25,35 @@
 
 #include <stdint.h>
 #include <sys/types.h>
-#include <netinet/igmp.h>
+#include <netinet/igmp.h> 
 
 #ifndef IGMP_V3_MEMBERSHIP_REPORT
 #define IGMP_V3_MEMBERSHIP_REPORT 0x22
 #endif
 
+//struct igmp {
+  //u_int8_t igmp_type;             [> IGMP type <]
+  //u_int8_t igmp_code;             [> routing code <]
+  //u_int16_t igmp_cksum;           [> checksum <]
+  //struct in_addr igmp_group;      [> group address <]
+//};
+
 struct igmpv3_query: igmp {
-#if BYTE_ORDER == LITTLE_ENDIAN //is this right?????
+#if BYTE_ORDER == LITTLE_ENDIAN //is this right?????????????????ßß 
     uint8_t qrv : 3, suppress : 1, resv2 : 4;
-#elif BYTE_ORDER == BIG_ENDIAN //is this right?????
+#elif BYTE_ORDER == BIG_ENDIAN //is this right??????????????????????
     uint8_t resv2 : 4, suppress : 1, qrv : 3;
 #else
 #   error "unkown byte order"
 #endif
     uint8_t qqic;
-    uint16_t num_of_srcs;
+    uint16_t num_of_srcs; //ntohs
 } __attribute__ ((packed));
 
 struct igmpv3_mc_record {
     uint8_t type;
     uint8_t aux_data_len;
-    uint16_t num_of_srcs;
+    uint16_t num_of_srcs; //ntohs
     in_addr gaddr;
 } __attribute__ ((packed));
 
@@ -55,9 +62,8 @@ struct igmpv3_mc_report {
     uint8_t reservedA;
     uint16_t checksum;
     uint16_t reservedB;
-    uint16_t num_of_mc_records;
+    uint16_t num_of_mc_records; //ntohs
 } __attribute__ ((packed));
-
 
 #endif
 

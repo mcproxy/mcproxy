@@ -169,7 +169,7 @@ bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& 
     }
 
     q->qqic = tv.qqi_to_qqic(tv.get_query_interval());
-    q->num_of_srcs = slist.size();
+    q->num_of_srcs = ntohs(slist.size());
 
     if (!slist.empty()) {
         in_addr* source_ptr = reinterpret_cast<in_addr*>(reinterpret_cast<unsigned char*>(q.get()) + sizeof(igmpv3_query));

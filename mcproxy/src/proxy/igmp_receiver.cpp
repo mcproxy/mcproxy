@@ -153,22 +153,29 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             igmpv3_mc_report* v3_report = reinterpret_cast<igmpv3_mc_report*>(igmp_hdr);
             igmpv3_mc_record* rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(v3_report) + sizeof(igmpv3_mc_report));
 
-            int num_records = v3_report->num_of_mc_records;
+            int num_records = ntohs(v3_report->num_of_mc_records);
 
             saddr = ip_hdr->ip_src;
             if ((if_index = m_interfaces->get_if_index(saddr)) == 0) {
-                return ;
+                return;
             }
 
             for (int i = 0; i < num_records; ++i) {
                 mcast_addr_record_type rec_type = static_cast<mcast_addr_record_type>(rec->type);
-                int nos =  
+                unsigned int aux_size = rec->aux_data_len * 4; //RFC 3376 Section 4.2.6 Aux Data Len
+                int nos = ntohs(rec->num_of_srcs);
+                gaddr = addr_storage(rec->gaddr);
+                source_list<source> slist;
+                for (int j = 0; j < nos; ++j) {
+                    in_addr* src = reinterpret_cast<in_addr*>(reinterpret_cast<unsigned char*>(rec) + sizeof(in_addr));
+                    slist.insert(addr_storage(*src));
+                    src++;
+                }
 
-                
+                m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, move(slist), -1));
+
+                rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(rec) + sizeof(igmpv3_mc_record) + nos * sizeof(in_addr) + aux_size);
             }
-
-            //group_record_msg(unsigned int if_index, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& slist, int report_version)
-
         } else {
             HC_LOG_DEBUG("unknown IGMP-packet");
             HC_LOG_DEBUG("type: " << igmp_hdr->igmp_type);
