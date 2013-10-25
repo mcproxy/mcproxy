@@ -160,6 +160,10 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 return;
             }
 
+            if (is_if_index_relevant(if_index)) { //I think this is not nessessary (see line above)???????????????? and next message types
+                return;
+            }
+
             for (int i = 0; i < num_records; ++i) {
                 mcast_addr_record_type rec_type = static_cast<mcast_addr_record_type>(rec->type);
                 unsigned int aux_size = rec->aux_data_len * 4; //RFC 3376 Section 4.2.6 Aux Data Len

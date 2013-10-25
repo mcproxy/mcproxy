@@ -307,9 +307,6 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
         } else {
             HC_LOG_WARN("querier for interface: " << interfaces::get_if_name(msg->get_if_index()) << " allready exists");
         }
-
-
-
     }
     break;
     case config_msg::DEL_DOWNSTREAM: {
@@ -327,10 +324,23 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     }
     break;
     case config_msg::ADD_UPSTREAM:
-        m_upstream = msg->get_if_index();
+        if (m_upstream == 0) {
+            //register interface
+            m_routing->add_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
+            m_receiver->registrate_interface(msg->get_if_index());
+            HC_LOG_DEBUG("register interface: " << interfaces::get_if_name(msg->get_if_index()) << "with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
+
+            m_upstream = msg->get_if_index();
+        }
         break;
     case config_msg::DEL_UPSTREAM:
-        m_upstream = 0;
+        if (m_upstream != 0) {
+            //unregister interface
+            m_routing->del_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
+            m_receiver->del_interface(msg->get_if_index());
+
+            m_upstream = 0;
+        }
         break;
     default:
         HC_LOG_ERROR("unknown config message format");
@@ -442,7 +452,7 @@ void proxy_instance::test_querier(std::string if_name)
     //test_d(send_record, print_proxy_instance);
 }
 
-void proxy_instance::quick_test(std::function <void(mcast_addr_record_type, source_list<source>&&)> send_record, std::function<void()> print_proxy_instance)
+void proxy_instance::quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
 {
     using namespace std;
     cout << "##-- querier quick test --##" << endl;
