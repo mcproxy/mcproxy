@@ -38,7 +38,9 @@
 #include "include/proxy/igmp_sender.hpp"
 
 #include <iostream>
+#include <unistd.h>
 
+void tester(int arg_count, char* args[]);
 void test_log();
 void test_mctables();
 void test_MC_TestTool();
@@ -46,12 +48,12 @@ void test_mcproxy(int arg_count, char* args[]);
 void test_test();
 
 int main(int arg_count, char* args[])
-
 {
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
 
-    test_mcproxy(arg_count, args);
+    //test_mcproxy(arg_count, args);
 
+    tester(arg_count, args);
 
     //test_test();
     return 0;
@@ -76,9 +78,67 @@ void test_mcproxy(int arg_count, char* args[])
     try {
         proxy p(arg_count, args);
     } catch (const char* e) {
-        std::cout << e << std::endl;        
+        std::cout << e << std::endl;
     }
 
+}
+
+void tester(int arg_count, char* args[])
+{
+    if (arg_count > 2) {
+        std::string if_name = args[1];
+        mc_socket ms;
+        ms.create_udp_ipv4_socket();
+        if (std::string(args[2]).compare("1") == 0) {
+            std::cout << "join group 239.99.99.99" << std::endl;
+            if (!ms.join_group(addr_storage("239.99.99.99"), interfaces::get_if_index(if_name))) {
+                std::cout << "join group error" << std::endl;
+            }
+            sleep(10);
+        } else if (std::string(args[2]).compare("2") == 0) {
+            std::cout << "join group 239.99.99.99" << std::endl;
+            if (!ms.join_group(addr_storage("239.99.99.99"), interfaces::get_if_index(if_name))) {
+                std::cout << "join group error" << std::endl;
+            }
+
+            std::cout << "set source filter INCLUDE_MODE with ip 123 and 124" << std::endl;
+            if (!ms.set_source_filter(interfaces::get_if_index(if_name), addr_storage("239.99.99.99"), INCLUDE_MODE, {addr_storage("123.123.123.123"), addr_storage("124.124.124.124")})) {
+                std::cout << "set source filter error" << std::endl;
+            }
+
+            sleep(10);
+        } else if (std::string(args[2]).compare("3") == 0) {
+            std::cout << "join group 239.99.99.99" << std::endl;
+            if (!ms.join_group(addr_storage("239.99.99.99"), interfaces::get_if_index(if_name))) {
+                std::cout << "join group error" << std::endl;
+            }
+
+            std::cout << "set source filter EXLCUDE_MODE with ip 125 and 124" << std::endl;
+            if (!ms.set_source_filter(interfaces::get_if_index(if_name), addr_storage("239.99.99.99"), EXLCUDE_MODE , {addr_storage("125.125.125.125"), addr_storage("124.124.124.124")})) {
+                std::cout << "set source filter error" << std::endl;
+            }
+            sleep(10);
+        } else if (std::string(args[2]).compare("4") == 0) {
+            std::cout << "choose multicast interface" << std::endl;
+            if (!ms.choose_if(interfaces::get_if_index(if_name))) {
+                
+            }
+
+            std::cout << "send packet: bob is cool" << std::endl;
+            if (!ms.send_packet(addr_storage("239.99.99.99"), "bob is cool")) {
+                std::cout << "send packet error" << std::endl;
+            }
+            return;
+        }
+
+    } else {
+        std::cout << "arg musst be [ifname] [1], [2], [3] or [4] " << std::endl;
+        std::cout << "[1]: join group 239.99.99.99" << std::endl;
+        std::cout << "[2]: [1] and set source filter INCLUDE_MODE with ip 123.123.123.123 and 124.124.124.124" << std::endl;
+        std::cout << "[3]: [1] and set source filter EXLCUDE_MODE with ip 124.124.124.124 and 125.125.125.125" << std::endl;
+        std::cout << "[l]: send test packet to 239.99.99.99" << std::endl;
+
+    }
 }
 
 void test_test()
@@ -90,7 +150,7 @@ void test_test()
     //timers_values::test_timers_values();
     //timers_values::test_timers_values_copy();
     //timing::test_timing();
-    //proxy_configuration::test_proxy_configuration(); 
+    //proxy_configuration::test_proxy_configuration();
     //worker::test_worker();
     //proxy_instance::test_querier("dummy0");
     //simple_routing_data::test_simple_routing_data();
