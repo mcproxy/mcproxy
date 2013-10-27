@@ -33,7 +33,7 @@
 
 
 
-igmp_receiver::igmp_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces): receiver(pr_i, AF_INET, mrt_sock, interfaces)
+igmp_receiver::igmp_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode): receiver(pr_i, AF_INET, mrt_sock, interfaces, in_debug_testing_mode)
 {
     HC_LOG_TRACE("");
 
@@ -89,7 +89,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 return;
             }
 
-            if (is_if_index_relevant(if_index)) { //I think this is not nessessary (see line above)???????????????? and next message types
+            if (!is_if_index_relevant(if_index)) { //I think this is not nessessary (see line above)???????????????? and next message types
                 return;
             }
 
@@ -150,17 +150,24 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
 
             HC_LOG_ERROR("protocoll not supported igmpv2 leave group");
         } else if (igmp_hdr->igmp_type == IGMP_V3_MEMBERSHIP_REPORT) {
+            HC_LOG_DEBUG("IGMP_V3_MEMBERSHIP_REPORT found");
             igmpv3_mc_report* v3_report = reinterpret_cast<igmpv3_mc_report*>(igmp_hdr);
             igmpv3_mc_record* rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(v3_report) + sizeof(igmpv3_mc_report));
 
             int num_records = ntohs(v3_report->num_of_mc_records);
+            HC_LOG_DEBUG("num of multicast records: " << num_records);
 
             saddr = ip_hdr->ip_src;
+            HC_LOG_DEBUG("saddr: " << saddr);
+
             if ((if_index = m_interfaces->get_if_index(saddr)) == 0) {
+                HC_LOG_DEBUG("no if_index found");
                 return;
             }
+            HC_LOG_DEBUG("found on interface:" << interfaces::get_if_name(if_index));
 
-            if (is_if_index_relevant(if_index)) { //I think this is not nessessary (see line above)???????????????? and next message types
+            if (!is_if_index_relevant(if_index)) { //I think this is not nessessary (see line above)???????????????? and next message types
+                HC_LOG_DEBUG("interface is not relevant");
                 return;
             }
 
@@ -176,6 +183,11 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                     src++;
                 }
 
+                HC_LOG_DEBUG("record type: " << get_mcast_addr_record_type_name(rec_type));
+                HC_LOG_DEBUG("gaddr: " << gaddr);
+                HC_LOG_DEBUG("number of sources: " << slist.size());
+                HC_LOG_DEBUG("send record to proxy_instance");
+                std::cout << "process a IGMP_V3_MEMBERSHIP_REPORT" << std::endl;
                 m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, move(slist), -1));
 
                 rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(rec) + sizeof(igmpv3_mc_record) + nos * sizeof(in_addr) + aux_size);

@@ -58,6 +58,7 @@ class receiver
 private:
 
     bool m_running;
+    bool m_in_debug_testing_mode;
     std::unique_ptr<std::thread> m_thread;
 
     std::set<unsigned int> m_relevant_if_index;
@@ -103,7 +104,7 @@ public:
     /**
       * @brief Create a receiver.
      */
-    receiver(proxy_instance* pr_i, int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces);
+    receiver(proxy_instance* pr_i, int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode= false);
 
     /**
      * @brief Release all resources.
@@ -117,14 +118,14 @@ public:
      * @param vif virtual interface indxe of the inteface
      * @param proxy_instance* who register the interface
      */
-    void registrate_interface(int if_index);
+    void registrate_interface(unsigned int if_index);
 
     /**
      * @brief Delete an registerd interface
      * @param if_index interface index of the interface
      * @param vif virtual interface index of the interface
      */
-    void del_interface(int if_index);
+    void del_interface(unsigned int if_index);
 
     /**
      * @brief Check whether the receiver is running.

@@ -129,9 +129,9 @@ bool proxy_instance::init_receiver()
     HC_LOG_TRACE("");
 
     if (is_IPv4(m_group_mem_protocol)) {
-        m_receiver.reset(new igmp_receiver(this, m_mrt_sock, m_interfaces));
+        m_receiver.reset(new igmp_receiver(this, m_mrt_sock, m_interfaces, m_in_debug_testing_mode));
     } else if (is_IPv6(m_group_mem_protocol)) {
-        m_receiver.reset(new mld_receiver(this, m_mrt_sock, m_interfaces));
+        m_receiver.reset(new mld_receiver(this, m_mrt_sock, m_interfaces, m_in_debug_testing_mode));
     } else {
         HC_LOG_ERROR("unknown ip version");
         return false;
@@ -299,7 +299,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
             //register interface
             m_routing->add_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
             m_receiver->registrate_interface(msg->get_if_index());
-            HC_LOG_DEBUG("register interface: " << interfaces::get_if_name(msg->get_if_index()) << "with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
+            HC_LOG_DEBUG("register interface: " << interfaces::get_if_name(msg->get_if_index()) << " with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
 
             //create a querier
             std::function<void(unsigned int, const addr_storage&, const source_list<source>&)> cb_state_change = std::bind(&routing_management::event_querier_state_change, m_routing_management.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
@@ -329,7 +329,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
             //register interface
             m_routing->add_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
             m_receiver->registrate_interface(msg->get_if_index());
-            HC_LOG_DEBUG("register interface: " << interfaces::get_if_name(msg->get_if_index()) << "with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
+            HC_LOG_DEBUG("register interface: " << interfaces::get_if_name(msg->get_if_index()) << " with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
 
             m_upstream = msg->get_if_index();
         }
@@ -415,7 +415,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
 void proxy_instance::test_querier(std::string if_name)
 {
     using namespace std;
-    addr_storage gaddr("224.1.1.1");
+    addr_storage gaddr("239.99.99.99");
 
     group_mem_protocol memproto = IGMPv3;
     //create a proxy_instance
@@ -425,10 +425,10 @@ void proxy_instance::test_querier(std::string if_name)
     timers_values tv;
 
     //set mali to 10 seconds
-    tv.set_query_interval(chrono::seconds(4));
-    tv.set_startup_query_interval(chrono::seconds(2));
+    tv.set_query_interval(chrono::seconds(10));
+    tv.set_startup_query_interval(chrono::seconds(10));
     tv.set_startup_query_count(3);
-    tv.set_query_response_interval(chrono::seconds(2));
+    tv.set_query_response_interval(chrono::seconds(4));
 
     cout << tv << endl;
     cout << endl;
@@ -458,6 +458,11 @@ void proxy_instance::quick_test(std::function < void(mcast_addr_record_type, sou
     using namespace std;
     cout << "##-- querier quick test --##" << endl;
     print_proxy_instance();
+
+    send_record(MODE_IS_INCLUDE, source_list<source> {});
+    send_record(MODE_IS_INCLUDE, source_list<source> {});
+
+    //send_record(MODE_IS_INCLUDE, source_list<source> {});
 
     for (int i = 0; i < 120; ++i) {
         sleep(1);

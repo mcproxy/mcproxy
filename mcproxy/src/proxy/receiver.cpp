@@ -26,8 +26,9 @@
 
 #include <unistd.h>
 
-receiver::receiver(proxy_instance* pr_i, int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces)
+receiver::receiver(proxy_instance* pr_i, int addr_family, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode)
     : m_running(false)
+    , m_in_debug_testing_mode(in_debug_testing_mode)
     , m_thread(nullptr)
     , m_proxy_instance(pr_i)
     , m_addr_family(addr_family)
@@ -55,18 +56,18 @@ bool receiver::is_if_index_relevant(unsigned int if_index) const
     return m_relevant_if_index.find(if_index) != std::end(m_relevant_if_index);
 }
 
-void receiver::registrate_interface(int if_index)
+void receiver::registrate_interface(unsigned int if_index)
 {
-    HC_LOG_TRACE("");
+    HC_LOG_TRACE("interface: " << interfaces::get_if_name(if_index));
 
     std::lock_guard<std::mutex> lock(m_data_lock);
 
     m_relevant_if_index.insert(if_index);
 }
 
-void receiver::del_interface(int if_index)
+void receiver::del_interface(unsigned int if_index)
 {
-    HC_LOG_TRACE("");
+    HC_LOG_TRACE("interface: " << interfaces::get_if_name(if_index));
 
     std::lock_guard<std::mutex> lock(m_data_lock);
 
@@ -132,9 +133,10 @@ bool receiver::is_running()
 void receiver::start()
 {
     HC_LOG_TRACE("");
-
-    m_running =  true;
-    m_thread.reset(new std::thread(&receiver::worker_thread, this));
+    if (!m_in_debug_testing_mode) {
+        m_running =  true;
+        m_thread.reset(new std::thread(&receiver::worker_thread, this));
+    }
 }
 
 void receiver::stop()

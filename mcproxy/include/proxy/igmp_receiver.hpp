@@ -55,7 +55,7 @@ public:
     /**
      * @brief Create an igmp_receiver.
      */
-    igmp_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock,const std::shared_ptr<const interfaces> interfaces);
+    igmp_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock,const std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode);
 };
 
 #endif // IGMP_RECEIVER_HPP

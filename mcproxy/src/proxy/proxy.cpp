@@ -204,10 +204,12 @@ void proxy::start_proxy_instances()
 
         pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_UPSTREAM, upstream));
 
-        std::cout << "here I mod the timers and values for debug aim" << std::endl;
+        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!here I mod the timers and values for debug aim" << std::endl;
         timers_values tv;
         tv.set_query_interval(std::chrono::seconds(30));
         tv.set_startup_query_interval(std::chrono::seconds(10));
+        tv.set_last_listener_query_count(3);
+        tv.set_last_listener_query_interval(std::chrono::seconds(4));
 
         for (auto f : downstreams) {
             pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, f, tv));

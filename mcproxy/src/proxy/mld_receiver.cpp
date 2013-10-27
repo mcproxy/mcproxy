@@ -33,8 +33,8 @@
 //DEBUG
 #include <net/if.h>
 
-mld_receiver::mld_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces)
-    : receiver(pr_i, AF_INET6, mrt_sock,interfaces)
+mld_receiver::mld_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode)
+    : receiver(pr_i, AF_INET6, mrt_sock,interfaces, in_debug_testing_mode)
 {
     HC_LOG_TRACE("");
     if (!m_mrt_sock->set_recv_icmpv6_msg()) {

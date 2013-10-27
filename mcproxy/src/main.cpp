@@ -51,9 +51,9 @@ int main(int arg_count, char* args[])
 {
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
 
-    //test_mcproxy(arg_count, args);
+    test_mcproxy(arg_count, args);
 
-    tester(arg_count, args);
+    //tester(arg_count, args);
 
     //test_test();
     return 0;
@@ -152,7 +152,7 @@ void test_test()
     //timing::test_timing();
     //proxy_configuration::test_proxy_configuration();
     //worker::test_worker();
-    //proxy_instance::test_querier("dummy0");
+    proxy_instance::test_querier("dummy0");
     //simple_routing_data::test_simple_routing_data();
     //igmp_sender::test_igmp_sender();
 }

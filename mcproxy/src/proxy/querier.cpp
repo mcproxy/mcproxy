@@ -137,6 +137,12 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
     switch (db_info_it->second.filter_mode) {
     case  INCLUDE_MODE:
         receive_record_in_include_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_report_version(), db_info_it->second);
+
+        //if the new created group is not used delete it
+        if(db_info_it->second.filter_mode == INCLUDE_MODE && db_info_it->second.include_requested_list.empty()){
+            m_db.group_info.erase(db_info_it); 
+        }
+
         break;
     case EXLCUDE_MODE:
         receive_record_in_exclude_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_report_version(), db_info_it->second);
@@ -701,6 +707,9 @@ void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<s
     for (auto & e : tmp_list) {
         auto it = slist.find(e);
         if (it != std::end(slist)) {
+//das ist doof //pruefe auf timer >0
+//siehe auch group_timer 
+alösdfj
             if (it->retransmission_count == 0) {
                 is_used = true;
 
