@@ -158,7 +158,7 @@ public:
 
     /**
      * @brief Send data to a specific ip address and to a specific port.
-     * @param addr destination address of packet and the destination prot
+     * @param addr destination address of packet and the destination port
      * @param data data to send
      * @param data_size size of the data
      * @return Return true on success.

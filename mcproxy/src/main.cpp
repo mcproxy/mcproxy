@@ -124,8 +124,8 @@ void tester(int arg_count, char* args[])
                 std::cout << "choose interface error" << std::endl;                
             }
 
-            std::cout << "send packet: bob is cool" << std::endl;
-            if (!ms.send_packet(addr_storage("239.99.99.99"), "bob is cool")) {
+            std::cout << "send packet: \"bob is cool\" to port 1234 " << std::endl;
+            if (!ms.send_packet(addr_storage("239.99.99.99").set_port(1234), "bob is cool")) {
                 std::cout << "send packet error" << std::endl;
             }
             return;
