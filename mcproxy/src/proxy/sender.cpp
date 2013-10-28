@@ -100,14 +100,23 @@ bool sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const ti
     HC_LOG_TRACE("");
     source_list<source> list_lower;
     source_list<source> list_higher;
+    bool rc = false;
     for (auto & e : slist) {
         if (e.retransmission_count > 0) {
-            e.retransmission_count--; //side effect!!!!!!!!! 
+            e.retransmission_count--; //side effect!!!!!!!!!
 
-            if (e.shared_source_timer->is_remaining_time_greater_than(tv.get_last_listener_query_time())) {
-                list_higher.insert(e);
+            if (e.retransmission_count > 0 ) {
+                rc = true;
+            }
+
+            if (e.shared_source_timer.get() != nullptr) {
+                if (e.shared_source_timer->is_remaining_time_greater_than(tv.get_last_listener_query_time())) {
+                    list_higher.insert(e);
+                } else {
+                    list_lower.insert(e);
+                }
             } else {
-                list_lower.insert(e);
+                HC_LOG_ERROR("the shared source timer shouldnt be null");
             }
         }
     }
@@ -123,10 +132,9 @@ bool sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const ti
         cout << "source list with without S-flag: " << list_lower << endl;
         cout << "source list with with S-flag: " << list_higher << endl;
         cout << endl;
-        return true;
-    } else {
-        return false;
     }
+
+    return rc;
 }
 
 sender::~sender()

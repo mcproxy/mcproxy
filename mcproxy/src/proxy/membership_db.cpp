@@ -85,7 +85,7 @@ gaddr_info::gaddr_info(group_mem_protocol compatibility_mode_variable)
     , compatibility_mode_variable(compatibility_mode_variable)
     , shared_filter_timer(nullptr)
     , group_retransmission_timer(nullptr)
-    , group_retransmission_count(0)
+    , group_retransmission_count(-1) //not in a retransmission state
     , source_retransmission_timer(nullptr)
 {
     HC_LOG_TRACE("");
@@ -100,20 +100,35 @@ std::string gaddr_info::to_string() const
 {
     using namespace std;
     ostringstream s;
-    s << "filter mode: " << get_mc_filter_name(filter_mode) << endl;
-    s << "compatibility_mode_variable: " << get_group_mem_protocol_name(compatibility_mode_variable) << endl;
+    s << get_group_mem_protocol_name(compatibility_mode_variable) << ", " << get_mc_filter_name(filter_mode);
 
-    if (shared_filter_timer.get() != nullptr) {
-        s << "filter timer: " << shared_filter_timer->get_remaining_time() << endl;
+    if ((filter_mode == EXLCUDE_MODE) && (group_retransmission_timer.get() != nullptr)) {
+        s << "(" << shared_filter_timer->get_remaining_time() << "," << group_retransmission_timer->get_remaining_time() << "," << group_retransmission_count << "x)" << endl;
+    } else if (filter_mode == EXLCUDE_MODE) {
+        s << "(" << shared_filter_timer->get_remaining_time() << ")" << endl;
+    }else{
+        s << endl; 
     }
-    
-    if (group_retransmission_timer.get() != nullptr){
-        s << "group retransmission timer: " << group_retransmission_timer->get_remaining_time() << endl;
-    } 
-    s << "group retransmission_count: " << group_retransmission_count << endl;
 
-    s << "included/requested list(#" << include_requested_list.size() << "): " << include_requested_list << endl;
-    s << "exclude_list(#" << exclude_list.size() << "): " << exclude_list;
+    if (source_retransmission_timer.get() != nullptr) {
+        if (filter_mode == INCLUDE_MODE) {
+            s << "included list(" << source_retransmission_timer->get_remaining_time() << ", #" << include_requested_list.size() << "): " << include_requested_list << endl;
+        } else if (filter_mode == EXLCUDE_MODE) {
+            s << "requested list(" << source_retransmission_timer->get_remaining_time() << ", #" << include_requested_list.size() << "): " << include_requested_list << endl;
+            s << "exclude_list(" << source_retransmission_timer->get_remaining_time() << ", #" << exclude_list.size() << "): " << exclude_list;
+        } else {
+            HC_LOG_ERROR("unknown filter mode");
+        }
+    } else {
+        if (filter_mode == INCLUDE_MODE) {
+            s << "included list(#" << include_requested_list.size() << "): " << include_requested_list << endl;
+        } else if (filter_mode == EXLCUDE_MODE) {
+            s << "requested list(#" << include_requested_list.size() << "): " << include_requested_list << endl;
+            s << "exclude_list(#" << exclude_list.size() << "): " << exclude_list;
+        } else {
+            HC_LOG_ERROR("unknown filter mode");
+        }
+    }
     return s.str();
 }
 
@@ -133,10 +148,10 @@ std::string membership_db::to_string() const
     ostringstream s;
     s << "compatibility mode variable: " << get_group_mem_protocol_name(querier_version_mode) << endl;
     s << "is querier: " << (is_querier ? "true" : "false") << endl;
-    if(general_query_timer.get() != nullptr){
+    if (general_query_timer.get() != nullptr) {
         s << "general query timer: " << general_query_timer->get_remaining_time() << endl;
     }
-    s << "startup query count: " << startup_query_count << endl; 
+    s << "startup query count: " << startup_query_count << endl;
 
     s << "subscribed groups: " << group_info.size();
     for (auto & e : group_info) {

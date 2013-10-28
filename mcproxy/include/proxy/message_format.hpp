@@ -173,7 +173,11 @@ struct timer_msg : public proxy_msg {
         auto current_time = steady_clock::now();
         auto time_span = m_end_time - current_time;
         double seconds = time_span.count()  * steady_clock::period::num / steady_clock::period::den;
-        s << seconds << "sec";
+        if (seconds >= 0) {
+            s << seconds << "sec";
+        } else {
+            s << "0sec";
+        }
         return s.str();
     }
 
@@ -259,17 +263,17 @@ struct source {
     source(const addr_storage& saddr)
         : saddr(saddr)
         , shared_source_timer(nullptr)
-        , retransmission_count(0) {
+        , retransmission_count(-1) { /*not in a retransmission state*/
     }
 
     std::string to_string() const {
         std::ostringstream s;
         s << saddr;
-        if ((shared_source_timer.get() != nullptr) && (retransmission_count > 0)) {
+        if ((shared_source_timer.get() != nullptr) && (retransmission_count >= 0)) {
             s << "(" << shared_source_timer->get_remaining_time() << "," << retransmission_count << "x)";
         } else if (shared_source_timer.get() != nullptr) {
             s << "(" << shared_source_timer->get_remaining_time() << ")";
-        } else if (retransmission_count > 0) {
+        } else if (retransmission_count >= 0) {
             s << "(" << retransmission_count << "x)";
         }
 
@@ -354,8 +358,7 @@ struct new_source_msg : public proxy_msg {
         : proxy_msg(NEW_SOURCE_MSG, LOSEABLE)
         , m_if_index(if_index)
         , m_gaddr(gaddr)
-        , m_saddr(saddr)
-    {
+        , m_saddr(saddr) {
         HC_LOG_TRACE("");
     }
 

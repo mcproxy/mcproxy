@@ -139,8 +139,8 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
         receive_record_in_include_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_report_version(), db_info_it->second);
 
         //if the new created group is not used delete it
-        if(db_info_it->second.filter_mode == INCLUDE_MODE && db_info_it->second.include_requested_list.empty()){
-            m_db.group_info.erase(db_info_it); 
+        if (db_info_it->second.filter_mode == INCLUDE_MODE && db_info_it->second.include_requested_list.empty()) {
+            m_db.group_info.erase(db_info_it);
         }
 
         break;
@@ -618,6 +618,7 @@ void querier::mali(const addr_storage& gaddr, source_list<source>& slist) const
 
     for (auto & e : slist) {
         e.shared_source_timer = st; //shard_source_timer is mutable
+        e.retransmission_count = -1;
     }
 
     if (!slist.empty()) {
@@ -634,6 +635,7 @@ void querier::mali(const addr_storage& gaddr, source_list<source>& slist, source
         auto it = slist.find(e);
         if (it != std::end(slist)) {
             it->shared_source_timer = e.shared_source_timer;
+            it->retransmission_count = -1;
         }
     }
 }
@@ -676,21 +678,21 @@ void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo)
         m_timing->add_time(llqt, m_msg_worker, ftimer);
     }
 
-    if (ginfo.group_retransmission_count >= 0) {
+    if (ginfo.group_retransmission_count > 0) {
         ginfo.group_retransmission_count--;
 
-        auto llqi = m_timers_values.get_last_listener_query_interval();
-        auto rtimer = std::make_shared<retransmit_group_timer>(m_if_index, gaddr, llqi);
-        ginfo.group_retransmission_timer = rtimer;
-        m_timing->add_time(llqi, m_msg_worker, rtimer);
-
         if (ginfo.group_retransmission_count > 0) {
-            m_sender->send_mc_addr_specific_query(m_if_index, m_timers_values, gaddr, ginfo.shared_filter_timer->is_remaining_time_greater_than(m_timers_values.get_last_listener_query_time()), ginfo.compatibility_mode_variable);
+            auto llqi = m_timers_values.get_last_listener_query_interval();
+            auto rtimer = std::make_shared<retransmit_group_timer>(m_if_index, gaddr, llqi);
+            ginfo.group_retransmission_timer = rtimer;
+            m_timing->add_time(llqi, m_msg_worker, rtimer);
         }
+
+        m_sender->send_mc_addr_specific_query(m_if_index, m_timers_values, gaddr, ginfo.shared_filter_timer->is_remaining_time_greater_than(m_timers_values.get_last_listener_query_time()), ginfo.compatibility_mode_variable);
 
     } else { //reset itself
         ginfo.group_retransmission_timer = nullptr;
-        ginfo.group_retransmission_count = 0;
+        ginfo.group_retransmission_count = -1;
     }
 }
 
@@ -707,10 +709,7 @@ void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<s
     for (auto & e : tmp_list) {
         auto it = slist.find(e);
         if (it != std::end(slist)) {
-//das ist doof //pruefe auf timer >0
-//siehe auch group_timer 
-alösdfj
-            if (it->retransmission_count == 0) {
+            if (it->retransmission_count < 1) {
                 is_used = true;
 
                 it->shared_source_timer = st;
@@ -738,6 +737,7 @@ void querier::state_change_notification(const addr_storage& gaddr, source_list<s
     HC_LOG_TRACE("");
     m_cb_state_change(m_if_index, gaddr, slist);
 }
+
 querier::~querier()
 {
     HC_LOG_TRACE("");

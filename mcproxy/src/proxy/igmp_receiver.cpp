@@ -187,7 +187,6 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 HC_LOG_DEBUG("gaddr: " << gaddr);
                 HC_LOG_DEBUG("number of sources: " << slist.size());
                 HC_LOG_DEBUG("send record to proxy_instance");
-                std::cout << "process a IGMP_V3_MEMBERSHIP_REPORT" << std::endl;
                 m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, move(slist), -1));
 
                 rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(rec) + sizeof(igmpv3_mc_record) + nos * sizeof(in_addr) + aux_size);

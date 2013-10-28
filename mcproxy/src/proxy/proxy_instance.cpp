@@ -55,6 +55,7 @@ proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, int table_
     , m_receiver(nullptr)
     , m_routing(nullptr)
     , m_upstream(0)
+    , m_proxy_start_time(std::chrono::steady_clock::now())
 {
     HC_LOG_TRACE("");
 
@@ -275,7 +276,12 @@ std::string proxy_instance::to_string() const
 {
     HC_LOG_TRACE("");
     std::ostringstream s;
-    s << "@@##-- proxy instance: " << m_table_number << " --##@@" << std::endl;;
+
+    auto current_time = std::chrono::steady_clock::now();
+    auto time_span = current_time - m_proxy_start_time;
+    double seconds = time_span.count()  * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
+
+    s << "@@##-- proxy instance table: " << m_table_number << " (lifetime: " << seconds << "sec)"<< " --##@@" << std::endl;;
     s << *m_routing_management << std::endl;
     for (auto it = std::begin(m_querier); it != std::end(m_querier); ++it) {
         s << std::endl << *it->second;
@@ -427,7 +433,7 @@ void proxy_instance::test_querier(std::string if_name)
     //set mali to 10 seconds
     tv.set_query_interval(chrono::seconds(10));
     tv.set_startup_query_interval(chrono::seconds(10));
-    tv.set_startup_query_count(3);
+    tv.set_startup_query_count(4);
     tv.set_query_response_interval(chrono::seconds(4));
 
     cout << tv << endl;

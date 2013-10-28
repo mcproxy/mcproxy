@@ -110,29 +110,38 @@ bool igmp_sender::send_mc_addr_and_src_specific_query(unsigned int if_index, con
         HC_LOG_ERROR("igmpv2 not supported");
         return false;
     case IGMPv3: {
-        bool rt = true;
         source_list<source> slist_lower;
         source_list<source> slist_higher;
-
+        bool rc = false;
         for (auto & e : slist) {
             if (e.retransmission_count > 0) {
                 e.retransmission_count--;
-                if (e.shared_source_timer->is_remaining_time_greater_than(tv.get_last_listener_query_time())) {
-                    slist_higher.insert(e);
+
+                if (e.retransmission_count > 0 ) {
+                    rc = true;
+                }
+
+                if (e.shared_source_timer.get() != nullptr) {
+                    if (e.shared_source_timer->is_remaining_time_greater_than(tv.get_last_listener_query_time())) {
+                        slist_higher.insert(e);
+                    } else {
+                        slist_lower.insert(e);
+                    }
                 } else {
-                    slist_lower.insert(e);
+                    HC_LOG_ERROR("the shared source timer shouldnt be null");
                 }
             }
         }
 
         if (!slist_higher.empty()) {
-            rt = rt && send_igmpv3_query(if_index, tv, gaddr, true, slist_higher);
+            send_igmpv3_query(if_index, tv, gaddr, true, slist_higher);
         }
 
         if (!slist_lower.empty()) {
-            rt = rt && send_igmpv3_query(if_index, tv, gaddr, false, slist_lower);
+            send_igmpv3_query(if_index, tv, gaddr, false, slist_lower);
         }
-        return rt;
+
+        return rc;
     }
     default:
         HC_LOG_ERROR("unknown group membership protocol");

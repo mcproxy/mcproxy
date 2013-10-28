@@ -121,7 +121,7 @@ void tester(int arg_count, char* args[])
         } else if (std::string(args[2]).compare("4") == 0) {
             std::cout << "choose multicast interface" << std::endl;
             if (!ms.choose_if(interfaces::get_if_index(if_name))) {
-                
+                std::cout << "choose interface error" << std::endl;                
             }
 
             std::cout << "send packet: bob is cool" << std::endl;
@@ -136,7 +136,7 @@ void tester(int arg_count, char* args[])
         std::cout << "[1]: join group 239.99.99.99" << std::endl;
         std::cout << "[2]: [1] and set source filter INCLUDE_MODE with ip 123.123.123.123 and 124.124.124.124" << std::endl;
         std::cout << "[3]: [1] and set source filter EXLCUDE_MODE with ip 124.124.124.124 and 125.125.125.125" << std::endl;
-        std::cout << "[l]: send test packet to 239.99.99.99" << std::endl;
+        std::cout << "[4]: send test packet to 239.99.99.99" << std::endl;
 
     }
 }

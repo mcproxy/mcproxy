@@ -73,6 +73,8 @@ private:
 
     unsigned int m_upstream;
 
+    const std::chrono::time_point<std::chrono::steady_clock> m_proxy_start_time;
+
     //if_index, querier
     std::map<unsigned int, std::unique_ptr<querier>> m_querier;
 
