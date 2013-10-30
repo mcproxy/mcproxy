@@ -19,6 +19,24 @@ delete all dummy interface
     sudo dummy_interfaces/auto_dummy.sh delete
 
 
+mcproxy tester
+==================
+With the mcproxy tester you can join groups, set source filter
+and send multicast packets for ipv4 and 6.
+
+Usage
+-----
+Build mcproxy in debug and tester mode and move it do directory
+tester:
+
+  cd ../mcproxy/
+  qmake CONFIG+=debug DEFINES+=TESTER
+  make
+  mv mcproxy ../debug/tester/tester
+
+run the tester without any arguments for the help output.
+
+
 Kernel
 ==================
 If you miss a kernel module you have to build your own kernel.

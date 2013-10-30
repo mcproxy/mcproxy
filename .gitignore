@@ -15,6 +15,7 @@
 #qmake
 mcproxy/Makefile
 mcproxy/mcproxy
+mcproxy/debug/tester/tester
 
 #editor
 *.~
