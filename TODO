@@ -1,8 +1,6 @@
 TODO list
 =========
 
-create a Ncurses based multicast test tool 
-
 Could change or modify the behavior of the mcproxy:
  -- http://tools.ietf.org/html/draft-ietf-multimob-pmipv6-source-04
  -- http://tools.ietf.org/html/rfc6224
@@ -27,19 +25,23 @@ struct mfcctl {
 };
 
 every kernel tabel useses there own vif number range
- -- at the moment i use a vif range for all tables (change that!!!!)
+ -- at the moment I use a vif range for all tables (change that!!!!)
 
 
 General stuff
- -- pimp debug output
- -- overwork exception concept 
+ -- implement MLDv2 in and output 
+ -- implement compatibility stuff
+ -- implement dynamic interface state updating
  -- clean class routing 
  -- overwork recvmsg() buffer size
- -- overwork state_change_notification //call_back function 
  -- overwork class timing with pipe and pselect
  -- implement RFC specific conditions for timers_vaules set operators 
  -- exchange boost stuff (hamcast_logging, README)
  -- remove all ???????? from the code
+ -- remove deprecated functions like htonl ...
+ -- overwork addr_storage compare function
+
+ -- overwork exception concept ????
 
 
 
