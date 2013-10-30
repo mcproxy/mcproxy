@@ -294,7 +294,7 @@ struct source {
 
     addr_storage saddr;
     mutable std::shared_ptr<timer_msg> shared_source_timer;
-    mutable int retransmission_count;
+    mutable long retransmission_count;
 };
 
 struct group_record_msg : public proxy_msg {

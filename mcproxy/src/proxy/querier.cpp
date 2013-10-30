@@ -802,7 +802,7 @@ std::pair<mc_filter, source_list<source>> querier::get_group_mebership_infos(con
 std::string querier::to_string() const
 {
     std::ostringstream s;
-    s << "##-- interface: " << interfaces::get_if_name(m_if_index) << " (index: " << m_if_index << ") --##" << std::endl;
+    s << "##-- interface: " << interfaces::get_if_name(m_if_index) << " (index:" << m_if_index << ") --##" << std::endl;
     s << m_db;
     return s.str();
 }

@@ -32,6 +32,7 @@
 
 struct timer_msg;
 struct source;
+struct new_source_timer;
 
 
 
@@ -57,7 +58,7 @@ private:
 
     void send_record(unsigned int if_index, const addr_storage& gaddr, mc_filter filter_mode, const source_list<source>& slist) const;
 
-    void set_timer(const std::shared_ptr<timer_msg>& msg);
+    std::shared_ptr<new_source_timer> set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
 
 public:
     simple_mc_proxy_routing(const proxy_instance* p);

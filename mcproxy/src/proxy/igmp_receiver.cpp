@@ -94,6 +94,8 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             }
 
             HC_LOG_DEBUG("\tif_index: " << if_index);
+            HC_LOG_DEBUG("\tgaddr: " << gaddr);
+            HC_LOG_DEBUG("\tsaddr: " << saddr);
             m_proxy_instance->add_msg(std::make_shared<new_source_msg>(if_index, gaddr, saddr));
             break;
         }

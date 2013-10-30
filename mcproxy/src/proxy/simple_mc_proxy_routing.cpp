@@ -33,6 +33,7 @@
 
 simple_mc_proxy_routing::simple_mc_proxy_routing(const proxy_instance* p)
     : routing_management(p)
+    , m_data(p->m_group_mem_protocol, p->m_mrt_sock)
 {
     HC_LOG_TRACE("");
 }
@@ -40,7 +41,7 @@ simple_mc_proxy_routing::simple_mc_proxy_routing(const proxy_instance* p)
 std::chrono::seconds simple_mc_proxy_routing::get_source_life_time()
 {
     HC_LOG_TRACE("");
-    return std::chrono::seconds(100);
+    return std::chrono::seconds(20);
 }
 
 void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>& msg)
@@ -50,11 +51,10 @@ void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>&
     switch (msg->get_type()) {
     case proxy_msg::NEW_SOURCE_MSG: {
         auto sm = std::static_pointer_cast<new_source_msg>(msg);
-        auto nst = std::make_shared<new_source_timer>(sm->get_if_index(), sm->get_gaddr(), sm->get_saddr(), get_source_life_time());
         source s(sm->get_saddr());
-        s.shared_source_timer = nst;
-        m_data.add_source(sm->get_if_index(), sm->get_gaddr(), s);
-        set_timer(nst);
+        s.shared_source_timer = set_source_timer(sm->get_if_index(), sm->get_gaddr(), sm->get_saddr());
+
+        m_data.set_source(sm->get_gaddr(), s);
         add_route(sm->get_if_index(), sm->get_gaddr(), collect_interested_interfaces(sm->get_if_index(), sm->get_gaddr(), {sm->get_saddr()}));
     }
     break;
@@ -70,7 +70,7 @@ void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, 
     HC_LOG_TRACE("");
 
     //route calculation
-    auto available_sources = m_data.get_available_sources(if_index, gaddr, slist);
+    auto available_sources = m_data.get_available_sources(gaddr, slist);
     add_route(if_index, gaddr, collect_interested_interfaces(if_index, gaddr, available_sources));
 
     //membership agregation
@@ -88,11 +88,17 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
         switch (msg->get_type()) {
         case proxy_msg::NEW_SOURCE_TIMER_MSG: {
             tm = std::static_pointer_cast<new_source_timer>(msg);
-            auto cmp_source_list = m_data.get_available_sources(tm->get_if_index(), tm->get_gaddr(), {tm->get_saddr()});
+            auto cmp_source_list = m_data.get_available_sources(tm->get_gaddr(), {tm->get_saddr()});
             if (!cmp_source_list.empty()) {
                 if (tm.get() == cmp_source_list.begin()->shared_source_timer.get()) {
-                    m_data.del_source(tm->get_if_index(), tm->get_gaddr(), tm->get_saddr());
-                    del_route(tm->get_if_index(), tm->get_gaddr(), tm->get_saddr());
+                    auto saddr_it = m_data.refresh_source_or_del_it_if_unused(tm->get_gaddr(), tm->get_saddr());
+                    if (!saddr_it.second) {
+                        std::cout << "#########del route (if:" << interfaces::get_if_name(tm->get_if_index()) << " gaddr:" << tm->get_gaddr() << " saddr:" << tm->get_saddr() << std::endl;
+                        del_route(tm->get_if_index(), tm->get_gaddr(), tm->get_saddr());
+                    } else {
+                        saddr_it.first->shared_source_timer = set_source_timer(tm->get_if_index(), tm->get_gaddr(), tm->get_saddr());
+                    }
+
                 } else {
                     HC_LOG_DEBUG("filter_timer is outdate");
                 }
@@ -133,15 +139,17 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
 
     std::list<std::pair<source, std::list<unsigned int>>> rt_list;
     for (auto & e : slist) {
-        if (!is_upstream(if_index)) {
+        if (is_upstream(if_index)) {
             rt_list.push_back(std::pair<source, std::list<unsigned int>>(e, {}));
         } else {
-            rt_list.push_back(std::pair<source, std::list<unsigned int>>(e, {if_index}));
+            rt_list.push_back(std::pair<source, std::list<unsigned int>>(e, {get_upstream()}));
         }
     }
 
     for (auto & e : m_p->m_querier) {
-        e.second->suggest_to_forward_traffic(gaddr, rt_list);
+        if (e.first != if_index) {
+            e.second->suggest_to_forward_traffic(gaddr, rt_list);
+        }
     }
 
     return rt_list;
@@ -161,7 +169,7 @@ std::pair<mc_filter, source_list<source>> simple_mc_proxy_routing::collect_group
     return rt_pair;
 }
 
-void simple_mc_proxy_routing::merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from ) const
+void simple_mc_proxy_routing::merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from) const
 {
     HC_LOG_TRACE("");
 
@@ -190,20 +198,24 @@ void simple_mc_proxy_routing::merge_membership_infos(std::pair<mc_filter, source
 void simple_mc_proxy_routing::add_route(unsigned int input_if_index, const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const
 {
     HC_LOG_TRACE("");
-
     for (auto & e : output_if_index) {
         if (e.second.empty()) {
+            std::cout << "#########2del route (if:" << interfaces::get_if_name(input_if_index) << " gaddr:" << gaddr << " saddr:" << e.first.saddr << std::endl;
             del_route(input_if_index, gaddr, e.first.saddr);
         } else {
             std::list<int> vif_out;
+
+            std::cout << "############3add route (iif:" << interfaces::get_if_name(input_if_index) << " gaddr:" << gaddr <<  " saddr:" << e.first.saddr << " oif:";
+
             for (auto outif : e.second) {
+                std::cout << interfaces::get_if_name(outif) << " ";
+
                 vif_out.push_back(m_p->m_interfaces->get_virtual_if_index(outif));
             }
 
             m_p->m_routing->add_route(m_p->m_interfaces->get_virtual_if_index(input_if_index), gaddr, e.first.saddr, vif_out);
         }
     }
-
 }
 
 void simple_mc_proxy_routing::send_record(unsigned int if_index, const addr_storage& gaddr, mc_filter filter_mode, const source_list<source>& slist) const
@@ -218,10 +230,13 @@ void simple_mc_proxy_routing::del_route(unsigned int if_index, const addr_storag
     m_p->m_routing->del_route(m_p->m_interfaces->get_virtual_if_index(if_index), gaddr, saddr);
 }
 
-void simple_mc_proxy_routing::set_timer(const std::shared_ptr<timer_msg>& msg)
+std::shared_ptr<new_source_timer>  simple_mc_proxy_routing::set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
 {
     HC_LOG_TRACE("");
-    m_p->m_timing->add_time(get_source_life_time(), m_p, msg);
+    auto nst = std::make_shared<new_source_timer>(if_index, gaddr, saddr, get_source_life_time());
+    m_p->m_timing->add_time(get_source_life_time(), m_p, nst);
+
+    return nst;
 }
 
 std::string simple_mc_proxy_routing::to_string() const

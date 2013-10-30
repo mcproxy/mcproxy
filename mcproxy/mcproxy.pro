@@ -47,7 +47,6 @@ SOURCES += src/main.cpp \
            src/proxy/worker.cpp \
            src/proxy/timing.cpp \
            src/proxy/check_if.cpp \
-           src/proxy/check_source.cpp \
            src/proxy/check_kernel.cpp \
            src/proxy/membership_db.cpp \
            src/proxy/querier.cpp \
@@ -82,7 +81,6 @@ HEADERS += include/hamcast_logging.h \
            include/proxy/worker.hpp \
            include/proxy/timing.hpp \
            include/proxy/check_if.hpp \
-           include/proxy/check_source.hpp \
            include/proxy/check_kernel.hpp \
            include/proxy/membership_db.hpp \
            include/proxy/def.hpp \
