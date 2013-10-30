@@ -1,6 +1,6 @@
 #!/bin/bash
 
-./tester eth0 ipv4 1 $1 10
+./tester eth0 ipv4 1 $1 60
 
 
 

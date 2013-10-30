@@ -1,5 +1,5 @@
-QMAKE_CXX = clang
-QMAKE_CC = clang
+#QMAKE_CXX = clang
+#QMAKE_CC = clang
 
 TARGET = mcproxy
 
@@ -94,7 +94,8 @@ HEADERS += include/hamcast_logging.h \
 
 LIBS += -L/usr/lib -lboost_thread \
         -lboost_date_time \
-        -lboost_system
+        -lboost_system \
+        -lpthread 
 
 QMAKE_CLEAN += $$TARGET
 QMAKE_CLEAN += thread* 

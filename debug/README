@@ -30,7 +30,7 @@ Build mcproxy in debug and tester mode and move it do directory
 tester:
 
   cd ../mcproxy/
-  qmake CONFIG+=debug DEFINES+=TESTER
+  qmake DEFINES+=TESTER
   make
   mv mcproxy ../debug/tester/tester
 

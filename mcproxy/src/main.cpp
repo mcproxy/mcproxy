@@ -112,7 +112,6 @@ void tester(int arg_count, char* args[])
     const int ACTION = 4;
     const int TIME = 5;
 
-    std::cout << arg_count << std::endl;
     if (arg_count - 1 == ACTION || arg_count - 1 == TIME) {
         std::string if_name = args[IF_NAME];
 
