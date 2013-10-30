@@ -54,7 +54,7 @@ int main(int arg_count, char* args[])
 #ifndef TESTER
     test_mcproxy(arg_count, args);
     //test_test();
-   
+
 
 #else
     tester(arg_count, args);
@@ -89,6 +89,22 @@ void test_mcproxy(int arg_count, char* args[])
 
 void tester(int arg_count, char* args[])
 {
+
+    auto help = []() {
+        std::cout << "tester [<ifname>] [ipv4|ip6] [<group>] [<action>] [time in sec (default=10)]" << std::endl;
+        std::cout << "\te.g. eth0 ipv4 1 1 60" << std::endl;
+        std::cout << std::endl;
+        std::cout << "ipv4 [group]: " << "[1]= 239.1.1.1; [9]= 239.9.9.9; [255]= ..." << std::endl;
+        std::cout << "ipv6 [group]: " << "[1]= FF05::1:1; [9]= FF05::9:9; [FFFF]= ...."  << std::endl;
+        std::cout << std::endl;
+        std::cout << "[action]: " << "[1]= join group [group]" << std::endl;
+        std::cout << "\t[2]: [1] and set source filter INCLUDE_MODE with ip 1, 2, 3, 4" << std::endl;
+        std::cout << "\t[3]: [1] and set source filter INCLUDE_MODE with ip 5, 6, 7, 8" << std::endl;
+        std::cout << "\t[4]: [1] and set source filter EXLCUDE_MODE with ip 3, 4, 5, 6" << std::endl;
+        std::cout << "\t[5]: [1] and set source filter EXLCUDE_MODE with ip 1, 2, 7, 8" << std::endl;
+        std::cout << "\t[6]: send test packet to [group]" << std::endl;
+        exit(0);
+    };
 
     const int IF_NAME = 1;
     const int IP_VERSION = 2;
@@ -125,7 +141,7 @@ void tester(int arg_count, char* args[])
                 g[i] = s.str();
             }
         } else {
-            std::cout << "unknon protocol version: " << args[IP_VERSION] << std::endl;
+            std::cout << "unknown protocol version: " << args[IP_VERSION] << std::endl;
             return;
         }
 
@@ -190,6 +206,7 @@ void tester(int arg_count, char* args[])
                 }
             }
             sleep(sleep_time);
+            return;
         } else if (ac.compare("6") == 0) {
             std::cout << "choose multicast interface" << std::endl;
             if (!ms.choose_if(interfaces::get_if_index(if_name))) {
@@ -202,21 +219,9 @@ void tester(int arg_count, char* args[])
             }
             return;
         }
-
-    } else {
-        std::cout << "arg musst be [<ifname>] [ipv4|ip6] [<group>] [<action>] [time in sec (default=10)]" << std::endl;
-        std::cout << "\te.g. eth0 ipv4 1 1 60" << std::endl;
-        std::cout << std::endl;
-        std::cout << "ipv4 [group]: " << "[1]= 239.1.1.1; [9]= 239.9.9.9; [255]= ..." << std::endl;
-        std::cout << "ipv6 [group]: " << "[1]= FF05::1:1; [9]= FF05::9:9; [FFFF]= ...."  << std::endl;
-        std::cout << std::endl;
-        std::cout << "[action]: " << "[1]= join group [group]" << std::endl;
-        std::cout << "\t[2]: [1] and set source filter INCLUDE_MODE with ip 1, 2, 3, 4" << std::endl;
-        std::cout << "\t[3]: [1] and set source filter INCLUDE_MODE with ip 5, 6, 7, 8" << std::endl;
-        std::cout << "\t[4]: [1] and set source filter EXLCUDE_MODE with ip 3, 4, 5, 6" << std::endl;
-        std::cout << "\t[5]: [1] and set source filter EXLCUDE_MODE with ip 1, 2, 7, 8" << std::endl;
-        std::cout << "\t[6]: send test packet to [group]" << std::endl;
     }
+
+    help();
 }
 
 void test_test()
