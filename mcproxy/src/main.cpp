@@ -112,7 +112,8 @@ void tester(int arg_count, char* args[])
     const int ACTION = 4;
     const int TIME = 5;
 
-    if (arg_count == ACTION || arg_count == TIME) {
+    std::cout << arg_count << std::endl;
+    if (arg_count - 1 == ACTION || arg_count - 1 == TIME) {
         std::string if_name = args[IF_NAME];
 
         mc_socket ms;
@@ -170,8 +171,9 @@ void tester(int arg_count, char* args[])
         if (arg_count == TIME) {
             try {
                 sleep_time = std::stoi(args[TIME]);
-            } catch (std::invalid_argument e) {
-
+            } catch (std::logic_error e) {
+                std::cout << "failed to parse time" << std::endl;
+                return;
             }
         } else {
             sleep_time = 10;
