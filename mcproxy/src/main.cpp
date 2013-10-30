@@ -52,8 +52,8 @@ int main(int arg_count, char* args[])
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
 
 #ifndef TESTER
-    test_mcproxy(arg_count, args);
-    //test_test();
+    //test_mcproxy(arg_count, args);
+    test_test();
 
 
 #else
@@ -167,7 +167,7 @@ void tester(int arg_count, char* args[])
             return;
         }
 
-        if (arg_count == TIME) {
+        if (arg_count - 1 == TIME) {
             try {
                 sleep_time = std::stoi(args[TIME]);
             } catch (std::logic_error e) {
@@ -236,7 +236,8 @@ void test_test()
     //timing::test_timing();
     //proxy_configuration::test_proxy_configuration();
     //worker::test_worker();
-    proxy_instance::test_querier("dummy0");
+    //proxy_instance::test_querier("dummy0");
     //simple_routing_data::test_simple_routing_data();
     //igmp_sender::test_igmp_sender();
+    mroute_socket::quick_test();
 }

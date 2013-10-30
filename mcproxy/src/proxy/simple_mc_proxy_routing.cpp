@@ -54,8 +54,8 @@ void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>&
         source s(sm->get_saddr());
         s.shared_source_timer = set_source_timer(sm->get_if_index(), sm->get_gaddr(), sm->get_saddr());
 
-        m_data.set_source(sm->get_gaddr(), s);
         add_route(sm->get_if_index(), sm->get_gaddr(), collect_interested_interfaces(sm->get_if_index(), sm->get_gaddr(), {sm->get_saddr()}));
+        m_data.set_source(sm->get_gaddr(), s);
     }
     break;
     default:
@@ -93,7 +93,6 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
                 if (tm.get() == cmp_source_list.begin()->shared_source_timer.get()) {
                     auto saddr_it = m_data.refresh_source_or_del_it_if_unused(tm->get_gaddr(), tm->get_saddr());
                     if (!saddr_it.second) {
-                        std::cout << "#########del route (if:" << interfaces::get_if_name(tm->get_if_index()) << " gaddr:" << tm->get_gaddr() << " saddr:" << tm->get_saddr() << std::endl;
                         del_route(tm->get_if_index(), tm->get_gaddr(), tm->get_saddr());
                     } else {
                         saddr_it.first->shared_source_timer = set_source_timer(tm->get_if_index(), tm->get_gaddr(), tm->get_saddr());
@@ -200,12 +199,9 @@ void simple_mc_proxy_routing::add_route(unsigned int input_if_index, const addr_
     HC_LOG_TRACE("");
     for (auto & e : output_if_index) {
         if (e.second.empty()) {
-            std::cout << "#########2del route (if:" << interfaces::get_if_name(input_if_index) << " gaddr:" << gaddr << " saddr:" << e.first.saddr << std::endl;
             del_route(input_if_index, gaddr, e.first.saddr);
         } else {
             std::list<int> vif_out;
-
-            std::cout << "############3add route (iif:" << interfaces::get_if_name(input_if_index) << " gaddr:" << gaddr <<  " saddr:" << e.first.saddr << " oif:";
 
             for (auto outif : e.second) {
                 std::cout << interfaces::get_if_name(outif) << " ";

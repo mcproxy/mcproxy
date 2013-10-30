@@ -77,7 +77,7 @@ void proxy::help_output()
 {
     using namespace std;
     HC_LOG_TRACE("");
-    cout << "Mcproxy version 0.1.5" << endl;
+    cout << "Mcproxy version 1.0.0-beta" << endl;
 
 #ifdef DEBUG_MODE
     cout << " - Compiled in debug mode." << endl;

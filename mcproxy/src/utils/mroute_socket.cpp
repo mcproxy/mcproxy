@@ -803,7 +803,7 @@ void mroute_socket::print_vif_stats(int vif_index) const
 {
     using namespace std;
     HC_LOG_TRACE("");
-    
+
     cout << "##-- vif stats --##" << endl;
     cout << " -vif_index:" << vif_index << endl;
 
@@ -1201,6 +1201,36 @@ void mroute_socket::test_mcrouter_vifs_routes(int addrFamily)
     }
 
     sleep(sleepTime);
+}
+
+void mroute_socket::quick_test()
+{
+
+    auto assert = [](bool test, std::string s) {
+        if (test) {
+            std::cout << "process: " << s << std::endl;
+        } else {
+            std::cout << "error by: " << s << std::endl;
+            exit(0);
+        }
+    };
+
+    mroute_socket ma;
+    mroute_socket mb;
+
+    assert(ma.create_raw_ipv4_socket(), "ma.create_raw_ipv4_socket()");
+    assert(mb.create_raw_ipv4_socket(), "mb.create_raw_ipv4_socket()");
+
+    assert(ma.set_kernel_table(1), "ma.set_kernel_table(1)");
+    assert(mb.set_kernel_table(2), "mb.set_kernel_table(2)");
+
+    assert(ma.set_mrt_flag(true), "ma.set_mrt_flag(true)");
+    assert(mb.set_mrt_flag(true), "mb.set_mrt_flag(true)");
+
+    assert(ma.add_vif(1, if_nametoindex("dummy0"), addr_storage()), "ma.add_vif(1, if_nametoindex(dummy0), addr_storage())");
+    assert(mb.add_vif(1, if_nametoindex("dummy0"), addr_storage()), "mb.add_vif(1, if_nametoindex(dummy0), addr_storage())");
+
+    sleep(10);
 }
 
 mroute_socket::~mroute_socket()

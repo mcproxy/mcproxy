@@ -249,12 +249,14 @@ public:
 
     static void print_struct_mf6cctl(struct mf6cctl* mc);
     static void test_mcrouter_mrt_flag();
-
+    
     static void test_add_vifs(mroute_socket* m);
     static void test_del_vifs(mroute_socket* m);
     static void test_add_route(mroute_socket* m);
     static void test_del_route(mroute_socket* m);
     static void test_mcrouter_vifs_routes(int addrFamily);
+
+    static void quick_test();
 };
 
 #endif // MROUTE_SOCKET_HPP

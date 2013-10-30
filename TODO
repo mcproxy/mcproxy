@@ -26,6 +26,9 @@ struct mfcctl {
 	int	     mfcc_expire; <======== the kernel could delete its rules by itself 
 };
 
+every kernel tabel useses there own vif number range
+ -- at the moment i use a vif range for all tables (change that!!!!)
+
 
 General stuff
  -- pimp debug output
