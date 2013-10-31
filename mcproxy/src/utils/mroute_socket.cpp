@@ -1219,18 +1219,30 @@ void mroute_socket::quick_test()
     mroute_socket mb;
 
     assert(ma.create_raw_ipv4_socket(), "ma.create_raw_ipv4_socket()");
-    assert(mb.create_raw_ipv4_socket(), "mb.create_raw_ipv4_socket()");
+    //assert(mb.create_raw_ipv4_socket(), "mb.create_raw_ipv4_socket()");
 
-    assert(ma.set_kernel_table(1), "ma.set_kernel_table(1)");
-    assert(mb.set_kernel_table(2), "mb.set_kernel_table(2)");
+    //assert(ma.set_kernel_table(1), "ma.set_kernel_table(1)");
+    //assert(mb.set_kernel_table(2), "mb.set_kernel_table(2)");
 
     assert(ma.set_mrt_flag(true), "ma.set_mrt_flag(true)");
-    assert(mb.set_mrt_flag(true), "mb.set_mrt_flag(true)");
+    //assert(mb.set_mrt_flag(true), "mb.set_mrt_flag(true)");
 
-    assert(ma.add_vif(1, if_nametoindex("dummy0"), addr_storage()), "ma.add_vif(1, if_nametoindex(dummy0), addr_storage())");
-    assert(mb.add_vif(1, if_nametoindex("dummy0"), addr_storage()), "mb.add_vif(1, if_nametoindex(dummy0), addr_storage())");
+    assert(ma.add_vif(1, if_nametoindex("eth3"), addr_storage()), "ma.add_vif(1, if_nametoindex(eth3), addr_storage())");
+    assert(ma.add_vif(2, if_nametoindex("eth0"), addr_storage()), "ma.add_vif(2, if_nametoindex(eth0), addr_storage())");
 
-    sleep(10);
+    //assert(mb.add_vif(1, if_nametoindex("dummy1"), addr_storage()), "mb.add_vif(1, if_nametoindex(dummy1), addr_storage())");
+    //assert(mb.add_vif(2, if_nametoindex("dummy0"), addr_storage()), "mb.add_vif(2, if_nametoindex(dummy0), addr_storage())");
+
+    assert(ma.add_mroute(1, addr_storage("192.168.0.38"), addr_storage("239.99.99.99"), {2}), "ma.add_mroute(1, addr_storage(192.168.0.38), addr_storage(239.99.99.99), {2})");
+    //assert(mb.add_mroute(2, addr_storage("192.168.0.38"), addr_storage("239.99.99.99"), {1}), "mb.add_mroute(1, addr_storage(192.168.0.38),  addr_storage(239.99.99.99), {2})");
+    std::cout << "eth3(t1,v1) ==> dummy0(t1,v2) ==> dummy0(t2,v2) ==> dummy1(t2,v1)" << std::endl;
+
+
+    while (true) {
+        ma.print_mroute_stats(addr_storage("192.168.0.38"), addr_storage("239.99.99.99"));
+        //mb.print_mroute_stats(addr_storage("192.168.0.38"), addr_storage("239.99.99.99"));
+        sleep(2);
+    }
 }
 
 mroute_socket::~mroute_socket()

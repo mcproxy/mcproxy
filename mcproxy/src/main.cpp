@@ -214,6 +214,11 @@ void tester(int arg_count, char* args[])
                 std::cout << "choose interface error" << std::endl;
             }
 
+            std::cout << "set ttl to 10" << std::endl;
+            if(!ms.set_ttl(10)){
+                std::cout << "ttl set error" << std::endl; 
+            }
+
             std::cout << "send packet: \"bob is cool\" to port 1234 " << std::endl;
             if (!ms.send_packet(gaddr.set_port(1234), "bob is cool")) {
                 std::cout << "send packet error" << std::endl;
