@@ -68,3 +68,37 @@ Locations:
     |-+-> The IPv6 protocol
       |
       |====> IPv6: multicast routing
+
+
+General debug stuff
+==================
+/proc/net/igmp
+/proc/net/igmp6
+ip maddress show
+    shows the subscribed groups per interface
+
+/proc/net/ip_mr_vif
+/proc/net/ip6_mr_vif
+    shows announced network interfaces for multicast routing
+    (only for the default multicast talbe)
+
+/proc/net/ip_mr_cache
+/proc/net/ip6_mr_cache
+    shows the multicast forwarding rules
+    (only for the default multicast talbe)
+
+/proc/sys/net/ipv4/conf/all/mc_forwarding
+/proc/sys/net/ipv6/conf/all/mc_forwarding
+    shows if the multicast routing (mrt) flag is set
+    can only be hold once per system by a socket at a time 
+
+/proc/sys/net/ipv4/conf/eth0/mc_forwarding
+/proc/sys/net/ipv6/conf/eth0/mc_forwarding
+    shows if the interface is announced for multicast routing
+
+ip -s mroute show table 0
+ip -6 -s mroute show table 0
+    shows the multicast routing rules for a specific table 
+    table 0 is the default table and summaries all tables  
+
+

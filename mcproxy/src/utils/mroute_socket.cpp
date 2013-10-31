@@ -1206,6 +1206,8 @@ void mroute_socket::test_mcrouter_vifs_routes(int addrFamily)
 void mroute_socket::quick_test()
 {
 
+ //https://github.com/torvalds/linux/blob/b3a3a9c441e2c8f6b6760de9331023a7906a4ac6/drivers/net/dummy.c
+ //
     auto assert = [](bool test, std::string s) {
         if (test) {
             std::cout << "process: " << s << std::endl;
@@ -1218,31 +1220,59 @@ void mroute_socket::quick_test()
     mroute_socket ma;
     mroute_socket mb;
 
-    assert(ma.create_raw_ipv4_socket(), "ma.create_raw_ipv4_socket()");
+    assert(ma.create_raw_ipv6_socket(), "ma.create_raw_ipv6_socket()");
+    assert(mb.create_raw_ipv6_socket(), "mb.create_raw_ipv6_socket()");
+
+    assert(ma.set_kernel_table(1), "ma.set_kernel_table(1)");
+    assert(mb.set_kernel_table(2), "mb.set_kernel_table(2)");
+
+    assert(ma.set_mrt_flag(true), "ma.set_mrt_flag(true)");
+    assert(mb.set_mrt_flag(true), "mb.set_mrt_flag(true)");
+
+    assert(ma.add_vif(1, if_nametoindex("dummy1"), addr_storage()), "mb.add_vif(1, if_nametoindex(dummy1), addr_storage())");
+    assert(ma.add_vif(2, if_nametoindex("eth0"), addr_storage()), "mb.add_vif(2, if_nametoindex(eth0), addr_storage())");
+    assert(ma.bind_vif_to_table(if_nametoindex("dummy1"), 1), "ma.bind_vif_to_table(if_nametoindex(dummy1), 1)");
+    assert(ma.bind_vif_to_table(if_nametoindex("eth0"), 1), "ma.bind_vif_to_table(if_nametoindex(eth0), 1)");
+
+    assert(mb.add_vif(1, if_nametoindex("eth4"), addr_storage()), "ma.add_vif(1, if_nametoindex(eth4), addr_storage())");
+    assert(mb.add_vif(2, if_nametoindex("eth0"), addr_storage()), "ma.add_vif(2, if_nametoindex(eth0), addr_storage())");
+    assert(ma.bind_vif_to_table(if_nametoindex("eth4"), 2), "ma.bind_vif_to_table(if_nametoindex(eth4), 2)");
+    assert(ma.bind_vif_to_table(if_nametoindex("eth0"), 2), "ma.bind_vif_to_table(if_nametoindex(eth0), 2)");
+
+    assert(ma.add_mroute(2, addr_storage("fd00::38"), addr_storage("ff05::99:99"), {1}), "mb.add_mroute(2, addr_storage(fd00::38), addr_storage(ff05::99:99), {1})");
+    assert(mb.add_mroute(1, addr_storage("fd00::38"), addr_storage("ff05::99:99"), {2}), "ma.add_mroute(1, addr_storage(fd00::38), addr_storage(ff05::99:99), {2})");
+    std::cout << "eth4(t1,v1) ==> eth0(t1,v2) ==> eth0(t2,v2) ==> dummy1(t2,v1)" << std::endl;
+
+    while (true) {
+        mb.print_mroute_stats(addr_storage("fd00::38"), addr_storage("ff05::99:99"));
+        mb.print_mroute_stats(addr_storage("fd00::38"), addr_storage("ff05::99:99"));
+        sleep(2);
+    }
+
+    //assert(ma.create_raw_ipv4_socket(), "ma.create_raw_ipv4_socket()");
     //assert(mb.create_raw_ipv4_socket(), "mb.create_raw_ipv4_socket()");
 
     //assert(ma.set_kernel_table(1), "ma.set_kernel_table(1)");
     //assert(mb.set_kernel_table(2), "mb.set_kernel_table(2)");
 
-    assert(ma.set_mrt_flag(true), "ma.set_mrt_flag(true)");
+    //assert(ma.set_mrt_flag(true), "ma.set_mrt_flag(true)");
     //assert(mb.set_mrt_flag(true), "mb.set_mrt_flag(true)");
 
-    assert(ma.add_vif(1, if_nametoindex("eth3"), addr_storage()), "ma.add_vif(1, if_nametoindex(eth3), addr_storage())");
-    assert(ma.add_vif(2, if_nametoindex("eth0"), addr_storage()), "ma.add_vif(2, if_nametoindex(eth0), addr_storage())");
+    //assert(ma.add_vif(1, if_nametoindex("eth4"), addr_storage()), "ma.add_vif(1, if_nametoindex(eth4), addr_storage())");
+    //assert(ma.add_vif(2, if_nametoindex("eth0"), addr_storage()), "ma.add_vif(2, if_nametoindex(eth0), addr_storage())");
 
     //assert(mb.add_vif(1, if_nametoindex("dummy1"), addr_storage()), "mb.add_vif(1, if_nametoindex(dummy1), addr_storage())");
-    //assert(mb.add_vif(2, if_nametoindex("dummy0"), addr_storage()), "mb.add_vif(2, if_nametoindex(dummy0), addr_storage())");
+    //assert(mb.add_vif(2, if_nametoindex("eth0"), addr_storage()), "mb.add_vif(2, if_nametoindex(eth0), addr_storage())");
 
-    assert(ma.add_mroute(1, addr_storage("192.168.0.38"), addr_storage("239.99.99.99"), {2}), "ma.add_mroute(1, addr_storage(192.168.0.38), addr_storage(239.99.99.99), {2})");
+    //assert(ma.add_mroute(1, addr_storage("192.168.0.38"), addr_storage("239.99.99.99"), {2}), "ma.add_mroute(1, addr_storage(192.168.0.38), addr_storage(239.99.99.99), {2})");
     //assert(mb.add_mroute(2, addr_storage("192.168.0.38"), addr_storage("239.99.99.99"), {1}), "mb.add_mroute(1, addr_storage(192.168.0.38),  addr_storage(239.99.99.99), {2})");
-    std::cout << "eth3(t1,v1) ==> dummy0(t1,v2) ==> dummy0(t2,v2) ==> dummy1(t2,v1)" << std::endl;
+    //std::cout << "eth4(t1,v1) ==> eth0(t1,v2) ==> eth0(t2,v2) ==> dummy1(t2,v1)" << std::endl;
 
-
-    while (true) {
-        ma.print_mroute_stats(addr_storage("192.168.0.38"), addr_storage("239.99.99.99"));
+    //while (true) {
+        //ma.print_mroute_stats(addr_storage("192.168.0.38"), addr_storage("239.99.99.99"));
         //mb.print_mroute_stats(addr_storage("192.168.0.38"), addr_storage("239.99.99.99"));
-        sleep(2);
-    }
+        //sleep(2);
+    //}
 }
 
 mroute_socket::~mroute_socket()
