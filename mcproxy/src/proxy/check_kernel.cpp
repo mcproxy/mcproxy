@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <unistd.h>
+#include <netinet/in.h>
 
 void check_kernel::check_kernel_features()
 {
@@ -56,6 +57,8 @@ void check_kernel::check_kernel_features()
         cout << " - ipv4 multicast: Ok!" << endl;
     }
     check_routing_tables(ms, "ipv4");
+    cout << endl;
+    check_kernel_limits(ms, "ipv4");
 
     cout << endl;
 
@@ -69,8 +72,7 @@ void check_kernel::check_kernel_features()
     check_routing_tables(ms, "ipv6");
 
     cout << endl;
-    check_kernel_limits(ms, "ipv4");
-    //check_kernel_limits(ms, "ipv6");
+    check_kernel_limits(ms, "ipv6");
 }
 
 
@@ -105,6 +107,7 @@ void check_kernel::check_kernel_limits(mroute_socket& ms, std::string version)
     bool running = true;
     int join_count = 0;
     int filter_count = 0;
+    int secure_limit = 40;
     addr_storage gaddr;
     addr_storage saddr;
 
@@ -119,9 +122,11 @@ void check_kernel::check_kernel_limits(mroute_socket& ms, std::string version)
         return;
     }
 
-    //count how many groups can be joined 
-    while (running) {
-        if (ms.join_group((gaddr), 1)) {
+    //count how many groups can be joined
+    //its looks like that IPv6 hasnt a limit at the moment ...
+    //so we stop after 50 tries otherwise the system will die instantly
+    while (running && join_count < secure_limit) {
+        if (ms.join_group(gaddr, 1)) {
             ++join_count;
             ++gaddr;
         } else {
@@ -130,17 +135,31 @@ void check_kernel::check_kernel_limits(mroute_socket& ms, std::string version)
     }
 
     //count how many filter rules can be set
-    //running = true;
-    //while (running) {
-        //if (ms.set_source_filter(1,gaddr, MCAST_INCLUDE,{saddr})) {
-            //++filter_count;
-            //++saddr;
-        //} else {
-            //running = false;
-        //}
-    //}
-        
-    cout << " - " << version << " mcproxy was able to join " << join_count << " groups " << endl;
-    cout << " - " << version << " mcproxy was able to set " << filter_count << " filter" << endl;
+    running = true;
+    --gaddr;
+    while (running && filter_count < secure_limit) {
+        if (ms.set_source_filter(1, gaddr, MCAST_INCLUDE, {saddr})) {
+            ++filter_count;
+            ++saddr;
+        }
+        else {
+            running = false;
+        }
+    }
+
+
+    cout << " - " << version << " mcproxy was able to join " << join_count;
+    if (join_count >= secure_limit) {
+        cout << "+ groups successfully (no limit found)" << endl;
+    } else {
+        cout << " groups successfully" << endl;
+    }
+
+    cout << " - " << version << " mcproxy was able to set " << filter_count;
+    if (filter_count >= secure_limit) {
+        cout << "+ filters successfully (no limit found)" << endl;
+    } else {
+        cout << " filters successfully" << endl;
+    }
 }
 
