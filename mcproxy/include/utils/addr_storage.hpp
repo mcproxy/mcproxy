@@ -41,7 +41,7 @@ private:
 public:
 
     addr_storage(addr_storage&&) = default;
-    addr_storage& operator=(addr_storage&&) = default;
+    addr_storage& operator=(addr_storage && ) = default;
 
     addr_storage(const addr_storage& addr) = default;
     addr_storage& operator=(const addr_storage& s) = default;
@@ -145,9 +145,15 @@ public:
     bool operator!=(const addr_storage& addr) const;
 
     /**
-     * @brief lower then operator 
+     * @brief lower then operator
      */
     friend bool operator< (const addr_storage& addr1, const addr_storage& addr2);
+
+    addr_storage& operator++(); //prefix ++
+    addr_storage operator++(int); //postfix ++ (has to do a copy of addr_storage)
+
+    addr_storage& operator--(); //prefix --
+    addr_storage operator--(int); //postfix -- (has to do a copy of addr_storage)
 
     /**
      * @brief mask an addr with a netmask
@@ -224,8 +230,8 @@ public:
     friend std::ostream& operator <<(std::ostream& s, const addr_storage a);
 
     //-----------------------------------------------------------
-   
-    bool is_valid() const; 
+
+    bool is_valid() const;
 
     void set_invalid();
 

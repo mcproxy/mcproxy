@@ -24,6 +24,7 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/check_kernel.hpp"
 #include "include/utils/mroute_socket.hpp"
+#include "include/utils/addr_storage.hpp"
 
 #include <iostream>
 #include <unistd.h>
@@ -66,6 +67,10 @@ void check_kernel::check_kernel_features()
         cout << " - ipv6 multicast: Ok!" << endl;
     }
     check_routing_tables(ms, "ipv6");
+
+    cout << endl;
+    check_kernel_limits(ms, "ipv4");
+    //check_kernel_limits(ms, "ipv6");
 }
 
 
@@ -90,5 +95,52 @@ void check_kernel::check_routing_tables(mroute_socket& ms, std::string version)
         cout << " - " << version << " routing tables: Ok!" << endl;
     }
 
+}
+
+void check_kernel::check_kernel_limits(mroute_socket& ms, std::string version)
+{
+    using namespace std;
+    HC_LOG_TRACE("");
+
+    bool running = true;
+    int join_count = 0;
+    int filter_count = 0;
+    addr_storage gaddr;
+    addr_storage saddr;
+
+    if (version.compare("ipv4") == 0) {
+        gaddr = "225.0.0.0";
+        saddr = "1.1.1.1";
+    } else if (version.compare("ipv6") == 0) {
+        gaddr = "FF05:1::0";
+        saddr = "2005::1";
+    } else {
+        HC_LOG_ERROR("unknown ip version");
+        return;
+    }
+
+    //count how many groups can be joined 
+    while (running) {
+        if (ms.join_group((gaddr), 1)) {
+            ++join_count;
+            ++gaddr;
+        } else {
+            running = false;
+        }
+    }
+
+    //count how many filter rules can be set
+    //running = true;
+    //while (running) {
+        //if (ms.set_source_filter(1,gaddr, MCAST_INCLUDE,{saddr})) {
+            //++filter_count;
+            //++saddr;
+        //} else {
+            //running = false;
+        //}
+    //}
+        
+    cout << " - " << version << " mcproxy was able to join " << join_count << " groups " << endl;
+    cout << " - " << version << " mcproxy was able to set " << filter_count << " filter" << endl;
 }
 

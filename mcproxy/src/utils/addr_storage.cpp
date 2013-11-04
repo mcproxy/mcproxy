@@ -196,7 +196,6 @@ bool addr_storage::operator!=(const addr_storage& addr) const
     return !(*this == addr);
 }
 
-
 bool operator< (const addr_storage& addr1, const addr_storage& addr2)
 {
     if (addr1.m_addr.ss_family == AF_INET && addr2.m_addr.ss_family == AF_INET) {
@@ -217,6 +216,59 @@ bool operator< (const addr_storage& addr1, const addr_storage& addr2)
         HC_LOG_ERROR("incompatible ip versions");
         return false;
     }
+}
+
+addr_storage& addr_storage::operator++() //prefix ++
+{
+    HC_LOG_TRACE("");
+    if (get_addr_family() == AF_INET) {
+        uint32_t& tmp = reinterpret_cast<sockaddr_in*>(&m_addr)->sin_addr.s_addr;
+        tmp = htonl(ntohl(tmp) + 1);
+    } else if (get_addr_family() == AF_INET6) {
+        for (int i = 3; i >= 0; --i) {
+            uint32_t& tmp =reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr.s6_addr32[i];
+            tmp = htonl(ntohl(tmp) + 1);
+            if (tmp != 0) {
+                break;
+            }
+        }
+    } else{
+        HC_LOG_ERROR("unknown ip version");
+    }
+    return *this;
+}
+
+addr_storage addr_storage::operator++(int) //postfix
+{
+    HC_LOG_TRACE("");
+    return ++(*this);
+}
+
+addr_storage& addr_storage::operator--() //prefix --
+{
+    HC_LOG_TRACE("");
+
+    if (get_addr_family() == AF_INET) {
+        uint32_t& tmp = reinterpret_cast<sockaddr_in*>(&m_addr)->sin_addr.s_addr;
+        tmp = htonl(ntohl(tmp) - 1);
+    } else if (get_addr_family() == AF_INET6) {
+        for (int i = 3; i >= 0; --i) {
+            uint32_t& tmp =reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr.s6_addr32[i];
+            tmp = htonl(ntohl(tmp) - 1);
+            if (tmp != static_cast<uint32_t>(-1)) {
+                break;
+            }
+        }
+    } else {
+        HC_LOG_ERROR("unknown ip version");
+    }
+    return *this;
+}
+
+addr_storage addr_storage::operator--(int) //postfix --
+{
+    HC_LOG_TRACE("");
+    return ++(*this);
 }
 
 int addr_storage::get_addr_family() const
@@ -628,15 +680,102 @@ void addr_storage::test_addr_storage_b()
         cout << "FAILED!" << endl;
     }
 
-    cout << "a6a.set_port(iport).get_sockaddr_in().sin_port == iport ==> ";
-    if (a4a.set_port(iport).get_sockaddr_in().sin_port == iport) {
+    cout << "a4a.set_port(iport).get_sockaddr_in().sin_port == iport ==> ";
+    if (a4a.set_port(iport).get_sockaddr_in().sin_port == htons(iport)) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;
     }
 
     cout << "a6a.set_port(iport).get_sockaddr_in6().sin6_port == iport ==> ";
-    if (a6a.set_port(iport).get_sockaddr_in6().sin6_port == iport) {
+    if (a6a.set_port(iport).get_sockaddr_in6().sin6_port == htons(iport)) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "-------------------------------" << endl;
+    cout << "++addr_storage(239.0.0.44) == addr_storage(239.0.0.45) ==> ";
+    if (++addr_storage("239.0.0.44") == addr_storage("239.0.0.45")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "++addr_storage(239.0.255.255) == addr_storage(239.1.0.0) ==> ";
+    if (++addr_storage("239.0.255.255") == addr_storage("239.1.0.0")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "++addr_storage(255.255.255.255) == addr_storage(0.0.0.0) ==> ";
+    if (++addr_storage("255.255.255.255") == addr_storage("0.0.0.0")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(239.0.0.44) == --addr_storage(239.0.0.45) ==> ";
+    if (addr_storage("239.0.0.44") == --addr_storage("239.0.0.45")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(239.0.255.255) == --addr_storage(239.1.0.0) ==> ";
+    if (addr_storage("239.0.255.255") == --addr_storage("239.1.0.0")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(255.255.255.255) == --addr_storage(0.0.0.0) ==> ";
+    if (addr_storage("255.255.255.255") == --addr_storage("0.0.0.0")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "-------------------------------" << endl;
+    cout << ++addr_storage("1::44") << endl;
+    cout << "++addr_storage(1::44) == addr_storage(1::45) ==> ";
+    if (++addr_storage("1::44") == addr_storage("1::45")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "++addr_storage(1::FFFF:FFFF) == addr_storage(1::1:0:0) ==> ";
+    if (++addr_storage("1::FFFF:FFFF") == addr_storage("1::1:0:0")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "++addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF) == addr_storage(0::0) ==> ";
+    if (++addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF") == addr_storage("0::0")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(1::44) == --addr_storage(1::45) ==> ";
+    if (addr_storage("1::44") == --addr_storage("1::45")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(1::FFFF:FFFF) == --addr_storage(1::1:0:0) ==> ";
+    if (addr_storage("1::FFFF:FFFF") == --addr_storage("1::1:0:0")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF) == --addr_storage(0::0) ==> ";
+    if (addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF") == --addr_storage("0::0")) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;

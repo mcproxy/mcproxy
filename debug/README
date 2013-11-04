@@ -101,4 +101,11 @@ ip -6 -s mroute show table 0
     shows the multicast routing rules for a specific table 
     table 0 is the default table and summaries all tables  
 
+/proc/sys/net/ipv4/igmp_max_memberships
+    defines the maximum allowed memberships 
+
+/proc/sys/net/ipv4/igmp_max_msf
+/proc/sys/net/ipv6/igmp_max_msf
+    defines the maximum allowed soursce filter 
+
 

@@ -28,9 +28,9 @@
 #ifndef CHECK_KERNEL_H
 #define CHECK_KERNEL_H
 
-#include "include/utils/mroute_socket.hpp"
-
 #include <string>
+
+class mroute_socket;
 
 /**
  * @brief Check the currently available kernel features.
@@ -39,6 +39,7 @@ class check_kernel
 {
 private:
     void check_routing_tables(mroute_socket& ms, std::string version);
+    void check_kernel_limits(mroute_socket& ms, std::string version);
 public:
     /**
      * @brief Check the currently available kernel features.
