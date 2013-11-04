@@ -1,0 +1,90 @@
+##-- EBNF --##
+
+Interface Test Config File
+==========================
+#Comment
+
+#choose a protocol
+protocol XXX #MLDv1 | MLDv2 | IGMPv1 | IGMPv2 | IGMPv3
+
+#configure a proxy instance
+#upstream interface name:= uif_name
+#downstream interface name:= dif_name
+#pinstance <proxy instance name>: <uif_name 1> <uif_name 2> ... <uif_name N> ==> <dif_name 1> <dif_name 2> ... <dif_name N>
+pinstance 1:                 eth0 eth1 eth3 ==> eth4 eth5 eth10 #first upstream has the highest priority
+pinstance MyLocalInstance:      wlan0 wlan1 ==> dummy0 eth6 dummy1
+pinstance testLocal:                     lo ==> eth7
+pinstance quierer_only:                     ==> eth8
+pinstance split                 tunU1 tunU2 ==> tunD1 tunD2
+#define forwarding rules for an interfaces
+# table [<table name>] {(group | source) (group | source) ... }
+table 1 {
+  (239.99.99.99 | *)
+  (* |  1.1.1.1/12)            
+}
+
+table local {
+  (240.0.0.0 - 241.0.0.0 | 192.168.123.0/24) 
+  (240.0.0.0 - 241.0.0.0 | 192.168.2.0 - 192.168.2.55) 
+}
+
+table allow_PC_1 {
+  (* | 3.3.3.3)
+}
+
+table xxx {
+  (table allow_PC_1)
+  (table path: /absolute/path/to/table)
+  (table path: relative/path/to/table) 
+  (table {(* | *) (table path: path/to/another/table)})
+}     
+
+table all {
+  (* | *)
+}
+
+#pinstance <proxy instance name> <uif_name> [whitelist | blacklist] table <table name> 
+pinstance 1 eth0 whitelist out table 1 #forward traffic of a few sources and the entire traffic of the group 239.99.99.99 from to the upstream interface eth0 (an subscribe groups)
+#pinstance 1 eth0 whitelist in table {* | *} #default behaviour, receive all multicast traffic
+pinstance 1 eth1 whitelist out table local #forward traffic of a few sources how are sending to the range of groups 240.0.0.0 - 241.0.0.0
+pinstance 1 eth3 whitelist out table all #defined as default interface, this rule will always be true 
+pinstance 1 eth5 whitelist out table allow_PC_1 #only PC 1 with IP 1.1.1.1 can subscribe groups (all subscribed groups will be maintained but not forwarded)
+pinstance 1 eht4 whitelist out table {(* | 192.168.5.0/24)} #all interfaces of the subnet 192.168.5.0/24 are allowed to use the proxy 
+pinstance 1 eth4 blacklist in table all #the interface eth4 will ignore all sources from the downstream side
+
+pinstance MyLocalInstance wlan0 blacklist out table xxx #ignore 1.1.1.1 and allow all other sources
+pinstance MyLocalInstance wlan1 blacklist out all #interface is unused
+pinstance MyLocalInstance wlan1 blacklist in all #interface is unused
+
+pinstance split tunU1 whitelist out table {tunD1(* | *)}
+pinstance split tunU2 whitelist out table {tunD2(* | *)}
+#pinstance split tunU1 whitelist in table {(* | *)} #default
+#pinstance split tunU2 whitelist in table {(* | *)} #default
+#pinstance split tunD1 whitelist out table {(* | *)} #default
+#pinstance split tunD2 whitelist out table {(* | *)} #default
+#pinstance split tunD1 whitelist in table {(* | *)} #default
+#pinstance split tunD2 whitelist in table {(* | *)} #default
+
+#OR 
+pinstance split tunU1 blacklist out table {tunD2(* | *)}
+pinstance split tunU2 blacklist out table {tunD1(* | *)}
+
+#
+#      (a)     |            
+#       ^   |  v            # | action                                              | rule type
+#       |   | (b)          ---+------------------------------------------------------------------
+#           |               a | forward data and subscribe groups at the upstream x | out
+#      +----+----+          b | receive data at the upstream x                      | in
+#      |    x    |          c | receive data to the downstream z                    | in
+#      | y     z |          d | forward data to the downstream z                    | out
+#      +---------+            |
+#       /       \          
+#      /         \  (c)<--      
+#     /           \  -->(d)      
+#
+
+EBNF
+====
+
+
+
