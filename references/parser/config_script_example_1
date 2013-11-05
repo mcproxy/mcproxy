@@ -12,29 +12,80 @@
 #      +--+------+--+      +--+-+  +-+--+
 #         |      |            |      |   
 #         |      |            |      |   
-#
+#      Host_a  Host_b      Host_a  Host_b
 
 #configuration of proxy instance A) with the same behaviour of B) and C) 
-pinstance split: a1 b1 ==> a2 b2 
+pinstance A: a1 b1 ==> a2 b2 
 
 #define behaviour of proxy instance B) a1 ==> a2
-pinstance split a1 whitelist out table {a2(*|*)}
-pinstance split a2 whitelist out table {a1(*|*)}
+pinstance A a1 whitelist out table {a2(*|*)}
+pinstance A a2 whitelist out table {a1(*|*)}
 #pinstance split a1 whitelist in table {(*|*)} #default
 #pinstance split a2 whitelist in table {(*|*)} #default
 
 #define behaviour of proxy instance C) b1 ==> b2
-pinstance split b1 whitelist out table {b2(*|*)}
-pinstance split b2 whitelist out table {b1(*|*)}
+pinstance A b1 whitelist out table {b2(*|*)}
+pinstance A b2 whitelist out table {b1(*|*)}
 #pinstance split b1 whitelist in table {(*|*)} #default
 #pinstance split b2 whitelist in table {(*|*)} #default
 
-#This configuration is faulty and has the following problem: 
-# - if 
-#
-#
-#
+#This configuration has the following problem: 
+#   A multicast forwarding rule looks like this: (Source, Group, Input interface, list of output interface),
+#   whereby the tuple (Source, Group) represents the rule and musst be uniqe per proxy instancce. This means 
+#   the proxy intances B) and C) can create both a forwarding rule to there with the tuple (S1, G1).
+#   This is nessasary if Host_b want to receive the  multicast stream of Host_a (let's say the upstreams of B) and C)
+#   are connected to each other over a bigger network infracture). Then B) needs the rule (Host_a, G1, a2, {a1}) and C)
+#   needs the rule (Host_a, G1, b1, {b2}). The data of Host_a will be forwarded to the upstream a1 and back to the
+#   downstream b2. This behaviour is maybe inefficient but I will fix it in Example B. Otherwise this behaviour cannot be 
+#   adapted to A) because the tuple (Host_a, G1) would be exist two times. Example B) and C) solves this problem in different
+#   ways. 
+#  
 
 ##-- Example B --##
 #==================
+#                     
+#    A)   |      |    
+#         |      |    
+#      +--+------+--+ 
+#      | a1      b1 | 
+#      |            | 
+#      | a2      b2 | 
+#      +--+------+--+ 
+#         |      |    
+#         |      |    
+#      Host_a  Host_b 
+
+pinstance split: a1 b1 ==> a2 b2 
+pinstance split a1 whitelist out table {a2(*|*)}
+pinstance split a2 whitelist out table {a1(*|*)}
+
+#Explanation
+#   I removed only the last to rules (pinstance split b1 ... and pinstance split b2 ...), and now if Host_b subscribe the data of
+#   Host_a the proxy instance A) will set the forwarding rule (Host_a, G1, a2, {a1, b2}). This is much more efficent and the tuple (Host_a, G1)
+#   is used only once.
+
+##-- Example C --##
+#==================
+#
+#   B)   |                       C) |   
+#        |                          |   
+#     +--+----+                +----+--+
+#     | a1    |                |    b1 |
+#     |     ap|----------------|bp     |
+#     | a2    |                |    b2 |
+#     +--+----+                +----+--+
+#        |                          |   
+#        |                          |   
+#     Host_a                     Host_b
+#
+
+pinstance B: ap a1 ==> ap a2
+pinstance C: bp b1 ==> bp b2
+
+pinstance B a1 blacklist out table {ap(*|*)}
+
+
+pinstance C b1 blacklist out table {bp(*|*)}
+
+
 
