@@ -18,16 +18,16 @@
 pinstance A: a1 b1 ==> a2 b2 
 
 #define behaviour of proxy instance B) a1 ==> a2
-pinstance A upstream a1 whitelist out table {a2(*|*)}
-pinstance A downstream a2 whitelist out table {a1(*|*)}
-#pinstance A upstream a1 whitelist in table {(*|*)} #default
-#pinstance A downstream a2 whitelist in table {(*|*)} #default
+pinstance A upstream a1 out whitelist table {a2(*|*)}
+pinstance A downstream a2 out whitelist table {a1(*|*)}
+#pinstance A upstream a1 in whitelist table {(*|*)} #default
+#pinstance A downstream a2 in whitelist table {(*|*)} #default
 
 #define behaviour of proxy instance C) b1 ==> b2
-pinstance A upstream b1 whitelist out table {b2(*|*)}
-pinstance A downstream b2 whitelist out table {b1(*|*)}
-#pinstance A upstream b1 whitelist in table {(*|*)} #default
-#pinstance A downstream b2 whitelist in table {(*|*)} #default
+pinstance A upstream b1 out whitelist table {b2(*|*)}
+pinstance A downstream b2 out whitelist table {b1(*|*)}
+#pinstance A upstream b1 in whitelist table {(*|*)} #default
+#pinstance A downstream b2 in whitelist table {(*|*)} #default
 
 #This configuration has the following problem: 
 #   A multicast forwarding rule looks like this: (Source, Group, Input interface, list of output interface),
@@ -56,8 +56,8 @@ pinstance A downstream b2 whitelist out table {b1(*|*)}
 #      Host_a  Host_b 
 
 pinstance A: a1 b1 ==> a2 b2 
-pinstance A upstream a1 whitelist out table {a2(*|*)}
-pinstance A downstream a2 whitelist out table {a1(*|*)}
+pinstance A upstream a1 out whitelist table {a2(*|*)}
+pinstance A downstream a2 out whitelist table {a1(*|*)}
 
 #Explanation
 #   I removed only the last to rules (pinstance A upstream b1 ... and pinstance A downstream b2 ...), and now if Host_b subscribe the data of
@@ -67,7 +67,7 @@ pinstance A downstream a2 whitelist out table {a1(*|*)}
 ##-- Example C --##
 #==================
 #
-#   A)   |                       B) |   
+#   A)   |                      B)  |   
 #        |                          |   
 #     +--+----+                +----+--+
 #     | a1    |                |    b1 |
@@ -85,7 +85,8 @@ pinstance A downstream a2 whitelist out table {a1(*|*)}
 #  - aggregate group memberships as always (u2)
 #  - receive data as always (u3)
 #     - never forward this data to any upstream (u3_1)
-#  
+#  - prevent duplicate traffic from peering interface and other upstreams (u4)
+#   
 #peering intefaces as restricted downstream: 
 #  - never receive data at this interface (d1) 
 #  - forward data as always (d2)
@@ -109,11 +110,13 @@ table piA_upstreams {
     a1(*|*)
 }
 
-pinstance A upstream ap blacklist out table all #(u1)
-#pinstance A upstream ap whitelist in table {(*|*)} #default (u2, u3)
-pinstance A upstream a1 blacklist out table piA_peering_ifs #(u3_1)
-pinstance A downstream ap blacklist in table all #(d1)   
-pinstance A downstream ap blacklist out table piA_upstreams #(d2, d2_1, d3, d4)   
+pinstance A upstream ap out blacklist table all #(u1)
+
+pinstance A upstream ap in rulematching mutex 10000
+#pinstance A upstream ap in whitelist table {(*|*)} #default (u2, u3)
+pinstance A upstream a1 out blacklist table piA_peering_ifs #(u3_1)
+pinstance A downstream ap in blacklist table all #(d1)   
+pinstance A downstream ap out blacklist table piA_upstreams #(d2, d2_1, d3, d4)   
 ###########################################
 table piB_peering_ifs {
     bp(*|*)
@@ -123,11 +126,13 @@ table piA_upstreams {
     b1(*|*)
 }
 
-pinstance B upstream bp blacklist out table all #(u1)
+pinstance B upstream bp out blacklist table all #(u1)
+
+pinstance B upstream bp in rulematching mutex 10000
 #pinstance B upstream ap whitelist in table {(*|*)} #default (u2, u3)
-pinstance B upstream b1 blacklist out table piB_peering_ifs #(u3_1)
-pinstance B downstream bp blacklist in table all #(d1)   
-pinstance B downstream bp blacklist out table piB_upstreams #(d2, d2_1, d3, d4)   
+pinstance B upstream b1 out blacklist table piB_peering_ifs #(u3_1)
+pinstance B downstream bp in blacklist table all #(d1)   
+pinstance B downstream bp out blacklist table piB_upstreams #(d2, d2_1, d3, d4)   
 ###########################################
 
 

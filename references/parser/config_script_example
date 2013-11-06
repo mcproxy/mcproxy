@@ -43,41 +43,65 @@ table all {
   (* | *)
 }
 
-#pinstance (upstream | downstream) <proxy instance name> <uif_name> [whitelist | blacklist] table <table name> 
-pinstance 1 upstream eth0 whitelist out table 1 #forward traffic of a few sources and the entire traffic of the group 239.99.99.99 from to the upstream interface eth0 (an subscribe groups)
-#pinstance 1 upstream eth0 whitelist in table {* | *} #default behaviour, receive all multicast traffic
-pinstance 1 upstream eth1 whitelist out table local #forward traffic of a few sources how are sending to the range of groups 240.0.0.0 - 241.0.0.0
-pinstance 1 upstream eth3 whitelist out table all #defined as default interface, this rule will always be true 
-pinstance 1 downstream eth5 whitelist out table allow_PC_1 #only PC 1 with IP 1.1.1.1 can subscribe groups (all subscribed groups will be maintained but not forwarded)
-pinstance 1 downstream eht4 whitelist out table {(* | 192.168.5.0/24)} #all interfaces of the subnet 192.168.5.0/24 are allowed to use the proxy 
-pinstance 1 downstream eth4 blacklist in table all #the interface eth4 will ignore all sources from the downstream side
+#pinstance  <proxy instance name> (upstream | downstream) <uif_name> [in | out] [whitelist | blacklist] table <table name> 
+pinstance 1 upstream eth0 out whitelist table 1 #forward traffic of a few sources and the entire traffic of the group 239.99.99.99 from to the upstream interface eth0 (an subscribe groups)
+#pinstance 1 upstream eth0 in whitelist table {* | *} #default behaviour, receive all multicast traffic
+pinstance 1 upstream eth1 out whitelist table local #forward traffic of a few sources how are sending to the range of groups 240.0.0.0 - 241.0.0.0
+pinstance 1 upstream eth3 out whitelist table all #defined as default interface, this rule will always be true 
+pinstance 1 downstream eth5 out whitelist table allow_PC_1 #only PC 1 with IP 1.1.1.1 can subscribe groups (all subscribed groups will be maintained but not forwarded)
+pinstance 1 downstream eht4 out whitelist table {(* | 192.168.5.0/24)} #all interfaces of the subnet 192.168.5.0/24 are allowed to use the proxy 
+pinstance 1 downstream eth4 in blacklist table all #the interface eth4 will ignore all sources from the downstream side
 
-pinstance MyLocalInstance upstream wlan0 blacklist out table xxx #ignore 1.1.1.1 and allow all other sources
-pinstance MyLocalInstance upstream wlan1 blacklist out all #interface is unused
-pinstance MyLocalInstance upstream wlan1 blacklist in all #interface is unused
+pinstance MyLocalInstance upstream wlan0 out blacklist table xxx #ignore 1.1.1.1 and allow all other sources
+pinstance MyLocalInstance upstream wlan1 out blacklist all #interface is unused
+pinstance MyLocalInstance upstream wlan1 in blacklist all #interface is unused
 
-pinstance split upstream tunU1 whitelist out table {tunD1(* | *)}
-pinstance split upstream tunU2 whitelist out table {tunD2(* | *)}
-#pinstance split upstream tunU1 whitelist in table {(* | *)} #default
-#pinstance split upstream tunU2 whitelist in table {(* | *)} #default
-pinstance split downstream tunD1 whitelist out table {tunU1(* | *)}
-pinstance split downstream tunD2 whitelist out table {tunU2(* | *)}
-#pinstance split downstream tunD1 whitelist in table {(* | *)} #default
-#pinstance split downstream tunD2 whitelist in table {(* | *)} #default
+pinstance split upstream tunU1 out whitelist table {tunD1(* | *)}
+pinstance split upstream tunU2 out whitelist table {tunD2(* | *)}
+#pinstance split upstream tunU1 in whitelist table {(* | *)} #default
+#pinstance split upstream tunU2 in whitelist table {(* | *)} #default
+pinstance split downstream tunD1 out whitelist table {tunU1(* | *)}
+pinstance split downstream tunD2 out whitelist table {tunU2(* | *)}
+#pinstance split downstream tunD1 in whitelist table {(* | *)} #default
+#pinstance split downstream tunD2 in whitelist table {(* | *)}
 
 #
 #       (a)    |            
 #        ^  |  v            # | action                                                                           | rule type
-#        |  | (b)          ---+----------------------------------------------------------------------------------+------
+#        |  | (b)          ---+----------------------------------------------------------------------------------+-----------
 #           |               a | forward data to the upstream x                                                   | out
-#      +----+----+          b | receive data and subscribe merged groups at the upstream x                       | in
+#      +----+----+          b | subscribe merged groups at the upstream x and receive data                       | in
 #      |    x    |          c | receive data at the downstream z                                                 | in
 #      | y     z |          d | forward data to the downstream z and use its querier state for group aggregation | out
-#      +---------+            |
+#      +---------+            |                                                                                  |
 #       /       \          
 #      /         \  (c)<--      
 #     /           \  -->(d)      
 #
+#
+
+
+#Multiple Upstream rule matching
+#===============================
+#pinstance  <proxy instance name> (upstream | downstream) <uif_name> [in | out] rulematching table <table name> 
+#the interface name is unimportant (this rule is globla for all upstream per proxy instance)
+#pinstance A upstream eth0 out rulematching all #default 
+#pinstance A upstream eth0 in rulematching first #default 
+#
+#    rule matching | type            | action
+#    --------------+-----------------+-------------
+#     upstream out | all (default)   | forward data to all upstreams with appropriate rules
+#                  | first           | forward data only to the first upstream with an appropriate rule
+#    --------------+-----------------+-------------              
+#     upstream in  | first (default) | subscribe merged groups only at the first upstream with an appropriate rule, 
+#                  |                 | like a reverse path filter corresponding multicast data will be received only at this interface
+#                  |                 |
+#                  | mutex <timeout> | subscribe merged groups at all upstreams with an appropriate rule, if the mcproxy receives data
+#                  |                 | from one if this interfaces all other interfaces unsubscribe this this group. After a timeout of X 
+#                  |                 | milliseconds the checks if data sill arrive at this interface if not the mcproxy subscribes this group
+#                  |                 | at all downstream again 
+
+
 
 EBNF
 ====
