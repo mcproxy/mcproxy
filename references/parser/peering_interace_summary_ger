@@ -1,0 +1,73 @@
+######################
+##-- Fallbeispiel --##
+######################
+
+   A)   |                      B)  |   
+        |                          |   
+     +--+----+                +----+--+
+     | a1    |                |    b1 |
+     |     ap|----------------|bp     |
+     | a2    |                |    b2 |
+     +--+----+                +----+--+
+        |                          |   
+        |                          |   
+     sender s                 receiver r 
+
+##-- (1) Ausgangsbedingungen --##
+
+Das Peering Interface ap von der Proxy-Instanz A wird auf Grund des Senders s am Downstream a2 als eingeschränktes Upstream Interface behandelt. Ein eingeschränktes Upstream Interface hat folgende Eigenschaften:
+    - es versendet keine Gruppendaten 
+    - es aggregiert wie jeder Upstream die Gruppenmitgliedschaften der Downstream 
+    - es empfängt wie jeder UpstreamGruppendaten und leitet sie an interessierte Downstreams weiter (aber zu keinem anderen Upstream)
+
+Das Peering Interface bp von der Proxy-Instanz B wird als eingeschränktes Downstream Interface mit folgenden Eigenschaften behandelt:
+    - es empfängt keine Gruppendaten
+    - es versendet Gruppendaten, falls die entsprechende Gruppe abonniert wurde (aber keine Daten von Upstreams)
+    - der Querier verhält sich wie wie bei jedem anderen Downstream Interface (allerdings werden deren Zustände nicht für die Aggreagtion der Gruppenmitgliedsschaften der Upstreams verwendet)
+
+
+   A)   |           --MAG1--          
+        |                        
+     +--+----+ restricted               
+     | a1    | downstream               
+     |     ap|--\            B)  |      
+     | a2    |   --\             |      
+     +--+----+      --\     +----+--+   
+        |              --\  |    b1 |   
+        |                 --|bp     |   
+     sender s    restricted |    b2 |    
+                  upstream  +----+--+ 
+                                 |    
+                                 |    
+                            receiver r
+
+##-- (2) Ablauf --##
+
+    1. Der Empfänger r abonniert die Gruppe G1. Die Proxy Instance aggregiert den Gruppenzustand und abboniert an beiden Upstream b1 und bp die Gruppe G1.
+    2. Der Sender S versendet seine Gruppen zum Downstream a2. Der Proxy leitet die Daten sowohl zum Upstream a1 als auch zum Downstream ap, da die Gruppe von bp abonniert wurde.
+    3. bp empfängt die Daten der Gruppe G1, leitet diese weiter zum Downstream b2 und und deabonniert G1 am Upstream b1 um ein doppeltes emfpangen der Daten zu vermeiden.
+
+
+##-- (3) Frage --##
+
+          |                            |                   |
+    +-----------+                +-------------------------------+
+    |  C) | MAG2|                |  A) |       MAG1    B)  |     |
+    |  +--+--+  |                |  +--+----+         +----+--+  |
+    |  | c1  |  |                |  | a1    |         |    b1 |  |
+    |  |     |  |                |  |     ap|---------|bp     |  |
+    |  | c2  |  |                |  | a2    |         |    b2 |  |
+    |  +--+--+  |                |  +--+----+         +----+--+  |
+    |     |     |                |     |                   |     |
+    +-----------+                +-------------------------------+
+          |                            |                   |
+       sender s                                        receiver r 
+
+    Der Sender s macht einen Handover von MAG1 (Proxy Instanze A) zum MAG2, allerdings ist das Peering zwischen Instanze A und B noch aufgebaut und dadurch am Interface b1 die Gruppe G1 nicht abonniert. Dies führt dazu, dass die Gruppendaten von Sender s, welche nun über MAG2 verschickt werden, erst wieder bei MAG1/Instance B ankommen und zum receiver r geleitet werden können, wenn das Peering abgebaut wird und dadurch die Gruppe G1 regulär am Upstream b1 abonniert wird.
+
+    Bisher haben ich alle forwarding Regeln auf ein Timeout von 100 sekunden gesetzt, falls sie in dieser Zeit nicht mindestens einmal ein Packet weitergeleitet haben lösche ich die jeweiligen Routen. 
+
+    Auf welche Wert würde man den Timout setzten (einen zu niedrieger Wert kann zur Störungen führen da die Route vlt zu früh gelöscht wurde, ein zu Hoher Wert würde der Empfänger r zu Störungen führen)
+     
+
+
