@@ -48,6 +48,19 @@ Das Peering Interface bp von der Proxy-Instanz B wird als eingeschränktes Downs
     3. bp empfängt die Daten der Gruppe G1, leitet diese weiter zum Downstream b2 und und deabonniert G1 am Upstream b1 um ein doppeltes emfpangen der Daten zu vermeiden.
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 ##-- (3) Frage --##
 
           |                            |                   |
@@ -67,7 +80,7 @@ Das Peering Interface bp von der Proxy-Instanz B wird als eingeschränktes Downs
 
     Bisher haben ich alle forwarding Regeln auf ein Timeout von 100 sekunden gesetzt, falls sie in dieser Zeit nicht mindestens einmal ein Packet weitergeleitet haben lösche ich die jeweiligen Routen. 
 
-    Auf welche Wert würde man den Timout setzten (einen zu niedrieger Wert kann zur Störungen führen da die Route vlt zu früh gelöscht wurde, ein zu Hoher Wert würde der Empfänger r zu Störungen führen)
+    Auf welche Wert würde man den Timeout setzten (einen zu niedrieger Wert kann zur Störungen führen da die Route vlt zu früh gelöscht wurde, ein zu Hoher Wert würde der Empfänger r zu Störungen führen)?
      
 
 

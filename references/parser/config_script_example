@@ -1,69 +1,69 @@
 ##-- EBNF --##
 
-Interface Test Config File
-==========================
+#Interface Test Config File
+#==========================
 #Comment
 
 #choose a protocol
-protocol XXX #MLDv1 | MLDv2 | IGMPv1 | IGMPv2 | IGMPv3
+protocol XXX; #MLDv1 | MLDv2 | IGMPv1 | IGMPv2 | IGMPv3
 
 #configure a proxy instance
 #upstream interface name:= uif_name
 #downstream interface name:= dif_name
-#pinstance <proxy instance name>: <uif_name 1> <uif_name 2> ... <uif_name N> ==> <dif_name 1> <dif_name 2> ... <dif_name N>
-pinstance 1:                 eth0 eth1 eth3 ==> eth4 eth5 eth10 #first upstream has the highest priority
-pinstance MyLocalInstance:      wlan0 wlan1 ==> dummy0 eth6 dummy1
-pinstance testLocal:                     lo ==> eth7
-pinstance quierer_only:                     ==> eth8
-pinstance split                 tunU1 tunU2 ==> tunD1 tunD2
+#pinstance <proxy instance name>: <uif_name 1> <uif_name 2> ... <uif_name N> ==> <dif_name 1> <dif_name 2> ... <dif_name N>;
+pinstance 1:                 eth0 eth1 eth3 ==> eth4 eth5 eth10; #first upstream has the highest priority
+pinstance MyLocalInstance:      wlan0 wlan1 ==> dummy0 eth6 dummy1;
+pinstance testLocal:                     lo ==> eth7;
+pinstance quierer_only:                     ==> eth8;
+pinstance split                 tunU1 tunU2 ==> tunD1 tunD2;
 #define forwarding rules for an interfaces
-# table [<table name>] {(group | source) (group | source) ... }
+# table [<table name>] {(group | source) (group | source) ... };
 table 1 {
   (239.99.99.99 | *)
   (* |  1.1.1.1/12)            
-}
+};
 
 table local {
   (240.0.0.0 - 241.0.0.0 | 192.168.123.0/24) 
   (240.0.0.0 - 241.0.0.0 | 192.168.2.0 - 192.168.2.55) 
-}
+};
 
 table allow_PC_1 {
   (* | 3.3.3.3)
-}
+};
 
 table xxx {
   (table allow_PC_1)
   (path: /absolute/path/to/table)
   (path: relative/path/to/table) 
   (table {(* | *) (table path: path/to/another/table)})
-}     
+};
 
 table all {
   (* | *)
-}
+};
 
-#pinstance  <proxy instance name> (upstream | downstream) <uif_name> [in | out] [whitelist | blacklist] table <table name> 
-pinstance 1 upstream eth0 out whitelist table 1 #forward traffic of a few sources and the entire traffic of the group 239.99.99.99 from to the upstream interface eth0 (an subscribe groups)
-#pinstance 1 upstream eth0 in whitelist table {* | *} #default behaviour, receive all multicast traffic
-pinstance 1 upstream eth1 out whitelist table local #forward traffic of a few sources how are sending to the range of groups 240.0.0.0 - 241.0.0.0
-pinstance 1 upstream eth3 out whitelist table all #defined as default interface, this rule will always be true 
-pinstance 1 downstream eth5 out whitelist table allow_PC_1 #only PC 1 with IP 1.1.1.1 can subscribe groups (all subscribed groups will be maintained but not forwarded)
-pinstance 1 downstream eht4 out whitelist table {(* | 192.168.5.0/24)} #all interfaces of the subnet 192.168.5.0/24 are allowed to use the proxy 
-pinstance 1 downstream eth4 in blacklist table all #the interface eth4 will ignore all sources from the downstream side
+#pinstance  <proxy instance name> (upstream | downstream) <uif_name> [in | out] [whitelist | blacklist] table <table name>;
+pinstance 1 upstream eth0 out whitelist table 1; #forward traffic of a few sources and the entire traffic of the group 239.99.99.99 from to the upstream interface eth0 (an subscribe groups)
+#pinstance 1 upstream eth0 in whitelist table {* | *}; #default behaviour, receive all multicast traffic
+pinstance 1 upstream eth1 out whitelist table local; #forward traffic of a few sources how are sending to the range of groups 240.0.0.0 - 241.0.0.0
+pinstance 1 upstream eth3 out whitelist table all; #defined as default interface, this rule will always be true 
+pinstance 1 downstream eth5 out whitelist table allow_PC_1; #only PC 1 with IP 1.1.1.1 can subscribe groups (all subscribed groups will be maintained but not forwarded)
+pinstance 1 downstream eht4 out whitelist table {(* | 192.168.5.0/24)}; #all interfaces of the subnet 192.168.5.0/24 are allowed to use the proxy 
+pinstance 1 downstream eth4 in blacklist table all; #the interface eth4 will ignore all sources from the downstream side
 
-pinstance MyLocalInstance upstream wlan0 out blacklist table xxx #ignore 1.1.1.1 and allow all other sources
-pinstance MyLocalInstance upstream wlan1 out blacklist all #interface is unused
-pinstance MyLocalInstance upstream wlan1 in blacklist all #interface is unused
+pinstance MyLocalInstance upstream wlan0 out blacklist table xxx; #ignore 1.1.1.1 and allow all other sources
+pinstance MyLocalInstance upstream wlan1 out blacklist all; #interface is unused
+pinstance MyLocalInstance upstream wlan1 in blacklist all; #interface is unused
 
-pinstance split upstream tunU1 out whitelist table {tunD1(* | *)}
-pinstance split upstream tunU2 out whitelist table {tunD2(* | *)}
-#pinstance split upstream tunU1 in whitelist table {(* | *)} #default
-#pinstance split upstream tunU2 in whitelist table {(* | *)} #default
-pinstance split downstream tunD1 out whitelist table {tunU1(* | *)}
-pinstance split downstream tunD2 out whitelist table {tunU2(* | *)}
-#pinstance split downstream tunD1 in whitelist table {(* | *)} #default
-#pinstance split downstream tunD2 in whitelist table {(* | *)}
+pinstance split upstream tunU1 out whitelist table {tunD1(* | *)};
+pinstance split upstream tunU2 out whitelist table {tunD2(* | *)};
+#pinstance split upstream tunU1 in whitelist table {(* | *)}; #default
+#pinstance split upstream tunU2 in whitelist table {(* | *)}; #default
+pinstance split downstream tunD1 out whitelist table {tunU1(* | *)};
+pinstance split downstream tunD2 out whitelist table {tunU2(* | *)};
+#pinstance split downstream tunD1 in whitelist table {(* | *)}; #default
+#pinstance split downstream tunD2 in whitelist table {(* | *)};
 
 #
 #       (a)    |            
@@ -83,10 +83,10 @@ pinstance split downstream tunD2 out whitelist table {tunU2(* | *)}
 
 #Multiple Upstream rule matching
 #===============================
-#pinstance  <proxy instance name> (upstream | downstream) <uif_name> [in | out] rulematching table <table name> 
+#pinstance  <proxy instance name> (upstream | downstream) <uif_name> [in | out] rulematching table <table name>;
 #the interface name is unimportant (this rule is globla for all upstream per proxy instance)
-#pinstance A upstream eth0 out rulematching all #default 
-#pinstance A upstream eth0 in rulematching first #default 
+#pinstance A upstream eth0 out rulematching all; #default 
+#pinstance A upstream eth0 in rulematching first; #default 
 #
 #    rule matching | type            | action
 #    --------------+-----------------+-------------
@@ -100,45 +100,3 @@ pinstance split downstream tunD2 out whitelist table {tunU2(* | *)}
 #                  |                 | from one if this interfaces all other interfaces unsubscribe this this group. After a timeout of X 
 #                  |                 | milliseconds the checks if data sill arrive at this interface if not the mcproxy subscribes this group
 #                  |                 | at all downstream again 
-
-
-
-EBNF
-====
-
-start = protocol | pinstance | table
-
-protocol =  "protocol" potocol_type;
-protocol_type = "MLDv1" | "MLDv2" | "IGMPv1" | "IGMPv2" | "IGMPv3";
-
-pinstance = "pinstance" instance_name (instance_definition | interface_rule_binding);
-instance_definition = ":" {if_name} "==>" if_name {if_name};
-
-interface_rule_binding = ("upstream" | "downstream") if_name ("blacklist" | "whitelist") ("out" | "in") "table" table_name;
-
-table = "table" [table_name] "{" rule_box {rule_box} "}";
-rule_box = ( "(" path  ")" | "(" table ")" | rule);
-path = "abolute_path" | "releative_path";
-rule = [if_name] "(" group | source ")";
-
-group = range | ip_address;
-source = range | ip_address [ "/" netmask_prefix];
-range = ip_address "-" ip_address;
-
-ip_address = "*" | ipv4_address | ipv6_address;
-
-ipv4_address = ...
-ipv6_address = ...
-netmask_prefix = 0 - 128
-
-table_name = word
-instance_name = word
-if_name = word
-word = zeichen {zeichen}
-letter = [1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_]
-
-
-class interface
-===============
-???????????????????????ß
-

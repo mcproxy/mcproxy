@@ -28,13 +28,13 @@ QMAKE_EXTRA_TARGETS += doc
 
 SOURCES += src/main.cpp \
            src/hamcast_logging.cpp \
-                #utils
+               #utils
            src/utils/mc_socket.cpp \
            src/utils/addr_storage.cpp \
            src/utils/mroute_socket.cpp \
            src/utils/if_prop.cpp \
            src/utils/reverse_path_filter.cpp \
-                #proxy
+               #proxy
            src/proxy/proxy.cpp \
            src/proxy/sender.cpp \
            src/proxy/receiver.cpp \
@@ -55,7 +55,9 @@ SOURCES += src/main.cpp \
            src/proxy/proxy_configuration.cpp \
            src/proxy/def.cpp \
            src/proxy/simple_mc_proxy_routing.cpp \
-           src/proxy/simple_routing_data.cpp
+           src/proxy/simple_routing_data.cpp \
+               #parser
+           src/parser/scanner.cpp
 
 HEADERS += include/hamcast_logging.h \
                 #utils
@@ -90,7 +92,9 @@ HEADERS += include/hamcast_logging.h \
            include/proxy/proxy_configuration.hpp \
            include/proxy/routing_management.hpp \
            include/proxy/simple_mc_proxy_routing.hpp \
-           include/proxy/simple_routing_data.hpp
+           include/proxy/simple_routing_data.hpp \
+               #parser
+           include/parser/scanner.hpp
 
 LIBS += -L/usr/lib -lboost_thread \
         -lboost_date_time \
