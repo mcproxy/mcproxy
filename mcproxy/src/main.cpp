@@ -36,6 +36,7 @@
 #include "include/proxy/simple_mc_proxy_routing.hpp"
 #include "include/proxy/simple_routing_data.hpp"
 #include "include/proxy/igmp_sender.hpp"
+#include "include/parser/scanner.hpp"
 
 #include <iostream>
 #include <unistd.h>
@@ -52,8 +53,8 @@ int main(int arg_count, char* args[])
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
 
 #ifndef TESTER
-    test_mcproxy(arg_count, args);
-    //test_test();
+    //test_mcproxy(arg_count, args);
+    test_test();
 
 
 #else
@@ -233,8 +234,8 @@ void tester(int arg_count, char* args[])
 void test_test()
 {
     //mc_socket::test_all();
-    addr_storage::test_addr_storage_a();
-    addr_storage::test_addr_storage_b();
+    //addr_storage::test_addr_storage_a();
+    //addr_storage::test_addr_storage_b();
     //membership_db::test_arithmetic();
     //timers_values::test_timers_values();
     //timers_values::test_timers_values_copy();
@@ -245,4 +246,5 @@ void test_test()
     //simple_routing_data::test_simple_routing_data();
     //igmp_sender::test_igmp_sender();
     //mroute_socket::quick_test();
+    scanner::test_scanner();        
 }

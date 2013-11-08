@@ -20,33 +20,51 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#ifndef SCANNER_HPP
-#define SCANNER_HPP
+#ifndef TOKEN_HPP
+#define TOKEN_HPP
 
 #include <string>
 #include <vector>
 
+enum token_type {
+    TT_PROTOCOL,
+    TT_MLDV1,
+    TT_MLDV2,
+    TT_IGMPV1,
+    TT_IGMPV2,
+    TT_IGMPV3,
+    TT_PINSTANCE,
+    TT_DEFINITION, //":"
+    TT_ARROW, //"==>"
+    TT_UPSTREAM,
+    TT_DOWNSTREAM,
+    TT_OUT,
+    TT_IN,
+    TT_BLACKLIST,
+    TT_WHITELIST,
+    TT_TABLE,
+    TT_ALL,
+    TT_FIRST,
+    TT_MUTEX,
+    TT_LEFT_BRACE, //"{"
+    TT_RIGHT_BRACE, //"}"
+    TT_LEFT_BRACKET, //"("
+    TT_RIGHT_BRACKET, //")"
+    TT_RANGE, //"-"
+    TT_SLASH, //"/"
+    TT_STAR //"*"
+};
 
+std::string get_token_type_name(token_type tt);
 
-class scanner
+class token
 {
 private:
-    std::vector<std::pair<unsigned int, std::string>> m_cmds;
-    unsigned int m_vec_cmd_pos;
-
-    unsigned int m_pos; //current position
-    unsigned int m_vec_pos;
-    char m_current_char;
-
-    std::string load_file(const std::string& path);
-    std::string delete_comments(std::string&& script_file);
-    std::vector<std::pair<unsigned int, std::string>> separate_commands(std::string&& script_file);
+    token_type m_type;
+    int m_number;
+    std::string m_string;
 public:
-    scanner(const std::string& path);
-    scanner();
-    static void test_scanner();
-
 };
 
 
-#endif // SCANNER_HPP
+#endif //TOKEN_HPP

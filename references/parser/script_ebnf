@@ -1,7 +1,7 @@
 EBNF
 ====
 
-start = (protocol | pinstance | table) ";"
+start = protocol | pinstance | table 
 
 protocol =  "protocol" potocol_type;
 protocol_type = "MLDv1" | "MLDv2" | "IGMPv1" | "IGMPv2" | "IGMPv3";

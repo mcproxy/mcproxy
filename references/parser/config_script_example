@@ -5,7 +5,7 @@
 #Comment
 
 #choose a protocol
-protocol XXX; #MLDv1 | MLDv2 | IGMPv1 | IGMPv2 | IGMPv3
+protocol IGMPv3; #MLDv1 | MLDv2 | IGMPv1 | IGMPv2 | IGMPv3
 
 #configure a proxy instance
 #upstream interface name:= uif_name
@@ -36,7 +36,7 @@ table xxx {
   (table allow_PC_1)
   (path: /absolute/path/to/table)
   (path: relative/path/to/table) 
-  (table {(* | *) (table path: path/to/another/table)})
+  (table {(* | *) (path: path/to/another/table)})
 };
 
 table all {
