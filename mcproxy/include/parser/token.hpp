@@ -34,7 +34,9 @@ enum token_type {
     TT_IGMPV2,
     TT_IGMPV3,
     TT_PINSTANCE,
+    TT_INSTANCE_NAME,//@tt_instance_name@
     TT_DEFINITION, //":"
+    TT_IF_NAME, //@tt_if_name@
     TT_ARROW, //"==>"
     TT_UPSTREAM,
     TT_DOWNSTREAM,
@@ -46,13 +48,19 @@ enum token_type {
     TT_ALL,
     TT_FIRST,
     TT_MUTEX,
+    TT_MILLISECONDS, //@milliseconds@
+    TT_TABLE_NAME, //@table_name@
+    TT_PATH, //@path@
     TT_LEFT_BRACE, //"{"
     TT_RIGHT_BRACE, //"}"
     TT_LEFT_BRACKET, //"("
     TT_RIGHT_BRACKET, //")"
     TT_RANGE, //"-"
     TT_SLASH, //"/"
-    TT_STAR //"*"
+    TT_STAR, //"*"
+    TT_IPV4_ADDRESS, //@TT_IPV4_ADDRESS@
+    TT_IPV6_ADDRESS, //TT_IPV6_ADDRESS
+    TT_NIL
 };
 
 std::string get_token_type_name(token_type tt);
@@ -64,6 +72,7 @@ private:
     int m_number;
     std::string m_string;
 public:
+    
 };
 
 

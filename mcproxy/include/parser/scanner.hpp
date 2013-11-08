@@ -31,6 +31,7 @@
 class scanner
 {
 private:
+    //<line number (for a better error message output), command>
     std::vector<std::pair<unsigned int, std::string>> m_cmds;
     unsigned int m_vec_cmd_pos;
 
@@ -45,7 +46,6 @@ public:
     scanner(const std::string& path);
     scanner();
     static void test_scanner();
-
 };
 
 
