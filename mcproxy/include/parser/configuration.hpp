@@ -20,38 +20,30 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#ifndef SCANNER_HPP
-#define SCANNER_HPP
+#ifndef CONFIGURATION_HPP
+#define CONFIGURATION_HPP
+
+#include "include/parser/token.hpp"
 
 #include <string>
 #include <vector>
 
-class token;
 
-class scanner
+class configuration 
 {
 private:
-    unsigned int m_current_line;
-    std::string m_cmd;
-    unsigned int m_current_cmd_pos; 
-    char m_current_cmd_char;
-         
-    std::vector<token> m_token_vec;
-    unsigned int m_token_pos;
+    //<line number (for a better error message output), command>
+    std::vector<std::pair<unsigned int, std::string>> m_cmds; 
 
-    void read_next_char();
-    void skip_spaces();
-    token read_next_token();    
-
-    void fill_token_vec();
+    std::string load_file(const std::string& path);
+    std::string delete_comments(std::string&& script_file);
+    std::vector<std::pair<unsigned int, std::string>> separate_commands(std::string&& script_file);
 public:
-    scanner(unsigned int current_line, const std::string& cmd);
-    
-    token get_next_token(bool peek = false);
+    configuration(const std::string& path);
 
-    std::string to_string() const;
-    friend std::ostream& operator<<(std::ostream& stream, const scanner& scan);
+    static void test_configuration();
 };
 
 
-#endif // SCANNER_HPP
+#endif // CONFIGURATION_HPP
+

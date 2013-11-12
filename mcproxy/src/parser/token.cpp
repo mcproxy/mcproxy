@@ -35,9 +35,9 @@ std::string get_token_type_name(token_type tt)
         {TT_IGMPV2, "TT_IGMPV2"},
         {TT_IGMPV3, "TT_IGMPV3"},
         {TT_PINSTANCE, "TT_PINSTANCE"},
-        {TT_INSTANCE_NAME, "TT_INSTANCE_NAME"},
+        //{TT_INSTANCE_NAME, "TT_INSTANCE_NAME"},
         {TT_DEFINITION,  "TT_DEFINITION"},
-        {TT_IF_NAME, "TT_IF_NAME"},
+        //{TT_IF_NAME, "TT_IF_NAME"},
         {TT_ARROW, "TT_ARROW"},
         {TT_UPSTREAM, "TT_UPSTREAM"},
         {TT_DOWNSTREAM, "TT_DOWNSTREAM"},
@@ -49,9 +49,9 @@ std::string get_token_type_name(token_type tt)
         {TT_ALL, "TT_ALL"},
         {TT_FIRST, "TT_FIRST"},
         {TT_MUTEX, "TT_MUTEX"},
-        {TT_MILLISECONDS, "TT_MILLISECONDS"},
-        {TT_TABLE_NAME, "TT_TABLE_NAME"},
-        {TT_PATH, "TT_PATH"},
+        //{TT_MILLISECONDS, "TT_MILLISECONDS"},
+        //{TT_TABLE_NAME, "TT_TABLE_NAME"},
+        //{TT_PATH, "TT_PATH"},
         {TT_LEFT_BRACE, "TT_LEFT_BRACE"},
         {TT_RIGHT_BRACE, "TT_RIGHT_BRACE"},
         {TT_LEFT_BRACKET, "TT_LEFT_BRACKET"},
@@ -59,13 +59,33 @@ std::string get_token_type_name(token_type tt)
         {TT_RANGE, "TT_RANGE"},
         {TT_SLASH, "TT_SLASH"},
         {TT_STAR,  "TT_STAR"},
-        {TT_IPV4_ADDRESS, "TT_IPV4_ADDRESS"},
-        {TT_IPV6_ADDRESS, "TT_IPV6_ADDRESS"},
+        {TT_PIPE,  "TT_PIPE"},
+        //{TT_IPV4_ADDRESS, "TT_IPV4_ADDRESS"},
+        //{TT_IPV6_ADDRESS, "TT_IPV6_ADDRESS"},
+        {TT_STRING, "TT_STRING"},
         {TT_NIL, "TT_NIL"}
     };
 
     return name_map[tt];
 }
 
+token_type token::get_type() const
+{
+    HC_LOG_TRACE("");
+    return m_type;
+}
+
+const std::string& token::get_string() const
+{
+    HC_LOG_TRACE("");
+    return m_string;
+}
+
+token::token(token_type type, const std::string str)
+    : m_type(type)
+    , m_string(str)
+{
+    HC_LOG_TRACE("");
+}
 
 

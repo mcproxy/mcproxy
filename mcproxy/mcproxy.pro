@@ -58,7 +58,8 @@ SOURCES += src/main.cpp \
            src/proxy/simple_routing_data.cpp \
                #parser
            src/parser/scanner.cpp \
-           src/parser/token.cpp
+           src/parser/token.cpp \
+           src/parser/configuration.cpp 
 
 HEADERS += include/hamcast_logging.h \
                 #utils
@@ -96,7 +97,9 @@ HEADERS += include/hamcast_logging.h \
            include/proxy/simple_routing_data.hpp \
                #parser
            include/parser/scanner.hpp \
-           include/parser/token.hpp
+           include/parser/token.hpp \
+           include/parser/configuration.hpp
+
 
 LIBS += -L/usr/lib -lboost_thread \
         -lboost_date_time \

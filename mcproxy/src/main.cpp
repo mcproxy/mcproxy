@@ -36,7 +36,7 @@
 #include "include/proxy/simple_mc_proxy_routing.hpp"
 #include "include/proxy/simple_routing_data.hpp"
 #include "include/proxy/igmp_sender.hpp"
-#include "include/parser/scanner.hpp"
+#include "include/parser/configuration.hpp"
 
 #include <iostream>
 #include <unistd.h>
@@ -216,8 +216,8 @@ void tester(int arg_count, char* args[])
             }
 
             std::cout << "set ttl to 10" << std::endl;
-            if(!ms.set_ttl(10)){
-                std::cout << "ttl set error" << std::endl; 
+            if (!ms.set_ttl(10)) {
+                std::cout << "ttl set error" << std::endl;
             }
 
             std::cout << "send packet: \"bob is cool\" to port 1234 " << std::endl;
@@ -246,5 +246,5 @@ void test_test()
     //simple_routing_data::test_simple_routing_data();
     //igmp_sender::test_igmp_sender();
     //mroute_socket::quick_test();
-    scanner::test_scanner();        
+    configuration::test_configuration();
 }

@@ -1,0 +1,21 @@
+##-- test script --##
+protocol IGMPv3; #default
+
+#configuration of proxy instance A) with the same behaviour of B) and C) 
+pinstance A: a1 b1 ==> a2 b2;
+
+#==================
+#                     
+#    A)   |      |    
+#         |      |    
+#      +--+------+--+ 
+#      | a1      b1 | 
+#      |            | 
+#      | a2      b2 | 
+#      +--+------+--+ 
+#         |      |    
+#         |      |    
+#      Host_a  Host_b 
+      
+pinstance A upstream a1 out whitelist table {a2(*|*)};
+pinstance A downstream a2 out whitelist table {a1(*|*)};

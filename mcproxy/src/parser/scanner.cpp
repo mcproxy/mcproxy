@@ -22,145 +22,212 @@
 
 #include "include/hamcast_logging.h"
 #include "include/parser/scanner.hpp"
+#include "include/parser/token.hpp"
 
 #include <algorithm>
 #include <fstream>
 
-scanner::scanner(const std::string& path)
-{
-    HC_LOG_TRACE("");
-    m_cmds = separate_commands(delete_comments(load_file(path)));
-}
-
-scanner::scanner()
-{
-    HC_LOG_TRACE("");
-
-}
-
-// trim from start
-inline std::string& ltrim(std::string& s)
-{
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-    return s;
-}
-
-// trim from end
-inline std::string& rtrim(std::string& s)
-{
-    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
-    return s;
-}
-
-// trim from both ends
-inline std::string& trim(std::string& s)
-{
-    return ltrim(rtrim(s));
-}
-
-inline unsigned int count_chars(const std::string& s, const char comp)
-{
-    unsigned int count = 0;
-    std::for_each(s.begin(), s.end(), [&count, &comp](const char c) {
-        if (c == comp) {
-            ++count;
-        }
-    });
-    return count;
-}
-
-std::string scanner::load_file(const std::string& path)
-{
-    HC_LOG_TRACE("");
-    std::ifstream file;
-    std::ostringstream result;
-    std::string line;
-    file.open (path, std::ifstream::in);
-    if (!file) {
-        HC_LOG_ERROR("failed to open config file: " << path);
-        throw "failed to open config file";
-    }
-
-    while (std::getline(file, line)) {
-        result << line << std::endl;
-    }
-
-    return result.str();
-}
-
-std::string scanner::delete_comments(std::string&& script_file)
+scanner::scanner(unsigned int current_line, const std::string& cmd)
+    : m_current_line(current_line)
+    , m_cmd(cmd)
+    , m_current_cmd_pos(0)
+    , m_token_pos(0)
 {
     HC_LOG_TRACE("");
 
-    const char comment_char = '#';
-    const char end_of_comment = '\n';
-    std::string::size_type cc = script_file.find(comment_char);
-    std::string::size_type eoc;
+    read_next_char();
+    fill_token_vec();
+}
 
-    while (cc != std::string::npos) {
-        eoc = script_file.find(end_of_comment, cc + 1);
-        if (eoc == std::string::npos) {
-            return script_file.substr(0, cc);
+token scanner::get_next_token(bool peek)
+{
+    HC_LOG_TRACE("");
+
+    if (m_token_pos < m_token_vec.size()) {
+        if (peek) {
+            return m_token_vec[m_token_pos];
         } else {
-            script_file.erase(cc, eoc - cc);
+            return m_token_vec[m_token_pos++];
         }
-
-        cc = script_file.find(comment_char, cc);
+    } else {
+        return token(TT_NIL);
     }
-    return script_file;
 }
 
-std::vector<std::pair<unsigned int, std::string>> scanner::separate_commands(std::string&& script_file)
+void scanner::read_next_char()
 {
     HC_LOG_TRACE("");
-    std::stringstream ss(script_file);
 
-    std::vector<std::pair<unsigned int, std::string>> result;
-    const char cmd_separator = ';';
-    std::string item;
+    if (m_current_cmd_pos < m_cmd.length()) {
+        m_current_cmd_char = m_cmd[m_current_cmd_pos++];
+    } else {
+        m_current_cmd_char = 0;
+    }
+}
 
-    unsigned int current_line = 1;
+void scanner::skip_spaces()
+{
+    HC_LOG_TRACE("");
 
+    while (std::isspace(m_current_cmd_char)) {
+        read_next_char();
+    }
+}
 
-    while (std::getline(ss, item, cmd_separator)) {
-        unsigned int line_count_before = count_chars(item, '\n');
-        ltrim(item);
-        unsigned int line_count_after = count_chars(item, '\n');
-        rtrim(item);
-        if (!item.empty()) {
-            result.push_back(std::pair<unsigned int, std::string>((current_line + (line_count_before - line_count_after)), item));
+void scanner::fill_token_vec()
+{
+    HC_LOG_TRACE("");
+
+    token tok = read_next_token();
+    
+    while (tok.get_type() != TT_NIL) {
+        m_token_vec.push_back(tok);
+        tok = read_next_token();
+    }
+}
+
+token scanner::read_next_token()
+{
+    HC_LOG_TRACE("");
+
+    auto is_string = [] (char cmp) {
+        return std::isalpha(cmp) || std::isdigit(cmp) || cmp == '_';
+    };
+
+    skip_spaces();
+
+    switch (m_current_cmd_char) {
+    case '\0':
+        break;
+    case ':':
+        read_next_char();
+        return token(TT_DEFINITION);
+    case '=':
+        read_next_char();
+        if (m_current_cmd_char == '=') {
+            read_next_char();
+            if (m_current_cmd_char == '>') {
+                read_next_char();
+                return token(TT_ARROW);
+            }
         }
-        current_line += line_count_before;
+        break;
+    case '{':
+        read_next_char();
+        return token(TT_LEFT_BRACE);
+    case '}':
+        read_next_char();
+        return token(TT_RIGHT_BRACE);
+    case '(':
+        read_next_char();
+        return token(TT_LEFT_BRACKET);
+    case ')':
+        read_next_char();
+        return token(TT_RIGHT_BRACKET);
+    case '-':
+        read_next_char();
+        return  token(TT_RANGE);
+    case '/':
+        read_next_char();
+        return token(TT_SLASH);
+    case '*':
+        read_next_char();
+        return token(TT_STAR);
+    case '|':
+        read_next_char();
+        return token(TT_PIPE);
+    default:
+        if (is_string(m_current_cmd_char)) {
+            std::ostringstream s;
+            s << m_current_cmd_char;
+
+            read_next_char();
+            while (is_string(m_current_cmd_char)) {
+                s << m_current_cmd_char;
+                read_next_char();
+            }
+
+            std::string cmp_str = s.str();
+            std::transform(cmp_str.begin(), cmp_str.end(), cmp_str.begin(), ::tolower);
+            if (cmp_str.compare("protocol")==0) {
+                return TT_PROTOCOL;
+            } else if (cmp_str.compare("mldv1")==0) {
+                return TT_MLDV1;
+            } else if (cmp_str.compare("mldv2")==0) {
+                return TT_MLDV2;
+            } else if (cmp_str.compare("igmpv1")==0) {
+                return TT_IGMPV1;
+            } else if (cmp_str.compare("igmpv2")==0) {
+                return TT_IGMPV2;
+            } else if (cmp_str.compare("igmpv3")==0) {
+                return TT_IGMPV3;
+            } else if (cmp_str.compare("pinstance")==0) {
+                return TT_PINSTANCE;
+            } else if (cmp_str.compare("upstream")==0) {
+                return TT_UPSTREAM;
+            } else if (cmp_str.compare("downstream")==0) {
+                return TT_DOWNSTREAM;
+            } else if (cmp_str.compare("out")==0) {
+                return TT_OUT;
+            } else if (cmp_str.compare("in")==0) {
+                return TT_IN;
+            } else if (cmp_str.compare("blacklist")==0) {
+                return TT_BLACKLIST;
+            } else if (cmp_str.compare("whitelist")==0) {
+                return TT_WHITELIST;
+            } else if (cmp_str.compare("table")==0) {
+                return TT_TABLE;
+            } else if (cmp_str.compare("all")==0) {
+                return TT_ALL;
+            } else if (cmp_str.compare("first")==0) {
+                return TT_FIRST;
+            } else if (cmp_str.compare("mutex")==0) {
+                return TT_MUTEX;
+            } else {
+                return token(TT_STRING, s.str());
+            }
+
+        } else {
+            HC_LOG_ERROR("failed to scan config file. Unsupported char <" << m_current_cmd_char << "> in line " << m_current_line << " and postion " << m_current_cmd_pos);
+            throw "failed to scan config file. Unsupported char";
+        }
+        break;
     }
 
-    return result;
+    return token(TT_NIL);
 }
 
-
-void scanner::test_scanner()
+std::string scanner::to_string() const
 {
+    HC_LOG_TRACE("");
     using namespace std;
-    scanner s("../references/parser/config_script_example");
 
-    //scanner s;
-    //cout << "1<" << s.delete_comments("#1234\n1234") << ">" << endl;
-    //cout << "2<" << s.delete_comments("1234\n#1234") << ">" << endl;
-    //cout << "3<" << s.delete_comments("#\n1234\n#1234") << ">" << endl;
-    //cout << "4<" << s.delete_comments("1234#1234\n") << ">" << endl;
-    //cout << "5<" << s.delete_comments("1234") << ">" << endl;
-    //cout << "6<" << s.delete_comments("") << ">" << endl;
-    //cout << "7<" << s.delete_comments("##\n1234") << ">" << endl;
-    //cout << "8<" << s.delete_comments("\n1234#") << ">" << endl;
-    //cout << "9<" << s.delete_comments("#12#34\n#56#78#910\n\n\n1234#") << ">" << endl;
-    //cout << "10<" << s.delete_comments("#12#34\n#56#78#910\n1\n2\n3\n4#") << ">" << endl;
-    //cout << "11<" << s.delete_comments("1234#\n") << ">" << endl;
+    ostringstream s;
+    s << "##-- scanner --##" << endl;
+    s << m_current_line << ": " << m_cmd << endl;
+    s << " ==> ";
+    int i = 1;
+    for (auto e : m_token_vec) {
+        if (i % 5 == 0) {
+            s << endl;
+        }
 
-    //auto tmp  = s.separate_commands(";asd; ad; xx;;;");
-    //std::for_each(tmp.begin(), tmp.end(), [](std::string & n) {
-    //std::cout << n << std::endl;
-    //});
+        s << get_token_type_name(e.get_type());
+        if(!e.get_string().empty()){
+            s << "(" << e.get_string() << ") "; 
+        }else{
+            s << " "; 
+        }
 
-    std::for_each(s.m_cmds.begin(), s.m_cmds.end(), [&](std::pair<unsigned int, std::string>& n) {
-        std::cout << n.first << ":=" << n.second << std::endl;
-    });
+        ++i;
+    }
+
+    return s.str();
 }
+
+std::ostream& operator<<(std::ostream& stream, const scanner& scan)
+{
+    return stream << scan.to_string();
+}
+
+
