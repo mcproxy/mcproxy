@@ -16,6 +16,7 @@
 mcproxy/Makefile
 mcproxy/mcproxy
 debug/tester/tester
+docs/html
 
 #editor
 *.~

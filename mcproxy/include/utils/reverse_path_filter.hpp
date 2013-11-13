@@ -53,4 +53,3 @@ public:
 
 
 #endif // REVERSE_PATH_FILTER_HPP
-/** @} */

@@ -20,11 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-/**
- * @addtogroup mod_proxy Proxy
- * @{
- */
-
 #ifndef TIMERS_VALUES_HPP
 #define TIMERS_VALUES_HPP
 
@@ -111,4 +106,3 @@ public:
 
 
 #endif // TIMERS_VALUES_HPP
-/** @} */

@@ -20,11 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-/**
- * @addtogroup mod_proxy Proxy
- * @{
- */
-
 #ifndef QUERIER_HPP
 #define QUERIER_HPP
 
@@ -153,4 +148,3 @@ public:
 };
 
 #endif // QUERIER_HPP
-/** @} */

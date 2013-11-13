@@ -20,11 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-/**
- * @addtogroup mod_proxy Proxy
- * @{
- */
-
 #ifndef MEMBERSHIP_DB_HPP
 #define MEMBERSHIP_DB_HPP
 
@@ -97,5 +92,4 @@ private:
 
 
 #endif // MEMBERSHIP_DB_HPP
-/** @} */
 

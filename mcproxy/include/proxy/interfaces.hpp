@@ -87,5 +87,4 @@ public:
 
 
 #endif // INTERFACES_HPP
-/** @} */
 

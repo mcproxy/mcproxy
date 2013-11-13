@@ -126,5 +126,4 @@ public:
 };
 
 #endif // PROXY_INSTANCE_HPP
-
 /** @}*/
