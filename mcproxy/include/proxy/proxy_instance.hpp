@@ -49,17 +49,17 @@ class simple_mc_proxy_routing;
 class routing_management;
 
 /**
- * @brief Represent a multicast Proxy
+ * @brief Represent a multicast Proxy (RFC 4605)
  */
 class proxy_instance: public worker
 {
 private:
-    const group_mem_protocol m_group_mem_protocol; //AF_INET or AF_INET6
-    const int m_table_number; // 0 means no table number
-    const bool m_in_debug_testing_mode;
+    //IGMPv1, IGMPv2, IGMPv3, MLDv1, MLDv2
+    const group_mem_protocol m_group_mem_protocol; 
 
-
-    //check_source m_check_source;
+    //defines the mulitcast routing talbe, if set to 0 (default routing table) no other instances running on the system to simplifie the kernel calls. 
+    const int m_table_number; 
+    const bool m_in_debug_testing_mode; 
 
     const std::shared_ptr<const interfaces> m_interfaces;
     const std::shared_ptr<timing> m_timing;
@@ -71,11 +71,13 @@ private:
     std::unique_ptr<routing> m_routing;
     std::unique_ptr<routing_management> m_routing_management;
 
+    //interface index
     unsigned int m_upstream;
 
+    //to match the proxy debug output with the wireshark time stamp
     const std::chrono::time_point<std::chrono::steady_clock> m_proxy_start_time;
 
-    //if_index, querier
+    //if_indexes of the downstreams, querier
     std::map<unsigned int, std::unique_ptr<querier>> m_querier;
 
     //init
@@ -85,6 +87,7 @@ private:
     bool init_routing();
     bool init_routing_management();
 
+    //receives and process all events 
     void worker_thread();
 
     //add and del interfaces
@@ -93,8 +96,13 @@ private:
     std::string to_string() const; 
     friend std::ostream& operator<<(std::ostream& stream, const proxy_instance& pr_i);
 public:
+    
     /**
-     * @brief Set default values of the class members.
+     * @param group_mem_protocol Defines the highest group membership protocol version for IPv4 or Ipv6 to use.
+     * @param table_number Set the multicast routing table. If set to 0 (default routing table) no other instances running on the system (this simplifie the kernel calls). 
+     * @param interfaces Holds all possible needed information of all upstream and downstream interfaces.
+     * @param shared_timing Stores and triggers all time-dependent events for this proxy instance.
+     * @param in_debug_testing_mode If true this proxy instance stops receiving group membership messages and prints a lot of status messages to the command line.
      */
     proxy_instance(group_mem_protocol group_mem_protocol, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode = false);
 
@@ -118,4 +126,5 @@ public:
 };
 
 #endif // PROXY_INSTANCE_HPP
+
 /** @}*/

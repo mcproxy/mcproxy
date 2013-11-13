@@ -35,7 +35,7 @@
 #include <iostream>
 #include <sstream>
 
-querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv, call_back_querier_state_change cb_state_change)
+querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv, callback_querier_state_change cb_state_change)
     : m_msg_worker(msg_worker)
     , m_if_index(if_index)
     , m_db(querier_version_mode)

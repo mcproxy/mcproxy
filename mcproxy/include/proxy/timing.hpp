@@ -51,7 +51,7 @@ using timing_db = std::map<timing_db_key, timing_db_value>;
 using timing_db_pair = std::pair<timing_db_key, timing_db_value>;
 
 /**
- * @brief Organizes reminder.
+ * @brief Organizes timer events.
  */
 class timing
 {
@@ -82,7 +82,6 @@ public:
      * @param msec predefined time in millisecond
      * @param proxy_instance* pointer to the owner of the reminder
      * @param pr_msg message of the reminder
-     *
      */
     void add_time(std::chrono::milliseconds delay, const worker* msg_worker, const std::shared_ptr<proxy_msg>& pr_msg);
 

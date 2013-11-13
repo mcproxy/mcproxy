@@ -39,7 +39,7 @@
 
 
 /**
- * @brief Fixed sized synchronised job queue.
+ * @brief Fixed sized synchronised priority job queue.
  */
 template< typename T, typename Compare  = std::less<T> >
 class message_queue
@@ -68,14 +68,18 @@ public:
     unsigned int size() const;
 
     /**
-      * @brief Return the set size.
+      * @brief Return the maxmum size.
       */
     int max_size() const;
 
     /**
-     * @brief add an element on tail and wait if full.
+     * @brief Add an element on tail or delete the element if the queue is full. 
      */
     bool enqueue_loseable(const T& t);
+
+    /**
+     * @brief Add an element on tail and wait if the queie is full.
+     */
     void enqueue(const T& t);
 
     /**

@@ -37,6 +37,9 @@ class addr_storage;
 #define INTERFACES_UNKOWN_IF_INDEX 0
 #define INTERFACES_UNKOWN_VIF_INDEX -1
 
+/**
+ * @brief summary of the most use interface properties
+ */
 class interfaces
 {
 private:

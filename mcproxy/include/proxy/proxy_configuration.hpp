@@ -31,31 +31,17 @@
 
 
 /**
- * @brief Default path to find the config file.
+ * @brief Default path of the configuration file.
  */
 #define PROXY_CONFIGURATION_DEFAULT_CONIG_PATH "mcproxy.conf"
 
-/**
- * @brief Downstream vector for #up_down_map.
- * @param vector of the downstream interfaces indexes
- */
 using downstream_set = std::set<unsigned int>;
-
-/**
- * @brief data structure to mangage the upstream/downstream instances.
- * @param first index of the upstream interface
- * @param second index vector of the downstream interfaces
- */
 using upstream_downstream_map = std::map<unsigned int, downstream_set>; //map<upstream, downstreams>
-
-/**
- * @brief Pair for #up_down_map.
- * @param first index of the upstream interface
- * @param second vector of the downstream interfaces
- */
 using upstream_downsteram_pair = std::pair<unsigned int, downstream_set>;
 
-
+/**
+ * @brief load and maintain the configuration of all proxies
+ */
 class proxy_configuration
 {
 private:

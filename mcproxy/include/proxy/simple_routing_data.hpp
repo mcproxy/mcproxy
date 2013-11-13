@@ -38,6 +38,9 @@ class mroute_socket;
 using s_routing_data = std::map<addr_storage,source_list<source>>;
 using s_routing_data_pair = std::pair<addr_storage,source_list<source>>;
 
+/**
+ * @brief a small database for saving and maintaining multicast sources 
+ */
 class simple_routing_data 
 {
 private:

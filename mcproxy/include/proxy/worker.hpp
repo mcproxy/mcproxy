@@ -38,21 +38,16 @@
 
 
 
-struct comp_proxy_msg {
-    bool operator()(const std::shared_ptr<proxy_msg>& l, const std::shared_ptr<proxy_msg>& r) const {
-        return *l < *r;
-    }
-};
-
 /**
- * @brief Wraps the job queue to a basic worker like an simple actor pattern.
+ * @brief Wraps a priority job queue like a very simple actor pattern.
+ * The priority queue syncronised the received jobs for squentially processing.
  */
 class worker
 {
 private:
 protected:
-
     std::unique_ptr<std::thread> m_thread;
+
     /**
      * @brief Worker thread to process the jobs.
      */
@@ -74,7 +69,7 @@ public:
 
     /**
      * @brief Create a worker with a maximum job queue size.
-     * @param max_msg maximum size of the job queue
+     * @param max_msg defines the maximum size of the job queue
      */
     worker();
     worker(int queue_size);
@@ -82,6 +77,9 @@ public:
     virtual ~worker();
 
 
+    /**
+     * @brief checks if the worker thread is still running. 
+     */
     bool is_running() const;
 
     /**

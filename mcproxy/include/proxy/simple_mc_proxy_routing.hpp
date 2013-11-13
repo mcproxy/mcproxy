@@ -34,8 +34,9 @@ struct timer_msg;
 struct source;
 struct new_source_timer;
 
-
-
+/**
+ * @brief the simplest way of calculate forwarding rules.
+ */
 class simple_mc_proxy_routing : public routing_management
 {
 private:

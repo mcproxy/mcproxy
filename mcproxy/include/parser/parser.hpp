@@ -32,7 +32,7 @@ public:
     parser(unsigned int current_line, const std::string& cmd);
     
     std::string to_string() const;
-    friend std::ostream& operator<<(std::ostream& stream, const scanner& scan);
+    friend std::ostream& operator<<(std::ostream& stream, const parser& scan);
 };
 
 

@@ -40,8 +40,9 @@
 class proxy_configuration;
 class timing;
 class proxy_instance;
+
 /**
-  * @brief Instanced the multicast proxy
+  * @brief start and maintain all proxy instances.
   */
 class proxy
 {

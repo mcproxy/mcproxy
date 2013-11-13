@@ -31,6 +31,7 @@
 #include <iostream>
 #include <chrono>
 
+//------------------------------------------------------------------------
 enum mc_filter {INCLUDE_MODE = MCAST_INCLUDE, EXLCUDE_MODE = MCAST_EXCLUDE};
 std::string get_mc_filter_name(mc_filter mf);
 
@@ -46,6 +47,7 @@ std::string get_mcast_addr_record_type_name(mcast_addr_record_type art);
 //------------------------------------------------------------------------
 std::string time_to_string(const std::chrono::seconds& sec);
 std::string time_to_string(const std::chrono::milliseconds& msec);
+
 //------------------------------------------------------------------------
 template<typename T> using source_list = std::set<T>;
 

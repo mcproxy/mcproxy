@@ -34,6 +34,9 @@ struct source;
 class proxy_instance;
 class addr_storage;
 
+/**
+ * @brief abstract interface of a summary of routing events 
+ */
 class routing_management
 {
 protected:
