@@ -21,11 +21,13 @@ Requirements
 - To generate a makefile, qmake must be installed. This can be done with
 the following command:
   
-  newer systems:
+  newer systems: 
+
     apt-get install qt5-qmake
     apt-get install qt5-default
 
   older systems: 
+
     apt-get install qt4-qmake
 
 - To build the mcproxy, the libraries boost_threat, boost_date_time and 
