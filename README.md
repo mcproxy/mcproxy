@@ -22,10 +22,12 @@ Requirements
 the following command:
   
   newer systems: 
+
         apt-get install qt5-qmake
         apt-get install qt5-default
 
   older systems: 
+
       apt-get install qt4-qmake
 
 *  To build the mcproxy, the libraries boost_threat, boost_date_time and 
@@ -83,13 +85,6 @@ be located in the docs/ directory after the execution of:
     make doc
 
 
-Directories
-===========
-doxygen/    - Example code and graphics used in the Doxygen
-                documentation
-mcproxy/    - Makefile, Header and source code files of the mcproxy
-
-
 Startup
 =======
 At first you should check the available kernel features of your
@@ -106,11 +101,11 @@ There is an example in the project folder (mcproxy.conf).
 
 *  To run the mcproxy in the background type the following command:
 
-      sudo nohup mcproxy -f <path/to/config_file> &
+        sudo nohup mcproxy -f <path/to/config_file> &
 
 *  To run the mcprocy with all available status and debug messages:
 
-      sudo mcproxy -dsvv -f <path/to/config_file>
+        sudo mcproxy -dsvv -f <path/to/config_file>
 
 For more information see 'mcproxy -h' or visit our project page.
 
