@@ -107,7 +107,7 @@ There is an example in the project folder (mcproxy.conf).
 
         sudo mcproxy -dsvv -f <path/to/config_file>
 
-For more information see 'mcproxy -h' or visit our project page.
+For more information see `mcproxy -h` or visit our project page.
 
 
 Contact
