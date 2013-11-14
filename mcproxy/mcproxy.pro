@@ -60,7 +60,8 @@ SOURCES += src/main.cpp \
            src/parser/scanner.cpp \
            src/parser/token.cpp \
            src/parser/configuration.cpp \
-           src/parser/parser.cpp
+           src/parser/parser.cpp \
+           src/parser/interfaces.cpp
 
 HEADERS += include/hamcast_logging.h \
                 #utils
@@ -100,7 +101,8 @@ HEADERS += include/hamcast_logging.h \
            include/parser/scanner.hpp \
            include/parser/token.hpp \
            include/parser/configuration.hpp \
-           include/parser/parser.hpp
+           include/parser/parser.hpp \
+           include/parser/interface.hpp
 
 
 LIBS += -L/usr/lib -lboost_thread \

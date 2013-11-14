@@ -20,46 +20,15 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#ifndef PARSER_HPP
-#define PARSER_HPP
+#ifndef INTERFACE_HPP
+#define INTERFACE_HPP
 
-#include "include/parser/scanner.hpp"
-#include "include/proxy/def.hpp"
-#include "include/parser/token.hpp"
-
-
-#include <string>
-#include <list>
-class interface;
-
-enum parser_type {
-    PT_PROTOCOL, PT_TABLE, PT_INSTANCE_DEFINITION, PT_INTERFACE_RULE_BINDING
-};
-
-
-
-class parser
+class interface
 {
 private:
-    scanner m_scanner;
-    token m_current_token; 
-
 public:
-    parser_type get_parser_type();
-
-    void parse_group_mem_proto(group_mem_protocol& gmp);
-    void parse_table(void* table);
-    void parse_instance_definition(std::pair<std::list<std::string>, std::list<std::string>>& instance);
-    void parse_interface_rule_binding(interface& interf);
-
-    parser(unsigned int current_line, const std::string& cmd);
-
-    void accept(token_type type);
-    void get_next_token();
-
-    std::string to_string() const;
-    friend std::ostream& operator<<(std::ostream& stream, const parser& scan);
 };
 
 
-#endif // PARSER_HPP
+
+#endif // INTERFACE_HPP
