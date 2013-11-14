@@ -18,41 +18,39 @@ runtime.
 
 Requirements
 ============
-1.  To generate a makefile, qmake must be installed. This can be done with
+*  To generate a makefile, qmake must be installed. This can be done with
 the following command:
   
   newer systems: 
-
         apt-get install qt5-qmake
-    apt-get install qt5-default
+        apt-get install qt5-default
 
   older systems: 
+      apt-get install qt4-qmake
 
-    apt-get install qt4-qmake
-
-2.  To build the mcproxy, the libraries boost_threat, boost_date_time and 
+*  To build the mcproxy, the libraries boost_threat, boost_date_time and 
 boost_system must be installed. This can be done with the following 
 command:
   
-      apt-get install libboost-all-dev
+        apt-get install libboost-all-dev
 
-3.  To use the IPv6 functionality the kernel has to be configured and 
+*  To use the IPv6 functionality the kernel has to be configured and 
 compiled with the experimental kernel feature <IPv6: multicast routing>.
 For more details go to chapter <Startup>.
 
-4.  To use more then one proxy instance for IPv4 and IPv6 the kernel has
+*  To use more then one proxy instance for IPv4 and IPv6 the kernel has
 to  be configured and compiled with the experimental kernel feature
 <IP: multicast policy routing> and <IPv6: multicast policy routing>. 
 For more details go to chapter <Startup>.
 
-5.  To build the documentation, doxygen must be installed. This can be
+*  To build the documentation, doxygen must be installed. This can be
 done with the following command:
 
-    apt-get install doxygen
+        apt-get install doxygen
 
-6.  The mcproxy has to be started with root privileges.
+*  The mcproxy has to be started with root privileges.
 
-7.  A Linux kernel version greater than version 2.6.32 is required.
+*  A Linux kernel version greater than version 2.6.32 is required.
 
 
 Compilation
@@ -106,13 +104,13 @@ which could help you with this problem.
 To run the mcproxy you need to create a valid configuration file.
 There is an example in the project folder (mcproxy.conf).
 
-1.  To run the mcproxy in the background type the following command:
+*  To run the mcproxy in the background type the following command:
 
-    sudo nohup mcproxy -f <path/to/config_file> &
+      sudo nohup mcproxy -f <path/to/config_file> &
 
-2.  To run the mcprocy with all available status and debug messages:
+*  To run the mcprocy with all available status and debug messages:
 
-    sudo mcproxy -dsvv -f <path/to/config_file>
+      sudo mcproxy -dsvv -f <path/to/config_file>
 
 For more information see 'mcproxy -h' or visit our project page.
 
