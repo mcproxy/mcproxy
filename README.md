@@ -32,7 +32,7 @@ the following command:
 boost_system must be installed. This can be done with the following 
 command:
   
-    apt-get install libboost-all-dev
+      apt-get install libboost-all-dev
 
 - To use the IPv6 functionality the kernel has to be configured and 
 compiled with the experimental kernel feature <IPv6: multicast routing>.
