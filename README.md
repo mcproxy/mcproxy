@@ -23,7 +23,7 @@ the following command:
   
   newer systems: 
 
-    apt-get install qt5-qmake
+        apt-get install qt5-qmake
     apt-get install qt5-default
 
   older systems: 
