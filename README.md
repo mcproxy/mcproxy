@@ -21,16 +21,16 @@ Requirements
 * To generate a makefile, qmake must be installed. This can be done with
 the following command:
   
-  newer systems: apt-get install qt5-qmake
-                 apt-get install qt5-default
+    newer systems: apt-get install qt5-qmake
+                   apt-get install qt5-default
 
-  older systems: apt-get install qt4-qmake
+    older systems: apt-get install qt4-qmake
 
 * To build the mcproxy, the libraries boost_threat, boost_date_time and 
 boost_system must be installed. This can be done with the following 
 command:
   
-  apt-get install libboost-all-dev
+    apt-get install libboost-all-dev
 
 * To use the IPv6 functionality the kernel has to be configured and 
 compiled with the experimental kernel feature <IPv6: multicast routing>.
@@ -44,7 +44,7 @@ For more details go to chapter <Startup>.
 * To build the documentation, doxygen must be installed. This can be
 done with the following command:
 
-  apt-get install doxygen
+    apt-get install doxygen
 
 * The mcproxy has to be started with root privileges.
 
@@ -55,22 +55,22 @@ Compilation
 ===========
 Build mcproxy in release mode:
 
-  cd mcproxy/
-  qmake 
-  make
+    cd mcproxy/
+    qmake 
+    make
 
 Build mcproxy in debug mode:
 
-  cd mcproxy/
-  qmake CONFIG+=debug
-  make
+    cd mcproxy/
+    qmake CONFIG+=debug
+    make
 
 
 Installation
 ============
 To copy mcproxy to the system directory, run (optional):
 
-  make install
+    make install
 
 
 Documentation
@@ -118,5 +118,3 @@ Contact
 Project page: http://mcproxy.realmv6.org/
 
 Mailing list: multicast-proxy@googlegroups.com
-
-/* vim: set tw=72 sts=2 sw=2 ts=2 expandtab: */
