@@ -92,7 +92,7 @@ void tester(int arg_count, char* args[])
 {
 
     auto help = []() {
-        std::cout << "tester [<ifname>] [ipv4|ip6] [<group>] [<action>] [time in sec (default=10)]" << std::endl;
+        std::cout << "tester [<ifname>] [ipv4|ip6] [<group>] [<action>] [time in sec (default=10) or count]" << std::endl;
         std::cout << "\te.g. eth0 ipv4 1 1 60" << std::endl;
         std::cout << std::endl;
         std::cout << "ipv4 [group]: " << "[1]= 239.1.1.1; [9]= 239.9.9.9; [255]= ..." << std::endl;
@@ -103,7 +103,7 @@ void tester(int arg_count, char* args[])
         std::cout << "\t[3]: [1] and set source filter INCLUDE_MODE with ip 5, 6, 7, 8" << std::endl;
         std::cout << "\t[4]: [1] and set source filter EXLCUDE_MODE with ip 3, 4, 5, 6" << std::endl;
         std::cout << "\t[5]: [1] and set source filter EXLCUDE_MODE with ip 1, 2, 7, 8" << std::endl;
-        std::cout << "\t[6]: send test packet to [group]" << std::endl;
+        std::cout << "\t[6]: send test packet to [group] [count]" << std::endl;
         exit(0);
     };
 
@@ -120,6 +120,7 @@ void tester(int arg_count, char* args[])
         group_mem_protocol mem_protocol;
         addr_storage gaddr;
         int sleep_time;
+        int& count = sleep_time;
 
         std::vector<addr_storage> g(9);
 
@@ -221,8 +222,10 @@ void tester(int arg_count, char* args[])
             }
 
             std::cout << "send packet: \"bob is cool\" to port 1234 " << std::endl;
-            if (!ms.send_packet(gaddr.set_port(1234), "bob is cool")) {
-                std::cout << "send packet error" << std::endl;
+            for (int i = 0; i < count; i++) {
+                if (!ms.send_packet(gaddr.set_port(1234), "bob is cool")) {
+                    std::cout << "send packet error" << std::endl;
+                }
             }
             return;
         }

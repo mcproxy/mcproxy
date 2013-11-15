@@ -61,7 +61,7 @@ SOURCES += src/main.cpp \
            src/parser/token.cpp \
            src/parser/configuration.cpp \
            src/parser/parser.cpp \
-           src/parser/interfaces.cpp
+           src/parser/interface.cpp
 
 HEADERS += include/hamcast_logging.h \
                 #utils

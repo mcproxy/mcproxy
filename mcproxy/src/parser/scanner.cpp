@@ -39,16 +39,12 @@ scanner::scanner(unsigned int current_line, const std::string& cmd)
     fill_token_vec();
 }
 
-token scanner::get_next_token(bool peek)
+token scanner::get_next_token(bool peek, int token_count)
 {
-    HC_LOG_TRACE("");
-
-    if (m_token_pos < m_token_vec.size()) {
-        if (peek) {
-            return m_token_vec[m_token_pos];
-        } else {
-            return m_token_vec[m_token_pos++];
-        }
+    if (peek && m_token_pos + token_count < m_token_vec.size()) {
+        return m_token_vec[m_token_pos + token_count];
+    } else if (!peek && m_token_pos < m_token_vec.size()) {
+        return m_token_vec[m_token_pos++];
     } else {
         return token(TT_NIL);
     }
@@ -56,8 +52,6 @@ token scanner::get_next_token(bool peek)
 
 void scanner::read_next_char()
 {
-    HC_LOG_TRACE("");
-
     if (m_current_cmd_pos < m_cmd.length()) {
         m_current_cmd_char = m_cmd[m_current_cmd_pos++];
     } else {
@@ -67,8 +61,6 @@ void scanner::read_next_char()
 
 void scanner::skip_spaces()
 {
-    HC_LOG_TRACE("");
-
     while (std::isspace(m_current_cmd_char)) {
         read_next_char();
     }
@@ -79,7 +71,7 @@ void scanner::fill_token_vec()
     HC_LOG_TRACE("");
 
     token tok = read_next_token();
-    
+
     while (tok.get_type() != TT_NIL) {
         m_token_vec.push_back(tok);
         tok = read_next_token();
@@ -88,8 +80,6 @@ void scanner::fill_token_vec()
 
 token scanner::read_next_token()
 {
-    HC_LOG_TRACE("");
-
     auto is_string = [] (char cmp) {
         return std::isalpha(cmp) || std::isdigit(cmp) || cmp == '_';
     };
@@ -149,39 +139,39 @@ token scanner::read_next_token()
 
             std::string cmp_str = s.str();
             std::transform(cmp_str.begin(), cmp_str.end(), cmp_str.begin(), ::tolower);
-            if (cmp_str.compare("protocol")==0) {
+            if (cmp_str.compare("protocol") == 0) {
                 return TT_PROTOCOL;
-            } else if (cmp_str.compare("mldv1")==0) {
+            } else if (cmp_str.compare("mldv1") == 0) {
                 return TT_MLDV1;
-            } else if (cmp_str.compare("mldv2")==0) {
+            } else if (cmp_str.compare("mldv2") == 0) {
                 return TT_MLDV2;
-            } else if (cmp_str.compare("igmpv1")==0) {
+            } else if (cmp_str.compare("igmpv1") == 0) {
                 return TT_IGMPV1;
-            } else if (cmp_str.compare("igmpv2")==0) {
+            } else if (cmp_str.compare("igmpv2") == 0) {
                 return TT_IGMPV2;
-            } else if (cmp_str.compare("igmpv3")==0) {
+            } else if (cmp_str.compare("igmpv3") == 0) {
                 return TT_IGMPV3;
-            } else if (cmp_str.compare("pinstance")==0) {
+            } else if (cmp_str.compare("pinstance") == 0) {
                 return TT_PINSTANCE;
-            } else if (cmp_str.compare("upstream")==0) {
+            } else if (cmp_str.compare("upstream") == 0) {
                 return TT_UPSTREAM;
-            } else if (cmp_str.compare("downstream")==0) {
+            } else if (cmp_str.compare("downstream") == 0) {
                 return TT_DOWNSTREAM;
-            } else if (cmp_str.compare("out")==0) {
+            } else if (cmp_str.compare("out") == 0) {
                 return TT_OUT;
-            } else if (cmp_str.compare("in")==0) {
+            } else if (cmp_str.compare("in") == 0) {
                 return TT_IN;
-            } else if (cmp_str.compare("blacklist")==0) {
+            } else if (cmp_str.compare("blacklist") == 0) {
                 return TT_BLACKLIST;
-            } else if (cmp_str.compare("whitelist")==0) {
+            } else if (cmp_str.compare("whitelist") == 0) {
                 return TT_WHITELIST;
-            } else if (cmp_str.compare("table")==0) {
+            } else if (cmp_str.compare("table") == 0) {
                 return TT_TABLE;
-            } else if (cmp_str.compare("all")==0) {
+            } else if (cmp_str.compare("all") == 0) {
                 return TT_ALL;
-            } else if (cmp_str.compare("first")==0) {
+            } else if (cmp_str.compare("first") == 0) {
                 return TT_FIRST;
-            } else if (cmp_str.compare("mutex")==0) {
+            } else if (cmp_str.compare("mutex") == 0) {
                 return TT_MUTEX;
             } else {
                 return token(TT_STRING, s.str());
@@ -213,10 +203,10 @@ std::string scanner::to_string() const
         }
 
         s << get_token_type_name(e.get_type());
-        if(!e.get_string().empty()){
-            s << "(" << e.get_string() << ") "; 
-        }else{
-            s << " "; 
+        if (!e.get_string().empty()) {
+            s << "(" << e.get_string() << ") ";
+        } else {
+            s << " ";
         }
 
         ++i;

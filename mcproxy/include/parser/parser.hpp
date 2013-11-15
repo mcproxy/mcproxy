@@ -43,7 +43,7 @@ class parser
 private:
     scanner m_scanner;
     token m_current_token; 
-
+    int m_current_line;
 public:
     parser_type get_parser_type();
 
@@ -54,7 +54,9 @@ public:
 
     parser(unsigned int current_line, const std::string& cmd);
 
-    void accept(token_type type);
+    //is the current token the excpeted one
+    //void accept(token_type type);
+    
     void get_next_token();
 
     std::string to_string() const;

@@ -22,7 +22,7 @@
 
 #include "include/hamcast_logging.h"
 #include "include/parser/configuration.hpp"
-#include "include/parser/scanner.hpp"
+#include "include/parser/parser.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -134,10 +134,33 @@ std::vector<std::pair<unsigned int, std::string>> configuration::separate_comman
 void configuration::test_configuration()
 {
     using namespace std;
-    configuration conf("../references/parser/test_script");
-    
-    for(auto e: conf.m_cmds){
-        cout << scanner(e.first, e.second) << endl;       
+    configuration conf("../references/parser/config_script_example");
+    //configuration conf("../references/parser/test_script");
+
+    for (auto e : conf.m_cmds) {
+        parser p(e.first, e.second);
+        try {
+            switch (p.get_parser_type()) {
+            case PT_PROTOCOL:
+                cout << "cmd: " << e.second << endl;
+                cout << "PT_PROTOCOL" << endl;
+                break;
+            case PT_TABLE:
+                cout << "cmd: " << e.second << endl;
+                cout << "PT_TABLE" << endl;
+                break;
+            case PT_INSTANCE_DEFINITION:
+                cout << "cmd: " << e.second << endl;
+                cout << "PT_INSTANCE_DEFINITION" << endl;
+                break;
+            case PT_INTERFACE_RULE_BINDING:
+                cout << "cmd: " << e.second << endl;
+                cout << "PT_INTERFACE_RULE_BINDING" << endl;
+                break;
+            }
+        } catch (const char* c) {
+            cout << c << endl;
+        }
     }
     //cout << "1<" << s.delete_comments("#1234\n1234") << ">" << endl;
     //cout << "2<" << s.delete_comments("1234\n#1234") << ">" << endl;
@@ -157,7 +180,7 @@ void configuration::test_configuration()
     //});
 
     //std::for_each(s.m_cmds.begin(), s.m_cmds.end(), [&](std::pair<unsigned int, std::string>& n) {
-        //std::cout << n.first << ":=" << n.second << std::endl;
+    //std::cout << n.first << ":=" << n.second << std::endl;
     //});
 }
 

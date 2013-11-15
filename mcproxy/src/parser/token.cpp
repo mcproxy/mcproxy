@@ -71,7 +71,6 @@ std::string get_token_type_name(token_type tt)
 
 token_type token::get_type() const
 {
-    HC_LOG_TRACE("");
     return m_type;
 }
 

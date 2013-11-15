@@ -47,7 +47,7 @@ private:
 public:
     scanner(unsigned int current_line, const std::string& cmd);
     
-    token get_next_token(bool peek = false);
+    token get_next_token(bool peek = false, int token_count = 1);
 
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const scanner& scan);
