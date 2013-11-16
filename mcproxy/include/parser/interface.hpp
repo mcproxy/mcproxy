@@ -29,51 +29,46 @@
 
 #include "include/utils/addr_storage.hpp"
 
-struct group_box {
-    virtual bool match(const addr_storage& gaddr) = 0;
-    virtual std::string to_string() = 0;
-};
-
-class source_box
-{
-    virtual bool match(const addr_storage& saddr) = 0;
-    virtual std::string to_string() = 0;
+struct addr_match {
+    virtual bool match(const addr_storage& addr) const = 0;
+    virtual std::string to_string() const = 0;
 };
 
 struct rule_box {
-    virtual bool match(const addr_storage& gaddr, const addr_storage& saddr) = 0;
-    virtual std::string to_string() = 0;
+    virtual bool match(const addr_storage& saddr, const addr_storage& gaddr) const = 0;
+    virtual std::string to_string() const = 0;
 };
 
-class group : public group_box
+class single_addr: public addr_match
 {
-    addr_storage m_gaddr;
+    addr_storage m_addr;
 public:
-    group(const addr_storage& gaddr);
-    bool match(const addr_storage& gaddr) override;
-    std::string to_string() override;
+    single_addr(const addr_storage& addr);
+    bool match(const addr_storage& addr) const override;
+    std::string to_string() const override;
 };
-????????????????? source_range
-class group_range : public group_box
+
+class addr_range : public addr_match
 {
     addr_storage m_from;
     addr_storage m_to;
 public:
-    group_range(const addr_storage& from, const addr_storage& to);
+    addr_range(const addr_storage& from, const addr_storage& to);
 
     //uncluding from and to
-    bool match(const addr_storage& gaddr) override;
-    std::string to_string() override;
+    bool match(const addr_storage& addr) const override;
+    std::string to_string() const override;
 };
 
-class source : public source_box
+class addr_rule : public rule_box
 {
-    addr_storage m_saddr;
-    unsigned int m_netmask_prefix;
+    std::string m_if_name;
+    std::unique_ptr<addr_match> m_group;
+    std::unique_ptr<addr_match> m_source;
 public:
-    source(const addr_storage& saddr, unsigned int netmask_prefix);
-    bool match(const addr_storage& saddr) override;
-    std::string to_string() override;
+    addr_rule(const std::string& if_name, std::unique_ptr<addr_match>&& group, std::unique_ptr<addr_match>&& source);
+    bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
+    std::string to_string() const override;
 };
 
 class table : public rule_box
@@ -81,46 +76,42 @@ class table : public rule_box
     std::string m_name;
     std::list<rule_box> m_rule_box_list;
 public:
-    table(const std::string& name, std::list<rule_box> rule_box_list);
-    const std::string& get_name();
-    bool match(const addr_storage& gaddr, const addr_storage& saddr) override;
-    std::string to_string() override;
+    table(const std::string& name, std::list<rule_box>&& rule_list);
+    const std::string& get_name() const;
+    bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
+    std::string to_string() const override;
+    friend bool operator<(const table& t1, const table& t2);
 };
 
-struct global_table_set {
-    std::set<table> m_table_set;
-    std::string to_string();
-};
 
 class rule_table : public rule_box
 {
     table m_table;
 public:
     rule_table(const table& t);
-    bool match(const addr_storage& gaddr, const addr_storage& saddr) override;
-    std::string to_string() override;
+    bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
+    std::string to_string() const override;
+};
+
+class global_table_set
+{
+    std::set<table> m_table_set;
+public :
+    std::string to_string() const;
+    bool add_table(table&& t);
+    const table* get_table(const std::string& table_name);
 };
 
 class rule_table_ref : public rule_box
 {
     std::string m_table_name;
-    std::shared_ptr<global_table_set> m_gloabal_table_set;
+    std::shared_ptr<global_table_set> m_global_table_set;
 public:
-    rule_table_ref(const std::string& table_name, const std::shared_ptr<global_table_set>& m_gloabal_table_set);
-    bool match(const addr_storage& gaddr, const addr_storage& saddr) override;
-    std::string to_string() override;
+    rule_table_ref(const std::string& table_name, const std::shared_ptr<global_table_set>& global_table_set);
+    bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
+    std::string to_string() const override;
 };
 
-class rule : public rule_box
-{
-    std::unique_ptr<std::string> m_if_name;
-    std::unique_ptr<group_box> m_group;
-    std::unique_ptr<source_box> m_source;
-public:
-    rule(std::unique_ptr<std::string>&& if_name, std::unique_ptr<group_box>&& group, std::unique_ptr<source_box>&& source);
-    bool match(const addr_storage& gaddr, const addr_storage& saddr) override;
-    std::string to_string() override;
-};
 
 
 class interface
