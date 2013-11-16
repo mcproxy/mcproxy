@@ -136,18 +136,27 @@ public:
 
     /**
      * @brief compare two addresses if one of this addresses unknown the function returns false
+     * basic implementation
      */
     bool operator==(const addr_storage& addr) const;
+
+
+    /**
+     * @brief lower then operator
+     * basic implementation
+     */
+    friend bool operator<(const addr_storage& addr1, const addr_storage& addr2);
 
     /**
      * @brief disjunction to operator==
      */
     bool operator!=(const addr_storage& addr) const;
 
-    /**
-     * @brief lower then operator
-     */
-    friend bool operator< (const addr_storage& addr1, const addr_storage& addr2);
+    friend bool operator>(const addr_storage& addr1, const addr_storage& addr2);
+
+    friend bool operator<=(const addr_storage& addr1, const addr_storage& addr2);
+
+    friend bool operator>=(const addr_storage& addr1, const addr_storage& addr2);
 
     addr_storage& operator++(); //prefix ++
     addr_storage operator++(int); //postfix ++ (has to do a copy of addr_storage)

@@ -30,10 +30,11 @@
 
 #include <string>
 #include <list>
+#include <tuple>
 class interface;
 
 enum parser_type {
-    PT_PROTOCOL, PT_TABLE, PT_INSTANCE_DEFINITION, PT_INTERFACE_RULE_BINDING
+    PT_PROTOCOL, PT_INSTANCE_DEFINITION, PT_TABLE, PT_INTERFACE_RULE_BINDING
 };
 
 
@@ -47,9 +48,9 @@ private:
 public:
     parser_type get_parser_type();
 
-    void parse_group_mem_proto(group_mem_protocol& gmp);
+    group_mem_protocol parse_group_mem_proto();
+    std::tuple<std::string, std::list<std::string>, std::list<std::string>> parse_instance_definition();
     void parse_table(void* table);
-    void parse_instance_definition(std::pair<std::list<std::string>, std::list<std::string>>& instance);
     void parse_interface_rule_binding(interface& interf);
 
     parser(unsigned int current_line, const std::string& cmd);

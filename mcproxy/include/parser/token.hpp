@@ -35,7 +35,8 @@ enum token_type {
     TT_IGMPV3,
     TT_PINSTANCE,
     //TT_INSTANCE_NAME,//@tt_instance_name@
-    TT_DEFINITION, //":"
+    TT_DOUBLE_DOT, //":"
+    TT_DOT, // "."
     //TT_IF_NAME, //@tt_if_name@
     TT_ARROW, //"==>"
     TT_UPSTREAM,

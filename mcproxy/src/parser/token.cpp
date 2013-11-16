@@ -36,7 +36,8 @@ std::string get_token_type_name(token_type tt)
         {TT_IGMPV3, "TT_IGMPV3"},
         {TT_PINSTANCE, "TT_PINSTANCE"},
         //{TT_INSTANCE_NAME, "TT_INSTANCE_NAME"},
-        {TT_DEFINITION,  "TT_DEFINITION"},
+        {TT_DOUBLE_DOT, "TT_DOUBLE_DOT"},
+        {TT_DOT, "TT_DOT"},
         //{TT_IF_NAME, "TT_IF_NAME"},
         {TT_ARROW, "TT_ARROW"},
         {TT_UPSTREAM, "TT_UPSTREAM"},
@@ -84,7 +85,6 @@ token::token(token_type type, const std::string str)
     : m_type(type)
     , m_string(str)
 {
-    HC_LOG_TRACE("");
 }
 
 

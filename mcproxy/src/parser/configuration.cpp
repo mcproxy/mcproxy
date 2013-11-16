@@ -141,17 +141,29 @@ void configuration::test_configuration()
         parser p(e.first, e.second);
         try {
             switch (p.get_parser_type()) {
-            case PT_PROTOCOL:
+            case PT_PROTOCOL: {
                 cout << "cmd: " << e.second << endl;
-                cout << "PT_PROTOCOL" << endl;
+                cout << "PT_PROTOCOL: " << get_group_mem_protocol_name(p.parse_group_mem_proto()) << endl;
                 break;
+            }
+            case PT_INSTANCE_DEFINITION: {
+                cout << "cmd: " << e.second << endl;
+                cout << "PT_INSTANCE_DEFINITION: "; 
+                auto tmp = p.parse_instance_definition();
+                cout << "pinstance " << get<0>(tmp) << ": ";
+                for_each(get<1>(tmp).begin(), get<1>(tmp).end(), [](const std::string & str) {
+                    cout << str << " ";
+                });
+                cout << "==> ";
+                for_each(get<2>(tmp).begin(), get<2>(tmp).end(), [](const std::string & str) {
+                    cout << str << " ";
+                });
+                cout << endl;
+                break;
+            }
             case PT_TABLE:
                 cout << "cmd: " << e.second << endl;
                 cout << "PT_TABLE" << endl;
-                break;
-            case PT_INSTANCE_DEFINITION:
-                cout << "cmd: " << e.second << endl;
-                cout << "PT_INSTANCE_DEFINITION" << endl;
                 break;
             case PT_INTERFACE_RULE_BINDING:
                 cout << "cmd: " << e.second << endl;

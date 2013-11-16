@@ -68,8 +68,6 @@ void scanner::skip_spaces()
 
 void scanner::fill_token_vec()
 {
-    HC_LOG_TRACE("");
-
     token tok = read_next_token();
 
     while (tok.get_type() != TT_NIL) {
@@ -91,7 +89,10 @@ token scanner::read_next_token()
         break;
     case ':':
         read_next_char();
-        return token(TT_DEFINITION);
+        return token(TT_DOUBLE_DOT);
+    case '.':
+        read_next_char();
+        return token(TT_DOT);
     case '=':
         read_next_char();
         if (m_current_cmd_char == '=') {

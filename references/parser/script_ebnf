@@ -1,7 +1,7 @@
 ##-- EBNF --##
 ==============
 
-start = protocol | pinstance | table 
+start = protocol | pinstance | table;
 
 protocol =  "protocol" potocol_type;
 protocol_type = "MLDv1" | "MLDv2" | "IGMPv1" | "IGMPv2" | "IGMPv3";
@@ -9,18 +9,18 @@ protocol_type = "MLDv1" | "MLDv2" | "IGMPv1" | "IGMPv2" | "IGMPv3";
 pinstance = "pinstance" @instance_name@ (instance_definition | interface_rule_binding);
 instance_definition = ":" {@if_name@} "==>" @if_name@ {@if_name@};
 
-interface_rule_binding = ("upstream" | "downstream") @if_name@ ("out" | "in") (filterlist | rulematching)
+interface_rule_binding = ("upstream" | "downstream") @if_name@ ("out" | "in") (filterlist | rulematching);
 filterlist = ("blacklist" | "whitelist") table;
-rulematching = "all" | "first" | ("mutex" @milliseconds@) 
+rulematching = "all" | "first" | ("mutex" @milliseconds@);
 
-table = "table" (table_defintion | table_reference)
-table_reference = @table_name@
+table = "table" (table_defintion | table_reference);
+table_reference = @table_name@;
 table_definition = @table_name@ "{" rule_box {rule_box} "}";
 rule_box = ( "(" @path@  ")" | "(" table ")" | rule);
-rule = [@if_name@] "(" group | source ")";
+rule = [@if_name@] "(" group_box | source_box ")";
 
-group = range | ip_address;
-source = range | ip_address [ "/" netmask_prefix];
+group_box = range | ip_address;
+source_box = range | ip_address [ "/" netmask_prefix];
 range = ip_address "-" ip_address;
 
 ip_address = "*" | @ipv4_address@ | @ipv6_address@;
