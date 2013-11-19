@@ -60,30 +60,48 @@ bool addr_range::match(const addr_storage& addr) const
 std::string addr_range::to_string() const
 {
     std::ostringstream s;
-    s << m_from << " - " << m_to;
+    addr_storage addr_start(m_from.get_addr_family());
+    addr_storage addr_end(m_from.get_addr_family());
+    addr_end--; //highest possible address
+    if (m_from == addr_start || m_from == addr_end) {
+        s << "*";
+    } else {
+        s << m_from;
+    }
+    s << " - ";
+    if (m_to == addr_start || m_to == addr_end) {
+        s << "*";
+    } else {
+        s << m_to;
+    }
     return s.str();
 }
 //-----------------------------------------------------
-addr_rule::addr_rule(const std::string& if_name, std::unique_ptr<addr_match>&& group, std::unique_ptr<addr_match>&& source)
+rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_match>&& group, std::unique_ptr<addr_match>&& source)
     : m_if_name(if_name)
     , m_group(std::move(group))
     , m_source(std::move(source))
 {
 }
 
-bool addr_rule::match(const addr_storage& gaddr, const addr_storage& saddr) const
+bool rule_addr::match(const addr_storage& gaddr, const addr_storage& saddr) const
 {
     return m_group->match(gaddr) && m_source->match(saddr);
 }
 
-std::string addr_rule::to_string() const
+std::string rule_addr::to_string() const
 {
     std::ostringstream s;
     s << "(" << m_group->to_string() << " | " << m_source->to_string() << ")";
     return s.str();
 }
 //-----------------------------------------------------
-table::table(const std::string& name, std::list<rule_box>&& rule_box_list)
+table::table(const std::string& name)
+    : m_name(name)
+{
+}
+
+table::table(const std::string& name, std::list<std::unique_ptr<rule_box>>&& rule_box_list)
     : m_name(name)
     , m_rule_box_list(std::move(rule_box_list))
 {
@@ -97,7 +115,7 @@ const std::string& table::get_name() const
 bool table::match(const addr_storage& gaddr, const addr_storage& saddr) const
 {
     for (auto & e : m_rule_box_list) {
-        if (e.match(gaddr, saddr)) {
+        if (e->match(gaddr, saddr)) {
             return true;
         }
     }
@@ -110,16 +128,16 @@ std::string table::to_string() const
     std::ostringstream s;
     s << "table " << m_name << " {" << std::endl;
     for (auto & e : m_rule_box_list) {
-        s << e.to_string() << std::endl;
+        s << e->to_string() << std::endl;
 
     }
     s << "}";
     return s.str();
 }
+
 bool operator<(const table& t1, const table& t2)
 {
     return t1.m_name.compare(t2.m_name) < 0;
-
 }
 //-----------------------------------------------------
 std::string global_table_set::to_string() const
@@ -138,14 +156,18 @@ bool global_table_set::add_table(table&& t)
     return m_table_set.insert(std::move(t)).second;
 }
 
-const table* global_table_set::get_table(const std::string& table_name)
+const table* global_table_set::get_table(const std::string& table_name) const
 {
     auto it = m_table_set.find(table_name);
-    if()
+    if (it != std::end(m_table_set)) {
+        return &(*it);
+    } else {
+        return nullptr;
+    }
 }
 //-----------------------------------------------------
-rule_table::rule_table(const table& t)
-    : m_table(t)
+rule_table::rule_table(table&& t)
+    : m_table(std::move(t))
 {
 }
 
@@ -159,7 +181,7 @@ std::string rule_table::to_string() const
     return m_table.to_string();
 }
 //-----------------------------------------------------
-rule_table_ref::rule_table_ref(const std::string& table_name, const std::shared_ptr<global_table_set>& global_table_set)
+rule_table_ref::rule_table_ref(const std::string& table_name, const std::shared_ptr<const global_table_set>& global_table_set)
     : m_table_name(table_name)
     , m_global_table_set(global_table_set)
 {
@@ -167,10 +189,17 @@ rule_table_ref::rule_table_ref(const std::string& table_name, const std::shared_
 
 bool rule_table_ref::match(const addr_storage& gaddr, const addr_storage& saddr) const
 {
-    return
+    auto t = m_global_table_set->get_table(m_table_name);
+    if (t == nullptr) {
+        return false;
+    } else {
+        return t->match(gaddr, saddr);
+    }
 }
 
 std::string rule_table_ref::to_string() const
 {
-
+    std::ostringstream s;
+    s << "(" << m_table_name << ")";
+    return s.str();
 }

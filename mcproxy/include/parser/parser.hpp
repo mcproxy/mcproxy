@@ -26,11 +26,13 @@
 #include "include/parser/scanner.hpp"
 #include "include/proxy/def.hpp"
 #include "include/parser/token.hpp"
+#include "include/parser/interface.hpp"
 
 
 #include <string>
 #include <list>
 #include <tuple>
+#include <memory>
 class interface;
 
 enum parser_type {
@@ -43,21 +45,24 @@ class parser
 {
 private:
     scanner m_scanner;
-    token m_current_token; 
+    token m_current_token;
     int m_current_line;
+
+    std::unique_ptr<rule_box> parse_rule(const std::shared_ptr<const global_table_set>& gts);
+    std::unique_ptr<addr_match> parse_rule_part();
 public:
     parser_type get_parser_type();
 
     group_mem_protocol parse_group_mem_proto();
     std::tuple<std::string, std::list<std::string>, std::list<std::string>> parse_instance_definition();
-    void parse_table(void* table);
+    table parse_table(const std::shared_ptr<const global_table_set>& gts, bool inside_rule_box = false);
     void parse_interface_rule_binding(interface& interf);
 
     parser(unsigned int current_line, const std::string& cmd);
 
     //is the current token the excpeted one
     //void accept(token_type type);
-    
+
     void get_next_token();
 
     std::string to_string() const;

@@ -60,13 +60,13 @@ public:
     std::string to_string() const override;
 };
 
-class addr_rule : public rule_box
+class rule_addr : public rule_box
 {
     std::string m_if_name;
     std::unique_ptr<addr_match> m_group;
     std::unique_ptr<addr_match> m_source;
 public:
-    addr_rule(const std::string& if_name, std::unique_ptr<addr_match>&& group, std::unique_ptr<addr_match>&& source);
+    rule_addr(const std::string& if_name, std::unique_ptr<addr_match>&& group, std::unique_ptr<addr_match>&& source);
     bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
     std::string to_string() const override;
 };
@@ -74,21 +74,21 @@ public:
 class table : public rule_box
 {
     std::string m_name;
-    std::list<rule_box> m_rule_box_list;
+    std::list<std::unique_ptr<rule_box>> m_rule_box_list;
 public:
-    table(const std::string& name, std::list<rule_box>&& rule_list);
+    table(const std::string& name);
+    table(const std::string& name, std::list<std::unique_ptr<rule_box>>&& rule_box_list);
     const std::string& get_name() const;
     bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
     std::string to_string() const override;
     friend bool operator<(const table& t1, const table& t2);
 };
 
-
 class rule_table : public rule_box
 {
     table m_table;
 public:
-    rule_table(const table& t);
+    rule_table(table&& t);
     bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
     std::string to_string() const override;
 };
@@ -99,20 +99,18 @@ class global_table_set
 public :
     std::string to_string() const;
     bool add_table(table&& t);
-    const table* get_table(const std::string& table_name);
+    const table* get_table(const std::string& table_name) const;
 };
 
 class rule_table_ref : public rule_box
 {
     std::string m_table_name;
-    std::shared_ptr<global_table_set> m_global_table_set;
+    const std::shared_ptr<const global_table_set> m_global_table_set;
 public:
-    rule_table_ref(const std::string& table_name, const std::shared_ptr<global_table_set>& global_table_set);
+    rule_table_ref(const std::string& table_name, const std::shared_ptr<const global_table_set>& global_table_set);
     bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
     std::string to_string() const override;
 };
-
-
 
 class interface
 {

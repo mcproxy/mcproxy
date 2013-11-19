@@ -99,7 +99,6 @@ group_mem_protocol parser::parse_group_mem_proto()
     }
 }
 
-
 std::tuple<std::string, std::list<std::string>, std::list<std::string>> parser::parse_instance_definition()
 {
     HC_LOG_TRACE("");
@@ -142,7 +141,96 @@ std::tuple<std::string, std::list<std::string>, std::list<std::string>> parser::
 
     HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " in this context");
     throw "failed to parse config file";
+}
 
+table parser::parse_table(const std::shared_ptr<const global_table_set>& gts, bool inside_rule_box)
+{
+    HC_LOG_TRACE("");
+    std::string table_name;
+    std::list<std::unique_ptr<rule_box>> rule_box_list;
+
+    if (get_parser_type() == PT_TABLE) {
+        get_next_token();
+        if ((!inside_rule_box && m_scanner.get_next_token(true, 1).get_type() == TT_NIL) || (inside_rule_box && m_scanner.get_next_token(true, 1).get_type() == TT_RIGHT_BRACKET )) { //table reference
+            if (m_current_token.get_type() == TT_STRING) {
+                auto rb = std::unique_ptr<rule_box>(new rule_table_ref(table_name, gts));
+                rule_box_list.push_back(std::move(rb));
+                return table(std::string(), std::move(rule_box_list));
+            }
+        } else if (m_current_token.get_type() == TT_STRING || m_current_token.get_type() == TT_LEFT_BRACE) {
+            if (m_current_token.get_type() == TT_STRING) {
+                table_name = m_current_token.get_string();
+
+                get_next_token();
+                if (m_current_token.get_type() != TT_LEFT_BRACE) {
+                    HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " in this context");
+                    throw "failed to parse config file";
+                }
+            }
+
+            get_next_token();
+            auto tmp_rule = parse_rule(gts);
+            while (tmp_rule != nullptr) {
+                rule_box_list.push_back(std::move(tmp_rule));
+                get_next_token();
+                tmp_rule = parse_rule(gts);
+            }
+
+            if (m_current_token.get_type() == TT_RIGHT_BRACE) {
+                get_next_token();
+                if ((!inside_rule_box && m_current_token.get_type() == TT_NIL) || (inside_rule_box && m_current_token.get_type() == TT_RIGHT_BRACKET)) {
+                    return table(table_name, std::move(rule_box_list));
+                }
+            }
+
+        }
+    }
+    HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " in this context");
+    throw "failed to parse config file";
+}
+
+std::unique_ptr<rule_box> parser::parse_rule(const std::shared_ptr<const global_table_set>& gts)
+{
+    HC_LOG_TRACE("");
+    std::string if_name;
+    if (m_current_token.get_type() == TT_STRING || m_current_token.get_type() == TT_LEFT_BRACKET) {
+        if (m_current_token.get_type() == TT_STRING) {
+            if_name = m_current_token.get_string();
+            get_next_token();
+        }
+
+        if (m_current_token.get_type() == TT_LEFT_BRACKET) {
+
+            get_next_token();
+            if (m_current_token.get_type() == TT_TABLE) {
+                std::unique_ptr<rule_box> result(new rule_table(parse_table(gts, true)));
+                return result;
+            } else if (m_current_token.get_type() == TT_STAR) {
+                std::unique_ptr<addr_match> group;
+                std::unique_ptr<addr_match> source;
+                group =  parse_rule_part();
+
+                if (m_current_token.get_type() == TT_PIPE) {
+                    get_next_token();
+                    source = parse_rule_part();
+
+                    if (m_current_token.get_type() == TT_RIGHT_BRACKET) {
+                        std::unique_ptr<rule_box> result(new rule_addr(if_name, std::move(group), std::move(source)));
+                        return result;
+                    }
+                }
+            }
+        }
+    }
+
+    HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " in this context");
+    throw "failed to parse config file";
+}
+
+std::unique_ptr<addr_match> parser::parse_rule_part()
+{
+    HC_LOG_TRACE("");
+    return nullptr;
 }
 
 void parser::get_next_token()

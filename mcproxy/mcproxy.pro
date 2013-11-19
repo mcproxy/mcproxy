@@ -1,5 +1,5 @@
-QMAKE_CXX = clang
-QMAKE_CC = clang
+#QMAKE_CXX = clang
+#QMAKE_CC = clang
 
 TARGET = mcproxy
 
