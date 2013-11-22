@@ -134,8 +134,14 @@ std::vector<std::pair<unsigned int, std::string>> configuration::separate_comman
 void configuration::test_configuration()
 {
     using namespace std;
-    configuration conf("../references/parser/config_script_example");
+    cout << "start programm" << endl;
+
+    //configuration conf("../references/parser/config_script_example");
+    configuration conf("../references/parser/test_script_1");
     //configuration conf("../references/parser/test_script");
+
+    group_mem_protocol gmp = IGMPv3;
+    auto gts = std::make_shared<global_table_set>();
 
     for (auto e : conf.m_cmds) {
         parser p(e.first, e.second);
@@ -143,12 +149,13 @@ void configuration::test_configuration()
             switch (p.get_parser_type()) {
             case PT_PROTOCOL: {
                 cout << "cmd: " << e.second << endl;
-                cout << "PT_PROTOCOL: " << get_group_mem_protocol_name(p.parse_group_mem_proto()) << endl;
+                gmp = p.parse_group_mem_proto();
+                cout << "PT_PROTOCOL: " << get_group_mem_protocol_name(gmp) << endl;
                 break;
             }
             case PT_INSTANCE_DEFINITION: {
                 cout << "cmd: " << e.second << endl;
-                cout << "PT_INSTANCE_DEFINITION: "; 
+                cout << "PT_INSTANCE_DEFINITION: ";
                 auto tmp = p.parse_instance_definition();
                 cout << "pinstance " << get<0>(tmp) << ": ";
                 for_each(get<1>(tmp).begin(), get<1>(tmp).end(), [](const std::string & str) {
@@ -161,10 +168,13 @@ void configuration::test_configuration()
                 cout << endl;
                 break;
             }
-            case PT_TABLE:
+            case PT_TABLE: {
                 cout << "cmd: " << e.second << endl;
-                cout << "PT_TABLE" << endl;
+                auto t = p.parse_table(gts, gmp);
+                cout << "PT_TABLE: " << t.to_string() << endl;
+                gts->add_table(std::move(t));
                 break;
+            }
             case PT_INTERFACE_RULE_BINDING:
                 cout << "cmd: " << e.second << endl;
                 cout << "PT_INTERFACE_RULE_BINDING" << endl;
@@ -194,6 +204,9 @@ void configuration::test_configuration()
     //std::for_each(s.m_cmds.begin(), s.m_cmds.end(), [&](std::pair<unsigned int, std::string>& n) {
     //std::cout << n.first << ":=" << n.second << std::endl;
     //});
+    //
+
+    cout << "end of programm" << endl;
 }
 
 

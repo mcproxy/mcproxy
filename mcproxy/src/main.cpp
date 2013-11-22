@@ -237,8 +237,8 @@ void tester(int arg_count, char* args[])
 void test_test()
 {
     //mc_socket::test_all();
-    addr_storage::test_addr_storage_a();
-    addr_storage::test_addr_storage_b();
+    //addr_storage::test_addr_storage_a();
+    //addr_storage::test_addr_storage_b();
     //membership_db::test_arithmetic();
     //timers_values::test_timers_values();
     //timers_values::test_timers_values_copy();
@@ -249,5 +249,5 @@ void test_test()
     //simple_routing_data::test_simple_routing_data();
     //igmp_sender::test_igmp_sender();
     //mroute_socket::quick_test();
-    //configuration::test_configuration();
+    configuration::test_configuration();
 }

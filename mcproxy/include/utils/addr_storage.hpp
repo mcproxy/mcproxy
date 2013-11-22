@@ -168,6 +168,8 @@ public:
      * @brief mask an addr with a netmask
      */
     addr_storage& mask_ipv4(const addr_storage& s);
+    addr_storage& mask(unsigned int prefix);
+    addr_storage& broadcast_addr(unsigned int prefix);
 
     //-----------------------------------------------------------
 

@@ -323,42 +323,42 @@ socklen_t addr_storage::get_addr_len() const
     return get_addr_len(get_addr_family());
 }
 
-const  sockaddr_storage& addr_storage::get_sockaddr_storage() const
+const sockaddr_storage& addr_storage::get_sockaddr_storage() const
 {
     HC_LOG_TRACE("");
 
     return m_addr;
 }
 
-const  in_addr& addr_storage::get_in_addr() const
+const in_addr& addr_storage::get_in_addr() const
 {
     HC_LOG_TRACE("");
 
     return ((const  sockaddr_in*)(&m_addr))->sin_addr;
 }
 
-const  in6_addr& addr_storage::get_in6_addr() const
+const in6_addr& addr_storage::get_in6_addr() const
 {
     HC_LOG_TRACE("");
 
     return ((const  sockaddr_in6*)(&m_addr))->sin6_addr;
 }
 
-const  sockaddr& addr_storage::get_sockaddr() const
+const sockaddr& addr_storage::get_sockaddr() const
 {
     HC_LOG_TRACE("");
 
     return *((const  sockaddr*)&m_addr);
 }
 
-const  sockaddr_in& addr_storage::get_sockaddr_in() const
+const sockaddr_in& addr_storage::get_sockaddr_in() const
 {
     HC_LOG_TRACE("");
 
     return *((const  sockaddr_in*)(&m_addr));
 }
 
-const  sockaddr_in6& addr_storage::get_sockaddr_in6() const
+const sockaddr_in6& addr_storage::get_sockaddr_in6() const
 {
     HC_LOG_TRACE("");
 
@@ -407,6 +407,52 @@ addr_storage& addr_storage::mask_ipv4(const addr_storage& s)
         HC_LOG_ERROR("incompatible ip versions");
     }
 
+    return *this;
+}
+
+addr_storage& addr_storage::mask(unsigned int prefix)
+{
+    HC_LOG_TRACE("");
+    if (get_addr_family() == AF_INET) {
+        reinterpret_cast<sockaddr_in*>(&m_addr)->sin_addr.s_addr &= htonl(~(static_cast<unsigned int>(-1) >> prefix));
+    } else if (get_addr_family() == AF_INET6) {
+        for (int i = 3; i >= 0; --i) {
+            uint32_t& tmp_addr = reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr.s6_addr32[i];
+            int tmp_prefix = prefix - (i * 32 /*Bit*/) ;
+            if (tmp_prefix <= 0) {
+                tmp_addr = 0;
+            } else if (tmp_prefix < 32) {
+                tmp_addr &= htonl(~(static_cast<unsigned int>(-1) >> prefix));
+            } else if (tmp_prefix >= 32) {
+                break;
+            }
+        }
+    } else {
+        HC_LOG_ERROR("wrong address family");
+    }
+    return *this;
+}
+
+addr_storage& addr_storage::broadcast_addr(unsigned int prefix)
+{
+    HC_LOG_TRACE("");
+    if (get_addr_family() == AF_INET) {
+        reinterpret_cast<sockaddr_in*>(&m_addr)->sin_addr.s_addr |= htonl(static_cast<unsigned int>(-1) >> prefix);
+    } else if (get_addr_family() == AF_INET6) {
+        for (int i = 3; i >= 0; --i) {
+            uint32_t& tmp_addr = reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr.s6_addr32[i];
+            int tmp_prefix = prefix - (i * 32 /*Bit*/) ;
+            if (tmp_prefix <= 0) {
+                tmp_addr = static_cast<unsigned int>(-1);
+            } else if (tmp_prefix < 32) {
+                tmp_addr |= htonl(static_cast<unsigned int>(-1) >> prefix);
+            } else if (tmp_prefix >= 32) {
+                break;
+            }
+        }
+    } else {
+        HC_LOG_ERROR("wrong address family");
+    }
     return *this;
 }
 
@@ -840,6 +886,101 @@ void addr_storage::test_addr_storage_b()
 
     cout << "addr_storage(255.255.255.254) <= addr_storage(255.255.255.255) ==> ";
     if (addr_storage("255.255.255.254") <= addr_storage("255.255.255.255")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "-------------------------------" << endl;
+    cout << "addr_storage(123.123.123.123).mask(24) == addr_storage(123.123.123.0) ==> ";
+    if (addr_storage("123.123.123.123").mask(24) == addr_storage("123.123.123.0")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(123.123.123.123).mask(25) == addr_storage(123.123.123.0) ==> ";
+    if (addr_storage("123.123.123.123").mask(25) == addr_storage("123.123.123.0")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(123.123.123.225).mask(25) == addr_storage(123.123.123.128) ==> ";
+    if (addr_storage("123.123.123.223").mask(25) == addr_storage("123.123.123.128")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "-------------------------------" << endl;
+    cout << "addr_storage(123.123.123.123).broadcast_addr(24) == addr_storage(123.123.123.255) ==> ";
+    if (addr_storage("123.123.123.123").broadcast_addr(24) == addr_storage("123.123.123.255")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(123.123.123.123).broadcast_addr(25) == addr_storage(123.123.123.127) ==> ";
+    if (addr_storage("123.123.123.123").broadcast_addr(25) == addr_storage("123.123.123.127")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(123.123.123.225).broadcast_addr(25) == addr_storage(123.123.123.255) ==> ";
+    if (addr_storage("123.123.123.223").broadcast_addr(25) == addr_storage("123.123.123.255")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "-------------------------------" << endl;
+    cout << "addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF).mask(64) == addr_storage(FFFF:FFFF:FFFF:FFFF::) ==> ";
+    if (addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF").mask(64) == addr_storage("FFFF:FFFF:FFFF:FFFF::")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF).mask(127) == addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFE) ==> ";
+    if (addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF").mask(127) == addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFE")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF).mask(95) == addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFE::) ==> ";
+    if (addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF").mask(95) == addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFE::")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF).mask(1) == addr_storage(8000::) ==> ";
+    if (addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF").mask(1) == addr_storage("8000::")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "-------------------------------" << endl;
+    cout << "addr_storage(FFFF:FFFF:FFFF:FFFF::).broadcast_addr(64) == addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF) ==> ";
+    if (addr_storage("FFFF:FFFF:FFFF:FFFF::").broadcast_addr(64) == addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFF0).broadcast_addr(127) == addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFF1) ==> ";
+    if (addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFF0").broadcast_addr(127) == addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFF1")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(8000::).broadcast_addr(1) == addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF) ==> ";
+    if (addr_storage("8000::").broadcast_addr(1) == addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF")) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;

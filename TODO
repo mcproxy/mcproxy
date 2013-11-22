@@ -2,15 +2,18 @@ TODO list
 =========
 
 Could change or modify the behavior of the mcproxy:
- -- http://tools.ietf.org/html/draft-ietf-multimob-pmipv6-source-04
+ -- http://tools.ietf.org/html/draft-ietf-multimob-pmipv6-source-06
  -- http://tools.ietf.org/html/rfc6224
- -- draft-zhang-pim-multi-upstream-igmp-mld-proxy-01
- -- draft-asaeda-pim-mldproxy-multif-01
  -- http://tools.ietf.org/html/rfc6636
  -- http://tools.ietf.org/html/draft-ietf-multimob-handover-optimization-03 (old)
- -- http://tools.ietf.org/html/draft-contreras-multimob-multiple-upstreams-01 (old)
  -- IGMP/MLD-Based Explicit Membership Tracking Function for Multicast Routers draft-ietf-pim-explicit-tracking-08
  -- http://tools.ietf.org/id/draft-morin-mboned-igmpmld-error-feedback-02.txt (Expires: May 7, 2009)
+
+Multi Upstream Proxy
+ -- http://tools.ietf.org/html/draft-ietf-multimob-pmipv6-source-06 (Appendix)
+ -- draft-zhang-pim-multi-upstream-igmp-mld-proxy-00.txt (https://docs.google.com/file/d/0B6D0eGbv_V4rVTY3Wk55TmpYejA/edit)
+ -- http://tools.ietf.org/html/draft-asaeda-pim-mldproxy-multif-01
+ -- http://tools.ietf.org/html/draft-contreras-multimob-multiple-upstreams-01
 
 
 add und delete mroute optimisation 
@@ -45,5 +48,9 @@ General stuff
  -- overwork exception concept ????
 
 future work
-    openflow, SDN 
+ -- matrace2
+ -- jmrinfo 
+ -- porting mcproxy to openwert
 
+release
+send an release info to sam, pim, multimob and mbond

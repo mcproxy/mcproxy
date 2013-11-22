@@ -151,11 +151,21 @@ table parser::parse_table(const std::shared_ptr<const global_table_set>& gts, gr
 
     if (get_parser_type() == PT_TABLE) {
         get_next_token();
-        if ((!inside_rule_box && m_scanner.get_next_token(true, 1).get_type() == TT_NIL) || (inside_rule_box && m_scanner.get_next_token(true, 1).get_type() == TT_RIGHT_BRACKET )) { //table reference
+        if ((!inside_rule_box && m_scanner.get_next_token(true, 0).get_type() == TT_NIL) || (inside_rule_box && m_scanner.get_next_token(true, 0).get_type() == TT_RIGHT_BRACKET )) { //table reference
+
             if (m_current_token.get_type() == TT_STRING) {
-                auto rb = std::unique_ptr<rule_box>(new rule_table_ref(table_name, gts));
-                rule_box_list.push_back(std::move(rb));
-                return table(std::string(), std::move(rule_box_list));
+                table_name = m_current_token.get_string();
+                if (gts->get_table(table_name) != nullptr) {
+                    get_next_token();
+
+                    auto rb = std::unique_ptr<rule_box>(new rule_table_ref(table_name, gts));
+                    rule_box_list.push_back(std::move(rb));
+                    return table(std::string(), std::move(rule_box_list));
+                } else {
+                    HC_LOG_ERROR("failed to parse line " << m_current_line << " table " << table_name << " not found");
+                    throw "failed to parse config file";
+                }
+
             }
         } else if (m_current_token.get_type() == TT_STRING || m_current_token.get_type() == TT_LEFT_BRACE) {
             if (m_current_token.get_type() == TT_STRING) {
@@ -170,6 +180,7 @@ table parser::parse_table(const std::shared_ptr<const global_table_set>& gts, gr
 
             get_next_token();
             auto tmp_rule = parse_rule(gts, gmp);
+
             while (tmp_rule != nullptr) {
                 rule_box_list.push_back(std::move(tmp_rule));
                 get_next_token();
@@ -203,6 +214,14 @@ std::unique_ptr<rule_box> parser::parse_rule(const std::shared_ptr<const global_
 
             get_next_token();
             if (m_current_token.get_type() == TT_TABLE) {
+
+
+
+
+
+
+
+
                 std::unique_ptr<rule_box> result(new rule_table(parse_table(gts, gmp, true)));
                 return result;
             } else {
@@ -221,10 +240,17 @@ std::unique_ptr<rule_box> parser::parse_rule(const std::shared_ptr<const global_
                 }
             }
         }
+    } else {
+        return nullptr;
     }
 
     HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " in this context");
     throw "failed to parse config file";
+}
+
+table parser::parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp)
+{
+    return parse_table(gts, gmp, false);
 }
 
 std::unique_ptr<addr_match> parser::parse_rule_part(group_mem_protocol gmp)
@@ -237,31 +263,51 @@ std::unique_ptr<addr_match> parser::parse_rule_part(group_mem_protocol gmp)
 
     addr_storage addr_from(get_addr_family(gmp));
     addr_storage addr_to(get_addr_family(gmp));
-
     if (m_current_token.get_type() == TT_STRING || m_current_token.get_type() == TT_STAR) {
         if (m_current_token.get_type() == TT_STRING) {
             addr_from = get_addr(gmp);
-        } else {
+        } else { //TT_STAR
             get_next_token();
         }
 
         if (m_current_token.get_type() == TT_SLASH) {
- ?????????            
-        } else if (m_current_token.get_type() == TT_RIGHT_BRACKET) {
+            get_next_token();
+            if (m_current_token.get_type() == TT_STRING) {
+                try {
+                    unsigned int prefix = std::stoi(m_current_token.get_string());
+                    if (prefix > 128) {
+                        throw;
+                    }
+
+                    addr_to = addr_from;
+                    addr_from.mask(prefix);
+                    addr_to.broadcast_addr(prefix);
+
+                    get_next_token();
+                    if (m_current_token.get_type() == TT_RIGHT_BRACKET || m_current_token.get_type() == TT_PIPE) {
+                        std::unique_ptr<addr_match> result(new addr_range(addr_from, addr_to));
+                        return result;
+                    }
+                } catch (...) {
+                    HC_LOG_ERROR("failed to parse line " << m_current_line << " token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " cant be converted to a prefix or subnet mask");
+                    throw "failed to parse config file";
+                }
+            }
+        } else if (m_current_token.get_type() == TT_RIGHT_BRACKET || m_current_token.get_type() == TT_PIPE) {
             std::unique_ptr<addr_match> result(new single_addr(addr_from));
             return result;
         } else if (m_current_token.get_type() == TT_RANGE) {
             get_next_token();
             if (m_current_token.get_type() == TT_STRING || m_current_token.get_type() == TT_STAR) {
                 if (m_current_token.get_type() == TT_STRING) {
-                    addr_from = get_addr(gmp);
+                    addr_to = get_addr(gmp);
                 } else {
                     get_next_token();
                 }
 
-                if(m_current_token.get_type() == TT_RIGHT_BRACKET || m_current_token.get_type() == TT_PIPE){
-                     std::unique_ptr<addr_match> result(new addr_range(addr_from, addr_to));
-                     return result; 
+                if (m_current_token.get_type() == TT_RIGHT_BRACKET || m_current_token.get_type() == TT_PIPE) {
+                    std::unique_ptr<addr_match> result(new addr_range(addr_from, addr_to));
+                    return result;
                 }
 
             }
@@ -270,6 +316,38 @@ std::unique_ptr<addr_match> parser::parse_rule_part(group_mem_protocol gmp)
 
     HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " in this context");
     throw "failed to parse config file";
+}
+
+addr_storage parser::get_addr(group_mem_protocol gmp)
+{
+    HC_LOG_TRACE("");
+    std::ostringstream s;
+
+    while (true) {
+        if (m_current_token.get_type() == TT_STRING) {
+            s << m_current_token.get_string();
+        } else if (m_current_token.get_type() == TT_DOT) {
+            s << ".";
+        } else if (m_current_token.get_type() == TT_DOUBLE_DOT) {
+            s << ":";
+        } else {
+            break;
+        }
+        get_next_token();
+    }
+
+    addr_storage result(s.str());
+    if (result.is_valid()) {
+        if (result.get_addr_family() == get_addr_family(gmp)) {
+            return result;
+        } else {
+            HC_LOG_ERROR("failed to parse line " << m_current_line << " ip address: " << s.str() << " has a wrong IP version");
+            throw "failed to parse config file";
+        }
+    } else {
+        HC_LOG_ERROR("failed to parse line " << m_current_line << " ip address: " << s.str() << " is invalid");
+        throw "failed to parse config file";
+    }
 }
 
 void parser::get_next_token()

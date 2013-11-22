@@ -98,7 +98,7 @@ pinstance A downstream a2 out whitelist table {a1(*|*)};
 pinstance A: ap a1 ==> ap a2;
 pinstance B: bp b1 ==> bp b2;
 
-table all {
+table allways {
     (*|*)
 };
 ###########################################
@@ -110,12 +110,12 @@ table piA_upstreams {
     a1(*|*)
 };
 
-pinstance A upstream ap out blacklist table all; #(u1)
+pinstance A upstream ap out blacklist table allways; #(u1)
 
 pinstance A upstream ap in rulematching mutex 10000; #(u4)
 #pinstance A upstream ap in whitelist table {(*|*)}; #default (u2, u3)
 pinstance A upstream a1 out blacklist table piA_peering_ifs; #(u3_1)
-pinstance A downstream ap in blacklist table all; #(d1)   
+pinstance A downstream ap in blacklist table allways; #(d1)   
 pinstance A downstream ap out blacklist table piA_upstreams; #(d2, d2_1, d3, d4)   
 ###########################################
 table piB_peering_ifs {
@@ -126,12 +126,12 @@ table piA_upstreams {
     b1(*|*)
 };
 
-pinstance B upstream bp out blacklist table all; #(u1)
+pinstance B upstream bp out blacklist table allways; #(u1)
 
 pinstance B upstream bp in rulematching mutex 10000;  #(u4)
 #pinstance B upstream ap whitelist in table {(*|*)}; #default (u2, u3)
 pinstance B upstream b1 out blacklist table piB_peering_ifs; #(u3_1)
-pinstance B downstream bp in blacklist table all; #(d1)   
+pinstance B downstream bp in blacklist table allways; #(d1)   
 pinstance B downstream bp out blacklist table piB_upstreams; #(d2, d2_1, d3, d4)   
 ###########################################
 

@@ -34,12 +34,10 @@ table allow_PC_1 {
 
 table xxx {
   (table allow_PC_1)
-  (path: /absolute/path/to/table)
-  (path: relative/path/to/table) 
-  (table {(* | *) (path: path/to/another/table)})
+  (table {(* | *) ( table allow_PC_1)})
 };
 
-table all {
+table allways {
   (* | *)
 };
 
@@ -47,14 +45,13 @@ table all {
 pinstance 1 upstream eth0 out whitelist table 1; #forward traffic of a few sources and the entire traffic of the group 239.99.99.99 from to the upstream interface eth0 (an subscribe groups)
 #pinstance 1 upstream eth0 in whitelist table {* | *}; #default behaviour, receive all multicast traffic
 pinstance 1 upstream eth1 out whitelist table local; #forward traffic of a few sources how are sending to the range of groups 240.0.0.0 - 241.0.0.0
-pinstance 1 upstream eth3 out whitelist table all; #defined as default interface, this rule will always be true 
+pinstance 1 upstream eth3 out whitelist table allways; #defined as default interface, this rule will always be true 
 pinstance 1 downstream eth5 out whitelist table allow_PC_1; #only PC 1 with IP 1.1.1.1 can subscribe groups (all subscribed groups will be maintained but not forwarded)
 pinstance 1 downstream eht4 out whitelist table {(* | 192.168.5.0/24)}; #all interfaces of the subnet 192.168.5.0/24 are allowed to use the proxy 
-pinstance 1 downstream eth4 in blacklist table all; #the interface eth4 will ignore all sources from the downstream side
+pinstance 1 downstream eth4 in blacklist table allways; #the interface eth4 will ignore all sources from the downstream side
 
-pinstance MyLocalInstance upstream wlan0 out blacklist table xxx; #ignore 1.1.1.1 and allow all other sources
-pinstance MyLocalInstance upstream wlan1 out blacklist all; #interface is unused
-pinstance MyLocalInstance upstream wlan1 in blacklist all; #interface is unused
+pinstance MyLocalInstance upstream wlan0 out blacklist table xxx; #ignore 1.1.1.1 and allow all other sources pinstance MyLocalInstance upstream wlan1 out blacklist all; #interface is unused
+pinstance MyLocalInstance upstream wlan1 in blacklist table allways; #interface is unused
 
 pinstance split upstream tunU1 out whitelist table {tunD1(* | *)};
 pinstance split upstream tunU2 out whitelist table {tunD2(* | *)};
@@ -91,12 +88,14 @@ pinstance split downstream tunD2 out whitelist table {tunU2(* | *)};
 #    rule matching | type            | action
 #    --------------+-----------------+-------------
 #     upstream out | all (default)   | forward data to all upstreams with appropriate rules
+#                  |                 |    
 #                  | first           | forward data only to the first upstream with an appropriate rule
 #    --------------+-----------------+-------------              
 #     upstream in  | first (default) | subscribe merged groups only at the first upstream with an appropriate rule, 
 #                  |                 | like a reverse path filter corresponding multicast data will be received only at this interface
 #                  |                 |
 #                  | mutex <timeout> | subscribe merged groups at all upstreams with an appropriate rule, if the mcproxy receives data
-#                  |                 | from one if this interfaces all other interfaces unsubscribe this this group. After a timeout of X 
+#                  |                 | from one if this interfaces all other interfaces unsubscribe this group. After a timeout of X 
 #                  |                 | milliseconds the checks if data sill arrive at this interface if not the mcproxy subscribes this group
-#                  |                 | at all downstream again 
+#                  |                 | at all upstream again 
+#                  

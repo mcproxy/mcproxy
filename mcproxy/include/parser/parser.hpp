@@ -51,12 +51,14 @@ private:
     std::unique_ptr<rule_box> parse_rule(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
     std::unique_ptr<addr_match> parse_rule_part(group_mem_protocol gmp);
     addr_storage get_addr(group_mem_protocol gmp); 
+
+    table parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, bool inside_rule_box);
 public:
     parser_type get_parser_type();
 
     group_mem_protocol parse_group_mem_proto();
     std::tuple<std::string, std::list<std::string>, std::list<std::string>> parse_instance_definition();
-    table parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, bool inside_rule_box = false);
+    table parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
     void parse_interface_rule_binding(interface& interf);
 
     parser(unsigned int current_line, const std::string& cmd);

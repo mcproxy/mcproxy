@@ -38,12 +38,7 @@ bool single_addr::match(const addr_storage& addr) const
 
 std::string single_addr::to_string() const
 {
-    addr_storage(m_addr.get_addr_family());
-    if (m_addr == addr_storage(m_addr.get_addr_family())) {
-        return "*";
-    } else {
-        return m_addr.to_string();
-    }
+    return m_addr.to_string();
 }
 //-----------------------------------------------------
 addr_range::addr_range(const addr_storage& from, const addr_storage& to)
@@ -60,20 +55,7 @@ bool addr_range::match(const addr_storage& addr) const
 std::string addr_range::to_string() const
 {
     std::ostringstream s;
-    addr_storage addr_start(m_from.get_addr_family());
-    addr_storage addr_end(m_from.get_addr_family());
-    addr_end--; //highest possible address
-    if (m_from == addr_start || m_from == addr_end) {
-        s << "*";
-    } else {
-        s << m_from;
-    }
-    s << " - ";
-    if (m_to == addr_start || m_to == addr_end) {
-        s << "*";
-    } else {
-        s << m_to;
-    }
+    s << m_from << " - " << m_to;
     return s.str();
 }
 //-----------------------------------------------------
@@ -92,7 +74,7 @@ bool rule_addr::match(const addr_storage& gaddr, const addr_storage& saddr) cons
 std::string rule_addr::to_string() const
 {
     std::ostringstream s;
-    s << "(" << m_group->to_string() << " | " << m_source->to_string() << ")";
+    s << m_if_name << "(" << m_group->to_string() << " | " << m_source->to_string() << ")";
     return s.str();
 }
 //-----------------------------------------------------
@@ -200,6 +182,6 @@ bool rule_table_ref::match(const addr_storage& gaddr, const addr_storage& saddr)
 std::string rule_table_ref::to_string() const
 {
     std::ostringstream s;
-    s << "(" << m_table_name << ")";
+    s << "(table" << m_table_name << ")";
     return s.str();
 }
