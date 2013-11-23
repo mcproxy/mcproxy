@@ -85,9 +85,6 @@ struct membership_db {
     std::string to_string() const;
 
     friend std::ostream& operator<<(std::ostream& stream, const membership_db& mdb);
-
-private:
-    std::string indention(std::string str) const;
 };
 
 

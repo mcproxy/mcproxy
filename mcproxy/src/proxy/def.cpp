@@ -91,3 +91,18 @@ std::string time_to_string(const std::chrono::milliseconds& msec)
     s << msec.count() << " msec";
     return s.str();
 }
+
+std::string indention(std::string str)
+{
+    unsigned long cpos = 0;
+
+    cpos = str.find("\n", cpos);
+    while ((cpos < (str.size() - 1)) && (cpos != std::string::npos)) {
+        str.insert(cpos + 1, "\t");
+        cpos = str.find("\n", cpos + 1);
+    }
+
+    str.insert(0, "\t");
+
+    return str;
+}

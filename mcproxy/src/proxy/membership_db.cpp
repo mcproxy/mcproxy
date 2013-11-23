@@ -167,19 +167,4 @@ std::ostream& operator<<(std::ostream& stream, const membership_db& mdb)
     return stream << mdb.to_string();
 }
 
-std::string membership_db::indention(std::string str) const
-{
-    HC_LOG_TRACE("");
-    unsigned long cpos = 0;
-
-    cpos = str.find("\n", cpos);
-    while ((cpos < (str.size() - 2)) && (cpos != std::string::npos)) {
-        str.insert(cpos + 1, "\t");
-        cpos = str.find("\n", cpos + 1);
-    }
-
-    str.insert(0, "\t");
-
-    return str;
-}
 

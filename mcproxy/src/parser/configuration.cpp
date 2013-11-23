@@ -136,12 +136,15 @@ void configuration::test_configuration()
     using namespace std;
     cout << "start programm" << endl;
 
-    //configuration conf("../references/parser/config_script_example");
-    configuration conf("../references/parser/test_script_1");
+    configuration conf("../references/parser/config_script_example");
+    //configuration conf("../references/parser/test_script_1");
     //configuration conf("../references/parser/test_script");
+
 
     group_mem_protocol gmp = IGMPv3;
     auto gts = std::make_shared<global_table_set>();
+    set<instance_definition> instance_def_set;
+
 
     for (auto e : conf.m_cmds) {
         parser p(e.first, e.second);
@@ -151,20 +154,14 @@ void configuration::test_configuration()
                 cout << "cmd: " << e.second << endl;
                 gmp = p.parse_group_mem_proto();
                 cout << "PT_PROTOCOL: " << get_group_mem_protocol_name(gmp) << endl;
+                cout << endl;
                 break;
             }
             case PT_INSTANCE_DEFINITION: {
                 cout << "cmd: " << e.second << endl;
                 cout << "PT_INSTANCE_DEFINITION: ";
                 auto tmp = p.parse_instance_definition();
-                cout << "pinstance " << get<0>(tmp) << ": ";
-                for_each(get<1>(tmp).begin(), get<1>(tmp).end(), [](const std::string & str) {
-                    cout << str << " ";
-                });
-                cout << "==> ";
-                for_each(get<2>(tmp).begin(), get<2>(tmp).end(), [](const std::string & str) {
-                    cout << str << " ";
-                });
+                cout << tmp.to_string() << endl;
                 cout << endl;
                 break;
             }
@@ -173,17 +170,23 @@ void configuration::test_configuration()
                 auto t = p.parse_table(gts, gmp);
                 cout << "PT_TABLE: " << t.to_string() << endl;
                 gts->add_table(std::move(t));
+                cout << endl;
                 break;
             }
             case PT_INTERFACE_RULE_BINDING:
                 cout << "cmd: " << e.second << endl;
                 cout << "PT_INTERFACE_RULE_BINDING" << endl;
+                cout << endl;
                 break;
             }
         } catch (const char* c) {
             cout << c << endl;
         }
     }
+
+
+
+
     //cout << "1<" << s.delete_comments("#1234\n1234") << ">" << endl;
     //cout << "2<" << s.delete_comments("1234\n#1234") << ">" << endl;
     //cout << "3<" << s.delete_comments("#\n1234\n#1234") << ">" << endl;

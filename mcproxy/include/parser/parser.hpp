@@ -33,13 +33,10 @@
 #include <list>
 #include <tuple>
 #include <memory>
-class interface;
 
 enum parser_type {
     PT_PROTOCOL, PT_INSTANCE_DEFINITION, PT_TABLE, PT_INTERFACE_RULE_BINDING
 };
-
-
 
 class parser
 {
@@ -57,9 +54,9 @@ public:
     parser_type get_parser_type();
 
     group_mem_protocol parse_group_mem_proto();
-    std::tuple<std::string, std::list<std::string>, std::list<std::string>> parse_instance_definition();
+    instance_definition parse_instance_definition();
     table parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
-    void parse_interface_rule_binding(interface& interf);
+    rule_binding parse_interface_rule_binding(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, const std::set<instance_definition>& instance_def_set);
 
     parser(unsigned int current_line, const std::string& cmd);
 

@@ -35,7 +35,7 @@ struct addr_match {
 };
 
 struct rule_box {
-    virtual bool match(const addr_storage& saddr, const addr_storage& gaddr) const = 0;
+    virtual bool match(const std::string& if_name, const addr_storage& saddr, const addr_storage& gaddr) const = 0;
     virtual std::string to_string() const = 0;
 };
 
@@ -67,7 +67,7 @@ class rule_addr : public rule_box
     std::unique_ptr<addr_match> m_source;
 public:
     rule_addr(const std::string& if_name, std::unique_ptr<addr_match>&& group, std::unique_ptr<addr_match>&& source);
-    bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
+    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
     std::string to_string() const override;
 };
 
@@ -79,7 +79,7 @@ public:
     table(const std::string& name);
     table(const std::string& name, std::list<std::unique_ptr<rule_box>>&& rule_box_list);
     const std::string& get_name() const;
-    bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
+    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
     std::string to_string() const override;
     friend bool operator<(const table& t1, const table& t2);
 };
@@ -89,7 +89,7 @@ class rule_table : public rule_box
     table m_table;
 public:
     rule_table(table&& t);
-    bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
+    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
     std::string to_string() const override;
 };
 
@@ -108,14 +108,44 @@ class rule_table_ref : public rule_box
     const std::shared_ptr<const global_table_set> m_global_table_set;
 public:
     rule_table_ref(const std::string& table_name, const std::shared_ptr<const global_table_set>& global_table_set);
-    bool match(const addr_storage& gaddr, const addr_storage& saddr) const override;
+    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
     std::string to_string() const override;
 };
 
-class interface
+class instance_definition
 {
 private:
+    std::string m_instance_name;
+    mutable std::list<std::string> m_upstreams;
+    mutable std::list<std::string> m_downstreams;
 public:
+    instance_definition(const std::string& instance_name);
+    instance_definition(std::string&& instance_name, std::list<std::string>&& upstreams, std::list<std::string>&& downstreams);
+    const std::list<std::string>& get_upstreams() const;
+    const std::list<std::string>& get_downstreams() const;
+    friend bool operator<(const instance_definition& i1, const instance_definition& i2);
+    std::string to_string() const;
+};
+
+class rule_binding
+{
+private:
+    std::string m_instance_name;
+    bool m_is_downstream;
+    std::string m_if_name;
+    bool m_is_blacklist;
+    bool m_is_input_filter;
+    table m_table;
+public:
+    rule_binding(std::string&& instance_name, bool is_downstream, std::string&& if_name, bool is_blacklist, bool is_input_filter, table&& m_table);
+    const std::string& get_instance_name() const;
+    bool is_downstream() const;
+    const std::string& get_if_name() const;
+    bool is_blacklist() const;
+    bool is_input_filter() const;
+    const table& get_table() const;
+
+    bool match(const std::string& if_name, const addr_storage& saddr, const addr_storage& gaddr) const;
 };
 
 
