@@ -26,6 +26,7 @@
 #include <set>
 #include <string>
 #include <memory>
+#include <chrono>
 
 #include "include/utils/addr_storage.hpp"
 
@@ -84,21 +85,28 @@ public:
     friend bool operator<(const table& t1, const table& t2);
 };
 
+struct comp_table_pointer{
+    bool operator()(const std::unique_ptr<table>& l, const std::unique_ptr<table>& r) const {
+        return *l < *r;
+    }
+};
+
 class rule_table : public rule_box
 {
-    table m_table;
+    std::unique_ptr<table> m_table;
 public:
-    rule_table(table&& t);
+    rule_table(std::unique_ptr<table> t);
     bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
     std::string to_string() const override;
 };
 
 class global_table_set
 {
-    std::set<table> m_table_set;
+    std::set<std::unique_ptr<table>, comp_table_pointer> m_table_set;
 public :
+    global_table_set();
     std::string to_string() const;
-    bool add_table(table&& t);
+    bool add_table(std::unique_ptr<table> t);
     const table* get_table(const std::string& table_name) const;
 };
 
@@ -127,27 +135,64 @@ public:
     std::string to_string() const;
 };
 
+
+
+enum rb_type {
+    RBT_FILTER, RBT_RULE_MATCHING, RBT_TIMER_VALUE 
+};
+
+enum rb_interface_type {
+    IT_UPSTREAM, IT_DOWNSTREAM
+};
+
+enum rb_interface_direction {
+    ID_IN, ID_OUT, ID_WILDCARD
+};
+
+enum rb_filter_type {
+   FT_BLACKLIST, FT_WHITELIST, FT_UNDEFINED 
+};
+
+enum rb_rule_matching_type {
+    RMT_ALL, RMT_FIRST, RMT_MUTEX, RMT_UNDEFINED
+};
+
 class rule_binding
 {
 private:
+    rb_type m_rule_binding_type;
     std::string m_instance_name;
-    bool m_is_downstream;
+    rb_interface_type m_interface_type;
     std::string m_if_name;
-    bool m_is_blacklist;
-    bool m_is_input_filter;
-    table m_table;
+    rb_interface_direction m_filter_direction;
+
+    //RBT_FILTER
+    rb_filter_type m_filter_type;
+    std::unique_ptr<table> m_table;
+   
+    //RBT_RULE_MATCHING
+    rb_rule_matching_type m_rule_matching_type;
+    std::chrono::milliseconds m_timeout;
 public:
-    rule_binding(std::string&& instance_name, bool is_downstream, std::string&& if_name, bool is_blacklist, bool is_input_filter, table&& m_table);
+    rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table); 
+    rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, std::chrono::milliseconds&& timeout); 
+
+    rb_type get_rule_binding_type() const;
     const std::string& get_instance_name() const;
-    bool is_downstream() const;
+    rb_interface_type get_interface_type() const; 
     const std::string& get_if_name() const;
-    bool is_blacklist() const;
-    bool is_input_filter() const;
+    rb_interface_direction get_interface_direction() const;
+
+    //RBT_FILTER
+    rb_filter_type get_filter_type() const;
     const table& get_table() const;
-
     bool match(const std::string& if_name, const addr_storage& saddr, const addr_storage& gaddr) const;
+
+    //RBT_RULE_MATCHING
+    rb_rule_matching_type get_rule_matching_type() const;
+    std::chrono::milliseconds get_timeout() const;
+
+
 };
-
-
 
 #endif // INTERFACE_HPP

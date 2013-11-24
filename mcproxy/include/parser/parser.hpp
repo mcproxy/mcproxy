@@ -49,13 +49,16 @@ private:
     std::unique_ptr<addr_match> parse_rule_part(group_mem_protocol gmp);
     addr_storage get_addr(group_mem_protocol gmp); 
 
-    table parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, bool inside_rule_box);
+    std::unique_ptr<table> parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, bool inside_rule_box);
+
+    rule_binding parse_interface_table_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
+    rule_binding parse_interface_rule_match_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction);
 public:
     parser_type get_parser_type();
 
     group_mem_protocol parse_group_mem_proto();
     instance_definition parse_instance_definition();
-    table parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
+    std::unique_ptr<table> parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
     rule_binding parse_interface_rule_binding(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, const std::set<instance_definition>& instance_def_set);
 
     parser(unsigned int current_line, const std::string& cmd);

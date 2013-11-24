@@ -46,6 +46,7 @@ std::string get_token_type_name(token_type tt)
         {TT_IN, "TT_IN"},
         {TT_BLACKLIST, "TT_BLACKLIST"},
         {TT_WHITELIST, "TT_WHITELIST"},
+        {TT_RULE_MATCHING, "TT_RULE_MATCHING"},
         {TT_TABLE, "TT_TABLE"},
         {TT_ALL, "TT_ALL"},
         {TT_FIRST, "TT_FIRST"},

@@ -30,6 +30,7 @@
 single_addr::single_addr(const addr_storage& addr)
     : m_addr(addr)
 {
+    HC_LOG_TRACE("");
 }
 
 bool single_addr::match(const addr_storage& addr) const
@@ -46,6 +47,7 @@ addr_range::addr_range(const addr_storage& from, const addr_storage& to)
     : m_from(from)
     , m_to(to)
 {
+    HC_LOG_TRACE("");
 }
 
 bool addr_range::match(const addr_storage& addr) const
@@ -65,6 +67,7 @@ rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_match>&& g
     , m_group(std::move(group))
     , m_source(std::move(source))
 {
+    HC_LOG_TRACE("");
 }
 
 bool rule_addr::match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const
@@ -82,12 +85,14 @@ std::string rule_addr::to_string() const
 table::table(const std::string& name)
     : m_name(name)
 {
+    HC_LOG_TRACE("");
 }
 
 table::table(const std::string& name, std::list<std::unique_ptr<rule_box>>&& rule_box_list)
     : m_name(name)
     , m_rule_box_list(std::move(rule_box_list))
 {
+    HC_LOG_TRACE("");
 }
 
 const std::string& table::get_name() const
@@ -123,51 +128,61 @@ bool operator<(const table& t1, const table& t2)
     return t1.m_name.compare(t2.m_name) < 0;
 }
 //-----------------------------------------------------
+global_table_set::global_table_set()
+    : m_table_set(comp_table_pointer())
+{
+    HC_LOG_TRACE("");    
+}
+
 std::string global_table_set::to_string() const
 {
+    HC_LOG_TRACE("");    
     std::ostringstream s;
     s << "##-- global table set --##";
     for (auto & e : m_table_set) {
-        s << std::endl << e.to_string();
+        s << std::endl << e->to_string();
 
     }
     return s.str();
 }
 
-bool global_table_set::add_table(table&& t)
+bool global_table_set::add_table(std::unique_ptr<table> t)
 {
+    HC_LOG_TRACE("");    
     return m_table_set.insert(std::move(t)).second;
 }
 
 const table* global_table_set::get_table(const std::string& table_name) const
 {
-    auto it = m_table_set.find(table_name);
+    auto it = m_table_set.find(std::unique_ptr<table>(new table(table_name)));
     if (it != std::end(m_table_set)) {
-        return &(*it);
+        return it->get();
     } else {
         return nullptr;
     }
 }
 //-----------------------------------------------------
-rule_table::rule_table(table&& t)
+rule_table::rule_table(std::unique_ptr<table> t)
     : m_table(std::move(t))
 {
+    HC_LOG_TRACE("");
 }
 
 bool rule_table::match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const
 {
-    return m_table.match(if_name, gaddr, saddr);
+    return m_table->match(if_name, gaddr, saddr);
 }
 
 std::string rule_table::to_string() const
 {
-    return m_table.to_string();
+    return m_table->to_string();
 }
 //-----------------------------------------------------
 rule_table_ref::rule_table_ref(const std::string& table_name, const std::shared_ptr<const global_table_set>& global_table_set)
     : m_table_name(table_name)
     , m_global_table_set(global_table_set)
 {
+    HC_LOG_TRACE("");
 }
 
 bool rule_table_ref::match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const
@@ -190,6 +205,7 @@ std::string rule_table_ref::to_string() const
 instance_definition::instance_definition(const std::string& instance_name)
     : m_instance_name(instance_name)
 {
+    HC_LOG_TRACE("");
 }
 
 instance_definition::instance_definition(std::string&& instance_name, std::list<std::string>&& upstreams, std::list<std::string>&& downstreams)
@@ -197,6 +213,7 @@ instance_definition::instance_definition(std::string&& instance_name, std::list<
     , m_upstreams(std::move(upstreams))
     , m_downstreams(std::move(downstreams))
 {
+    HC_LOG_TRACE("");
 }
 
 const std::list<std::string>& instance_definition::get_upstreams() const
@@ -231,14 +248,38 @@ std::string instance_definition::to_string() const
     return s.str();
 }
 //-----------------------------------------------------
-rule_binding::rule_binding(std::string&& instance_name, bool is_downstream, std::string&& if_name, bool is_blacklist, bool is_input_filter, table&& table_def)
-    : m_instance_name(std::move(instance_name))
-    , m_is_downstream(is_downstream)
+rule_binding::rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table)
+    : m_rule_binding_type(RBT_FILTER)
+    , m_instance_name(std::move(instance_name))
+    , m_interface_type(interface_type)
     , m_if_name(std::move(if_name))
-    , m_is_blacklist(is_blacklist)
-    , m_is_input_filter(is_input_filter)
-    , m_table(std::move(table_def))
+    , m_filter_direction(filter_direction)
+    , m_filter_type(filter_type)
+    , m_table(std::move(filter_table))
+    , m_rule_matching_type(RMT_UNDEFINED)
+    , m_timeout(std::chrono::milliseconds(0))
 {
+    HC_LOG_TRACE("");
+}
+
+rule_binding::rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, std::chrono::milliseconds&& timeout)
+    : m_rule_binding_type(RBT_RULE_MATCHING)
+    , m_instance_name(std::move(instance_name))
+    , m_interface_type(interface_type)
+    , m_if_name(std::move(if_name))
+    , m_filter_direction(filter_direction)
+    , m_filter_type(FT_UNDEFINED)
+    , m_table(nullptr)
+    , m_rule_matching_type(rule_matching_type)
+    , m_timeout(timeout)
+{
+    HC_LOG_TRACE("");
+}
+
+rb_type rule_binding::get_rule_binding_type() const
+{
+    HC_LOG_TRACE("");
+    return m_rule_binding_type;
 }
 
 const std::string& rule_binding::get_instance_name() const
@@ -247,10 +288,10 @@ const std::string& rule_binding::get_instance_name() const
     return m_instance_name;
 }
 
-bool rule_binding::is_downstream() const
+rb_interface_type rule_binding::get_interface_type() const
 {
     HC_LOG_TRACE("");
-    return m_is_downstream;
+    return m_interface_type;
 }
 
 const std::string& rule_binding::get_if_name() const
@@ -259,27 +300,47 @@ const std::string& rule_binding::get_if_name() const
     return m_if_name;
 }
 
-bool rule_binding::is_blacklist() const
+rb_interface_direction rule_binding::get_interface_direction() const
 {
     HC_LOG_TRACE("");
-    return m_is_blacklist;
+    return m_filter_direction;
 }
 
-bool rule_binding::is_input_filter() const
+rb_filter_type rule_binding::get_filter_type() const
 {
     HC_LOG_TRACE("");
-    return m_is_input_filter;
+    return m_filter_type;
 }
 
 const table& rule_binding::get_table() const
 {
     HC_LOG_TRACE("");
-    return m_table;
+    return *m_table;
+}
+
+rb_rule_matching_type rule_binding::get_rule_matching_type() const
+{
+    HC_LOG_TRACE("");
+    return m_rule_matching_type;
+}
+
+std::chrono::milliseconds rule_binding::get_timeout() const
+{
+    HC_LOG_TRACE("");
+    return m_timeout;
 }
 
 bool rule_binding::match(const std::string& if_name, const addr_storage& saddr, const addr_storage& gaddr) const
 {
     HC_LOG_TRACE("");
-    return m_table.match(if_name, saddr, gaddr) ^ (!m_is_blacklist);
+    if (m_table != nullptr) {
+        if (m_filter_type == FT_BLACKLIST) {
+            return !m_table->match(if_name, saddr, gaddr); 
+        } else if (m_filter_type == FT_WHITELIST){
+            return m_table->match(if_name, saddr, gaddr); 
+        }
+    }
+
+    return false;
 }
 

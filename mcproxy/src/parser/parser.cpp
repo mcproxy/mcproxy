@@ -142,7 +142,7 @@ instance_definition parser::parse_instance_definition()
     throw "failed to parse config file";
 }
 
-table parser::parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, bool inside_rule_box)
+std::unique_ptr<table> parser::parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, bool inside_rule_box)
 {
     HC_LOG_TRACE("");
     std::string table_name;
@@ -159,7 +159,7 @@ table parser::parse_table(const std::shared_ptr<const global_table_set>& gts, gr
 
                     auto rb = std::unique_ptr<rule_box>(new rule_table_ref(table_name, gts));
                     rule_box_list.push_back(std::move(rb));
-                    return table(std::string(), std::move(rule_box_list));
+                    return std::unique_ptr<table>(new table(std::string(), std::move(rule_box_list)));
                 } else {
                     HC_LOG_ERROR("failed to parse line " << m_current_line << " table " << table_name << " not found");
                     throw "failed to parse config file";
@@ -189,7 +189,7 @@ table parser::parse_table(const std::shared_ptr<const global_table_set>& gts, gr
             if (m_current_token.get_type() == TT_RIGHT_BRACE) {
                 get_next_token();
                 if ((!inside_rule_box && m_current_token.get_type() == TT_NIL) || (inside_rule_box && m_current_token.get_type() == TT_RIGHT_BRACKET)) {
-                    return table(table_name, std::move(rule_box_list));
+                    return std::unique_ptr<table>(new table(table_name, std::move(rule_box_list)));
                 }
             }
 
@@ -239,7 +239,7 @@ std::unique_ptr<rule_box> parser::parse_rule(const std::shared_ptr<const global_
     throw "failed to parse config file";
 }
 
-table parser::parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp)
+std::unique_ptr<table> parser::parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp)
 {
     return parse_table(gts, gmp, false);
 }
@@ -346,12 +346,11 @@ rule_binding parser::parse_interface_rule_binding(const std::shared_ptr<const gl
     HC_LOG_TRACE("");
 
     //pinstance split downstream tunD1 out whitelist table {tunU1(* | *)};
-    
+
     std::string instance_name;
-    bool is_downstream = false;
+    rb_interface_type interface_type;
     std::string if_name;
-    bool is_blacklist = false;
-    bool is_input_filter = false;
+    rb_interface_direction filter_direction;
 
     auto error_notification = [&]() {
         HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " in this context");
@@ -361,51 +360,147 @@ rule_binding parser::parse_interface_rule_binding(const std::shared_ptr<const gl
     if (get_parser_type() == PT_INTERFACE_RULE_BINDING) {
 
         get_next_token();
-        if(m_current_token.get_type() == TT_STRING){
-            instance_name = m_current_token.get_string();    
+        if (m_current_token.get_type() == TT_STRING) {
+            instance_name = m_current_token.get_string();
             auto it = instance_def_set.find(instance_name);
-            if(it == std::end(instance_def_set)){
-                error_notification(); 
-            } 
-        }else{
-           error_notification();  
-        }
-        
-        get_next_token();
-        if(m_current_token.get_type() == TT_UPSTREAM){
-            is_downstream = false;        
-        }else if(m_current_token.get_type() == TT_DOWNSTREAM){
-            is_downstream = true; 
-        }else{
-            error_notification(); 
+            if (it == std::end(instance_def_set)) {
+                error_notification();
+            }
+        } else {
+            error_notification();
         }
 
         get_next_token();
-        if(m_current_token.get_type() == TT_STRING){
-            if_name = m_current_token.get_string();    
-        }else{
-           error_notification();  
+        if (m_current_token.get_type() == TT_UPSTREAM) {
+            interface_type = IT_UPSTREAM;
+        } else if (m_current_token.get_type() == TT_DOWNSTREAM) {
+            interface_type = IT_DOWNSTREAM;
+        } else {
+            error_notification();
         }
 
         get_next_token();
-        if(m_current_token.get_type() == TT_IN){
-            is_input_filter = true;        
-        }else if(m_current_token.get_type() == TT_OUT){
-            is_input_filter = false; 
-        }else{
-            error_notification(); 
+        if (m_current_token.get_type() == TT_STRING) {
+            if_name = m_current_token.get_string();
+        } else if (m_current_token.get_type() == TT_STAR) {
+            if_name = "*";
+        } else {
+            error_notification();
         }
 
         get_next_token();
+        if (m_current_token.get_type() == TT_IN) {
+            filter_direction = ID_IN;
+        } else if (m_current_token.get_type() == TT_OUT) {
+            filter_direction = ID_OUT;
+        } else {
+            error_notification();
+        }
 
-    }else{
-        error_notification(); 
+        get_next_token();
+        if (m_current_token.get_type() == TT_WHITELIST || m_current_token.get_type() == TT_BLACKLIST) {
+            return parse_interface_table_binding(std::move(instance_name), interface_type, std::move(if_name), filter_direction, gts, gmp);
+        } else if (m_current_token.get_type() == TT_RULE_MATCHING) {
+            return parse_interface_rule_match_binding(std::move(instance_name), interface_type, std::move(if_name), filter_direction);
+        } else {
+            error_notification();
+        }
+    } else {
+        error_notification();
     }
 
-    //table(const std::string& name, std::list<std::unique_ptr<rule_box>>&& rule_box_list);
-    return rule_binding(std::move(instance_name), is_downstream, std::move(if_name), is_blacklist, is_input_filter, table(std::string(), {nullptr}));
+    HC_LOG_ERROR("this code should never reached");
+    throw "this code should never reached";
 }
 
+rule_binding parser::parse_interface_table_binding(
+    std::string&& instance_name
+    , rb_interface_type interface_type
+    , std::string&& if_name
+    , rb_interface_direction filter_direction
+    , const std::shared_ptr<const global_table_set>& gts
+    , group_mem_protocol gmp)
+{
+    HC_LOG_TRACE("");
+    auto error_notification = [&]() {
+        HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " in this context");
+        throw "failed to parse config file";
+    };
+
+    rb_filter_type filter_type = FT_UNDEFINED;
+    std::unique_ptr<table> filter_table;
+
+    //pinstance split downstream tunD1 out whitelist table {tunU1(* | *)};
+    if (m_current_token.get_type() == TT_WHITELIST) {
+        filter_type = FT_WHITELIST;
+    } else if (m_current_token.get_type() == TT_BLACKLIST) {
+        filter_type = FT_BLACKLIST;
+    } else {
+        error_notification();
+    }
+
+    get_next_token();
+    filter_table = parse_table(gts, gmp);
+
+    if (m_current_token.get_type() != TT_NIL) {
+        error_notification();
+    }
+
+    return rule_binding(std::move(instance_name), interface_type, std::move(if_name), filter_direction, filter_type, std::move(filter_table));
+}
+
+rule_binding parser::parse_interface_rule_match_binding(
+    std::string&& instance_name
+    , rb_interface_type interface_type
+    , std::string&& if_name
+    , rb_interface_direction filter_direction)
+{
+    HC_LOG_TRACE("");
+    auto error_notification = [&]() {
+        HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " in this context");
+        throw "failed to parse config file";
+    };
+
+
+    rb_rule_matching_type rule_matching_type = RMT_UNDEFINED;
+    std::chrono::milliseconds timeout(0);
+    //pinstance A upstream ap in rulematching mutex 10000; #(u4)
+    if (m_current_token.get_type() == TT_RULE_MATCHING) {
+
+        get_next_token();
+        if (m_current_token.get_type() == TT_ALL) {
+            rule_matching_type = RMT_ALL;
+        } else if (m_current_token.get_type() == TT_FIRST) {
+            rule_matching_type = RMT_FIRST;
+        } else if (m_current_token.get_type() == TT_MUTEX) {
+            rule_matching_type = RMT_MUTEX;
+
+            get_next_token();
+            if (m_current_token.get_type() == TT_STRING) {
+                try {
+                    int tmp_timeout = std::stoi(m_current_token.get_string());
+                    timeout = std::chrono::milliseconds(tmp_timeout);
+                } catch (...) {
+                    error_notification();
+                }
+            } else {
+                error_notification();
+            }
+
+        } else {
+            error_notification();
+        }
+    } else {
+        error_notification();
+    }
+
+    get_next_token();
+    if (m_current_token.get_type() != TT_NIL) {
+        error_notification();
+    }
+
+    return rule_binding(std::move(instance_name), interface_type, std::move(if_name), filter_direction, rule_matching_type, std::move(timeout));
+}
 void parser::get_next_token()
 {
     m_current_token = m_scanner.get_next_token();

@@ -158,6 +158,8 @@ token scanner::read_next_token()
                 return TT_UPSTREAM;
             } else if (cmp_str.compare("downstream") == 0) {
                 return TT_DOWNSTREAM;
+            } else if (cmp_str.compare("rulematching") == 0) {
+                return TT_RULE_MATCHING;
             } else if (cmp_str.compare("out") == 0) {
                 return TT_OUT;
             } else if (cmp_str.compare("in") == 0) {

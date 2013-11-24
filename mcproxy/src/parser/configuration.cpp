@@ -168,7 +168,7 @@ void configuration::test_configuration()
             case PT_TABLE: {
                 cout << "cmd: " << e.second << endl;
                 auto t = p.parse_table(gts, gmp);
-                cout << "PT_TABLE: " << t.to_string() << endl;
+                cout << "PT_TABLE: " << t->to_string() << endl;
                 gts->add_table(std::move(t));
                 cout << endl;
                 break;

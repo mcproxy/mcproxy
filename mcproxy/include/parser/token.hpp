@@ -45,6 +45,7 @@ enum token_type {
     TT_IN,
     TT_BLACKLIST,
     TT_WHITELIST,
+    TT_RULE_MATCHING,
     TT_TABLE,
     TT_ALL,
     TT_FIRST,
@@ -78,7 +79,6 @@ public:
 
     token_type get_type() const; 
     const std::string& get_string() const;
-
 };
 
 
