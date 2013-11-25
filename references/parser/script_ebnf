@@ -11,7 +11,7 @@ instance_definition = ":" {@if_name@} "==>" @if_name@ {@if_name@};
 
 interface_rule_binding = ("upstream" | "downstream") @if_name@ ("out" | "in") (filterlist | rulematching);
 filterlist = ("blacklist" | "whitelist") table;
-rulematching = "all" | "first" | ("mutex" @milliseconds@);
+rulematching = "rulematching" ("all" | "first" | ("mutex" @milliseconds@);
 
 table = "table" (table_defintion | table_reference);
 table_reference = @table_name@;

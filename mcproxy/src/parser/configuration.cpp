@@ -137,6 +137,7 @@ void configuration::test_configuration()
     cout << "start programm" << endl;
 
     configuration conf("../references/parser/config_script_example");
+    //configuration conf("../references/parser/config_script_example_1");
     //configuration conf("../references/parser/test_script_1");
     //configuration conf("../references/parser/test_script");
 
@@ -144,7 +145,7 @@ void configuration::test_configuration()
     group_mem_protocol gmp = IGMPv3;
     auto gts = std::make_shared<global_table_set>();
     set<instance_definition> instance_def_set;
-
+    //rule set
 
     for (auto e : conf.m_cmds) {
         parser p(e.first, e.second);
@@ -162,6 +163,7 @@ void configuration::test_configuration()
                 cout << "PT_INSTANCE_DEFINITION: ";
                 auto tmp = p.parse_instance_definition();
                 cout << tmp.to_string() << endl;
+                instance_def_set.insert(std::move(tmp));
                 cout << endl;
                 break;
             }
@@ -175,7 +177,8 @@ void configuration::test_configuration()
             }
             case PT_INTERFACE_RULE_BINDING:
                 cout << "cmd: " << e.second << endl;
-                cout << "PT_INTERFACE_RULE_BINDING" << endl;
+                auto rb = p.parse_interface_rule_binding(gts, gmp, instance_def_set);
+                cout << "PT_INTERFACE_RULE_BINDING" << rb->to_string() << endl;
                 cout << endl;
                 break;
             }

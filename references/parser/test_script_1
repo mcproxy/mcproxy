@@ -1,33 +1,11 @@
-##-- test script --##
+##-- Example A --##
+#==================
 protocol IGMPv3; #default
+pinstance A: a1 b1 ==> a2 b2;
 
-table test{
-    (1.2.3.4 | 5.6.7.8)
-};
+pinstance A upstream a1 out whitelist table {a2(*|*)};
+pinstance A downstream a2 out whitelist table {a1(*|*)};
 
-table allways       {
- eth0 (* | *)
-}  ;
-
-table 1 {
-  (239.99.99.99 | *)
-  (* |  1.1.1.1/12)            
-};
-
-table local {
-  (240.0.0.0 - 241.0.0.0    | 192.168.123.0/     24) 
-  (240.0.0.0   - 241.0.0.0 | 192.168.2.0 - 192.168.2.55) 
-};
-
-table allow_PC_1 {
- yyy (* | 3.3.3.3)
-};
-
-table xxx{
- bob(table allow_PC_1)
- (table {(* | *) ( table allow_PC_1)})
-};
-
-
-
+pinstance A upstream b1 out whitelist table {b2(*|*)};
+pinstance A downstream b2 out whitelist table {b1(*|*)};
 

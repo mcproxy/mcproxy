@@ -85,7 +85,7 @@ public:
     friend bool operator<(const table& t1, const table& t2);
 };
 
-struct comp_table_pointer{
+struct comp_table_pointer {
     bool operator()(const std::unique_ptr<table>& l, const std::unique_ptr<table>& r) const {
         return *l < *r;
     }
@@ -120,25 +120,11 @@ public:
     std::string to_string() const override;
 };
 
-class instance_definition
-{
-private:
-    std::string m_instance_name;
-    mutable std::list<std::string> m_upstreams;
-    mutable std::list<std::string> m_downstreams;
-public:
-    instance_definition(const std::string& instance_name);
-    instance_definition(std::string&& instance_name, std::list<std::string>&& upstreams, std::list<std::string>&& downstreams);
-    const std::list<std::string>& get_upstreams() const;
-    const std::list<std::string>& get_downstreams() const;
-    friend bool operator<(const instance_definition& i1, const instance_definition& i2);
-    std::string to_string() const;
-};
 
 
 
 enum rb_type {
-    RBT_FILTER, RBT_RULE_MATCHING, RBT_TIMER_VALUE 
+    RBT_FILTER, RBT_RULE_MATCHING, RBT_TIMER_VALUE
 };
 
 enum rb_interface_type {
@@ -150,7 +136,7 @@ enum rb_interface_direction {
 };
 
 enum rb_filter_type {
-   FT_BLACKLIST, FT_WHITELIST, FT_UNDEFINED 
+    FT_BLACKLIST, FT_WHITELIST, FT_UNDEFINED
 };
 
 enum rb_rule_matching_type {
@@ -169,17 +155,20 @@ private:
     //RBT_FILTER
     rb_filter_type m_filter_type;
     std::unique_ptr<table> m_table;
-   
+
     //RBT_RULE_MATCHING
     rb_rule_matching_type m_rule_matching_type;
     std::chrono::milliseconds m_timeout;
+
+    std::string to_string_table_filter() const;
+    std::string to_string_rule_matching() const;
 public:
-    rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table); 
-    rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, std::chrono::milliseconds&& timeout); 
+    rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table);
+    rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, std::chrono::milliseconds&& timeout);
 
     rb_type get_rule_binding_type() const;
     const std::string& get_instance_name() const;
-    rb_interface_type get_interface_type() const; 
+    rb_interface_type get_interface_type() const;
     const std::string& get_if_name() const;
     rb_interface_direction get_interface_direction() const;
 
@@ -192,7 +181,38 @@ public:
     rb_rule_matching_type get_rule_matching_type() const;
     std::chrono::milliseconds get_timeout() const;
 
-
+    std::string to_string() const;
 };
 
+class interface
+{
+private:
+    unsigned int m_if_index;
+    std::unique_ptr<rule_binding> m_output_filter;
+    std::unique_ptr<rule_binding> m_input_filter;
+public:
+    interface(const std::string& if_name);
+    unsigned int get_if_index() const;
+    std::string get_if_name() const;
+    bool match_output_filter(unsigned int output_if_index, const addr_storage& saddr, const addr_storage& gaddr) const;
+    bool match_input_filter(unsigned int output_if_index, const addr_storage& saddr, const addr_storage& gaddr) const;
+
+    friend class configuration;
+    friend bool operator<(const interface& i1, const interface& i2);
+};
+
+class instance_definition
+{
+private:
+    std::string m_instance_name;
+    mutable std::list<std::shared_ptr<interface>> m_upstreams;
+    mutable std::list<std::shared_ptr<interface>> m_downstreams;
+public:
+    instance_definition(const std::string& instance_name);
+    instance_definition(std::string&& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams);
+    const std::list<std::shared_ptr<interface>>& get_upstreams() const;
+    const std::list<std::shared_ptr<interface>>& get_downstreams() const;
+    friend bool operator<(const instance_definition& i1, const instance_definition& i2);
+    std::string to_string() const;
+};
 #endif // INTERFACE_HPP

@@ -27,6 +27,7 @@
 
 #include <string>
 #include <vector>
+#include "include/proxy/def.hpp"
 
 
 class configuration 
@@ -39,7 +40,13 @@ private:
     std::string delete_comments(std::string&& script_file);
     std::vector<std::pair<unsigned int, std::string>> separate_commands(std::string&& script_file);
 public:
+    configuration(const std::string& path, bool reset_reverse_path_filter);
     configuration(const std::string& path);
+
+    group_mem_protocol get_group_mem_protocol() const;
+    const upstream_downstream_map& get_upstream_downstream_map() const;
+
+    std::string to_string() const;
 
     static void test_configuration();
 };

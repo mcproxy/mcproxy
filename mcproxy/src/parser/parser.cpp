@@ -99,7 +99,7 @@ group_mem_protocol parser::parse_group_mem_proto()
     }
 }
 
-instance_definition parser::parse_instance_definition()
+std::shared_ptr<instance_definition> parser::parse_instance_definition()
 {
     HC_LOG_TRACE("");
 
@@ -131,7 +131,7 @@ instance_definition parser::parse_instance_definition()
                     }
 
                     if (downstreams.size() > 0 && m_current_token.get_type() == TT_NIL) {
-                        return instance_definition(std::move(instance_name), std::move(upstreams), std::move(downstreams));
+                        return std::make_shared<instance_definition>(std::move(instance_name), std::move(upstreams), std::move(downstreams));
                     }
                 }
             }
@@ -341,7 +341,7 @@ addr_storage parser::get_addr(group_mem_protocol gmp)
     }
 }
 
-rule_binding parser::parse_interface_rule_binding(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, const std::set<instance_definition>& instance_def_set)
+std::unique_ptr<rule_binding> parser::parse_interface_rule_binding(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, const std::set<instance_definition>& instance_def_set)
 {
     HC_LOG_TRACE("");
 
@@ -364,7 +364,8 @@ rule_binding parser::parse_interface_rule_binding(const std::shared_ptr<const gl
             instance_name = m_current_token.get_string();
             auto it = instance_def_set.find(instance_name);
             if (it == std::end(instance_def_set)) {
-                error_notification();
+                HC_LOG_ERROR("failed to parse line " << m_current_line << " proxy instance " << m_current_token.get_string() << " not defined");
+                throw "failed to parse config file";
             }
         } else {
             error_notification();
@@ -413,7 +414,7 @@ rule_binding parser::parse_interface_rule_binding(const std::shared_ptr<const gl
     throw "this code should never reached";
 }
 
-rule_binding parser::parse_interface_table_binding(
+std::unique_ptr<rule_binding> parser::parse_interface_table_binding(
     std::string&& instance_name
     , rb_interface_type interface_type
     , std::string&& if_name
@@ -446,10 +447,10 @@ rule_binding parser::parse_interface_table_binding(
         error_notification();
     }
 
-    return rule_binding(std::move(instance_name), interface_type, std::move(if_name), filter_direction, filter_type, std::move(filter_table));
+    return std::unique_ptr<rule_binding>(new rule_binding(std::move(instance_name), interface_type, std::move(if_name), filter_direction, filter_type, std::move(filter_table)));
 }
 
-rule_binding parser::parse_interface_rule_match_binding(
+std::unique_ptr<rule_binding> parser::parse_interface_rule_match_binding(
     std::string&& instance_name
     , rb_interface_type interface_type
     , std::string&& if_name
@@ -461,10 +462,9 @@ rule_binding parser::parse_interface_rule_match_binding(
         throw "failed to parse config file";
     };
 
-
     rb_rule_matching_type rule_matching_type = RMT_UNDEFINED;
     std::chrono::milliseconds timeout(0);
-    //pinstance A upstream ap in rulematching mutex 10000; #(u4)
+    //pinstance A upstream ap in rulematching mutex 10000;
     if (m_current_token.get_type() == TT_RULE_MATCHING) {
 
         get_next_token();
@@ -499,8 +499,9 @@ rule_binding parser::parse_interface_rule_match_binding(
         error_notification();
     }
 
-    return rule_binding(std::move(instance_name), interface_type, std::move(if_name), filter_direction, rule_matching_type, std::move(timeout));
+    return std::unique_ptr<rule_binding>(new rule_binding(std::move(instance_name), interface_type, std::move(if_name), filter_direction, rule_matching_type, std::move(timeout)));
 }
+
 void parser::get_next_token()
 {
     m_current_token = m_scanner.get_next_token();
