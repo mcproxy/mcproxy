@@ -49,12 +49,12 @@ private:
 
     std::unique_ptr<rule_box> parse_rule(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
     std::unique_ptr<addr_match> parse_rule_part(group_mem_protocol gmp);
-    addr_storage get_addr(group_mem_protocol gmp); 
+    addr_storage get_addr(group_mem_protocol gmp);
 
     std::unique_ptr<table> parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, bool inside_rule_box);
 
-    std::unique_ptr<rule_binding> parse_interface_table_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
-    std::unique_ptr<rule_binding> parse_interface_rule_match_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction);
+    void parse_interface_table_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, const inst_def_set& ids);
+    void parse_interface_rule_match_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, const inst_def_set& ids);
 
 public:
     parser(unsigned int current_line, const std::string& cmd);
@@ -63,13 +63,13 @@ public:
     group_mem_protocol parse_group_mem_proto();
     std::shared_ptr<instance_definition> parse_instance_definition();
     std::unique_ptr<table> parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
-    std::unique_ptr<rule_binding> parse_interface_rule_binding(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, const std::set<instance_definition>& instance_def_set);
-
-
+    void parse_interface_rule_binding(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, const inst_def_set& ids);
 
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const parser& scan);
 };
+
+
 
 
 #endif // PARSER_HPP

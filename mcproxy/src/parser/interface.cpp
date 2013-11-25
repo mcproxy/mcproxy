@@ -73,7 +73,11 @@ rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_match>&& g
 
 bool rule_addr::match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const
 {
-    return m_if_name.compare(if_name) == 0 && m_group->match(gaddr) && m_source->match(saddr);
+    if (m_if_name.empty()) {
+        return m_group->match(gaddr) &&  m_source->match(saddr);
+    } else {
+        return m_if_name.compare(if_name) == 0 && m_group->match(gaddr) &&  m_source->match(saddr);
+    }
 }
 
 std::string rule_addr::to_string() const
@@ -139,10 +143,8 @@ std::string global_table_set::to_string() const
 {
     HC_LOG_TRACE("");
     std::ostringstream s;
-    s << "##-- global table set --##";
     for (auto & e : m_table_set) {
         s << std::endl << e->to_string();
-
     }
     return s.str();
 }
@@ -390,51 +392,73 @@ std::string rule_binding::to_string_rule_matching() const
 }
 //-----------------------------------------------------
 interface::interface(const std::string& if_name)
+    : m_if_name(if_name)
 {
-    unsigned int if_index = interfaces::get_if_index(if_name);
-    if (if_index <= 0) {
-        HC_LOG_ERROR("interface " << if_name << " not found");
-        throw "interface not found";
-    }
+    HC_LOG_TRACE("");
+    //unsigned int if_index = interfaces::get_if_index(if_name);
+    //if (if_index <= 0) {
+    //HC_LOG_ERROR("interface " << if_name << " not found");
+    //throw "interface not found";
 
-    m_if_index = if_index;
-}
-
-unsigned int interface::get_if_index() const
-{
-    return m_if_index;
 }
 
 std::string interface::get_if_name() const
 {
-    return interfaces::get_if_name(m_if_index);
+    return m_if_name;
 }
 
-bool interface::match_output_filter(unsigned int output_if_index, const addr_storage& saddr, const addr_storage& gaddr) const
+bool interface::match_output_filter(const std::string& output_if_name, const addr_storage& saddr, const addr_storage& gaddr) const
 {
-    if (m_output_filter != nullptr) {
-        std::string if_name = interfaces::get_if_name(output_if_index);
-        if (!if_name.empty()) {
-            return m_output_filter->match(if_name, saddr, gaddr);
-        }
-    }
-    return false;
+    HC_LOG_TRACE("");
+    return match_filter(output_if_name, saddr, gaddr, m_output_filter);
 }
 
-bool interface::match_input_filter(unsigned int output_if_index, const addr_storage& saddr, const addr_storage& gaddr) const
+bool interface::match_input_filter(const std::string& output_if_name, const addr_storage& saddr, const addr_storage& gaddr) const
 {
-    if (m_input_filter != nullptr) {
-        std::string if_name = interfaces::get_if_name(output_if_index);
-        if (!if_name.empty()) {
-            return m_input_filter->match(if_name, saddr, gaddr);
-        }
+    HC_LOG_TRACE("");
+    return match_filter(output_if_name, saddr, gaddr, m_input_filter);
+}
+
+std::string interface::to_string_rule_binding() const
+{
+    HC_LOG_TRACE("");
+    using namespace std;
+    ostringstream s;
+
+    if (m_output_filter == nullptr) {
+        s << m_output_filter->to_string() << endl;
     }
-    return false;
+
+    if (m_input_filter == nullptr) {
+        s << m_input_filter->to_string() << endl;
+    }
+
+    return s.str();
+}
+
+std::string interface::to_string_interface() const
+{
+    HC_LOG_TRACE("");
+    return m_if_name;
+}
+
+bool interface::match_filter(const std::string& output_if_name, const addr_storage& saddr, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const
+{
+    if (filter != nullptr) {
+        return filter->match(output_if_name, saddr, gaddr);
+    } else {
+        return true; //default behaviour
+    }
 }
 
 bool operator<(const interface& i1, const interface& i2)
 {
-    return i1.m_if_index < i2.m_if_index;
+    return i1.m_if_name.compare(i2.m_if_name) < 0;
+}
+
+bool operator==(const interface& i1, const interface& i2)
+{
+    return i1.m_if_name.compare(i2.m_if_name) == 0;
 }
 //-----------------------------------------------------
 instance_definition::instance_definition(const std::string& instance_name)
@@ -443,7 +467,7 @@ instance_definition::instance_definition(const std::string& instance_name)
     HC_LOG_TRACE("");
 }
 
-instance_definition::instance_definition(std::string&& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams)
+instance_definition::instance_definition(std::string&& instance_name, std::list<interface>&& upstreams, std::list<interface>&& downstreams)
     : m_instance_name(std::move(instance_name))
     , m_upstreams(std::move(upstreams))
     , m_downstreams(std::move(downstreams))
@@ -451,16 +475,22 @@ instance_definition::instance_definition(std::string&& instance_name, std::list<
     HC_LOG_TRACE("");
 }
 
-const std::list<std::shared_ptr<interface>>& instance_definition::get_upstreams() const
+const std::list<interface>& instance_definition::get_upstreams() const
 {
     HC_LOG_TRACE("");
     return m_upstreams;
 }
 
-const std::list<std::shared_ptr<interface>>& instance_definition::get_downstreams() const
+const std::list<interface>& instance_definition::get_downstreams() const
 {
     HC_LOG_TRACE("");
     return m_downstreams;
+}
+
+const std::list<rule_binding>& instance_definition::get_global_settings() const
+{
+    HC_LOG_TRACE("");
+    return m_global_settings;
 }
 
 bool operator<(const instance_definition& i1, const instance_definition& i2)
@@ -468,17 +498,70 @@ bool operator<(const instance_definition& i1, const instance_definition& i2)
     return i1.m_instance_name.compare(i2.m_instance_name) < 0;
 }
 
-std::string instance_definition::to_string() const
+std::string instance_definition::to_string_instance() const
 {
     HC_LOG_TRACE("");
     std::ostringstream s;
-    s << "pinstance " << m_instance_name << ":";
     for (auto & e : m_upstreams) {
-        s << " " << e;
+        s << " " << e.to_string_interface() << std::endl;
     }
     s << " ==>";
     for (auto & e : m_downstreams) {
-        s << " " << e;
+        s << " " << e.to_string_interface() << std::endl;
     }
     return s.str();
 }
+std::string instance_definition::to_string_rule_binding() const
+{
+    HC_LOG_TRACE("");
+    using namespace std;
+    ostringstream s;
+
+    bool first_touch = true;
+    for (auto & e : m_upstreams) {
+        if (first_touch) {
+            s << e.to_string_rule_binding();
+            first_touch = false;
+        } else {
+            s << endl << e.to_string_rule_binding();
+        }
+    }
+
+    for (auto & e : m_downstreams) {
+        s << endl << e.to_string_rule_binding();
+    }
+
+    return s.str();
+}
+
+inst_def_set::inst_def_set()
+    : m_instance_def_set(comp_instance_definition_pointer())
+{
+    HC_LOG_TRACE("");
+}
+
+bool inst_def_set::insert(std::shared_ptr<instance_definition> id)
+{
+    HC_LOG_TRACE("");
+    return m_instance_def_set.insert(id).second;
+}
+
+//-----------------------------------------------------
+std::string inst_def_set::to_string() const
+{
+    HC_LOG_TRACE("");
+    using namespace std;
+    ostringstream s;
+    bool first_touch = true;
+    for (auto & e : m_instance_def_set) {
+        if (first_touch) {
+            s << e->to_string_instance();
+            first_touch = false;
+        } else {
+            s << endl << e->to_string_instance();
+        }
+        s << endl << e->to_string_rule_binding();
+    }
+    return s.str();
+}
+

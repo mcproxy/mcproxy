@@ -27,10 +27,11 @@
 #include <algorithm>
 #include <fstream>
 
-configuration::configuration(const std::string& path)
+configuration::configuration(const std::string& path, bool reset_reverse_path_filter)
 {
     HC_LOG_TRACE("");
     m_cmds = separate_commands(delete_comments(load_file(path)));
+    run_parser();
 }
 
 // trim from start
@@ -116,7 +117,6 @@ std::vector<std::pair<unsigned int, std::string>> configuration::separate_comman
 
     unsigned int current_line = 1;
 
-
     while (std::getline(ss, item, cmd_separator)) {
         unsigned int line_count_before = count_chars(item, '\n');
         ltrim(item);
@@ -131,63 +131,49 @@ std::vector<std::pair<unsigned int, std::string>> configuration::separate_comman
     return result;
 }
 
+void configuration::run_parser()
+{
+    HC_LOG_TRACE("");
+
+    for (auto e : m_cmds) {
+        parser p(e.first, e.second);
+        switch (p.get_parser_type()) {
+        case PT_PROTOCOL: {
+            m_gmp = p.parse_group_mem_proto();
+            break;
+        }
+        case PT_INSTANCE_DEFINITION: {
+            auto tmp = p.parse_instance_definition();
+            m_inst_def_set.insert(tmp);
+            break;
+        }
+        case PT_TABLE: {
+            auto t = p.parse_table(m_global_table_set, m_gmp);
+            m_global_table_set->add_table(std::move(t));
+            break;
+        }
+        case PT_INTERFACE_RULE_BINDING: {
+            p.parse_interface_rule_binding(m_global_table_set, m_gmp, m_inst_def_set);
+            break;
+        }
+        default:
+            HC_LOG_ERROR("unkown parser type");
+            throw "unkwon parser type";
+        }
+    }
+}
+
 void configuration::test_configuration()
 {
     using namespace std;
     cout << "start programm" << endl;
 
-    configuration conf("../references/parser/config_script_example");
+    configuration conf("../references/parser/config_script_example", false);
     //configuration conf("../references/parser/config_script_example_1");
     //configuration conf("../references/parser/test_script_1");
     //configuration conf("../references/parser/test_script");
 
-
-    group_mem_protocol gmp = IGMPv3;
-    auto gts = std::make_shared<global_table_set>();
-    set<instance_definition> instance_def_set;
-    //rule set
-
-    for (auto e : conf.m_cmds) {
-        parser p(e.first, e.second);
-        try {
-            switch (p.get_parser_type()) {
-            case PT_PROTOCOL: {
-                cout << "cmd: " << e.second << endl;
-                gmp = p.parse_group_mem_proto();
-                cout << "PT_PROTOCOL: " << get_group_mem_protocol_name(gmp) << endl;
-                cout << endl;
-                break;
-            }
-            case PT_INSTANCE_DEFINITION: {
-                cout << "cmd: " << e.second << endl;
-                cout << "PT_INSTANCE_DEFINITION: ";
-                auto tmp = p.parse_instance_definition();
-                cout << tmp.to_string() << endl;
-                instance_def_set.insert(std::move(tmp));
-                cout << endl;
-                break;
-            }
-            case PT_TABLE: {
-                cout << "cmd: " << e.second << endl;
-                auto t = p.parse_table(gts, gmp);
-                cout << "PT_TABLE: " << t->to_string() << endl;
-                gts->add_table(std::move(t));
-                cout << endl;
-                break;
-            }
-            case PT_INTERFACE_RULE_BINDING:
-                cout << "cmd: " << e.second << endl;
-                auto rb = p.parse_interface_rule_binding(gts, gmp, instance_def_set);
-                cout << "PT_INTERFACE_RULE_BINDING" << rb->to_string() << endl;
-                cout << endl;
-                break;
-            }
-        } catch (const char* c) {
-            cout << c << endl;
-        }
-    }
-
-
+    cout << conf.to_string();
 
 
     //cout << "1<" << s.delete_comments("#1234\n1234") << ">" << endl;
@@ -216,3 +202,25 @@ void configuration::test_configuration()
 }
 
 
+group_mem_protocol configuration::get_group_mem_protocol() const
+{
+    HC_LOG_TRACE("");
+    return m_gmp;
+}
+
+const inst_def_set& configuration::get_inst_def_set() const
+{
+    HC_LOG_TRACE("");
+    return m_inst_def_set;
+}
+
+std::string configuration::to_string() const
+{
+    HC_LOG_TRACE("");
+    using namespace std;
+    ostringstream s;
+    s << "protocol " << get_group_mem_protocol_name(m_gmp) << endl;
+    s << m_global_table_set->to_string();
+    s << m_inst_def_set.to_string();
+    return s.str();
+}

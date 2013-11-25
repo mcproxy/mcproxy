@@ -24,27 +24,34 @@
 #define CONFIGURATION_HPP
 
 #include "include/parser/token.hpp"
+#include "include/parser/interface.hpp"
+#include "include/proxy/def.hpp"
 
 #include <string>
 #include <vector>
-#include "include/proxy/def.hpp"
+#include <memory>
 
 
 class configuration 
 {
 private:
+    group_mem_protocol m_gmp;
+    std::shared_ptr<global_table_set> m_global_table_set;
+    inst_def_set m_inst_def_set; 
+
     //<line number (for a better error message output), command>
     std::vector<std::pair<unsigned int, std::string>> m_cmds; 
 
     std::string load_file(const std::string& path);
     std::string delete_comments(std::string&& script_file);
     std::vector<std::pair<unsigned int, std::string>> separate_commands(std::string&& script_file);
+
+    void run_parser();
 public:
     configuration(const std::string& path, bool reset_reverse_path_filter);
-    configuration(const std::string& path);
 
     group_mem_protocol get_group_mem_protocol() const;
-    const upstream_downstream_map& get_upstream_downstream_map() const;
+    const inst_def_set& get_inst_def_set() const;
 
     std::string to_string() const;
 

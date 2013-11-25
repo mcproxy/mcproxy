@@ -121,8 +121,6 @@ public:
 };
 
 
-
-
 enum rb_type {
     RBT_FILTER, RBT_RULE_MATCHING, RBT_TIMER_VALUE
 };
@@ -186,33 +184,73 @@ public:
 
 class interface
 {
-private:
-    unsigned int m_if_index;
+    std::string m_if_name;
     std::unique_ptr<rule_binding> m_output_filter;
     std::unique_ptr<rule_binding> m_input_filter;
+    bool match_filter(const std::string& if_name, const addr_storage& saddr, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const;
 public:
     interface(const std::string& if_name);
-    unsigned int get_if_index() const;
     std::string get_if_name() const;
-    bool match_output_filter(unsigned int output_if_index, const addr_storage& saddr, const addr_storage& gaddr) const;
-    bool match_input_filter(unsigned int output_if_index, const addr_storage& saddr, const addr_storage& gaddr) const;
+    bool match_output_filter(const std::string& output_if_name, const addr_storage& saddr, const addr_storage& gaddr) const;
+    bool match_input_filter(const std::string& output_if_name, const addr_storage& saddr, const addr_storage& gaddr) const;
 
-    friend class configuration;
+    std::string to_string_rule_binding() const;
+    std::string to_string_interface() const;
+    friend class parser;
     friend bool operator<(const interface& i1, const interface& i2);
+    friend bool operator==(const interface& i1, const interface& i2);
 };
 
 class instance_definition
 {
-private:
     std::string m_instance_name;
-    mutable std::list<std::shared_ptr<interface>> m_upstreams;
-    mutable std::list<std::shared_ptr<interface>> m_downstreams;
+    std::list<interface> m_upstreams;
+    std::list<interface> m_downstreams;
+
+    std::list<rule_binding> m_global_settings; 
 public:
     instance_definition(const std::string& instance_name);
-    instance_definition(std::string&& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams);
-    const std::list<std::shared_ptr<interface>>& get_upstreams() const;
-    const std::list<std::shared_ptr<interface>>& get_downstreams() const;
+    instance_definition(std::string&& instance_name, std::list<interface>&& upstreams, std::list<interface>&& downstreams);
+    const std::list<interface>& get_upstreams() const;
+    const std::list<interface>& get_downstreams() const;
+    const std::list<rule_binding>& get_global_settings() const;
     friend bool operator<(const instance_definition& i1, const instance_definition& i2);
+    friend class parser;
+    std::string to_string_instance() const;
+    std::string to_string_rule_binding() const;
+};
+
+struct comp_instance_definition_pointer {
+    bool operator()(const std::shared_ptr<instance_definition>& l, const std::shared_ptr<instance_definition>& r) const {
+        return *l < *r;
+    }
+};
+
+
+class inst_def_set
+{
+private:
+    using instance_definition_set = std::set<std::shared_ptr<instance_definition>, comp_instance_definition_pointer>;
+    using const_iterator = instance_definition_set::const_iterator;
+
+    instance_definition_set m_instance_def_set;
+public:
+    inst_def_set();
+    bool insert(std::shared_ptr<instance_definition> id);
+
+    const_iterator find(const std::string& instance_name) const {
+        return m_instance_def_set.find(std::make_shared<instance_definition>(instance_name));
+    }
+
+    const_iterator begin() const {
+        return m_instance_def_set.cbegin();
+    };
+
+    const_iterator end() const {
+        return m_instance_def_set.cend();
+    };
+
     std::string to_string() const;
 };
+
 #endif // INTERFACE_HPP
