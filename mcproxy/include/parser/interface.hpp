@@ -85,6 +85,8 @@ public:
     friend bool operator<(const table& t1, const table& t2);
 };
 
+
+#include <iostream>
 struct comp_table_pointer {
     bool operator()(const std::unique_ptr<table>& l, const std::unique_ptr<table>& r) const {
         return *l < *r;
@@ -207,7 +209,7 @@ class instance_definition
     std::list<interface> m_upstreams;
     std::list<interface> m_downstreams;
 
-    std::list<rule_binding> m_global_settings; 
+    std::list<rule_binding> m_global_settings;
 public:
     instance_definition(const std::string& instance_name);
     instance_definition(std::string&& instance_name, std::list<interface>&& upstreams, std::list<interface>&& downstreams);

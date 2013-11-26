@@ -27,7 +27,10 @@
 #include <algorithm>
 #include <fstream>
 
+
 configuration::configuration(const std::string& path, bool reset_reverse_path_filter)
+    : m_gmp(IGMPv3) //default setting
+    , m_global_table_set(std::make_shared<global_table_set>())
 {
     HC_LOG_TRACE("");
     m_cmds = separate_commands(delete_comments(load_file(path)));
