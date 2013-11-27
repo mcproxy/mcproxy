@@ -50,8 +50,8 @@ private:
     if_prop m_if_prop;
     reverse_path_filter m_reverse_path_filter;
 
-    std::map<int, int> m_vif_if;
-    std::map<int, int> m_if_vif;
+    std::map<int, unsigned int> m_vif_if;
+    std::map<unsigned int, int> m_if_vif;
 
     int get_free_vif_number() const;
     

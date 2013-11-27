@@ -67,7 +67,7 @@ class rule_addr : public rule_box
     std::unique_ptr<addr_match> m_group;
     std::unique_ptr<addr_match> m_source;
 public:
-    rule_addr(const std::string& if_name, std::unique_ptr<addr_match>&& group, std::unique_ptr<addr_match>&& source);
+    rule_addr(const std::string& if_name, std::unique_ptr<addr_match> group, std::unique_ptr<addr_match> source);
     bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
     std::string to_string() const override;
 };
@@ -85,8 +85,6 @@ public:
     friend bool operator<(const table& t1, const table& t2);
 };
 
-
-#include <iostream>
 struct comp_table_pointer {
     bool operator()(const std::unique_ptr<table>& l, const std::unique_ptr<table>& r) const {
         return *l < *r;
@@ -108,7 +106,7 @@ class global_table_set
 public :
     global_table_set();
     std::string to_string() const;
-    bool add_table(std::unique_ptr<table> t);
+    bool insert(std::unique_ptr<table> t);
     const table* get_table(const std::string& table_name) const;
 };
 
@@ -163,8 +161,8 @@ private:
     std::string to_string_table_filter() const;
     std::string to_string_rule_matching() const;
 public:
-    rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table);
-    rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, std::chrono::milliseconds&& timeout);
+    rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table);
+    rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, const std::chrono::milliseconds& timeout);
 
     rb_type get_rule_binding_type() const;
     const std::string& get_instance_name() const;
@@ -212,7 +210,8 @@ class instance_definition
     std::list<rule_binding> m_global_settings;
 public:
     instance_definition(const std::string& instance_name);
-    instance_definition(std::string&& instance_name, std::list<interface>&& upstreams, std::list<interface>&& downstreams);
+    instance_definition(const std::string& instance_name, std::list<interface>&& upstreams, std::list<interface>&& downstreams);
+    const std::string& get_instance_name();
     const std::list<interface>& get_upstreams() const;
     const std::list<interface>& get_downstreams() const;
     const std::list<rule_binding>& get_global_settings() const;
@@ -228,7 +227,6 @@ struct comp_instance_definition_pointer {
     }
 };
 
-
 class inst_def_set
 {
 private:
@@ -238,7 +236,7 @@ private:
     instance_definition_set m_instance_def_set;
 public:
     inst_def_set();
-    bool insert(std::shared_ptr<instance_definition> id);
+    bool insert(const std::shared_ptr<instance_definition>& id);
 
     const_iterator find(const std::string& instance_name) const {
         return m_instance_def_set.find(std::make_shared<instance_definition>(instance_name));

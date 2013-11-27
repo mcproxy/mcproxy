@@ -29,12 +29,14 @@
 
 
 configuration::configuration(const std::string& path, bool reset_reverse_path_filter)
-    : m_gmp(IGMPv3) //default setting
+    : m_reset_reverse_path_filter(reset_reverse_path_filter)
+    , m_gmp(IGMPv3) //default setting
     , m_global_table_set(std::make_shared<global_table_set>())
 {
     HC_LOG_TRACE("");
     m_cmds = separate_commands(delete_comments(load_file(path)));
     run_parser();
+    initalize_interfaces();
 }
 
 // trim from start
@@ -146,13 +148,16 @@ void configuration::run_parser()
             break;
         }
         case PT_INSTANCE_DEFINITION: {
-            auto tmp = p.parse_instance_definition();
-            m_inst_def_set.insert(tmp);
+            p.parse_instance_definition(m_inst_def_set);
             break;
         }
         case PT_TABLE: {
             auto t = p.parse_table(m_global_table_set, m_gmp);
-            m_global_table_set->add_table(std::move(t));
+            std::string table_name = t->get_name();
+            if (!m_global_table_set->insert(std::move(t))) {
+                HC_LOG_ERROR("faild to parse configfile table " << table_name << " already exists   ");
+                throw "failed to parse configfile";
+            }
             break;
         }
         case PT_INTERFACE_RULE_BINDING: {
@@ -161,7 +166,42 @@ void configuration::run_parser()
         }
         default:
             HC_LOG_ERROR("unkown parser type");
-            throw "unkwon parser type";
+            throw "unkown parser type";
+        }
+    }
+}
+
+void configuration::initalize_interfaces()
+{
+    HC_LOG_TRACE("");
+
+    unsigned int if_index;
+
+    for (auto & inst : m_inst_def_set) {
+        auto result = std::make_shared<interfaces>(get_addr_family(m_gmp), m_reset_reverse_path_filter);
+        auto add = [&](const interface & interf) {
+            if_index = interfaces::get_if_index(interf.get_if_name());
+            if (if_index == 0) {
+                HC_LOG_ERROR("interface " << interf.get_if_name() << " not found");
+                throw "unknown interface";
+            }
+
+            if (!result->add_interface(if_index)) {
+                throw "failed to add interface";
+            }
+        };
+
+        for (auto & downstream : inst->get_downstreams()) {
+            add(downstream);
+        }
+
+        for (auto & upstream : inst->get_upstreams()) {
+            add(upstream);
+        }
+
+        if (!m_interfaces_map.insert(std::pair<std::string, std::shared_ptr<interfaces>>(inst->get_instance_name(), result)).second) {
+            HC_LOG_ERROR("proxy instance " << inst->get_instance_name() << " already exists");
+            throw "failed to add instance";
         }
     }
 }
@@ -171,12 +211,12 @@ void configuration::test_configuration()
     using namespace std;
     cout << "start programm" << endl;
 
-    configuration conf("../references/parser/config_script_example", false);
+    //configuration conf("../references/parser/config_script_example", false);
     //configuration conf("../references/parser/config_script_example_1");
     //configuration conf("../references/parser/test_script_1");
-    //configuration conf("../references/parser/test_script");
+    configuration conf("../references/parser/test_script", false);
 
-    cout << conf.to_string();
+    cout << conf.to_string() << endl;
 
 
     //cout << "1<" << s.delete_comments("#1234\n1234") << ">" << endl;
@@ -223,7 +263,11 @@ std::string configuration::to_string() const
     using namespace std;
     ostringstream s;
     s << "protocol " << get_group_mem_protocol_name(m_gmp) << endl;
-    s << m_global_table_set->to_string();
-    s << m_inst_def_set.to_string();
+    s << m_global_table_set->to_string() << endl;
+    s << m_inst_def_set.to_string() << endl;
+    s << endl;
+    for (auto & e : m_interfaces_map) {
+        s << e.second->to_string() << endl;
+    }
     return s.str();
 }

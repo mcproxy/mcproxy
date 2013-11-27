@@ -98,7 +98,7 @@ group_mem_protocol parser::parse_group_mem_proto()
     }
 }
 
-std::shared_ptr<instance_definition> parser::parse_instance_definition()
+void parser::parse_instance_definition(inst_def_set& ids)
 {
     HC_LOG_TRACE("");
 
@@ -130,7 +130,12 @@ std::shared_ptr<instance_definition> parser::parse_instance_definition()
                     }
 
                     if (downstreams.size() > 0 && m_current_token.get_type() == TT_NIL) {
-                        return std::make_shared<instance_definition>(std::move(instance_name), std::move(upstreams), std::move(downstreams));
+                        if (!ids.insert(std::make_shared<instance_definition>(instance_name, std::move(upstreams), std::move(downstreams)))) {
+                            HC_LOG_ERROR("failed to parse line " << m_current_line << " instance " << instance_name << " already exists");
+                            throw "failed to parse config file";
+                        } else {
+                            return;
+                        }
                     }
                 }
             }
@@ -449,7 +454,7 @@ void parser::parse_interface_table_binding(
 
     auto instance_it = ids.find(instance_name);
     if (instance_it != ids.end()) {
-        std::unique_ptr<rule_binding> rb(new rule_binding(std::move(instance_name), interface_type, std::move(if_name), filter_direction, filter_type, std::move(filter_table)));
+        std::unique_ptr<rule_binding> rb(new rule_binding(instance_name, interface_type, if_name, filter_direction, filter_type, std::move(filter_table)));
 
         interface* interf = nullptr;
 
@@ -458,12 +463,12 @@ void parser::parse_interface_table_binding(
             if (interface_it != (*instance_it)->m_upstreams.end()) {
                 interf = &(*interface_it);
             } else {
-                HC_LOG_ERROR("failed to parse line " << m_current_line << " upstream interface " << if_name << " not not defined");
+                HC_LOG_ERROR("failed to parse line " << m_current_line << " upstream interface " << if_name << " not defined");
                 throw "failed to parse config file";
             }
         } else if (interface_type == IT_DOWNSTREAM) {
             auto interface_it = std::find((*instance_it)->m_downstreams.begin(), (*instance_it)->m_downstreams.end(), if_name);
-            if (interface_it != (*instance_it)->m_upstreams.end()) {
+            if (interface_it != (*instance_it)->m_downstreams.end()) {
                 interf = &(*interface_it);
             } else {
                 HC_LOG_ERROR("failed to parse line " << m_current_line << " downstream interface " << if_name << " not not defined");
@@ -477,15 +482,17 @@ void parser::parse_interface_table_binding(
         if (filter_direction == ID_IN) {
             if (interf->m_input_filter == nullptr) {
                 interf->m_input_filter = std::move(rb);
+                return;
             } else {
-                HC_LOG_ERROR("failed to parse line " << m_current_line << " input filter allready defined");
+                HC_LOG_ERROR("failed to parse line " << m_current_line << " input filter for interface " << if_name << " already defined");
                 throw "failed to parse config file";
             }
         } else if (filter_direction == ID_OUT) {
             if (interf->m_output_filter == nullptr) {
                 interf->m_output_filter = std::move(rb);
+                return;
             } else {
-                HC_LOG_ERROR("failed to parse line " << m_current_line << " output filter allready defined");
+                HC_LOG_ERROR("failed to parse line " << m_current_line << " output filter for interface " << if_name << " already defined");
                 throw "failed to parse config file";
             }
         } else {
@@ -550,8 +557,9 @@ void parser::parse_interface_rule_match_binding(
 
     auto instance_it = ids.find(instance_name);
     if (instance_it != ids.end()) {
-        rule_binding rb(std::move(instance_name), interface_type, std::move(if_name), filter_direction, rule_matching_type, std::move(timeout));
+        rule_binding rb(instance_name, interface_type, if_name, filter_direction, rule_matching_type, timeout);
         (*instance_it)->m_global_settings.push_back(std::move(rb));
+        return;
     } else {
         HC_LOG_ERROR("failed to parse line " << m_current_line << " proxy instance " << m_current_token.get_string() << " not defined");
         throw "failed to parse config file";

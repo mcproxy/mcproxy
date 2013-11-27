@@ -61,7 +61,7 @@ public:
     parser_type get_parser_type();
 
     group_mem_protocol parse_group_mem_proto();
-    std::shared_ptr<instance_definition> parse_instance_definition();
+    void parse_instance_definition(inst_def_set& ids);
     std::unique_ptr<table> parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
     void parse_interface_rule_binding(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, const inst_def_set& ids);
 

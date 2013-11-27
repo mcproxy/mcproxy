@@ -287,6 +287,7 @@ std::string interfaces::to_string() const
 
     return s.str();
 }
+
 std::ostream& operator<<(std::ostream& stream, const interfaces& i)
 {
     HC_LOG_TRACE("");

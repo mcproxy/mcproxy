@@ -47,7 +47,7 @@ pinstance 1 upstream eth0 out whitelist table 1; #forward traffic of a few sourc
 pinstance 1 upstream eth1 out whitelist table local; #forward traffic of a few sources how are sending to the range of groups 240.0.0.0 - 241.0.0.0
 pinstance 1 upstream eth3 out whitelist table allways; #defined as default interface, this rule will always be true 
 pinstance 1 downstream eth5 out whitelist table allow_PC_1; #only PC 1 with IP 1.1.1.1 can subscribe groups (all subscribed groups will be maintained but not forwarded)
-pinstance 1 downstream eht4 out whitelist table {(* | 192.168.5.0/24)}; #all interfaces of the subnet 192.168.5.0/24 are allowed to use the proxy 
+pinstance 1 downstream eth4 out whitelist table {(* | 192.168.5.0/24)}; #all interfaces of the subnet 192.168.5.0/24 are allowed to use the proxy 
 pinstance 1 downstream eth4 in blacklist table allways; #the interface eth4 will ignore all sources from the downstream side
 
 pinstance MyLocalInstance upstream wlan0 out blacklist table xxx; #ignore 1.1.1.1 and allow all other sources pinstance MyLocalInstance upstream wlan1 out blacklist all; #interface is unused

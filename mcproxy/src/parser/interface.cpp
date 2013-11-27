@@ -63,7 +63,7 @@ std::string addr_range::to_string() const
     return s.str();
 }
 //-----------------------------------------------------
-rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_match>&& group, std::unique_ptr<addr_match>&& source)
+rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_match> group, std::unique_ptr<addr_match> source)
     : m_if_name(if_name)
     , m_group(std::move(group))
     , m_source(std::move(source))
@@ -143,13 +143,19 @@ std::string global_table_set::to_string() const
 {
     HC_LOG_TRACE("");
     std::ostringstream s;
+    bool is_first_use = true;
     for (auto & e : m_table_set) {
-        s << std::endl << e->to_string();
+        if (is_first_use) {
+            is_first_use = false;
+        } else {
+            s << std::endl;
+        }
+        s << e->to_string();
     }
     return s.str();
 }
 
-bool global_table_set::add_table(std::unique_ptr<table> t)
+bool global_table_set::insert(std::unique_ptr<table> t)
 {
     HC_LOG_TRACE("");
     return m_table_set.insert(std::move(t)).second;
@@ -205,11 +211,11 @@ std::string rule_table_ref::to_string() const
     return s.str();
 }
 //-----------------------------------------------------
-rule_binding::rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table)
+rule_binding::rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table)
     : m_rule_binding_type(RBT_FILTER)
-    , m_instance_name(std::move(instance_name))
+    , m_instance_name(instance_name)
     , m_interface_type(interface_type)
-    , m_if_name(std::move(if_name))
+    , m_if_name(if_name)
     , m_filter_direction(filter_direction)
     , m_filter_type(filter_type)
     , m_table(std::move(filter_table))
@@ -219,11 +225,11 @@ rule_binding::rule_binding(std::string&& instance_name, rb_interface_type interf
     HC_LOG_TRACE("");
 }
 
-rule_binding::rule_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, std::chrono::milliseconds&& timeout)
+rule_binding::rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, const std::chrono::milliseconds& timeout)
     : m_rule_binding_type(RBT_RULE_MATCHING)
-    , m_instance_name(std::move(instance_name))
+    , m_instance_name(instance_name)
     , m_interface_type(interface_type)
-    , m_if_name(std::move(if_name))
+    , m_if_name(if_name)
     , m_filter_direction(filter_direction)
     , m_filter_type(FT_UNDEFINED)
     , m_table(nullptr)
@@ -393,6 +399,8 @@ std::string rule_binding::to_string_rule_matching() const
 //-----------------------------------------------------
 interface::interface(const std::string& if_name)
     : m_if_name(if_name)
+    , m_output_filter(nullptr)
+    , m_input_filter(nullptr)
 {
     HC_LOG_TRACE("");
     //unsigned int if_index = interfaces::get_if_index(if_name);
@@ -425,14 +433,17 @@ std::string interface::to_string_rule_binding() const
     using namespace std;
     ostringstream s;
 
-    if (m_output_filter == nullptr) {
-        s << m_output_filter->to_string() << endl;
-    }
+    if (m_output_filter != nullptr) {
+        s << m_output_filter->to_string();
 
-    if (m_input_filter == nullptr) {
-        s << m_input_filter->to_string() << endl;
+        if (m_input_filter != nullptr) {
+            s << endl << m_input_filter->to_string();
+        }
+    } else {
+        if (m_input_filter != nullptr) {
+            s << m_input_filter->to_string();
+        }
     }
-
     return s.str();
 }
 
@@ -467,12 +478,18 @@ instance_definition::instance_definition(const std::string& instance_name)
     HC_LOG_TRACE("");
 }
 
-instance_definition::instance_definition(std::string&& instance_name, std::list<interface>&& upstreams, std::list<interface>&& downstreams)
-    : m_instance_name(std::move(instance_name))
+instance_definition::instance_definition(const std::string& instance_name, std::list<interface>&& upstreams, std::list<interface>&& downstreams)
+    : m_instance_name(instance_name)
     , m_upstreams(std::move(upstreams))
     , m_downstreams(std::move(downstreams))
 {
     HC_LOG_TRACE("");
+}
+
+const std::string& instance_definition::get_instance_name()
+{
+    HC_LOG_TRACE("");
+    return m_instance_name;
 }
 
 const std::list<interface>& instance_definition::get_upstreams() const
@@ -502,15 +519,17 @@ std::string instance_definition::to_string_instance() const
 {
     HC_LOG_TRACE("");
     std::ostringstream s;
+    s << "pinstance " << m_instance_name << ": ";
     for (auto & e : m_upstreams) {
-        s << " " << e.to_string_interface() << std::endl;
+        s << e.to_string_interface() << " ";
     }
-    s << " ==>";
+    s << "==> ";
     for (auto & e : m_downstreams) {
-        s << " " << e.to_string_interface() << std::endl;
+        s << e.to_string_interface() << " ";
     }
     return s.str();
 }
+
 std::string instance_definition::to_string_rule_binding() const
 {
     HC_LOG_TRACE("");
@@ -531,22 +550,26 @@ std::string instance_definition::to_string_rule_binding() const
         s << endl << e.to_string_rule_binding();
     }
 
+    for (auto & e : m_global_settings) {
+        s << endl << e.to_string();
+    }
+
     return s.str();
 }
 
+//-----------------------------------------------------
 inst_def_set::inst_def_set()
     : m_instance_def_set(comp_instance_definition_pointer())
 {
     HC_LOG_TRACE("");
 }
 
-bool inst_def_set::insert(std::shared_ptr<instance_definition> id)
+bool inst_def_set::insert(const std::shared_ptr<instance_definition>& id)
 {
     HC_LOG_TRACE("");
     return m_instance_def_set.insert(id).second;
 }
 
-//-----------------------------------------------------
 std::string inst_def_set::to_string() const
 {
     HC_LOG_TRACE("");

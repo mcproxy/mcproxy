@@ -2,20 +2,30 @@
 protocol IGMPv3; #default
 
 #configuration of proxy instance A) with the same behaviour of B) and C) 
-pinstance A: a1 b1 ==> a2 b2;
+pinstance A: dummy0 dummy2 ==> dummy1 dummy3;
 
 #==================
 #                     
 #    A)   |      |    
 #         |      |    
 #      +--+------+--+ 
-#      | a1      b1 | 
+#      | d0      d2 | 
 #      |            | 
-#      | a2      b2 | 
+#      | d1      d3 | 
 #      +--+------+--+ 
 #         |      |    
 #         |      |    
 #      Host_a  Host_b 
-      
-pinstance A upstream a1 out whitelist table {a2(*|*)};
-pinstance A downstream a2 out whitelist table {a1(*|*)};
+     
+table all_dummy1 {
+    dummy1(*|*)
+};
+
+table all_dummy3 {
+    dummy3(*|*)
+};
+
+pinstance A upstream dummy0 out whitelist table all_dummy1;
+pinstance A upstream dummy2 in whitelist table all_dummy3;
+pinstance A downstream dummy1 out whitelist table {(*|*)};
+pinstance A upstream * out rulematching first;
