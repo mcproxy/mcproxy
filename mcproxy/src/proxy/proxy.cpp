@@ -27,7 +27,8 @@
 #include "include/proxy/check_kernel.hpp"
 #include "include/proxy/timing.hpp"
 #include "include/proxy/proxy_instance.hpp"
-#include "include/proxy/proxy_configuration.hpp"
+//#include "include/proxy/proxy_configuration.hpp"
+#include "include/parser/configuration.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -42,8 +43,8 @@ proxy::proxy(int arg_count, char* args[])
     : m_verbose_lvl(0)
     , m_print_proxy_status(false)
     , m_reset_rp_filter(false)
-    , m_config_path(PROXY_CONFIGURATION_DEFAULT_CONIG_PATH)
-    , m_proxy_configuration(nullptr)
+    , m_config_path(CONFIGURATION_DEFAULT_CONIG_PATH)
+    , m_configuration(nullptr)
     , m_timing(std::make_shared<timing>())
 {
     HC_LOG_TRACE("");
@@ -60,7 +61,7 @@ proxy::proxy(int arg_count, char* args[])
         throw "The mcproxy has to be started with root privileges!";
     }
 
-    m_proxy_configuration.reset(new proxy_configuration(m_config_path, m_reset_rp_filter));
+    m_configuration.reset(new configuration(m_config_path, m_reset_rp_filter));
 
     start_proxy_instances();
 
@@ -192,30 +193,53 @@ void proxy::start_proxy_instances()
 {
     HC_LOG_TRACE("");
 
-    auto& db = m_proxy_configuration->get_upstream_downstream_map();
-    for (auto & e : db) {
-        int table = e.first;
-        if (db.size() <= 1) {
-            table = 0; //single instance
-        }
-        unsigned int upstream = e.first;
-        auto& downstreams = e.second;
-        std::unique_ptr<proxy_instance> pr_i(new proxy_instance(m_proxy_configuration->get_group_mem_protocol(), table, m_proxy_configuration->get_interfaces(), m_timing));
+    int table_number = 0;
+    auto inst_set = m_configuration->get_inst_def_set();
+    for (auto & pinstance : inst_set) {
 
-        pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_UPSTREAM, upstream));
+        const std::string& instance_name = pinstance->get_instance_name();
 
-        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!here I mod the timers and values for debug aim" << std::endl;
-        timers_values tv;
-        tv.set_query_interval(std::chrono::seconds(30));
-        tv.set_startup_query_interval(std::chrono::seconds(10));
-        tv.set_last_listener_query_count(3);
-        tv.set_last_listener_query_interval(std::chrono::seconds(4));
-
-        for (auto f : downstreams) {
-            pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, f, tv));
+        table_number++;
+        if (inst_set.size() <= 1) {
+            table_number = 0; //single instance
         }
 
-        m_proxy_instances.insert(std::pair<int, std::unique_ptr<proxy_instance>>(table, move(pr_i)));
+        auto& upstreams = pinstance->get_upstreams();
+        auto& downstreams = pinstance->get_upstreams();
+
+        auto& interfaces = m_configuration->get_interfaces_for_pinstance(instance_name);
+
+        std::unique_ptr<proxy_instance> pr_i(new proxy_instance(m_configuration->get_group_mem_protocol(), instance_name, table_number, interfaces, m_timing));
+
+        unsigned int position = 0;
+        for (auto & u : upstreams) {
+            unsigned int if_index = interfaces::get_if_index(u->get_if_name());
+            if (if_index == 0) {
+                HC_LOG_ERROR("failed to map upstream interface " << u->get_if_name() << " interface index");
+                throw "interface not found";
+            }
+            pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_UPSTREAM, if_index, position, u));
+            position++;
+        }
+
+        for (auto & d : downstreams) {
+            unsigned int if_index = interfaces::get_if_index(d->get_if_name());
+            if (if_index == 0) {
+                HC_LOG_ERROR("failed to map downstream interface " << d->get_if_name() << " interface index");
+                throw "interface not found";
+            }
+
+            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!here I mod the timers and values for debug aim" << std::endl;
+            timers_values tv;
+            tv.set_query_interval(std::chrono::seconds(30));
+            tv.set_startup_query_interval(std::chrono::seconds(10));
+            tv.set_last_listener_query_count(3);
+            tv.set_last_listener_query_interval(std::chrono::seconds(4));
+
+            pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, if_index, d, tv));
+        }
+
+        m_proxy_instances.insert(std::pair<int, std::unique_ptr<proxy_instance>>(table_number, std::move(pr_i)));
     }
 }
 
@@ -238,11 +262,11 @@ void proxy::start()
 
     //kill all proxy_instances
     std::for_each(begin(m_proxy_instances), end(m_proxy_instances), [](pair<const int, std::unique_ptr<proxy_instance>>& e) {
-    e.second->add_msg(std::make_shared<exit_cmd>());
+        e.second->add_msg(std::make_shared<exit_cmd>());
     });
 
     //for (pair<const int, std::unique_ptr<proxy_instance>>& e : m_proxy_instances) {
-        //e.second->add_msg(std::make_shared<exit_cmd>());
+    //e.second->add_msg(std::make_shared<exit_cmd>());
     //}
 
 
@@ -376,7 +400,7 @@ std::string proxy::to_string() const
     s << "config path: " << m_config_path << endl;
 
     s << "-- proxy configuration --" << endl;
-    s << m_proxy_configuration.get()->to_string() << endl;
+    s << m_configuration.get()->to_string() << endl;
     return s.str();
 }
 

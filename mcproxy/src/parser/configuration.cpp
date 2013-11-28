@@ -244,6 +244,15 @@ void configuration::test_configuration()
     cout << "end of programm" << endl;
 }
 
+const std::shared_ptr<const interfaces> configuration::get_interfaces_for_pinstance(const std::string& instance_name) const{
+    HC_LOG_TRACE("");
+    auto it = m_interfaces_map.find(instance_name);
+    if(it == m_interfaces_map.end()){
+        return nullptr;   
+    }else{
+        return it->second; 
+    }
+}
 
 group_mem_protocol configuration::get_group_mem_protocol() const
 {

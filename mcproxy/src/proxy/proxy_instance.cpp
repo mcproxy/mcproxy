@@ -40,12 +40,14 @@
 #include <sstream>
 #include <iostream>
 #include <random>
+#include <algorithm>
 
 #include <unistd.h>
 #include <net/if.h>
 
-proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode)
+proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, const std::string& instance_name, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode)
     : m_group_mem_protocol(group_mem_protocol)
+    , m_instance_name(instance_name)
     , m_table_number(table_number)
     , m_in_debug_testing_mode(in_debug_testing_mode)
     , m_interfaces(interfaces)
@@ -54,7 +56,6 @@ proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, int table_
     , m_sender(nullptr)
     , m_receiver(nullptr)
     , m_routing(nullptr)
-    , m_upstream(0)
     , m_proxy_start_time(std::chrono::steady_clock::now())
 {
     HC_LOG_TRACE("");
@@ -179,9 +180,9 @@ void proxy_instance::worker_thread()
         case proxy_msg::RET_GROUP_TIMER_MSG:
         case proxy_msg::RET_SOURCE_TIMER_MSG:
         case proxy_msg::GENERAL_QUERY_MSG: {
-            auto it = m_querier.find(std::static_pointer_cast<timer_msg>(msg)->get_if_index());
-            if (it != std::end(m_querier)) {
-                it->second->timer_triggerd(msg);
+            auto it = m_downstreams.find(std::static_pointer_cast<timer_msg>(msg)->get_if_index());
+            if (it != std::end(m_downstreams)) {
+                it->second.m_querier->timer_triggerd(msg);
             } else {
                 HC_LOG_DEBUG("failed to find querier of interface: " << interfaces::get_if_name(std::static_pointer_cast<timer_msg>(msg)->get_if_index()));
             }
@@ -196,9 +197,9 @@ void proxy_instance::worker_thread()
                 std::cout << std::endl;
             }
 
-            auto it = m_querier.find(r->get_if_index());
-            if (it != std::end(m_querier)) {
-                it->second->receive_record(msg);
+            auto it = m_downstreams.find(r->get_if_index());
+            if (it != std::end(m_downstreams)) {
+                it->second.m_querier->receive_record(msg);
             } else {
                 HC_LOG_DEBUG("failed to find querier of interface: " << interfaces::get_if_name(std::static_pointer_cast<timer_msg>(msg)->get_if_index()));
             }
@@ -224,51 +225,6 @@ void proxy_instance::worker_thread()
         }
     }
 
-    ////DEBUG output
-    //HC_LOG_DEBUG("initiate GQ timer; pointer: " << m.msg);
-
-    ////##-- thread working loop --##
-    //while (m_running) {
-    //m = m_job_queue.dequeue();
-    //HC_LOG_DEBUG("received new job. type: " << m.msg_type_to_string());
-    //switch (m.type) {
-    //case proxy_msg::TEST_MSG: {
-    //m();
-    //break;
-    //}
-    //case proxy_msg::RECEIVER_MSG: {
-    //struct receiver_msg* t = (struct receiver_msg*) m.msg.get();
-    //handle_igmp(t);
-    //break;
-    //}
-    //case proxy_msg::CLOCK_MSG: {
-    //struct clock_msg* t = (struct clock_msg*) m.msg.get();
-    //handle_clock(t);
-    //break;
-    //}
-    //case proxy_msg::CONFIG_MSG: {
-    //struct config_msg* t = (struct config_msg*) m.msg.get();
-    //handle_config(t);
-    //break;
-    //}
-    //case proxy_msg::DEBUG_MSG: {
-    //struct debug_msg* t = (struct debug_msg*) m.msg.get();
-    //handle_debug_msg(t);
-    //break;
-    //}
-
-    //case proxy_msg::EXIT_CMD:
-    //m_running = false;
-    //break;
-    //default:
-    //HC_LOG_ERROR("unknown message format");
-    //}
-    //}
-
-    ////##-- timing --##
-    ////remove all running times
-    //m_timing->stop_all_time(this);
-
     HC_LOG_DEBUG("worker thread proxy_instance end");
 }
 
@@ -281,10 +237,10 @@ std::string proxy_instance::to_string() const
     auto time_span = current_time - m_proxy_start_time;
     double seconds = time_span.count()  * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
 
-    s << "@@##-- proxy instance table: " << m_table_number << " (lifetime: " << seconds << "sec)"<< " --##@@" << std::endl;;
+    s << "@@##-- proxy instance " << m_instance_name << " table: " << m_table_number << " (lifetime: " << seconds << "sec)" << " --##@@" << std::endl;;
     s << *m_routing_management << std::endl;
-    for (auto it = std::begin(m_querier); it != std::end(m_querier); ++it) {
-        s << std::endl << *it->second;
+    for (auto it = std::begin(m_downstreams); it != std::end(m_downstreams); ++it) {
+        s << std::endl << *it->second.m_querier;
     }
     return s.str();
 }
@@ -301,7 +257,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     switch (msg->get_instruction()) {
     case config_msg::ADD_DOWNSTREAM: {
 
-        if (m_querier.find(msg->get_if_index()) == std::end(m_querier) ) {
+        if (m_downstreams.find(msg->get_if_index()) == std::end(m_downstreams) ) {
             //register interface
             m_routing->add_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
             m_receiver->registrate_interface(msg->get_if_index());
@@ -310,113 +266,68 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
             //create a querier
             std::function<void(unsigned int, const addr_storage&, const source_list<source>&)> cb_state_change = std::bind(&routing_management::event_querier_state_change, m_routing_management.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
             std::unique_ptr<querier> q(new querier(this, m_group_mem_protocol, msg->get_if_index(), m_sender, m_timing, msg->get_timers_values(), cb_state_change));
-            m_querier.insert(std::pair<int, std::unique_ptr<querier>>(msg->get_if_index(), move(q)));
+            m_downstreams.insert(std::pair<unsigned int, downstream_infos>(msg->get_if_index(), downstream_infos(move(q), msg->get_interface())));
         } else {
-            HC_LOG_WARN("querier for interface: " << interfaces::get_if_name(msg->get_if_index()) << " allready exists");
+            HC_LOG_WARN("downstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " already exists");
         }
     }
     break;
     case config_msg::DEL_DOWNSTREAM: {
-        auto it = m_querier.find(msg->get_if_index());
-        if (it != std::end(m_querier)) {
+        auto it = m_downstreams.find(msg->get_if_index());
+        if (it != std::end(m_downstreams)) {
             //delete querier
-            m_querier.erase(it);
+            m_downstreams.erase(it);
 
             //unregister interface
             m_routing->del_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
             m_receiver->del_interface(msg->get_if_index());
         } else {
-            HC_LOG_WARN("failed to delete downstream interface: " << interfaces::get_if_name(msg->get_if_index()));
+            HC_LOG_WARN("failed to delete downstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " interface not found");
         }
     }
     break;
-    case config_msg::ADD_UPSTREAM:
-        if (m_upstream == 0) {
-            //register interface
+    case config_msg::ADD_UPSTREAM: {
+        //register interface
+
+        if (std::find_if(m_upstreams.begin(), m_upstreams.end(), [&](const upstream_infos& ui) {
+        return ui.m_if_index == msg->get_if_index();
+        } ) == m_upstreams.end()) {
+
             m_routing->add_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
             m_receiver->registrate_interface(msg->get_if_index());
             HC_LOG_DEBUG("register interface: " << interfaces::get_if_name(msg->get_if_index()) << " with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
 
-            m_upstream = msg->get_if_index();
+            if (m_upstreams.size() >= msg->get_position()) {
+                m_upstreams.push_back(upstream_infos(msg->get_if_index(), msg->get_interface()));
+            } else {
+                m_upstreams.insert(m_upstreams.begin() + msg->get_position(), upstream_infos(msg->get_if_index(), msg->get_interface()));
+            }
+
         }
-        break;
-    case config_msg::DEL_UPSTREAM:
-        if (m_upstream != 0) {
-            //unregister interface
+        else {
+            HC_LOG_WARN("downstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " already exists");
+        }
+    }
+    break;
+    case config_msg::DEL_UPSTREAM: {
+        //unregister interface
+        auto it = std::find_if(m_upstreams.begin(), m_upstreams.end(), [&](const upstream_infos& ui) {
+            return ui.m_if_index == msg->get_if_index();
+        } );
+
+        if (it != m_upstreams.end()) {
             m_routing->del_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
             m_receiver->del_interface(msg->get_if_index());
-
-            m_upstream = 0;
+            m_upstreams.erase(it);
+        } else {
+            HC_LOG_WARN("failed to delete upstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " interface not found");
         }
-        break;
+    }
+    break;
     default:
         HC_LOG_ERROR("unknown config message format");
     }
 }
-
-//void proxy_instance::handle_igmp(struct receiver_msg* r)
-//{
-//HC_LOG_TRACE("");
-
-//switch (r->type) {
-//case receiver_msg::JOIN:
-//break;
-//case receiver_msg::LEAVE:
-//break;
-//case receiver_msg::CACHE_MISS:
-//break;
-//default:
-//HC_LOG_ERROR("unknown receiver messge format");
-//}
-//}
-
-//void proxy_instance::handle_clock(struct clock_msg* c)
-//{
-//HC_LOG_TRACE("");
-
-////switch (c->type) {
-////case clock_msg::SEND_GQ_TO_ALL:
-////break;
-////case clock_msg::SEND_GSQ:
-////break;
-////case clock_msg::DEL_GROUP:
-////break;
-////case clock_msg::SEND_GQ:
-////break; //start up Query Interval vor new interfaces
-////default:
-////HC_LOG_ERROR("unknown clock message foramt");
-////}
-//}
-
-
-//void proxy_instance::handle_debug_msg(struct debug_msg* db)
-//{
-//HC_LOG_TRACE("");
-//db->add_debug_msg(string());
-//}
-
-//bool proxy_instance::init(, int upstream_index, int upstream_vif, int downstream_index, int downstram_vif, )
-//{
-//HC_LOG_TRACE("");
-
-////m_upstream = upstream_index;
-////m_table_number = upstream_index;
-////m_vif_map.insert(vif_pair(upstream_index, upstream_vif));
-
-////m_vif_map.insert(vif_pair(downstream_index, downstram_vif));
-
-
-////m_check_source.init(m_addr_family, &m_mrt_sock);
-
-
-//if(!init_routing()){
-//return false;
-//}
-
-
-//return false;
-//}
-
 
 void proxy_instance::test_querier(std::string if_name)
 {
@@ -425,7 +336,7 @@ void proxy_instance::test_querier(std::string if_name)
 
     group_mem_protocol memproto = IGMPv3;
     //create a proxy_instance
-    proxy_instance pr_i(memproto, 0,  make_shared<interfaces>(get_addr_family(memproto), false), make_shared<timing>(), true);
+    proxy_instance pr_i(memproto, "test", 0,  make_shared<interfaces>(get_addr_family(memproto), false), make_shared<timing>(), true);
 
     //add a downstream
     timers_values tv;

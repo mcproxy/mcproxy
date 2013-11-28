@@ -119,17 +119,26 @@ bool simple_mc_proxy_routing::is_upstream(unsigned int if_index) const
 {
     HC_LOG_TRACE("");
 
-    if (m_p->m_upstream == if_index) {
-        return true;
-    } else {
-        return false;
+    for (auto & e : m_p->m_upstreams) {
+        if (e.m_if_index == if_index) {
+            return true;
+        }
     }
+
+    return false;
 }
 
-unsigned int simple_mc_proxy_routing::get_upstream() const
+std::list<unsigned int> simple_mc_proxy_routing::get_upstreams() const
 {
     HC_LOG_TRACE("");
-    return m_p->m_upstream;
+
+    std::list<unsigned int> result;
+
+    for (auto & e : m_p->m_upstreams) {
+        result.push_back(e.m_if_index);
+    }
+
+    return result;
 }
 
 std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::collect_interested_interfaces(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) const
@@ -141,13 +150,13 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
         if (is_upstream(if_index)) {
             rt_list.push_back(std::pair<source, std::list<unsigned int>>(e, {}));
         } else {
-            rt_list.push_back(std::pair<source, std::list<unsigned int>>(e, {get_upstream()}));
+            rt_list.push_back(std::pair<source, std::list<unsigned int>>(e, get_upstreams()));
         }
     }
 
-    for (auto & e : m_p->m_querier) {
+    for (auto & e : m_p->m_downstreams) {
         if (e.first != if_index) {
-            e.second->suggest_to_forward_traffic(gaddr, rt_list);
+            e.second.m_querier->suggest_to_forward_traffic(gaddr, rt_list);
         }
     }
 

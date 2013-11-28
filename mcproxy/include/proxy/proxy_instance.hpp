@@ -32,22 +32,45 @@
 
 #include "include/proxy/worker.hpp"
 #include "include/proxy/def.hpp"
+#include "include/proxy/querier.hpp"
+#include "include/parser/interface.hpp"
 
 #include <memory>
 #include <vector>
 #include <functional>
 
-class querier;
-class interfaces;
+//class querier;
+//class interfaces;
 class timing;
 class receiver;
 class sender;
 class routing;
 class mroute_socket;
-
+class interface;
 class simple_mc_proxy_routing;
 class routing_management;
 
+
+struct downstream_infos {
+    downstream_infos(std::unique_ptr<querier> querier, const std::shared_ptr<const interface>& interf)
+        : m_querier(std::move(querier))
+        , m_interface(interf) {}
+    std::unique_ptr<querier> m_querier;
+    const std::shared_ptr<const interface> m_interface;
+};
+
+struct upstream_infos {
+    upstream_infos() = default;
+    upstream_infos(upstream_infos&&) = default;
+    upstream_infos& operator=(upstream_infos&&) = default;
+
+    upstream_infos(unsigned int if_index, const std::shared_ptr<const interface>& interf)
+        : m_if_index(if_index)
+        , m_interface(interf) {}
+
+    unsigned int m_if_index;
+    const std::shared_ptr<const interface> m_interface;
+};
 /**
  * @brief Represent a multicast Proxy (RFC 4605)
  */
@@ -55,11 +78,12 @@ class proxy_instance: public worker
 {
 private:
     //IGMPv1, IGMPv2, IGMPv3, MLDv1, MLDv2
-    const group_mem_protocol m_group_mem_protocol; 
+    const group_mem_protocol m_group_mem_protocol;
 
-    //defines the mulitcast routing talbe, if set to 0 (default routing table) no other instances running on the system to simplifie the kernel calls. 
-    const int m_table_number; 
-    const bool m_in_debug_testing_mode; 
+    //defines the mulitcast routing talbe, if set to 0 (default routing table) no other instances running on the system to simplifie the kernel calls.
+    const std::string m_instance_name;
+    const int m_table_number;
+    const bool m_in_debug_testing_mode;
 
     const std::shared_ptr<const interfaces> m_interfaces;
     const std::shared_ptr<timing> m_timing;
@@ -71,14 +95,17 @@ private:
     std::unique_ptr<routing> m_routing;
     std::unique_ptr<routing_management> m_routing_management;
 
-    //interface index
-    unsigned int m_upstream;
 
     //to match the proxy debug output with the wireshark time stamp
     const std::chrono::time_point<std::chrono::steady_clock> m_proxy_start_time;
 
+    //interface index
+    //unsigned int m_upstream;
+    std::vector<upstream_infos> m_upstreams;
+
     //if_indexes of the downstreams, querier
-    std::map<unsigned int, std::unique_ptr<querier>> m_querier;
+    //std::map<unsigned int, std::unique_ptr<querier>> m_querier;
+    std::map<unsigned int, downstream_infos> m_downstreams;
 
     //init
     bool init_mrt_socket();
@@ -87,24 +114,24 @@ private:
     bool init_routing();
     bool init_routing_management();
 
-    //receives and process all events 
+    //receives and process all events
     void worker_thread();
 
     //add and del interfaces
     void handle_config(const std::shared_ptr<config_msg>& msg);
 
-    std::string to_string() const; 
+    std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const proxy_instance& pr_i);
 public:
-    
+
     /**
      * @param group_mem_protocol Defines the highest group membership protocol version for IPv4 or Ipv6 to use.
-     * @param table_number Set the multicast routing table. If set to 0 (default routing table) no other instances running on the system (this simplifie the kernel calls). 
+     * @param table_number Set the multicast routing table. If set to 0 (default routing table) no other instances running on the system (this simplifie the kernel calls).
      * @param interfaces Holds all possible needed information of all upstream and downstream interfaces.
      * @param shared_timing Stores and triggers all time-dependent events for this proxy instance.
      * @param in_debug_testing_mode If true this proxy instance stops receiving group membership messages and prints a lot of status messages to the command line.
      */
-    proxy_instance(group_mem_protocol group_mem_protocol, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode = false);
+    proxy_instance(group_mem_protocol group_mem_protocol, const std::string& intance_name, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode = false);
 
     /**
      * @brief Release all resources.
@@ -113,13 +140,13 @@ public:
 
     static void test_querier(std::string if_name);
 
-    static void test_a(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
-    static void test_b(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
-    static void test_c(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
-    static void test_d(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
+    static void test_a(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
+    static void test_b(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
+    static void test_c(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
+    static void test_d(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
 
-    static void quick_test(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
-    static void rand_test(std::function<void(mcast_addr_record_type,source_list<source>&&)> send_record, std::function<void()> print_proxy_instance);   
+    static void quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
+    static void rand_test(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
 
     friend routing_management;
     friend simple_mc_proxy_routing;

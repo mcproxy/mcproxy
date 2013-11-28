@@ -37,7 +37,7 @@
 #include <memory>
 #include <map>
 
-class proxy_configuration;
+class configuration;
 class timing;
 class proxy_instance;
 
@@ -53,7 +53,7 @@ private:
     bool m_reset_rp_filter;
     std::string m_config_path;
 
-    std::unique_ptr<proxy_configuration> m_proxy_configuration;
+    std::unique_ptr<configuration> m_configuration;
     std::shared_ptr<timing> m_timing;
 
     //table (= interface index), proxy_instance

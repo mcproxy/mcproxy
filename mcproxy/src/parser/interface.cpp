@@ -478,7 +478,7 @@ instance_definition::instance_definition(const std::string& instance_name)
     HC_LOG_TRACE("");
 }
 
-instance_definition::instance_definition(const std::string& instance_name, std::list<interface>&& upstreams, std::list<interface>&& downstreams)
+instance_definition::instance_definition(const std::string& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams)
     : m_instance_name(instance_name)
     , m_upstreams(std::move(upstreams))
     , m_downstreams(std::move(downstreams))
@@ -492,13 +492,13 @@ const std::string& instance_definition::get_instance_name()
     return m_instance_name;
 }
 
-const std::list<interface>& instance_definition::get_upstreams() const
+const std::list<std::shared_ptr<interface>>& instance_definition::get_upstreams() const
 {
     HC_LOG_TRACE("");
     return m_upstreams;
 }
 
-const std::list<interface>& instance_definition::get_downstreams() const
+const std::list<std::shared_ptr<interface>>& instance_definition::get_downstreams() const
 {
     HC_LOG_TRACE("");
     return m_downstreams;
@@ -521,11 +521,11 @@ std::string instance_definition::to_string_instance() const
     std::ostringstream s;
     s << "pinstance " << m_instance_name << ": ";
     for (auto & e : m_upstreams) {
-        s << e.to_string_interface() << " ";
+        s << e->to_string_interface() << " ";
     }
     s << "==> ";
     for (auto & e : m_downstreams) {
-        s << e.to_string_interface() << " ";
+        s << e->to_string_interface() << " ";
     }
     return s.str();
 }
@@ -539,15 +539,15 @@ std::string instance_definition::to_string_rule_binding() const
     bool first_touch = true;
     for (auto & e : m_upstreams) {
         if (first_touch) {
-            s << e.to_string_rule_binding();
+            s << e->to_string_rule_binding();
             first_touch = false;
         } else {
-            s << endl << e.to_string_rule_binding();
+            s << endl << e->to_string_rule_binding();
         }
     }
 
     for (auto & e : m_downstreams) {
-        s << endl << e.to_string_rule_binding();
+        s << endl << e->to_string_rule_binding();
     }
 
     for (auto & e : m_global_settings) {
@@ -568,6 +568,11 @@ bool inst_def_set::insert(const std::shared_ptr<instance_definition>& id)
 {
     HC_LOG_TRACE("");
     return m_instance_def_set.insert(id).second;
+}
+
+unsigned int inst_def_set::size() const{
+    HC_LOG_TRACE("");
+    return m_instance_def_set.size();    
 }
 
 std::string inst_def_set::to_string() const

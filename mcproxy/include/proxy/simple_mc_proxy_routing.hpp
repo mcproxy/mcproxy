@@ -45,7 +45,7 @@ private:
     std::chrono::seconds get_source_life_time();
 
     bool is_upstream(unsigned int if_index) const;
-    unsigned int get_upstream() const;
+    std::list<unsigned int> get_upstreams() const;
 
     std::list<std::pair<source, std::list<unsigned int>>> collect_interested_interfaces(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) const;
 

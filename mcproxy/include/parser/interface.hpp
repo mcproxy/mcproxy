@@ -204,16 +204,16 @@ public:
 class instance_definition
 {
     std::string m_instance_name;
-    std::list<interface> m_upstreams;
-    std::list<interface> m_downstreams;
+    std::list<std::shared_ptr<interface>> m_upstreams;
+    std::list<std::shared_ptr<interface>> m_downstreams;
 
     std::list<rule_binding> m_global_settings;
 public:
     instance_definition(const std::string& instance_name);
-    instance_definition(const std::string& instance_name, std::list<interface>&& upstreams, std::list<interface>&& downstreams);
+    instance_definition(const std::string& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams);
     const std::string& get_instance_name();
-    const std::list<interface>& get_upstreams() const;
-    const std::list<interface>& get_downstreams() const;
+    const std::list<std::shared_ptr<interface>>& get_upstreams() const;
+    const std::list<std::shared_ptr<interface>>& get_downstreams() const;
     const std::list<rule_binding>& get_global_settings() const;
     friend bool operator<(const instance_definition& i1, const instance_definition& i2);
     friend class parser;
@@ -249,6 +249,8 @@ public:
     const_iterator end() const {
         return m_instance_def_set.cend();
     };
+
+    unsigned int size() const;
 
     std::string to_string() const;
 };

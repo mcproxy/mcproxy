@@ -31,7 +31,7 @@
 #include "include/proxy/membership_db.hpp"
 #include "include/proxy/querier.hpp"
 #include "include/proxy/timers_values.hpp"
-#include "include/proxy/proxy_configuration.hpp"
+//#include "include/proxy/proxy_configuration.hpp"
 #include "include/proxy/proxy_instance.hpp"
 #include "include/proxy/simple_mc_proxy_routing.hpp"
 #include "include/proxy/simple_routing_data.hpp"

@@ -33,6 +33,7 @@
 #include "include/proxy/def.hpp"
 #include "include/proxy/interfaces.hpp"
 #include "include/proxy/timers_values.hpp"
+#include "include/parser/interface.hpp"
 
 #include <iostream>
 #include <string>
@@ -393,19 +394,24 @@ struct config_msg : public proxy_msg {
         DEL_UPSTREAM
     };
 
-    config_msg(config_instruction instruction, unsigned int if_index)
-        : config_msg(instruction, if_index, timers_values()) {
-        HC_LOG_TRACE("");
+    config_msg(config_instruction instruction, unsigned int if_index, unsigned int position, const std::shared_ptr<const interface>& interf)
+        : proxy_msg(CONFIG_MSG, SYSTEMIC)
+        , m_instruction(instruction)
+        , m_if_index(if_index)
+        , m_position(position)
+        , m_interface(interf)
+        , m_tv(timers_values()) {
         if (instruction != DEL_DOWNSTREAM && instruction != ADD_UPSTREAM && instruction != DEL_UPSTREAM) {
             HC_LOG_ERROR("config_msg is incomplet, missing parameter timer_values");
             throw "config_msg is incomplet, missing parameter timer_values";
         }
     }
 
-    config_msg(config_instruction instruction, unsigned int if_index, const timers_values& tv)
+    config_msg(config_instruction instruction, unsigned int if_index, const std::shared_ptr<const interface>& interf, const timers_values& tv)
         : proxy_msg(CONFIG_MSG, SYSTEMIC)
         , m_instruction(instruction)
         , m_if_index(if_index)
+        , m_interface(interf)
         , m_tv(tv) {
         HC_LOG_TRACE("");
     }
@@ -414,8 +420,16 @@ struct config_msg : public proxy_msg {
         return m_instruction;
     }
 
-    unsigned int get_if_index() {
+    const std::shared_ptr<const interface>& get_interface() {
+        return m_interface;
+    }
+
+   unsigned int get_if_index() {
         return m_if_index;
+    }
+
+    unsigned int get_position() {
+        return m_position;
     }
 
     const timers_values& get_timers_values() {
@@ -425,6 +439,8 @@ struct config_msg : public proxy_msg {
 private:
     config_instruction m_instruction;
     unsigned int m_if_index;
+    unsigned int m_position;
+    std::shared_ptr<const interface> m_interface;
     timers_values m_tv;
 };
 

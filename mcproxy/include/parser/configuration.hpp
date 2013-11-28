@@ -32,6 +32,8 @@
 #include <vector>
 #include <memory>
 
+#define CONFIGURATION_DEFAULT_CONIG_PATH "mcproxy.conf"
+
 class configuration
 {
 private:
@@ -54,7 +56,7 @@ private:
 public:
     configuration(const std::string& path, bool reset_reverse_path_filter);
 
-    const std::shared_ptr<const interfaces> get_interfaces(const std::string& instance_name) const;
+    const std::shared_ptr<const interfaces> get_interfaces_for_pinstance(const std::string& instance_name) const;
     group_mem_protocol get_group_mem_protocol() const;
     const inst_def_set& get_inst_def_set() const;
 

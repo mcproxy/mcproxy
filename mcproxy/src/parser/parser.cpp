@@ -104,8 +104,8 @@ void parser::parse_instance_definition(inst_def_set& ids)
 
     //pinstance = "pinstance" @instance_name@ (instance_definition | interface_rule_binding);
     //instance_definition = ":" {@if_name@} "==>" @if_name@ {@if_name@};
-    std::list<interface> upstreams;
-    std::list<interface> downstreams;
+    std::list<std::shared_ptr<interface>> upstreams;
+    std::list<std::shared_ptr<interface>> downstreams;
     std::string instance_name;
 
     if (get_parser_type() == PT_INSTANCE_DEFINITION) {
@@ -117,7 +117,7 @@ void parser::parse_instance_definition(inst_def_set& ids)
 
                 get_next_token();
                 while (m_current_token.get_type() == TT_STRING) {
-                    upstreams.push_back(interface(m_current_token.get_string()));
+                    upstreams.push_back(std::make_shared<interface>(m_current_token.get_string()));
                     get_next_token();
                 }
 
@@ -125,7 +125,7 @@ void parser::parse_instance_definition(inst_def_set& ids)
 
                     get_next_token();
                     while (m_current_token.get_type() == TT_STRING) {
-                        downstreams.push_back(interface(m_current_token.get_string()));
+                        downstreams.push_back(std::make_shared<interface>(m_current_token.get_string()));
                         get_next_token();
                     }
 
@@ -456,12 +456,12 @@ void parser::parse_interface_table_binding(
     if (instance_it != ids.end()) {
         std::unique_ptr<rule_binding> rb(new rule_binding(instance_name, interface_type, if_name, filter_direction, filter_type, std::move(filter_table)));
 
-        interface* interf = nullptr;
+        std::shared_ptr<interface> interf = nullptr;
 
         if (interface_type == IT_UPSTREAM) {
             auto interface_it = std::find((*instance_it)->m_upstreams.begin(), (*instance_it)->m_upstreams.end(), if_name);
             if (interface_it != (*instance_it)->m_upstreams.end()) {
-                interf = &(*interface_it);
+                interf = *interface_it;
             } else {
                 HC_LOG_ERROR("failed to parse line " << m_current_line << " upstream interface " << if_name << " not defined");
                 throw "failed to parse config file";
@@ -469,7 +469,7 @@ void parser::parse_interface_table_binding(
         } else if (interface_type == IT_DOWNSTREAM) {
             auto interface_it = std::find((*instance_it)->m_downstreams.begin(), (*instance_it)->m_downstreams.end(), if_name);
             if (interface_it != (*instance_it)->m_downstreams.end()) {
-                interf = &(*interface_it);
+                interf = *interface_it;
             } else {
                 HC_LOG_ERROR("failed to parse line " << m_current_line << " downstream interface " << if_name << " not not defined");
                 throw "failed to parse config file";
