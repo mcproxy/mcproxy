@@ -57,7 +57,7 @@ private:
 
     void del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
 
-    void send_record(unsigned int if_index, const addr_storage& gaddr, mc_filter filter_mode, const source_list<source>& slist) const;
+    void send_records(std::list<unsigned int> upstream_if_indexes, const addr_storage& gaddr, mc_filter filter_mode, const source_list<source>& slist) const;
 
     std::shared_ptr<new_source_timer> set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
 
@@ -65,6 +65,7 @@ public:
     simple_mc_proxy_routing(const proxy_instance* p);
 
     void event_new_source(const std::shared_ptr<proxy_msg>& msg) override;
+
     void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) override;
 
     void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg) override;

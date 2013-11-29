@@ -54,6 +54,7 @@ void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>&
         source s(sm->get_saddr());
         s.shared_source_timer = set_source_timer(sm->get_if_index(), sm->get_gaddr(), sm->get_saddr());
 
+        //route calculation
         add_route(sm->get_if_index(), sm->get_gaddr(), collect_interested_interfaces(sm->get_if_index(), sm->get_gaddr(), {sm->get_saddr()}));
         m_data.set_source(sm->get_gaddr(), s);
     }
@@ -62,7 +63,6 @@ void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>&
         HC_LOG_ERROR("unknown message format");
         return;
     }
-
 }
 
 void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist)
@@ -75,7 +75,7 @@ void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, 
 
     //membership agregation
     auto mem_info = collect_group_membership_infos(gaddr);
-    send_record(get_upstream(), gaddr, mem_info.first, mem_info.second);
+    send_records(get_upstreams(), gaddr, mem_info.first, mem_info.second);
 }
 
 void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg)
@@ -170,8 +170,8 @@ std::pair<mc_filter, source_list<source>> simple_mc_proxy_routing::collect_group
     rt_pair.first = INCLUDE_MODE;
     rt_pair.second = {};
 
-    for (auto & e : m_p->m_querier) {
-        merge_membership_infos(rt_pair, e.second->get_group_mebership_infos(gaddr));
+    for (auto & e : m_p->m_downstreams) {
+        merge_membership_infos(rt_pair, e.second.m_querier->get_group_mebership_infos(gaddr));
     }
 
     return rt_pair;
@@ -213,8 +213,6 @@ void simple_mc_proxy_routing::add_route(unsigned int input_if_index, const addr_
             std::list<int> vif_out;
 
             for (auto outif : e.second) {
-                std::cout << interfaces::get_if_name(outif) << " ";
-
                 vif_out.push_back(m_p->m_interfaces->get_virtual_if_index(outif));
             }
 
@@ -223,10 +221,12 @@ void simple_mc_proxy_routing::add_route(unsigned int input_if_index, const addr_
     }
 }
 
-void simple_mc_proxy_routing::send_record(unsigned int if_index, const addr_storage& gaddr, mc_filter filter_mode, const source_list<source>& slist) const
+void simple_mc_proxy_routing::send_records(std::list<unsigned int> upstream_if_indexes, const addr_storage& gaddr, mc_filter filter_mode, const source_list<source>& slist) const
 {
     HC_LOG_TRACE("");
-    m_p->m_sender->send_report(if_index, filter_mode, gaddr, slist);
+    for (auto upstream_if_index : upstream_if_indexes) {
+        m_p->m_sender->send_report(upstream_if_index, filter_mode, gaddr, slist);
+    }
 }
 
 void simple_mc_proxy_routing::del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const

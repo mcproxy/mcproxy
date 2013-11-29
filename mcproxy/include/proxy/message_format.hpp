@@ -394,7 +394,7 @@ struct config_msg : public proxy_msg {
         DEL_UPSTREAM
     };
 
-    config_msg(config_instruction instruction, unsigned int if_index, unsigned int position, const std::shared_ptr<const interface>& interf)
+    config_msg(config_instruction instruction, unsigned int if_index, unsigned int position, const std::shared_ptr<interface>& interf)
         : proxy_msg(CONFIG_MSG, SYSTEMIC)
         , m_instruction(instruction)
         , m_if_index(if_index)
@@ -407,7 +407,7 @@ struct config_msg : public proxy_msg {
         }
     }
 
-    config_msg(config_instruction instruction, unsigned int if_index, const std::shared_ptr<const interface>& interf, const timers_values& tv)
+    config_msg(config_instruction instruction, unsigned int if_index, const std::shared_ptr<interface>& interf, const timers_values& tv)
         : proxy_msg(CONFIG_MSG, SYSTEMIC)
         , m_instruction(instruction)
         , m_if_index(if_index)
@@ -420,7 +420,7 @@ struct config_msg : public proxy_msg {
         return m_instruction;
     }
 
-    const std::shared_ptr<const interface>& get_interface() {
+    const std::shared_ptr<interface>& get_interface() {
         return m_interface;
     }
 
@@ -440,7 +440,7 @@ private:
     config_instruction m_instruction;
     unsigned int m_if_index;
     unsigned int m_position;
-    std::shared_ptr<const interface> m_interface;
+    std::shared_ptr<interface> m_interface;
     timers_values m_tv;
 };
 

@@ -471,6 +471,9 @@ bool operator==(const interface& i1, const interface& i2)
 {
     return i1.m_if_name.compare(i2.m_if_name) == 0;
 }
+bool operator==(const std::shared_ptr<interface>& i1, const std::shared_ptr<interface>& i2){
+    return *i1 == *i2;    
+}
 //-----------------------------------------------------
 instance_definition::instance_definition(const std::string& instance_name)
     : m_instance_name(instance_name)

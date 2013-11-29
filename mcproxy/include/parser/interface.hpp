@@ -199,6 +199,7 @@ public:
     friend class parser;
     friend bool operator<(const interface& i1, const interface& i2);
     friend bool operator==(const interface& i1, const interface& i2);
+    friend bool operator==(const std::shared_ptr<interface>& i1, const std::shared_ptr<interface>& i2);
 };
 
 class instance_definition

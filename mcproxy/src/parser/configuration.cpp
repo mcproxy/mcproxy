@@ -179,10 +179,10 @@ void configuration::initalize_interfaces()
 
     for (auto & inst : m_inst_def_set) {
         auto result = std::make_shared<interfaces>(get_addr_family(m_gmp), m_reset_reverse_path_filter);
-        auto add = [&](const interface & interf) {
-            if_index = interfaces::get_if_index(interf.get_if_name());
+        auto add = [&](const std::shared_ptr<interface>& interf) {
+            if_index = interfaces::get_if_index(interf->get_if_name());
             if (if_index == 0) {
-                HC_LOG_ERROR("interface " << interf.get_if_name() << " not found");
+                HC_LOG_ERROR("interface " << interf->get_if_name() << " not found");
                 throw "unknown interface";
             }
 

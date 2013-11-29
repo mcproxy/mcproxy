@@ -52,24 +52,20 @@ class routing_management;
 
 
 struct downstream_infos {
-    downstream_infos(std::unique_ptr<querier> querier, const std::shared_ptr<const interface>& interf)
+    downstream_infos(std::unique_ptr<querier> querier, const std::shared_ptr<interface>& interf)
         : m_querier(std::move(querier))
         , m_interface(interf) {}
     std::unique_ptr<querier> m_querier;
-    const std::shared_ptr<const interface> m_interface;
+    std::shared_ptr<interface> m_interface;
 };
 
 struct upstream_infos {
-    upstream_infos() = default;
-    upstream_infos(upstream_infos&&) = default;
-    upstream_infos& operator=(upstream_infos&&) = default;
-
-    upstream_infos(unsigned int if_index, const std::shared_ptr<const interface>& interf)
+    upstream_infos(unsigned int if_index, const std::shared_ptr<interface>& interf)
         : m_if_index(if_index)
         , m_interface(interf) {}
 
     unsigned int m_if_index;
-    const std::shared_ptr<const interface> m_interface;
+    std::shared_ptr<interface> m_interface;
 };
 /**
  * @brief Represent a multicast Proxy (RFC 4605)

@@ -350,10 +350,9 @@ void proxy_instance::test_querier(std::string if_name)
     cout << tv << endl;
     cout << endl;
 
-    pr_i.add_msg(make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, interfaces::get_if_index(if_name), tv));
+    pr_i.add_msg(make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, interfaces::get_if_index(if_name), std::make_shared<interface>(if_name), tv));
 
     auto print_proxy_instance = bind(&proxy_instance::add_msg, &pr_i, make_shared<debug_msg>());
-
 
     auto __tmp = [&, if_name](mcast_addr_record_type t, source_list<source> && slist) {
         return make_shared<group_record_msg>(interfaces::get_if_index(if_name), t, gaddr, move(slist), 0);

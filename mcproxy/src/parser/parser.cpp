@@ -459,7 +459,7 @@ void parser::parse_interface_table_binding(
         std::shared_ptr<interface> interf = nullptr;
 
         if (interface_type == IT_UPSTREAM) {
-            auto interface_it = std::find((*instance_it)->m_upstreams.begin(), (*instance_it)->m_upstreams.end(), if_name);
+            auto interface_it = std::find((*instance_it)->m_upstreams.begin(), (*instance_it)->m_upstreams.end(), std::make_shared<interface>(if_name));
             if (interface_it != (*instance_it)->m_upstreams.end()) {
                 interf = *interface_it;
             } else {
@@ -467,7 +467,7 @@ void parser::parse_interface_table_binding(
                 throw "failed to parse config file";
             }
         } else if (interface_type == IT_DOWNSTREAM) {
-            auto interface_it = std::find((*instance_it)->m_downstreams.begin(), (*instance_it)->m_downstreams.end(), if_name);
+            auto interface_it = std::find((*instance_it)->m_downstreams.begin(), (*instance_it)->m_downstreams.end(), std::make_shared<interface>(if_name));
             if (interface_it != (*instance_it)->m_downstreams.end()) {
                 interf = *interface_it;
             } else {
