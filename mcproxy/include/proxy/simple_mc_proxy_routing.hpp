@@ -39,38 +39,38 @@ struct new_source_timer;
  */
 class simple_mc_proxy_routing : public routing_management
 {
-private:
+protected:
     simple_routing_data m_data;
 
     std::chrono::seconds get_source_life_time();
 
-    bool is_upstream(unsigned int if_index) const;
-    std::list<unsigned int> get_upstreams() const;
+    virtual bool is_upstream(unsigned int if_index) const;
+    virtual std::list<unsigned int> get_upstreams() const;
 
-    std::list<std::pair<source, std::list<unsigned int>>> collect_interested_interfaces(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) const;
+    virtual std::list<std::pair<source, std::list<unsigned int>>> collect_interested_interfaces(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) const;
 
-    std::pair<mc_filter, source_list<source>> collect_group_membership_infos(const addr_storage& gaddr);
+    virtual std::pair<mc_filter, source_list<source>> collect_group_membership_infos(const addr_storage& gaddr);
 
-    void merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from ) const;
+    virtual void merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from ) const;
 
-    void add_route(unsigned int input_if_index, const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const;
+    virtual void add_route(unsigned int input_if_index, const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const;
 
-    void del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
+    virtual void del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
 
-    void send_records(std::list<unsigned int> upstream_if_indexes, const addr_storage& gaddr, mc_filter filter_mode, const source_list<source>& slist) const;
+    virtual void send_records(std::list<unsigned int> upstream_if_indexes, const addr_storage& gaddr, mc_filter filter_mode, const source_list<source>& slist) const;
 
-    std::shared_ptr<new_source_timer> set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
+    virtual std::shared_ptr<new_source_timer> set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
 
 public:
     simple_mc_proxy_routing(const proxy_instance* p);
 
-    void event_new_source(const std::shared_ptr<proxy_msg>& msg) override;
+    virtual void event_new_source(const std::shared_ptr<proxy_msg>& msg) override;
 
-    void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) override;
+    virtual void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) override;
 
-    void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg) override;
+    virtual void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg) override;
 
-    std::string to_string() const override;
+    virtual std::string to_string() const override;
 };
 
 

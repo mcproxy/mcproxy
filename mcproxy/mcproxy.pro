@@ -56,6 +56,7 @@ SOURCES += src/main.cpp \
            src/proxy/def.cpp \
            src/proxy/simple_mc_proxy_routing.cpp \
            src/proxy/simple_routing_data.cpp \
+           src/proxy/config_defined_routing.cpp \
                #parser
            src/parser/scanner.cpp \
            src/parser/token.cpp \
@@ -97,6 +98,7 @@ HEADERS += include/hamcast_logging.h \
            include/proxy/routing_management.hpp \
            include/proxy/simple_mc_proxy_routing.hpp \
            include/proxy/simple_routing_data.hpp \
+           include/proxy/config_defined_routing.hpp \
                #parser
            include/parser/scanner.hpp \
            include/parser/token.hpp \
