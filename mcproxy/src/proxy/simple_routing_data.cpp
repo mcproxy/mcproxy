@@ -24,6 +24,7 @@
 #include "include/proxy/simple_routing_data.hpp"
 #include "include/proxy/message_format.hpp"
 #include "include/utils/mroute_socket.hpp"
+#include "include/proxy/interfaces.hpp"
 
 simple_routing_data::simple_routing_data(group_mem_protocol group_mem_protocol, std::shared_ptr<mroute_socket> mrt_sock)
     : m_group_mem_protocol(group_mem_protocol)
@@ -69,7 +70,7 @@ void simple_routing_data::set_source(unsigned int if_index, const addr_storage& 
         }
 
         auto map_result = gaddr_it->second.m_if_map.insert(std::pair<addr_storage, unsigned int>(saddr.saddr, if_index));
-        if(!map_result.second){
+        if (!map_result.second) {
             map_result.first->second = if_index;
             HC_LOG_WARN("data already exists");
         }
@@ -104,7 +105,8 @@ std::pair<source_list<source>::iterator, bool> simple_routing_data::refresh_sour
 
             auto cnt = get_current_packet_count(gaddr, saddr);
             if (static_cast<unsigned long>(saddr_it->retransmission_count) == cnt) {
-                gaddr_it->second.erase(saddr_it);
+                gaddr_it->second.m_source_list.erase(saddr_it);
+                gaddr_it->second.m_if_map.erase(saddr);
             } else {
                 saddr_it->retransmission_count = cnt;
                 return std::pair<source_list<source>::iterator, bool>(saddr_it, true);
@@ -112,8 +114,9 @@ std::pair<source_list<source>::iterator, bool> simple_routing_data::refresh_sour
 
         }
 
-        gaddr_it->second.erase(saddr);
-        if (gaddr_it->second.empty()) {
+        gaddr_it->second.m_source_list.erase(saddr);
+        gaddr_it->second.m_if_map.erase(saddr);
+        if (gaddr_it->second.m_source_list.empty()) {
             m_data.erase(gaddr_it);
         }
     }
@@ -128,7 +131,7 @@ source_list<source> simple_routing_data::get_available_sources(const addr_storag
 
     auto gaddr_it = m_data.find(gaddr);
     if (gaddr_it != std::end(m_data)) {
-        rt = gaddr_it->second * slist;
+        rt = gaddr_it->second.m_source_list * slist;
     }
 
     return rt;
@@ -141,12 +144,30 @@ std::string simple_routing_data::to_string() const
     ostringstream s;
     s << "##-- simple multicast routing information base --##";
 
-    for (auto &  b : m_data) {
-        s << endl << "\tgroup: " << b.first;
-        s << endl << "\t\tsources: " << b.second;
+    for (auto &  d : m_data) {
+        s << endl << "\tgroup: " << d.first;
+        s << endl << "\t\tsources: " << d.second.m_source_list;
+
+        for (auto & m : d.second.m_if_map) {
+            s << endl << "\t\t" << m.first  << " ==> " << interfaces::get_if_name(m.second);
+        }
+
     }
 
     return s.str();
+}
+
+const std::map<addr_storage, unsigned int>& simple_routing_data::get_interface_map(const addr_storage& gaddr)
+{
+    HC_LOG_TRACE("");
+    auto it = m_data.find(gaddr);
+    if(it != std::end(m_data)){
+        return it->second.m_if_map; 
+    }else{
+        static std::map<addr_storage, unsigned int> result;
+        result.clear();
+        return result; 
+    }
 }
 
 std::ostream& operator<<(std::ostream& stream, const simple_routing_data& rm)
