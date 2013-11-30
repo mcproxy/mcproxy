@@ -56,19 +56,26 @@ unsigned long simple_routing_data::get_current_packet_count(const addr_storage& 
     }
 }
 
-void simple_routing_data::set_source(const addr_storage& gaddr, const source& saddr)
+void simple_routing_data::set_source(unsigned int if_index, const addr_storage& gaddr, const source& saddr)
 {
     HC_LOG_TRACE("");
     auto gaddr_it = m_data.find(gaddr);
     if (gaddr_it != std::end(m_data)) {
-        auto result = gaddr_it->second.insert(saddr);
-        if (!result.second) {
+        auto list_result = gaddr_it->second.m_source_list.insert(saddr);
+        if (!list_result.second) { //failed to inert
             saddr.retransmission_count = get_current_packet_count(gaddr, saddr.saddr);
-            gaddr_it->second.erase(result.first);
-            gaddr_it->second.insert(saddr);
+            gaddr_it->second.m_source_list.erase(list_result.first);
+            gaddr_it->second.m_source_list.insert(saddr);
         }
+
+        auto map_result = gaddr_it->second.m_if_map.insert(std::pair<addr_storage, unsigned int>(saddr.saddr, if_index));
+        if(!map_result.second){
+            map_result.first->second = if_index;
+            HC_LOG_WARN("data already exists");
+        }
+
     } else {
-        m_data.insert(s_routing_data_pair(gaddr, {saddr} ));
+        m_data.insert(s_routing_data_pair(gaddr, sr_data_value({saddr}, {std::pair<addr_storage, unsigned int>(saddr.saddr, if_index)})));
     }
 }
 
@@ -77,8 +84,9 @@ void simple_routing_data::del_source(const addr_storage& gaddr, const addr_stora
     HC_LOG_TRACE("");
     auto gaddr_it = m_data.find(gaddr);
     if (gaddr_it != std::end(m_data)) {
-        gaddr_it->second.erase(saddr);
-        if (gaddr_it->second.empty()) {
+        gaddr_it->second.m_source_list.erase(saddr);
+        gaddr_it->second.m_if_map.erase(saddr);
+        if (gaddr_it->second.m_source_list.empty()) {
             m_data.erase(gaddr_it);
         }
     }
@@ -91,8 +99,8 @@ std::pair<source_list<source>::iterator, bool> simple_routing_data::refresh_sour
     auto gaddr_it = m_data.find(gaddr);
     if (gaddr_it != std::end(m_data)) {
 
-        auto saddr_it = gaddr_it->second.find(saddr);
-        if (saddr_it != std::end(gaddr_it->second)) {
+        auto saddr_it = gaddr_it->second.m_source_list.find(saddr);
+        if (saddr_it != std::end(gaddr_it->second.m_source_list)) {
 
             auto cnt = get_current_packet_count(gaddr, saddr);
             if (static_cast<unsigned long>(saddr_it->retransmission_count) == cnt) {

@@ -88,6 +88,7 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
         switch (msg->get_type()) {
         case proxy_msg::NEW_SOURCE_TIMER_MSG: {
             tm = std::static_pointer_cast<new_source_timer>(msg);
+            
             auto cmp_source_list = m_data.get_available_sources(tm->get_gaddr(), {tm->get_saddr()});
             if (!cmp_source_list.empty()) {
                 if (tm.get() == cmp_source_list.begin()->shared_source_timer.get()) {
@@ -102,6 +103,7 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
                     HC_LOG_DEBUG("filter_timer is outdate");
                 }
             }
+
         }
         break;
         default:

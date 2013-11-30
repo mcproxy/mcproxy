@@ -35,8 +35,19 @@ struct timer_msg;
 class mroute_socket;
 
 
-using s_routing_data = std::map<addr_storage,source_list<source>>;
-using s_routing_data_pair = std::pair<addr_storage,source_list<source>>;
+struct sr_data_value {
+    sr_data_value(const source_list<source>& slist, std::map<addr_storage, unsigned int> if_map)
+        : m_source_list(slist)
+        , m_if_map(if_map) {}
+
+    source_list<source> m_source_list;
+
+    //source address, interface index
+    std::map<addr_storage, unsigned int> m_if_map;
+};
+
+using s_routing_data = std::map<addr_storage, sr_data_value>;
+using s_routing_data_pair = std::pair<addr_storage,sr_data_value>;
 
 /**
  * @brief a small database for saving and maintaining multicast sources 
@@ -51,7 +62,7 @@ private:
 public:
     simple_routing_data(group_mem_protocol group_mem_protocol, std::shared_ptr<mroute_socket> mrt_sock);
 
-    void set_source(const addr_storage& gaddr, const source& saddr);
+    void set_source(unsigned int if_index, const addr_storage& gaddr, const source& saddr);
 
     void del_source(const addr_storage& gaddr, const addr_storage& saddr);
 
@@ -60,6 +71,9 @@ public:
     std::pair<source_list<source>::iterator, bool> refresh_source_or_del_it_if_unused(const addr_storage& gaddr, const addr_storage& saddr);
 
     source_list<source> get_available_sources(const addr_storage& gaddr, const source_list<source>& slist) const;
+
+    const std::map<addr_storage, unsigned int> get_interface_map(const addr_storage& gaddr);
+
 
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const simple_routing_data& srd); 
