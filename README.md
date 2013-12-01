@@ -115,3 +115,5 @@ Contact
 Project page: http://mcproxy.realmv6.org/
 
 Mailing list: multicast-proxy@googlegroups.com
+
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/b9a43dd68bb4fde3e3569ad98eda4ecc "githalytics.com")](http://githalytics.com/mcproxy/mcproxy)
