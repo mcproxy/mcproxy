@@ -920,7 +920,7 @@ void mc_socket::test_all()
     addr_storage saddr_v6a("FE80:5E26::2");
     std::string if_name("dummy0");
 
-    int port = 9845;
+    //int port = 9845;
 
     //mc_socket::test_mc_group_functions("AF_INET", "Hallo", if_name, gaddr_v4.to_string(), port);
     //mc_socket::test_mc_group_functions("AF_INET6", "Hallo", if_name, gaddr_v6.to_string(), port);

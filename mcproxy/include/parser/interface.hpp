@@ -208,7 +208,7 @@ class instance_definition
     std::list<std::shared_ptr<interface>> m_upstreams;
     std::list<std::shared_ptr<interface>> m_downstreams;
 
-    std::list<rule_binding> m_global_settings;
+    std::list<std::shared_ptr<rule_binding>> m_global_settings;
 public:
     instance_definition(const std::string& instance_name);
     instance_definition(const std::string& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams);

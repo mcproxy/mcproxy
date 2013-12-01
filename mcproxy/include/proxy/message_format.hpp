@@ -391,7 +391,8 @@ struct config_msg : public proxy_msg {
         ADD_DOWNSTREAM,
         DEL_DOWNSTREAM,
         ADD_UPSTREAM,
-        DEL_UPSTREAM
+        DEL_UPSTREAM,
+        SET_GLOBAL_RULE_BINDING
     };
 
     config_msg(config_instruction instruction, unsigned int if_index, unsigned int position, const std::shared_ptr<interface>& interf)
@@ -416,6 +417,12 @@ struct config_msg : public proxy_msg {
         HC_LOG_TRACE("");
     }
 
+    config_msg(std::shared_ptr<rule_binding> rule_binding)
+        : proxy_msg(CONFIG_MSG, SYSTEMIC)
+        , m_rule_binding(rule_binding) {
+        HC_LOG_TRACE("");
+    }
+
     config_instruction get_instruction() {
         return m_instruction;
     }
@@ -424,7 +431,7 @@ struct config_msg : public proxy_msg {
         return m_interface;
     }
 
-   unsigned int get_if_index() {
+    unsigned int get_if_index() {
         return m_if_index;
     }
 
@@ -436,12 +443,17 @@ struct config_msg : public proxy_msg {
         return m_tv;
     }
 
+    const std::shared_ptr<rule_binding>& get_rule_binding(){
+        return m_rule_binding; 
+    } 
+
 private:
     config_instruction m_instruction;
     unsigned int m_if_index;
     unsigned int m_position;
     std::shared_ptr<interface> m_interface;
     timers_values m_tv;
+    std::shared_ptr<rule_binding> m_rule_binding;
 };
 
 struct exit_cmd : public proxy_msg {

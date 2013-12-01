@@ -53,8 +53,8 @@ public:
     timers_values() = default;
     timers_values(const timers_values& tv);
     timers_values& operator=(const timers_values& tv);
-    timers_values(timers_values&& tv) = default;
-    timers_values& operator=(timers_values&& tv) = default;
+    timers_values(timers_values&&) = default;
+    timers_values& operator=(timers_values&&) = default;
 
     //--------------------------------------
     std::chrono::seconds qqic_to_qqi(bool first_bit, unsigned int exp, unsigned int mant) const;

@@ -72,7 +72,7 @@ public:
 
     source_list<source> get_available_sources(const addr_storage& gaddr, const source_list<source>& slist) const;
 
-    const std::map<addr_storage, unsigned int>& get_interface_map(const addr_storage& gaddr);
+    const std::map<addr_storage, unsigned int>& get_interface_map(const addr_storage& gaddr) const;
 
 
     std::string to_string() const;

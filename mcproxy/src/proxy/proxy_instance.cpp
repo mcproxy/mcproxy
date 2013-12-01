@@ -57,7 +57,11 @@ proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, const std:
     , m_receiver(nullptr)
     , m_routing(nullptr)
     , m_proxy_start_time(std::chrono::steady_clock::now())
+    , m_upstream_input_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_IN, RMT_FIRST, std::chrono::milliseconds(0)))
+    , m_upstream_output_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_OUT, RMT_ALL, std::chrono::milliseconds(0)))
 {
+
+    //rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, const std::chrono::milliseconds& timeout);
     HC_LOG_TRACE("");
 
     if (!init_mrt_socket()) {
@@ -289,7 +293,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     case config_msg::ADD_UPSTREAM: {
         //register interface
 
-        if (std::find_if(m_upstreams.begin(), m_upstreams.end(), [&](const upstream_infos& ui) {
+        if (std::find_if(m_upstreams.begin(), m_upstreams.end(), [&](const upstream_infos & ui) {
         return ui.m_if_index == msg->get_if_index();
         } ) == m_upstreams.end()) {
 
@@ -311,7 +315,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     break;
     case config_msg::DEL_UPSTREAM: {
         //unregister interface
-        auto it = std::find_if(m_upstreams.begin(), m_upstreams.end(), [&](const upstream_infos& ui) {
+        auto it = std::find_if(m_upstreams.begin(), m_upstreams.end(), [&](const upstream_infos & ui) {
             return ui.m_if_index == msg->get_if_index();
         } );
 
@@ -321,6 +325,29 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
             m_upstreams.erase(it);
         } else {
             HC_LOG_WARN("failed to delete upstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " interface not found");
+        }
+    }
+    break;
+    case config_msg::SET_GLOBAL_RULE_BINDING: {
+        auto rb = msg->get_rule_binding();
+        if (rb != nullptr) {
+            if (rb->get_rule_binding_type() == RBT_RULE_MATCHING) {
+                if (rb->get_interface_type() == IT_UPSTREAM) {
+                    if (rb->get_interface_direction() == ID_IN) {
+                        m_upstream_input_rule = rb;
+                    } else if (rb->get_interface_direction() == ID_OUT) {
+                        m_upstream_output_rule = rb;
+                    } else {
+                        HC_LOG_ERROR("failed to set global rule binding, interface direction not defined");
+                    }
+                } else {
+                    HC_LOG_ERROR("failed to set global rule binding, wrong interface type");
+                }
+            } else {
+                HC_LOG_ERROR("failed to set global rule binding, unknown rule binding type");
+            }
+        } else {
+            HC_LOG_ERROR("failed to set global rule binding, rule not defined");
         }
     }
     break;

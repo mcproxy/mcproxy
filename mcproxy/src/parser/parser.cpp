@@ -557,8 +557,8 @@ void parser::parse_interface_rule_match_binding(
 
     auto instance_it = ids.find(instance_name);
     if (instance_it != ids.end()) {
-        rule_binding rb(instance_name, interface_type, if_name, filter_direction, rule_matching_type, timeout);
-        (*instance_it)->m_global_settings.push_back(std::move(rb));
+        auto rb = std::make_shared<rule_binding>(instance_name, interface_type, if_name, filter_direction, rule_matching_type, timeout);
+        (*instance_it)->m_global_settings.push_back(rb);
         return;
     } else {
         HC_LOG_ERROR("failed to parse line " << m_current_line << " proxy instance " << m_current_token.get_string() << " not defined");

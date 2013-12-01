@@ -25,6 +25,7 @@
 
 #include "include/proxy/routing_management.hpp"
 #include "include/proxy/simple_routing_data.hpp"
+#include "include/parser/interface.hpp"
 
 #include <list>
 #include <memory>
@@ -53,7 +54,7 @@ protected:
 
     virtual void merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from ) const;
 
-    virtual void add_route(unsigned int input_if_index, const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const;
+    virtual void add_route(const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const;
 
     virtual void del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
 
@@ -61,6 +62,7 @@ protected:
 
     virtual std::shared_ptr<new_source_timer> set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
 
+    virtual bool check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
 public:
     simple_mc_proxy_routing(const proxy_instance* p);
 

@@ -46,10 +46,10 @@ void config_defined_routing::send_records(std::list<unsigned int> upstream_if_in
     simple_mc_proxy_routing::send_records(upstream_if_indexes, gaddr, filter_mode, slist);
 }
 
-void config_defined_routing::add_route(unsigned int input_if_index, const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const
+void config_defined_routing::add_route(const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const
 {
     HC_LOG_TRACE("");
-    simple_mc_proxy_routing::add_route(input_if_index, gaddr, output_if_index);
+    simple_mc_proxy_routing::add_route(gaddr, output_if_index);
 }
 
 

@@ -157,7 +157,7 @@ std::string simple_routing_data::to_string() const
     return s.str();
 }
 
-const std::map<addr_storage, unsigned int>& simple_routing_data::get_interface_map(const addr_storage& gaddr)
+const std::map<addr_storage, unsigned int>& simple_routing_data::get_interface_map(const addr_storage& gaddr) const
 {
     HC_LOG_TRACE("");
     auto it = m_data.find(gaddr);

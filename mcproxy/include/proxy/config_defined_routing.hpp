@@ -30,7 +30,7 @@ class config_defined_routing : public simple_mc_proxy_routing
 private:
     virtual void send_records(std::list<unsigned int> upstream_if_indexes, const addr_storage& gaddr, mc_filter filter_mode, const source_list<source>& slist) const override;
 
-    virtual void add_route(unsigned int input_if_index, const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const override;
+    virtual void add_route(const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const override;
 
 public:
     config_defined_routing(const proxy_instance* p);

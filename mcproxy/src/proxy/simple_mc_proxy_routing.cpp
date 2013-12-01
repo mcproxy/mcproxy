@@ -31,6 +31,8 @@
 #include "include/proxy/sender.hpp"
 #include "include/proxy/timing.hpp"
 
+#include <algorithm>
+
 simple_mc_proxy_routing::simple_mc_proxy_routing(const proxy_instance* p)
     : routing_management(p)
     , m_data(p->m_group_mem_protocol, p->m_mrt_sock)
@@ -55,8 +57,8 @@ void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>&
         s.shared_source_timer = set_source_timer(sm->get_if_index(), sm->get_gaddr(), sm->get_saddr());
 
         //route calculation
-        add_route(sm->get_if_index(), sm->get_gaddr(), collect_interested_interfaces(sm->get_if_index(), sm->get_gaddr(), {sm->get_saddr()}));
-        m_data.set_source(sm->get_gaddr(), s);
+        add_route(sm->get_gaddr(), collect_interested_interfaces(sm->get_if_index(), sm->get_gaddr(), {sm->get_saddr()}));
+        m_data.set_source(sm->get_if_index(), sm->get_gaddr(), s);
     }
     break;
     default:
@@ -71,7 +73,7 @@ void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, 
 
     //route calculation
     auto available_sources = m_data.get_available_sources(gaddr, slist);
-    add_route(if_index, gaddr, collect_interested_interfaces(if_index, gaddr, available_sources));
+    add_route(gaddr, collect_interested_interfaces(if_index, gaddr, available_sources));
 
     //membership agregation
     auto mem_info = collect_group_membership_infos(gaddr);
@@ -88,7 +90,7 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
         switch (msg->get_type()) {
         case proxy_msg::NEW_SOURCE_TIMER_MSG: {
             tm = std::static_pointer_cast<new_source_timer>(msg);
-            
+
             auto cmp_source_list = m_data.get_available_sources(tm->get_gaddr(), {tm->get_saddr()});
             if (!cmp_source_list.empty()) {
                 if (tm.get() == cmp_source_list.begin()->shared_source_timer.get()) {
@@ -205,17 +207,38 @@ void simple_mc_proxy_routing::merge_membership_infos(std::pair<mc_filter, source
     }
 }
 
-void simple_mc_proxy_routing::add_route(unsigned int input_if_index, const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const
+void simple_mc_proxy_routing::add_route(const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const
 {
     HC_LOG_TRACE("");
+
+    const std::map<addr_storage, unsigned int>& input_if_index_map = m_data.get_interface_map(gaddr);
+    unsigned int input_if_index;
+
     for (auto & e : output_if_index) {
         if (e.second.empty()) {
+
+            auto input_if_it = input_if_index_map.find(e.first.saddr);
+            if (input_if_it != std::end(input_if_index_map)) {
+                input_if_index = input_if_it->second;
+            } else {
+                HC_LOG_ERROR("failed to find input interface of  (" << gaddr << ", " << e.first.saddr);
+                continue;
+            }
+
             del_route(input_if_index, gaddr, e.first.saddr);
         } else {
             std::list<int> vif_out;
 
             for (auto outif : e.second) {
                 vif_out.push_back(m_p->m_interfaces->get_virtual_if_index(outif));
+            }
+
+            auto input_if_it = input_if_index_map.find(e.first.saddr);
+            if (input_if_it != std::end(input_if_index_map)) {
+                input_if_index = input_if_it->second;
+            } else {
+                HC_LOG_ERROR("failed to find input interface of  (" << gaddr << ", " << e.first.saddr);
+                continue;
             }
 
             m_p->m_routing->add_route(m_p->m_interfaces->get_virtual_if_index(input_if_index), gaddr, e.first.saddr, vif_out);
@@ -244,6 +267,43 @@ std::shared_ptr<new_source_timer>  simple_mc_proxy_routing::set_source_timer(uns
     m_p->m_timing->add_time(get_source_life_time(), m_p, nst);
 
     return nst;
+}
+
+bool simple_mc_proxy_routing::check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const
+{
+    HC_LOG_TRACE("");
+
+    if (interface_type == IT_UPSTREAM) {
+        if (interface_direction == ID_IN) {
+            //m_p->m_upstreams
+            auto uinfo_it = std::find_if(m_p->m_upstreams.begin(), m_p->m_upstreams.end(), [&](const proxy_instance::upstream_infos & ui) {
+                return ui.m_if_index == if_index;
+            });
+            if(uinfo_it != m_p->m_upstreams.end()){
+                uinfo_it->m_interface->match_input_filter(); 
+            }else{
+                HC_LOG_ERROR("interface " << interfaces::get_if_name(if_index) << " not found"); 
+            }
+        } else if (interface_direction == ID_OUT) {
+
+        } else {
+            HC_LOG_ERROR("unkown interface direction");
+        }
+    } else if (interface_type == IT_DOWNSTREAM) {
+        if (interface_direction == ID_IN) {
+
+        } else if (interface_direction == ID_OUT) {
+
+        } else {
+            HC_LOG_ERROR("unkown interface direction");
+        }
+
+    } else {
+        HC_LOG_ERROR("unkown interface type");
+    }
+
+
+    return false;
 }
 
 std::string simple_mc_proxy_routing::to_string() const
