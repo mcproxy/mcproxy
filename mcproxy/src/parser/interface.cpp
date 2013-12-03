@@ -507,7 +507,7 @@ const std::list<std::shared_ptr<interface>>& instance_definition::get_downstream
     return m_downstreams;
 }
 
-const std::list<rule_binding>& instance_definition::get_global_settings() const
+const std::list<std::shared_ptr<rule_binding>>& instance_definition::get_global_settings() const
 {
     HC_LOG_TRACE("");
     return m_global_settings;
@@ -554,7 +554,7 @@ std::string instance_definition::to_string_rule_binding() const
     }
 
     for (auto & e : m_global_settings) {
-        s << endl << e.to_string();
+        s << endl << e->to_string();
     }
 
     return s.str();

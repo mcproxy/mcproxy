@@ -215,7 +215,7 @@ public:
     const std::string& get_instance_name();
     const std::list<std::shared_ptr<interface>>& get_upstreams() const;
     const std::list<std::shared_ptr<interface>>& get_downstreams() const;
-    const std::list<rule_binding>& get_global_settings() const;
+    const std::list<std::shared_ptr<rule_binding>>& get_global_settings() const;
     friend bool operator<(const instance_definition& i1, const instance_definition& i2);
     friend class parser;
     std::string to_string_instance() const;

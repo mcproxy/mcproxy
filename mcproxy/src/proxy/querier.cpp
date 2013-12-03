@@ -750,7 +750,7 @@ timers_values& querier::get_timers_values()
     return m_timers_values;
 }
 
-void querier::suggest_to_forward_traffic(const addr_storage& gaddr, std::list<std::pair<source, std::list<unsigned int>>>& rt_slist) const
+void querier::suggest_to_forward_traffic(const addr_storage& gaddr, std::list<std::pair<source, std::list<unsigned int>>>& rt_slist, std::function<bool(const addr_storage&)> interface_filter_fun) const
 {
     HC_LOG_TRACE("");
 
@@ -761,14 +761,18 @@ void querier::suggest_to_forward_traffic(const addr_storage& gaddr, std::list<st
                 for (auto & e : rt_slist) {
                     auto irl_it = db_info_it->second.include_requested_list.find(e.first);
                     if (irl_it != std::end(db_info_it->second.include_requested_list) ) {
-                        e.second.push_back(m_if_index);
+                        if (interface_filter_fun(e.first.saddr)) {
+                            e.second.push_back(m_if_index);
+                        }
                     }
                 }
             } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
                 for (auto & e : rt_slist) {
                     auto el_it = db_info_it->second.exclude_list.find(e.first);
                     if (el_it == std::end(db_info_it->second.exclude_list) ) {
-                        e.second.push_back(m_if_index);
+                        if (interface_filter_fun(e.first.saddr)) {
+                            e.second.push_back(m_if_index);
+                        }
                     }
                 }
             } else {

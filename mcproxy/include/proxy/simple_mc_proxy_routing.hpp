@@ -46,15 +46,17 @@ protected:
     std::chrono::seconds get_source_life_time();
 
     virtual bool is_upstream(unsigned int if_index) const;
-    virtual std::list<unsigned int> get_upstreams() const;
+    virtual bool is_downstream(unsigned int if_index) const;
 
-    virtual std::list<std::pair<source, std::list<unsigned int>>> collect_interested_interfaces(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) const;
+    virtual bool is_rule_matching_type(rb_interface_type interface_type, rb_interface_direction interface_direction, rb_rule_matching_type rule_matching_type) const;
+
+    virtual std::list<std::pair<source, std::list<unsigned int>>> collect_interested_interfaces(unsigned int event_if_index, const addr_storage& gaddr, const source_list<source>& slist) const;
 
     virtual std::pair<mc_filter, source_list<source>> collect_group_membership_infos(const addr_storage& gaddr);
 
-    virtual void merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from ) const;
+    virtual void merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from) const;
 
-    virtual void add_route(const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const;
+    virtual void set_routes(const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const;
 
     virtual void del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
 
@@ -62,7 +64,7 @@ protected:
 
     virtual std::shared_ptr<new_source_timer> set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
 
-    virtual bool check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
+    virtual bool check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int checking_if_index, unsigned int input_if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
 public:
     simple_mc_proxy_routing(const proxy_instance* p);
 

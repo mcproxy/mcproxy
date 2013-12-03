@@ -124,9 +124,10 @@ public:
      * A querier can make suggestions to forward traffic to its maintained interface. 
      * @param gaddr make suggestion for traffic send to this group address.
      * @param rt_slist contains a list of sources for the suggestions and return list with the suggestions
+     * @param interface_filter_fun If the filter function is false the interface will be not added to rt_slist
      * If the querier suggest to forward traffic of the group address gaddr and the source it adds its own interface to the return list.
      */
-    void suggest_to_forward_traffic(const addr_storage& gaddr, std::list<std::pair<source, std::list<unsigned int>>>& rt_slist) const;
+    void suggest_to_forward_traffic(const addr_storage& gaddr, std::list<std::pair<source, std::list<unsigned int>>>& rt_slist, std::function<bool(const addr_storage&)> interface_filter_fun) const;
 
     /**
      * @return return all group membership information of group address gaddr

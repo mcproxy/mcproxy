@@ -80,7 +80,7 @@ pinstance split downstream tunD2 out whitelist table {tunU2(* | *)};
 
 #Multiple Upstream rule matching
 #===============================
-#pinstance  <proxy instance name> (upstream | downstream) <uif_name> [in | out] rulematching table <table name>;
+#pinstance  <proxy instance name> (upstream | downstream) <uif_name> [in | out] rulematching [all, first, mutex];
 #the interface name is unimportant (this rule is globla for all upstream per proxy instance)
 #pinstance A upstream eth0 out rulematching all; #default 
 #pinstance A upstream eth0 in rulematching first; #default 

@@ -57,8 +57,8 @@ void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>&
         s.shared_source_timer = set_source_timer(sm->get_if_index(), sm->get_gaddr(), sm->get_saddr());
 
         //route calculation
-        add_route(sm->get_gaddr(), collect_interested_interfaces(sm->get_if_index(), sm->get_gaddr(), {sm->get_saddr()}));
         m_data.set_source(sm->get_if_index(), sm->get_gaddr(), s);
+        set_routes(sm->get_gaddr(), collect_interested_interfaces(sm->get_if_index(), sm->get_gaddr(), {sm->get_saddr()}));
     }
     break;
     default:
@@ -67,17 +67,18 @@ void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>&
     }
 }
 
+
 void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist)
 {
     HC_LOG_TRACE("");
 
     //route calculation
     auto available_sources = m_data.get_available_sources(gaddr, slist);
-    add_route(gaddr, collect_interested_interfaces(if_index, gaddr, available_sources));
+    set_routes(gaddr, collect_interested_interfaces(if_index, gaddr, available_sources));
 
     //membership agregation
     auto mem_info = collect_group_membership_infos(gaddr);
-    send_records(get_upstreams(), gaddr, mem_info.first, mem_info.second);
+    //send_records(get_upstreams(), gaddr, mem_info.first, mem_info.second);
 }
 
 void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg)
@@ -132,35 +133,94 @@ bool simple_mc_proxy_routing::is_upstream(unsigned int if_index) const
     return false;
 }
 
-std::list<unsigned int> simple_mc_proxy_routing::get_upstreams() const
+bool simple_mc_proxy_routing::is_downstream(unsigned int if_index) const
 {
     HC_LOG_TRACE("");
 
-    std::list<unsigned int> result;
-
-    for (auto & e : m_p->m_upstreams) {
-        result.push_back(e.m_if_index);
-    }
-
-    return result;
+    return m_p->m_downstreams.find(if_index) != m_p->m_downstreams.end();
 }
 
-std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::collect_interested_interfaces(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) const
+bool simple_mc_proxy_routing::is_rule_matching_type(rb_interface_type interface_type, rb_interface_direction interface_direction, rb_rule_matching_type rule_matching_type) const
 {
     HC_LOG_TRACE("");
 
-    std::list<std::pair<source, std::list<unsigned int>>> rt_list;
-    for (auto & e : slist) {
-        if (is_upstream(if_index)) {
-            rt_list.push_back(std::pair<source, std::list<unsigned int>>(e, {}));
+    if (interface_type == IT_UPSTREAM) {
+        if (interface_direction == ID_IN) {
+            if (m_p->m_upstream_input_rule != nullptr) {
+                return m_p->m_upstream_input_rule->get_rule_matching_type() == rule_matching_type;
+            } else {
+                HC_LOG_ERROR("upstream input rule is null");
+                return false;
+            }
+        } else if (interface_direction == ID_OUT) {
+            if (m_p->m_upstream_output_rule != nullptr) {
+                return m_p->m_upstream_output_rule->get_rule_matching_type() == rule_matching_type;
+            } else {
+                HC_LOG_ERROR("upstream output rule is null");
+                return false;
+            }
         } else {
-            rt_list.push_back(std::pair<source, std::list<unsigned int>>(e, get_upstreams()));
+            HC_LOG_ERROR("interface direction not supported");
+            return false;
+        }
+    } else {
+        HC_LOG_ERROR("interface type not supported");
+        return false;
+    }
+}
+
+std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::collect_interested_interfaces(unsigned int event_if_index, const addr_storage& gaddr, const source_list<source>& slist) const
+{
+    HC_LOG_TRACE("");
+
+    const std::map<addr_storage, unsigned int>& input_if_index_map = m_data.get_interface_map(gaddr);
+
+    //add upstream interfaces
+    std::list<std::pair<source, std::list<unsigned int>>> rt_list;
+    for (auto & s : slist) {
+        if (is_downstream(event_if_index)) {
+            auto input_if_it = input_if_index_map.find(s.saddr);
+            if (input_if_it == input_if_index_map.end()) {
+                HC_LOG_ERROR("input interface of multicast source " << s.saddr << " not found");
+                continue;
+            }
+
+            std::list<unsigned int> up_if_list;
+            for (auto ui : m_p->m_upstreams) {
+                if (check_interface(IT_UPSTREAM, ID_OUT, ui.m_if_index, input_if_it->second, gaddr, s.saddr)) {
+
+                    if (is_rule_matching_type(IT_UPSTREAM, ID_OUT, RMT_ALL)) {
+                        up_if_list.push_back(ui.m_if_index);
+                    } else if (is_rule_matching_type(IT_UPSTREAM, ID_OUT, RMT_FIRST)) {
+                        up_if_list.push_back(ui.m_if_index);
+                        break;
+                    } else {
+                        HC_LOG_ERROR("unknown rule matching type");
+                    }
+
+                }
+            }
+            rt_list.push_back(std::pair<source, std::list<unsigned int>>(s, up_if_list));
+
+        } else { //data from an upstream are not forwarded to an other upstream interface
+            rt_list.push_back(std::pair<source, std::list<unsigned int>>(s, {}));
         }
     }
 
-    for (auto & e : m_p->m_downstreams) {
-        if (e.first != if_index) {
-            e.second.m_querier->suggest_to_forward_traffic(gaddr, rt_list);
+    //add downstream interfaces
+    std::function<bool(unsigned int, const addr_storage&)> filter_fun = [&](unsigned int output_if_index, const addr_storage & saddr) {
+        auto input_if_it = input_if_index_map.find(saddr);
+        if (input_if_it == input_if_index_map.end()) {
+            HC_LOG_ERROR("input interface of multicast source " << saddr << " not found");
+            return false;
+        }
+
+        return check_interface(IT_DOWNSTREAM, ID_OUT, output_if_index, input_if_it->second, gaddr, saddr);
+    };
+
+    for (auto & dif : m_p->m_downstreams) {
+        if (dif.first != event_if_index) {
+            dif.second.m_querier->suggest_to_forward_traffic(gaddr, rt_list, std::bind(filter_fun, dif.first, std::placeholders::_1));
         }
     }
 
@@ -175,11 +235,14 @@ std::pair<mc_filter, source_list<source>> simple_mc_proxy_routing::collect_group
     rt_pair.second = {};
 
     for (auto & e : m_p->m_downstreams) {
+        //check_interface(IT_DOWNSTREAM, ID_OUT, e.first, );
         merge_membership_infos(rt_pair, e.second.m_querier->get_group_mebership_infos(gaddr));
     }
 
     return rt_pair;
 }
+
+//bool simple_mc_proxy_routing::check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int checking_if_index, unsigned int input_if_index, const addr_storage& gaddr, const addr_storage& saddr) const
 
 void simple_mc_proxy_routing::merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from) const
 {
@@ -207,7 +270,7 @@ void simple_mc_proxy_routing::merge_membership_infos(std::pair<mc_filter, source
     }
 }
 
-void simple_mc_proxy_routing::add_route(const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const
+void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const
 {
     HC_LOG_TRACE("");
 
@@ -236,6 +299,25 @@ void simple_mc_proxy_routing::add_route(const addr_storage& gaddr, const std::li
             auto input_if_it = input_if_index_map.find(e.first.saddr);
             if (input_if_it != std::end(input_if_index_map)) {
                 input_if_index = input_if_it->second;
+
+
+                bool use_this_interface = false;
+                if (is_upstream(input_if_index)) {
+                    if (!check_interface(IT_UPSTREAM, ID_IN, input_if_index, input_if_index, gaddr, e.first.saddr)) {
+                        use_this_interface = true;
+                    }
+                }
+
+                if (!use_this_interface && is_downstream(input_if_index)) {
+                    if (!check_interface(IT_DOWNSTREAM, ID_IN, input_if_index, input_if_index, gaddr, e.first.saddr)) {
+                        use_this_interface = true;
+                    }
+                }
+
+                if (!use_this_interface) {
+                    continue;
+                }
+
             } else {
                 HC_LOG_ERROR("failed to find input interface of  (" << gaddr << ", " << e.first.saddr);
                 continue;
@@ -260,7 +342,7 @@ void simple_mc_proxy_routing::del_route(unsigned int if_index, const addr_storag
     m_p->m_routing->del_route(m_p->m_interfaces->get_virtual_if_index(if_index), gaddr, saddr);
 }
 
-std::shared_ptr<new_source_timer>  simple_mc_proxy_routing::set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
+std::shared_ptr<new_source_timer> simple_mc_proxy_routing::set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
 {
     HC_LOG_TRACE("");
     auto nst = std::make_shared<new_source_timer>(if_index, gaddr, saddr, get_source_life_time());
@@ -269,41 +351,54 @@ std::shared_ptr<new_source_timer>  simple_mc_proxy_routing::set_source_timer(uns
     return nst;
 }
 
-bool simple_mc_proxy_routing::check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const
+bool simple_mc_proxy_routing::check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int checking_if_index, unsigned int input_if_index, const addr_storage& gaddr, const addr_storage& saddr) const
 {
     HC_LOG_TRACE("");
 
+    std::shared_ptr<interface> interf;
     if (interface_type == IT_UPSTREAM) {
-        if (interface_direction == ID_IN) {
-            //m_p->m_upstreams
-            auto uinfo_it = std::find_if(m_p->m_upstreams.begin(), m_p->m_upstreams.end(), [&](const proxy_instance::upstream_infos & ui) {
-                return ui.m_if_index == if_index;
-            });
-            if(uinfo_it != m_p->m_upstreams.end()){
-                uinfo_it->m_interface->match_input_filter(); 
-            }else{
-                HC_LOG_ERROR("interface " << interfaces::get_if_name(if_index) << " not found"); 
-            }
-        } else if (interface_direction == ID_OUT) {
+        auto uinfo_it = std::find_if(m_p->m_upstreams.begin(), m_p->m_upstreams.end(), [&](const proxy_instance::upstream_infos & ui) {
+            return ui.m_if_index == checking_if_index;
+        });
 
+        if (uinfo_it != m_p->m_upstreams.end()) {
+            interf = uinfo_it->m_interface;
         } else {
-            HC_LOG_ERROR("unkown interface direction");
+            HC_LOG_ERROR("upstream interface " << interfaces::get_if_name(checking_if_index) << " not found");
+            return false;
         }
     } else if (interface_type == IT_DOWNSTREAM) {
-        if (interface_direction == ID_IN) {
-
-        } else if (interface_direction == ID_OUT) {
-
+        auto dinfo_it = m_p->m_downstreams.find(checking_if_index);
+        if (dinfo_it != m_p->m_downstreams.end()) {
+            interf = dinfo_it->second.m_interface;
         } else {
-            HC_LOG_ERROR("unkown interface direction");
+            HC_LOG_ERROR("downstream interface " << interfaces::get_if_name(checking_if_index) << " not found");
+            return false;
         }
-
     } else {
         HC_LOG_ERROR("unkown interface type");
+        return false;
     }
 
+    if (interf == nullptr) {
+        HC_LOG_ERROR("interface rule_binding of interface " << interfaces::get_if_name(checking_if_index) << " not found");
+        return false;
+    }
 
-    return false;
+    std::string input_if_index_name = interfaces::get_if_name(input_if_index);
+    if (!input_if_index_name.empty()) {
+        if (interface_direction == ID_IN) {
+            return interf->match_input_filter(input_if_index_name, gaddr, saddr);
+        } else if (interface_direction == ID_OUT) {
+            return interf->match_output_filter(input_if_index_name, gaddr, saddr);
+        } else {
+            HC_LOG_ERROR("unkown interface direction");
+            return false;
+        }
+    } else {
+        HC_LOG_ERROR("failed to map interface index " << input_if_index << " to interface name");
+        return false;
+    }
 }
 
 std::string simple_mc_proxy_routing::to_string() const
