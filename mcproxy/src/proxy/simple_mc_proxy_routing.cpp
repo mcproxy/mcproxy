@@ -117,7 +117,6 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
         HC_LOG_DEBUG("filter_timer is outdate");
         return;
     }
-
 }
 
 bool simple_mc_proxy_routing::is_upstream(unsigned int if_index) const
@@ -230,18 +229,44 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
 std::pair<mc_filter, source_list<source>> simple_mc_proxy_routing::collect_group_membership_infos(const addr_storage& gaddr)
 {
     HC_LOG_TRACE("");
+    const std::map<addr_storage, unsigned int>& input_if_index_map = m_data.get_interface_map(gaddr);
+
     std::pair<mc_filter, source_list<source>> rt_pair;
     rt_pair.first = INCLUDE_MODE;
     rt_pair.second = {};
 
+    //std::function<bool(unsigned int, const addr_storage&)> filter_fun = [&](unsigned int output_if_index, const addr_storage & saddr) {
+    //auto input_if_it = input_if_index_map.find(saddr);
+    //if (input_if_it == input_if_index_map.end()) {
+    //HC_LOG_ERROR("input interface of multicast source " << saddr << " not found");
+    //return false;
+    //}
+
+    //return check_interface(IT_DOWNSTREAM, ID_OUT, output_if_index, input_if_it->second, gaddr, saddr);
+    //};
+
     for (auto & e : m_p->m_downstreams) {
-        //check_interface(IT_DOWNSTREAM, ID_OUT, e.first, );
-        merge_membership_infos(rt_pair, e.second.m_querier->get_group_mebership_infos(gaddr));
+        std::pair<mc_filter, source_list<source>> merge_from = e.second.m_querier->get_group_mebership_infos(gaddr);
+        source_list<source>& check_sources = merge_from.second;
+        for (auto & s : check_sources) {
+            auto input_if_it = input_if_index_map.find(s.saddr);
+            if (input_if_it == input_if_index_map.end()) {
+                HC_LOG_ERROR("input interface of multicast source " << s.saddr << " not found");
+                continue;
+            }
+
+            if (!check_interface(IT_DOWNSTREAM, ID_OUT, e.first, input_if_it->second, gaddr, s.saddr)) {
+
+            }
+        }
+
+        merge_membership_infos(rt_pair, merge_from);
     }
 
     return rt_pair;
 }
 
+//const std::pair<mc_filter, source_list<source>>& merge_from
 //bool simple_mc_proxy_routing::check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int checking_if_index, unsigned int input_if_index, const addr_storage& gaddr, const addr_storage& saddr) const
 
 void simple_mc_proxy_routing::merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from) const
