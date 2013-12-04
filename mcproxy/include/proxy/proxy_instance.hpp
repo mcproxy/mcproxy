@@ -49,6 +49,7 @@ class mroute_socket;
 class interface;
 class simple_mc_proxy_routing;
 class routing_management;
+class interface_memberships;
 
 /**
  * @brief Represent a multicast Proxy (RFC 4605)
@@ -150,6 +151,7 @@ public:
 
     friend routing_management;
     friend simple_mc_proxy_routing;
+    friend interface_memberships;
 };
 
 #endif // PROXY_INSTANCE_HPP

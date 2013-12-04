@@ -33,6 +33,150 @@
 
 #include <algorithm>
 
+//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
+
+source_state::source_state()
+    : m_mc_filter(INCLUDE_MODE)
+{
+    HC_LOG_TRACE("");
+}
+
+source_state::source_state(std::pair<mc_filter, source_list<source>> sstate)
+    : m_mc_filter(sstate.first)
+    , m_source_list(sstate.second)
+{
+    HC_LOG_TRACE("");
+}
+
+//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
+interface_memberships::interface_memberships(const addr_storage& gaddr, const proxy_instance* pi)
+{
+    HC_LOG_TRACE("");
+
+
+    std::list<std::pair<source_state, const std::shared_ptr<const interface>&>> init_sstate_list;
+    for (auto & downs_e : pi->m_downstreams) {
+        init_sstate_list.push_back(std::pair<source_state, const std::shared_ptr<const interface>&>(source_state(downs_e.second.m_querier->get_group_mebership_infos(gaddr)), downs_e.second.m_interface));
+    }
+
+    //init and fill database
+    for (auto & upstr_e : pi->m_upstreams) {
+
+        std::list<source_state> tmp_sstate_list;
+        source_state tmp_sstate;
+        
+        for (auto & current_sstate : init_sstate_list) {
+
+            //sort out all unwanted sources
+            for (auto source_it = current_sstate.m_source_list.begin(); source_it != current_sstate.m_source_list.end(); ) {
+
+                //downstream out
+                if (!downs_e.second.m_interface->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                    source_it = current_sstate.m_source_list.erase(source_it);
+                    continue;
+                }
+
+                //upstream in
+                if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                    tmp_sstate.m_source_list.insert(*source_it);
+                    source_it = current_sstate.m_source_list.erase(source_it);
+                    continue;
+                }
+
+                ++source_it;
+            }
+
+
+
+
+
+        }
+
+        m_data.push_back(std::pair<unsigned int, std::list<source_state>>(upstr_e.m_if_index, init_sstate_list));
+        init_sstate_list = std::move(tmp_sstate_list);
+    }
+
+
+
+}
+
+void interface_memberships::merge_membership_infos(source_state& merge_to, const source_state& merge_from) const
+{
+    HC_LOG_TRACE("");
+
+    if (merge_to.m_mc_filter == INCLUDE_MODE) {
+        if (merge_from.m_mc_filter == INCLUDE_MODE) {
+            merge_to.m_source_list += merge_from.m_source_list;
+        } else if (merge_from.m_mc_filter == EXLCUDE_MODE) {
+            merge_to.m_mc_filter = EXLCUDE_MODE;
+            merge_to.m_source_list = merge_from.m_source_list - merge_to.m_source_list;
+        } else {
+            HC_LOG_ERROR("unknown filter mode in parameter merge_from");
+        }
+    } else if (merge_to.m_mc_filter == EXLCUDE_MODE) {
+        if (merge_from.m_mc_filter == INCLUDE_MODE) {
+            merge_to.m_source_list -= merge_from.m_source_list;
+        } else if (merge_from.m_mc_filter == EXLCUDE_MODE) {
+            merge_to.m_source_list *= merge_from.m_source_list;
+        } else {
+            HC_LOG_ERROR("unknown filter mode in parameter merge_from");
+        }
+    } else {
+        HC_LOG_ERROR("unknown filter mode in parameter merge_to");
+    }
+}
+
+
+source_state interface_memberships::get_group_memberships(unsigned int upstream_if_index)
+{
+    HC_LOG_TRACE("");
+
+    source_state result;
+    auto data_it = m_data.begin();
+    if (data_it->first != upstream_if_index) {
+        HC_LOG_ERROR("unexpected upstream interface " << interfaces::get_if_name(upstream_if_index));
+        return result;
+    }
+
+    for (auto & e : data_it->second) {
+        merge_membership_infos(result, e);
+    }
+
+    m_data.pop_front();
+    return result;
+}
+
+//std::pair<mc_filter, source_list<source>> simple_mc_proxy_routing::collect_group_membership_infos(unsigned int input_if, const addr_storage& gaddr)
+//{
+//HC_LOG_TRACE("");
+
+//std::pair<mc_filter, source_list<source>> rt_pair;
+//rt_pair.first = INCLUDE_MODE;
+//rt_pair.second = {};
+
+//for (auto & e : m_p->m_downstreams) {
+//std::pair<mc_filter, source_list<source>> merge_from = e.second.m_querier->get_group_mebership_infos(gaddr);
+//source_list<source>& check_sources = merge_from.second;
+//for (auto it = check_sources.begin(); it != check_sources.end();) {
+//if (!check_interface(IT_DOWNSTREAM, ID_OUT, e.first, input_if, gaddr, it->saddr)) {
+//it = check_sources.erase(it);
+//continue;
+//}
+//++it;
+//}
+
+////merge_membership_infos(rt_pair, merge_from);
+//}
+
+//return rt_pair;
+//}
+
+
+
+//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 simple_mc_proxy_routing::simple_mc_proxy_routing(const proxy_instance* p)
     : routing_management(p)
     , m_data(p->m_group_mem_protocol, p->m_mrt_sock)
@@ -77,9 +221,19 @@ void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, 
     set_routes(gaddr, collect_interested_interfaces(if_index, gaddr, available_sources));
 
     //membership agregation
-    auto mem_info = collect_group_membership_infos(gaddr);
-    //send_records(get_upstreams(), gaddr, mem_info.first, mem_info.second);
+    if (is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_FIRST)) {
+        for (auto & e : m_p->m_upstreams) {
+            auto mem_info = collect_group_membership_infos(e.m_if_index, gaddr);
+            send_records({e.m_if_index}, gaddr, mem_info);
+        }
+    } else if (is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_MUTEX)) {
+
+    } else {
+        HC_LOG_ERROR("unkown rule matching type in this context");
+    }
 }
+
+//bool simple_mc_proxy_routing::is_rule_matching_type(rb_interface_type interface_type, rb_interface_direction interface_direction, rb_rule_matching_type rule_matching_type) const
 
 void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg)
 {
@@ -226,75 +380,6 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
     return rt_list;
 }
 
-std::pair<mc_filter, source_list<source>> simple_mc_proxy_routing::collect_group_membership_infos(const addr_storage& gaddr)
-{
-    HC_LOG_TRACE("");
-    const std::map<addr_storage, unsigned int>& input_if_index_map = m_data.get_interface_map(gaddr);
-
-    std::pair<mc_filter, source_list<source>> rt_pair;
-    rt_pair.first = INCLUDE_MODE;
-    rt_pair.second = {};
-
-    //std::function<bool(unsigned int, const addr_storage&)> filter_fun = [&](unsigned int output_if_index, const addr_storage & saddr) {
-    //auto input_if_it = input_if_index_map.find(saddr);
-    //if (input_if_it == input_if_index_map.end()) {
-    //HC_LOG_ERROR("input interface of multicast source " << saddr << " not found");
-    //return false;
-    //}
-
-    //return check_interface(IT_DOWNSTREAM, ID_OUT, output_if_index, input_if_it->second, gaddr, saddr);
-    //};
-
-    for (auto & e : m_p->m_downstreams) {
-        std::pair<mc_filter, source_list<source>> merge_from = e.second.m_querier->get_group_mebership_infos(gaddr);
-        source_list<source>& check_sources = merge_from.second;
-        for (auto & s : check_sources) {
-            auto input_if_it = input_if_index_map.find(s.saddr);
-            if (input_if_it == input_if_index_map.end()) {
-                HC_LOG_ERROR("input interface of multicast source " << s.saddr << " not found");
-                continue;
-            }
-
-            if (!check_interface(IT_DOWNSTREAM, ID_OUT, e.first, input_if_it->second, gaddr, s.saddr)) {
-
-            }
-        }
-
-        merge_membership_infos(rt_pair, merge_from);
-    }
-
-    return rt_pair;
-}
-
-//const std::pair<mc_filter, source_list<source>>& merge_from
-//bool simple_mc_proxy_routing::check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int checking_if_index, unsigned int input_if_index, const addr_storage& gaddr, const addr_storage& saddr) const
-
-void simple_mc_proxy_routing::merge_membership_infos(std::pair<mc_filter, source_list<source>>& merge_to, const std::pair<mc_filter, source_list<source>>& merge_from) const
-{
-    HC_LOG_TRACE("");
-
-    if (merge_to.first == INCLUDE_MODE) {
-        if (merge_from.first == INCLUDE_MODE) {
-            merge_to.second += merge_from.second;
-        } else if (merge_from.first == EXLCUDE_MODE) {
-            merge_to.first = EXLCUDE_MODE;
-            merge_to.second = merge_from.second - merge_to.second;
-        } else {
-            HC_LOG_ERROR("unknown filter mode in parameter merge_from");
-        }
-    } else if (merge_to.first == EXLCUDE_MODE) {
-        if (merge_from.first == INCLUDE_MODE) {
-            merge_to.second -= merge_from.second;
-        } else if (merge_from.first == EXLCUDE_MODE) {
-            merge_to.second *= merge_from.second;
-        } else {
-            HC_LOG_ERROR("unknown filter mode in parameter merge_from");
-        }
-    } else {
-        HC_LOG_ERROR("unknown filter mode in parameter merge_to");
-    }
-}
-
 void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const
 {
     HC_LOG_TRACE("");
@@ -353,12 +438,10 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
     }
 }
 
-void simple_mc_proxy_routing::send_records(std::list<unsigned int> upstream_if_indexes, const addr_storage& gaddr, mc_filter filter_mode, const source_list<source>& slist) const
+void simple_mc_proxy_routing::send_records(unsigned int upstream_if_index, const addr_storage& gaddr, const source_state& sstate) const
 {
     HC_LOG_TRACE("");
-    for (auto upstream_if_index : upstream_if_indexes) {
-        m_p->m_sender->send_report(upstream_if_index, filter_mode, gaddr, slist);
-    }
+    m_p->m_sender->send_report(upstream_if_index, sstate.m_mc_filter, gaddr, sstate.m_source_list);
 }
 
 void simple_mc_proxy_routing::del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const
