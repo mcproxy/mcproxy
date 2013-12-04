@@ -55,7 +55,6 @@ interface_memberships::interface_memberships(const addr_storage& gaddr, const pr
 {
     HC_LOG_TRACE("");
 
-
     std::list<std::pair<source_state, const std::shared_ptr<const interface>&>> init_sstate_list;
     for (auto & downs_e : pi->m_downstreams) {
         init_sstate_list.push_back(std::pair<source_state, const std::shared_ptr<const interface>&>(source_state(downs_e.second.m_querier->get_group_mebership_infos(gaddr)), downs_e.second.m_interface));
@@ -64,41 +63,45 @@ interface_memberships::interface_memberships(const addr_storage& gaddr, const pr
     //init and fill database
     for (auto & upstr_e : pi->m_upstreams) {
 
-        std::list<source_state> tmp_sstate_list;
-        source_state tmp_sstate;
+        std::list<source_state, const std::shared_ptr<const interface>&> tmp_sstate_list;
         
-        for (auto & current_sstate : init_sstate_list) {
+        for (auto & cs : init_sstate_list) {
 
+            source_state tmp_sstate;
+            tmp_sstate.m_mc_filter = cs.first.m_mc_filter;
+            
             //sort out all unwanted sources
-            for (auto source_it = current_sstate.m_source_list.begin(); source_it != current_sstate.m_source_list.end(); ) {
+            for (auto source_it = cs.first.m_source_list.begin(); source_it != cs.first.m_source_list.end();) {
 
                 //downstream out
-                if (!downs_e.second.m_interface->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
-                    source_it = current_sstate.m_source_list.erase(source_it);
+                if (!cs.second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                    source_it = cs.first.m_source_list.erase(source_it);
                     continue;
                 }
 
                 //upstream in
                 if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
                     tmp_sstate.m_source_list.insert(*source_it);
-                    source_it = current_sstate.m_source_list.erase(source_it);
+                    source_it = cs.first.m_source_list.erase(source_it);
                     continue;
                 }
 
                 ++source_it;
             }
 
-
-
-
+            if(!tmp_sstate.m_source_list.empty()){
+                tmp_sstate_list.push_back(std::pair<source_state, const std::shared_ptr<const interface>&>(tmp_sstate, cs.second)); 
+            }
 
         }
 
-        m_data.push_back(std::pair<unsigned int, std::list<source_state>>(upstr_e.m_if_index, init_sstate_list));
+        std::list<source_state> ret_source_list;
+        for(auto & e: init_sstate_list){
+            ret_source_list.push_back(std::move(e.first)); 
+        }
+        m_data.push_back(std::pair<unsigned int, std::list<source_state>>(upstr_e.m_if_index, std::move(ret_source_list)));
         init_sstate_list = std::move(tmp_sstate_list);
     }
-
-
 
 }
 
