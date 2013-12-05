@@ -356,6 +356,26 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     }
 }
 
+bool proxy_instance::is_upstream(unsigned int if_index) const
+{
+    HC_LOG_TRACE("");
+
+    for (auto & e : m_upstreams) {
+        if (e.m_if_index == if_index) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool proxy_instance::is_downstream(unsigned int if_index) const
+{
+    HC_LOG_TRACE("");
+
+    return m_downstreams.find(if_index) != m_downstreams.end();
+}
+
 void proxy_instance::test_querier(std::string if_name)
 {
     using namespace std;

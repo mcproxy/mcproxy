@@ -45,11 +45,15 @@ struct source_state{
 class interface_memberships
 {
 private:
+    //upstream interface index, group memberhisps (of a specific group) of all downstreams
     std::list<std::pair<unsigned int, std::list<source_state>>> m_data;
 
     void merge_membership_infos(source_state& merge_to, const source_state& merge_from) const;
+
+    void process_upstream_in_first(const addr_storage& gaddr, const proxy_instance* pi);
+    void process_upstream_in_mutex(const addr_storage& gaddr, const proxy_instance* pi, const simple_routing_data& routing_data);
 public:
-    interface_memberships(const addr_storage& gaddr, const proxy_instance* pi);
+    interface_memberships(rb_rule_matching_type upstream_in_rule_matching_type, const addr_storage& gaddr, const proxy_instance* pi, const simple_routing_data& routing_data);
     
     source_state get_group_memberships(unsigned int upstream_if_index);
 };
@@ -64,13 +68,9 @@ private:
 
     std::chrono::seconds get_source_life_time();
 
-    bool is_upstream(unsigned int if_index) const;
-    bool is_downstream(unsigned int if_index) const;
-
     bool is_rule_matching_type(rb_interface_type interface_type, rb_interface_direction interface_direction, rb_rule_matching_type rule_matching_type) const;
 
     std::list<std::pair<source, std::list<unsigned int>>> collect_interested_interfaces(unsigned int event_if_index, const addr_storage& gaddr, const source_list<source>& slist) const;
-
 
     void set_routes(const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const;
 
@@ -81,6 +81,8 @@ private:
     std::shared_ptr<new_source_timer> set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
 
     bool check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int checking_if_index, unsigned int input_if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
+
+    void process_membership_aggregation(rb_rule_matching_type rule_matching_type, const addr_storage& gaddr);
 public:
     simple_mc_proxy_routing(const proxy_instance* p);
 

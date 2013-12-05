@@ -121,6 +121,9 @@ private:
     //add and del interfaces
     void handle_config(const std::shared_ptr<config_msg>& msg);
 
+    bool is_upstream(unsigned int if_index) const;
+    bool is_downstream(unsigned int if_index) const;
+
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const proxy_instance& pr_i);
 public:
