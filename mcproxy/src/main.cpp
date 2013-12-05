@@ -53,8 +53,8 @@ int main(int arg_count, char* args[])
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
 
 #ifndef TESTER
-    //test_mcproxy(arg_count, args);
-    test_test();
+    test_mcproxy(arg_count, args);
+    //test_test();
 
 
 #else

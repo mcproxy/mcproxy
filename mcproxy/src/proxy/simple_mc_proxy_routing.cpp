@@ -189,10 +189,11 @@ void interface_memberships::process_upstream_in_mutex(const addr_storage& gaddr,
                     //clean this->m_data
                     for (auto & data_e : m_data) {
                         for (auto sstate_it = data_e.second.begin(); sstate_it != data_e.second.end();) {
-                            std::remove_if(sstate_it->m_source_list.begin(), sstate_it->m_source_list.end(), [&source_it](const source & s) {
-                                return s.saddr == source_it->saddr;
-                                //return true;
-                            });
+
+                            auto s_it = sstate_it->m_source_list.find(*source_it);
+                            if(s_it != sstate_it->m_source_list.end()){
+                                sstate_it->m_source_list.erase(s_it);
+                            }
 
                             if(sstate_it->m_source_list.empty()){
                                sstate_it = data_e.second.erase(sstate_it);
