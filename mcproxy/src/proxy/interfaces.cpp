@@ -268,15 +268,16 @@ std::string interfaces::to_string() const
 {
     HC_LOG_TRACE("");
     std::ostringstream s;
-    s << "virtual interace index mapped to interface:" << std::endl;
+    s << "##-- interfaces --##" << std::endl;
+    s << "virtual interface index mapped to interface:" << std::endl;
     for (auto e : m_vif_if) {
-        s << "vif: " << e.first << " ==> " << "if: " << interfaces::get_if_name(e.second) << " (#" << e.second <<  ")" << std::endl;
+        s << "vif:" << e.first << " ==> " << "if:" << interfaces::get_if_name(e.second) << " (index:" << e.second <<  ")" << std::endl;
     }
 
     s << std::endl;
-    s << "interace mapped to virutal interface index:" << std::endl;
+    s << "interface mapped to virutal interface index:" << std::endl;
     for (auto e : m_vif_if) {
-        s << "if: " << interfaces::get_if_name(e.second) << " (#" << e.second << ")" <<  " ==> " << "vif: " << e.first <<  std::endl;
+        s << "if:" << interfaces::get_if_name(e.second) << " (index:" << e.second << ")" <<  " ==> " << "vif:" << e.first <<  std::endl;
     }
 
     s << std::endl;

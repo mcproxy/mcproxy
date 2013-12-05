@@ -205,7 +205,7 @@ void proxy::start_proxy_instances()
         }
 
         auto& upstreams = pinstance->get_upstreams();
-        auto& downstreams = pinstance->get_upstreams();
+        auto& downstreams = pinstance->get_downstreams();
 
         auto& interfaces = m_configuration->get_interfaces_for_pinstance(instance_name);
 
