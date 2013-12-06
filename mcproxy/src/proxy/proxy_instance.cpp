@@ -243,8 +243,9 @@ std::string proxy_instance::to_string() const
 
     s << "@@##-- proxy instance " << m_instance_name << " (table:" << m_table_number << ",lifetime:" << seconds << "sec)" << " --##@@" << std::endl;;
     s << *m_routing_management << std::endl;
+
     s << "##-- upstream interfaces --##" << std::endl;
-    for (auto & e : m_upstreams) {
+    for (auto & e: m_upstreams) {
         s << interfaces::get_if_name(e.m_if_index) << "(index:" << e.m_if_index << ") ";
     }
     s << std::endl;
@@ -275,7 +276,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
                 m_routing->add_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
                 m_receiver->registrate_interface(msg->get_if_index());
             } else {
-                HC_LOG_DEBUG("interface is also an upstream");
+                HC_LOG_DEBUG("interface also used as upstream");
             }
 
             //create a querier
@@ -292,16 +293,16 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
         if (it != std::end(m_downstreams)) {
             HC_LOG_DEBUG("del downstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
 
-            //delete querier
-            m_downstreams.erase(it);
-
             //unregister interface
             if (!is_upstream(msg->get_if_index())) {
                 m_routing->del_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
                 m_receiver->del_interface(msg->get_if_index());
             } else {
-                HC_LOG_DEBUG("interface is still an upstream");
+                HC_LOG_DEBUG("interface still used as upstream");
             }
+
+            //delete querier
+            m_downstreams.erase(it);
         } else {
             HC_LOG_WARN("failed to delete downstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " interface not found");
         }
@@ -319,7 +320,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
                 m_routing->add_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
                 m_receiver->registrate_interface(msg->get_if_index());
             } else {
-                HC_LOG_DEBUG("interface is also an downstream");
+                HC_LOG_DEBUG("interface also used as downstream");
             }
 
             if (m_upstreams.size() >= msg->get_position()) {
@@ -347,7 +348,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
                 m_routing->del_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
                 m_receiver->del_interface(msg->get_if_index());
             } else {
-                HC_LOG_DEBUG("interface is still an downstream");
+                HC_LOG_DEBUG("interface still used as downstream");
             }
 
             m_upstreams.erase(it);
