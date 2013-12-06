@@ -191,13 +191,13 @@ void interface_memberships::process_upstream_in_mutex(const addr_storage& gaddr,
                         for (auto sstate_it = data_e.second.begin(); sstate_it != data_e.second.end();) {
 
                             auto s_it = sstate_it->m_source_list.find(*source_it);
-                            if(s_it != sstate_it->m_source_list.end()){
+                            if (s_it != sstate_it->m_source_list.end()) {
                                 sstate_it->m_source_list.erase(s_it);
                             }
 
-                            if(sstate_it->m_source_list.empty()){
-                               sstate_it = data_e.second.erase(sstate_it);
-                               continue; 
+                            if (sstate_it->m_source_list.empty()) {
+                                sstate_it = data_e.second.erase(sstate_it);
+                                continue;
                             }
                             ++sstate_it;
                         }
@@ -217,7 +217,7 @@ void interface_memberships::process_upstream_in_mutex(const addr_storage& gaddr,
                 tmp_sstate_list.push_back(tmp_sstate);
             }
 
-            if(cs_it->first.m_source_list.empty()){
+            if (cs_it->first.m_source_list.empty()) {
                 cs_it = ref_sstate_list.erase(cs_it);
                 continue;
             }
@@ -475,8 +475,10 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
                 continue;
             }
 
+            std::cout << "########debug del_route: input_if:" << interfaces::get_if_name(input_if_index) << " gaddr:" << gaddr << " saddr:" << e.first.saddr << std::endl;
             del_route(input_if_index, gaddr, e.first.saddr);
         } else {
+            std::cout << "############################debug hier in set_route2" << std::endl;
             std::list<int> vif_out;
 
             for (auto outif : e.second) {
@@ -509,6 +511,12 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
                 HC_LOG_ERROR("failed to find input interface of  (" << gaddr << ", " << e.first.saddr);
                 continue;
             }
+
+            std::cout << "########debug add_route: input_if:" << interfaces::get_if_name(input_if_index) << " gaddr:" << gaddr << " saddr:" << e.first.saddr << " ";
+            for (auto x : e.second) {
+                std::cout << interfaces::get_if_name(x) << " ";
+            }
+            std::cout << std::endl;
 
             m_p->m_routing->add_route(m_p->m_interfaces->get_virtual_if_index(input_if_index), gaddr, e.first.saddr, vif_out);
         }

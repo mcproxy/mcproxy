@@ -39,8 +39,6 @@
 #include <vector>
 #include <functional>
 
-//class querier;
-//class interfaces;
 class timing;
 class receiver;
 class sender;
@@ -52,7 +50,7 @@ class routing_management;
 class interface_memberships;
 
 /**
- * @brief Represent a multicast Proxy (RFC 4605)
+ * @brief Represent a multicast proxy (RFC 4605)
  */
 class proxy_instance: public worker
 {

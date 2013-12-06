@@ -145,13 +145,12 @@ std::string simple_routing_data::to_string() const
     s << "##-- simple multicast routing information base --##";
 
     for (auto &  d : m_data) {
-        s << endl << "\tgroup: " << d.first;
-        s << endl << "\t\tsources: " << d.second.m_source_list;
+        s << endl << "group: " << d.first;
+        s << endl << "\tsources: " << d.second.m_source_list;
 
         for (auto & m : d.second.m_if_map) {
-            s << endl << "\t\t" << m.first  << " ==> " << interfaces::get_if_name(m.second);
+            s << endl << "\t" << m.first  << " ==> " << interfaces::get_if_name(m.second);
         }
-
     }
 
     return s.str();

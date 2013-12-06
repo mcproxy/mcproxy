@@ -271,6 +271,7 @@ std::string configuration::to_string() const
     HC_LOG_TRACE("");
     using namespace std;
     ostringstream s;
+    s << "##-- proxy configuration --##" << endl;
     s << "protocol " << get_group_mem_protocol_name(m_gmp) << endl;
     s << m_global_table_set->to_string() << endl;
     s << m_inst_def_set.to_string() << endl;

@@ -536,7 +536,7 @@ bool mc_socket::generic_group_sockopt(const addr_storage& gaddr, uint32_t if_ind
     rc = setsockopt (m_sock, family_to_level(gaddr.get_addr_family()), optname, &req, sizeof(req));
 
     if (rc == -1) {
-        HC_LOG_ERROR("failed to set socket option! Error: " << strerror(errno) << " errno: " << errno);
+        HC_LOG_WARN("failed to set socket option! Error: " << strerror(errno) << " errno: " << errno);
         return false;
     } else {
         return true;

@@ -205,7 +205,7 @@ void proxy::start_proxy_instances()
         }
 
         auto& upstreams = pinstance->get_upstreams();
-        auto& downstreams = pinstance->get_upstreams();
+        auto& downstreams = pinstance->get_downstreams();
 
         auto& interfaces = m_configuration->get_interfaces_for_pinstance(instance_name);
 
@@ -392,7 +392,7 @@ std::string proxy::to_string() const
     using namespace std;
     HC_LOG_TRACE("");
     ostringstream s;
-    s << "##-- multicst proxy status --##" << endl;
+    s << "##-- multicast proxy status --##" << endl;
     s << "is running: " << m_running << endl;
     s << "verbose level: " << m_verbose_lvl << endl;
     s << "print proxy_status information: " << m_print_proxy_status << endl;
