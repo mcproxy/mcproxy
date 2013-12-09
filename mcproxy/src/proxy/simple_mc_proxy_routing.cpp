@@ -276,9 +276,9 @@ void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>&
 
         //route calculation
         m_data.set_source(sm->get_if_index(), sm->get_gaddr(), s);
-        
+
         std::cout << "####################call from function EVENT_NEW_SOURCE on interface: " << interfaces::get_if_name(sm->get_if_index()) << std::endl;
-        set_routes(sm->get_gaddr(), collect_interested_interfaces(sm->get_if_index(), sm->get_gaddr(), {sm->get_saddr()}));
+        set_routes(sm->get_gaddr(), collect_interested_interfaces(sm->get_gaddr(), {sm->get_saddr()}));
 
 
         if (is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_MUTEX)) {
@@ -299,7 +299,7 @@ void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, 
 
     std::cout << "####################call from function EVENT_QUERIER_STATE_CHANGE on interface: " << interfaces::get_if_name(if_index) << std::endl;
     //route calculation
-    set_routes(gaddr, collect_interested_interfaces(if_index, gaddr, m_data.get_available_sources(gaddr)));
+    set_routes(gaddr, collect_interested_interfaces(gaddr, m_data.get_available_sources(gaddr)));
 
     //membership agregation
     if (is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_FIRST)) {
@@ -385,7 +385,7 @@ bool simple_mc_proxy_routing::is_rule_matching_type(rb_interface_type interface_
     }
 }
 
-std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::collect_interested_interfaces(unsigned int event_if_index, const addr_storage& gaddr, const source_list<source>& slist) const
+std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::collect_interested_interfaces(const addr_storage& gaddr, const source_list<source>& slist) const
 {
     HC_LOG_TRACE("");
 
@@ -394,7 +394,14 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
     //add upstream interfaces
     std::list<std::pair<source, std::list<unsigned int>>> rt_list;
     for (auto & s : slist) {
-        if (m_p->is_downstream(event_if_index)) {
+
+        auto input_if_it = input_if_index_map.find(s.saddr);
+        if (input_if_it == input_if_index_map.end()) {
+            HC_LOG_ERROR("input interface of multicast source " << s.saddr << " not found");
+            return rt_list;
+        }
+
+        if (m_p->is_downstream(input_if_it->second)) {
             auto input_if_it = input_if_index_map.find(s.saddr);
             if (input_if_it == input_if_index_map.end()) {
                 HC_LOG_ERROR("input interface of multicast source " << s.saddr << " not found");
@@ -431,13 +438,15 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
             return false;
         }
 
-        return check_interface(IT_DOWNSTREAM, ID_OUT, output_if_index, input_if_it->second, gaddr, saddr);
+        if (output_if_index != input_if_it->second) {
+            return check_interface(IT_DOWNSTREAM, ID_OUT, output_if_index, input_if_it->second, gaddr, saddr);
+        } else {
+            return false;
+        }
     };
 
     for (auto & dif : m_p->m_downstreams) {
-        if (dif.first != event_if_index) {
-            dif.second.m_querier->suggest_to_forward_traffic(gaddr, rt_list, std::bind(filter_fun, dif.first, std::placeholders::_1));
-        }
+        dif.second.m_querier->suggest_to_forward_traffic(gaddr, rt_list, std::bind(filter_fun, dif.first, std::placeholders::_1));
     }
 
     return rt_list;
@@ -474,8 +483,8 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
         }
         std::cout << std::endl;
     }
-    
-    if(output_if_index.empty()){
+
+    if (output_if_index.empty()) {
         std::cout << "##########no sources and no output interfaces" << std::endl;
     }
 
@@ -491,7 +500,7 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
 
     for (auto & e : output_if_index) {
         if (e.second.empty()) {
-            
+
             auto input_if_it = input_if_index_map.find(e.first.saddr);
             if (input_if_it != std::end(input_if_index_map)) {
                 input_if_index = input_if_it->second;
@@ -499,7 +508,7 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
                 HC_LOG_ERROR("failed to find input interface of  (" << gaddr << ", " << e.first.saddr);
                 continue;
             }
-            
+
             std::cout << "##########ACTION: del_route: " << interfaces::get_if_name(input_if_index) << " gaddr: " << gaddr << " saddr: " << e.first.saddr << std::endl;
 
             del_route(input_if_index, gaddr, e.first.saddr);

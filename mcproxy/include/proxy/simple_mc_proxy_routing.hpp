@@ -70,7 +70,7 @@ private:
 
     bool is_rule_matching_type(rb_interface_type interface_type, rb_interface_direction interface_direction, rb_rule_matching_type rule_matching_type) const;
 
-    std::list<std::pair<source, std::list<unsigned int>>> collect_interested_interfaces(unsigned int input_if_index, const addr_storage& gaddr, const source_list<source>& slist) const;
+    std::list<std::pair<source, std::list<unsigned int>>> collect_interested_interfaces(const addr_storage& gaddr, const source_list<source>& slist) const;
 
     void set_routes(const addr_storage& gaddr, const std::list<std::pair<source, std::list<unsigned int>>>& output_if_index) const;
 
