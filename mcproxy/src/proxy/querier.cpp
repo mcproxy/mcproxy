@@ -171,12 +171,11 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         //------------  ---------------  ----------------     -------
         //INCLUDE (A)     ALLOW (B)      INCLUDE (A+B)        (B)=MALI
     case ALLOW_NEW_SOURCES: {//ALLOW(x)
-        auto tmpB = B;
         A += B;
 
         mali(gaddr, A, std::move(B));
 
-        state_change_notification(gaddr, std::move(tmpB));
+        state_change_notification(gaddr);
     }
     break;
 
@@ -200,7 +199,8 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
         send_Q(gaddr, ginfo, ginfo.include_requested_list, (A * B)),
                mali(gaddr, filter_timer);
 
-        state_change_notification(gaddr, (A + B)); //all sources
+
+        state_change_notification(gaddr); //all sources
     }
     break;
 
@@ -208,13 +208,12 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
     //INCLUDE (A)     TO_IN (B)      INCLUDE (A+B)        (B)=MALI
     //                                                    Send Q(MA,A-B)
     case CHANGE_TO_INCLUDE_MODE: {//TO_IN(x)
-        auto tmpB = B;
         A += B;
 
         send_Q(gaddr, ginfo, A, (A - B));
         mali(gaddr, A, std::move(B));
 
-        state_change_notification(gaddr, std::move(tmpB));
+        state_change_notification(gaddr);
     }
     break;
 
@@ -229,19 +228,18 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
 
         mali(gaddr, filter_timer);
 
-        state_change_notification(gaddr, (A + B)); //all sources
+        state_change_notification(gaddr); //all sources
     }
     break;
 
 
     //INCLUDE (A)       IS_IN (B)     INCLUDE (A+B)      (B)=MALI
     case MODE_IS_INCLUDE: {//IS_IN(x)
-        auto tmpB = B;
         A += B;
 
         mali(gaddr, A, move(B));
 
-        state_change_notification(gaddr, std::move(B));
+        state_change_notification(gaddr);
     }
     break;
 
@@ -272,13 +270,12 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         //------------  ---------------  ----------------     -------
         //EXCLUDE (X,Y)   ALLOW (A)      EXCLUDE (X+A,Y-A)    (A)=MALI
     case ALLOW_NEW_SOURCES: {//ALLOW(x)
-        auto tmpA = A;
         X += A;
         Y -= A;
 
         mali(gaddr, X, std::move(A));
 
-        state_change_notification(gaddr, std::move(tmpA));
+        state_change_notification(gaddr);
     }
     break;
 
@@ -303,7 +300,6 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     //                                                    Send Q(MA,A-Y)
     //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: {//TO_EX(x)
-        auto tmpX = X;
         //filter_time(ginfo, A, (A - X) - Y); this is useless the source timer will be update again in send_Q()??????????????????
 
 
@@ -318,7 +314,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         send_Q(gaddr, ginfo, X, move(tmpXa)); //bad style, but i haven't a better solution right now ???????????
         mali(gaddr, filter_timer);
 
-        state_change_notification(gaddr, (A + tmpX));
+        state_change_notification(gaddr);
     }
     break;
 
@@ -327,7 +323,6 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     //                                                    Send Q(MA,X-A)
     //                                                    Send Q(MA)
     case CHANGE_TO_INCLUDE_MODE: {//TO_IN(x)
-        auto tmpA = A;
         X += A;
         Y -= A;
 
@@ -335,7 +330,7 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
         send_Q(gaddr, ginfo);
         mali(gaddr, X, std::move(A));
 
-        state_change_notification(gaddr, std::move(tmpA));
+        state_change_notification(gaddr);
     }
     break;
 
@@ -345,7 +340,6 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
     //                                                   Delete (Y-A)
     //                                                   Filter Timer=MALI
     case  MODE_IS_EXCLUDE: {//IS_EX(x)
-        auto tmpX = X;
         mali(gaddr, A, (A - X) - Y);
 
         //X = (A - Y);
@@ -357,20 +351,19 @@ void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type,
 
         mali(gaddr, filter_timer);
 
-        state_change_notification(gaddr, A + tmpX);
+        state_change_notification(gaddr);
     }
     break;
 
 
     //EXCLUDE (X,Y)     IS_IN (A)     EXCLUDE (X+A, Y-A) (A)=MALI
     case MODE_IS_INCLUDE: {//IS_IN(x)
-        auto tmpA = A;
         X += A;
         Y -= A;
 
         mali(gaddr, X, std::move(A));
 
-        state_change_notification(gaddr, std::move(tmpA));
+        state_change_notification(gaddr);
     }
     break;
     default:
@@ -476,21 +469,19 @@ void querier::timer_triggerd_filter_timer(gaddr_map::iterator db_info_it, const 
 
     if (ginfo.filter_mode == EXLCUDE_MODE) {
         if (ginfo.include_requested_list.empty()) {
-            source_list<source> notify_list = ginfo.exclude_list;
             addr_storage notify_gaddr = db_info_it->first;
 
             m_db.group_info.erase(db_info_it);
 
-            state_change_notification(notify_gaddr, std::move(notify_list)); //only A
+            state_change_notification(notify_gaddr); //only A
         } else {
-            source_list<source> notify_list = ginfo.exclude_list + ginfo.include_requested_list;
             addr_storage notify_gaddr = db_info_it->first;
 
             ginfo.filter_mode = INCLUDE_MODE;
             ginfo.shared_filter_timer.reset();
             ginfo.exclude_list.clear();
 
-            state_change_notification(notify_gaddr, std::move(notify_list)); //only A
+            state_change_notification(notify_gaddr); //only A
         }
     } else {
         HC_LOG_ERROR("filter_mode is not in expected mode EXCLUDE");
@@ -513,12 +504,10 @@ void querier::timer_triggerd_source_timer(gaddr_map::iterator db_info_it, const 
         //Include List.  If there are no more source records left, the
         //multicast address record is deleted from the router.
     case INCLUDE_MODE: {
-        source_list<source> notify_list;
         addr_storage notify_gaddr = db_info_it->first;
 
         for (auto it = std::begin(ginfo.include_requested_list); it != std::end(ginfo.include_requested_list);) {
             if (it->shared_source_timer.get() == msg.get()) {
-                notify_list.insert(*it);
 
                 it = ginfo.include_requested_list.erase(it);
                 continue;
@@ -531,7 +520,7 @@ void querier::timer_triggerd_source_timer(gaddr_map::iterator db_info_it, const 
         }
 
 
-        state_change_notification(notify_gaddr, std::move(notify_list)); //only A
+        state_change_notification(notify_gaddr); //only A
         break;
     }
 
@@ -540,7 +529,6 @@ void querier::timer_triggerd_source_timer(gaddr_map::iterator db_info_it, const 
     //of a source from the Requested List expires, the source is moved to
     //the Exclude List.
     case EXLCUDE_MODE: {
-        source_list<source> notify_list;
         addr_storage notify_gaddr = db_info_it->first;
 
         for (auto it = std::begin(ginfo.include_requested_list); it != std::end(ginfo.include_requested_list);) {
@@ -549,14 +537,12 @@ void querier::timer_triggerd_source_timer(gaddr_map::iterator db_info_it, const 
                 ginfo.exclude_list.insert(*it);
 
                 it = ginfo.include_requested_list.erase(it);
-
-                notify_list.insert(*it);
                 continue;
             }
             ++it;
         }
 
-        state_change_notification(notify_gaddr, std::move(notify_list)); //only A
+        state_change_notification(notify_gaddr); //only A
         break;
     }
     default:
@@ -732,10 +718,10 @@ void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<s
     }
 }
 
-void querier::state_change_notification(const addr_storage& gaddr, source_list<source>&& slist)
+void querier::state_change_notification(const addr_storage& gaddr)
 {
     HC_LOG_TRACE("");
-    m_cb_state_change(m_if_index, gaddr, slist);
+    m_cb_state_change(m_if_index, gaddr);
 }
 
 querier::~querier()

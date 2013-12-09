@@ -293,14 +293,13 @@ void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>&
     }
 }
 
-void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist)
+void simple_mc_proxy_routing::event_querier_state_change(unsigned int if_index, const addr_storage& gaddr)
 {
     HC_LOG_TRACE("");
 
-    //route calculation
-    auto available_sources = m_data.get_available_sources(gaddr, slist);
     std::cout << "####################call from function EVENT_QUERIER_STATE_CHANGE on interface: " << interfaces::get_if_name(if_index) << std::endl;
-    set_routes(gaddr, collect_interested_interfaces(if_index, gaddr, available_sources));
+    //route calculation
+    set_routes(gaddr, collect_interested_interfaces(if_index, gaddr, m_data.get_available_sources(gaddr)));
 
     //membership agregation
     if (is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_FIRST)) {
@@ -323,9 +322,10 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
         case proxy_msg::NEW_SOURCE_TIMER_MSG: {
             tm = std::static_pointer_cast<new_source_timer>(msg);
 
-            auto cmp_source_list = m_data.get_available_sources(tm->get_gaddr(), {tm->get_saddr()});
-            if (!cmp_source_list.empty()) {
-                if (tm.get() == cmp_source_list.begin()->shared_source_timer.get()) {
+            auto cmp_source_lst = m_data.get_available_sources(tm->get_gaddr());
+            auto cmp_source_it = cmp_source_lst.find(tm->get_saddr());
+            if (cmp_source_it != cmp_source_lst.end()) {
+                if (tm.get() == cmp_source_it->shared_source_timer.get()) {
                     auto saddr_it = m_data.refresh_source_or_del_it_if_unused(tm->get_gaddr(), tm->get_saddr());
                     if (!saddr_it.second) {
 
@@ -476,7 +476,7 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
     }
     
     if(output_if_index.empty()){
-        std::cout <<  "##########no sources and no output interfaces" << std::endl;
+        std::cout << "##########no sources and no output interfaces" << std::endl;
     }
 
     const std::map<addr_storage, unsigned int>& input_if_index_map = m_data.get_interface_map(gaddr);

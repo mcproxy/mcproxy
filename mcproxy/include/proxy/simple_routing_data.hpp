@@ -70,7 +70,7 @@ public:
     //iterator of the refrehed source
     std::pair<source_list<source>::iterator, bool> refresh_source_or_del_it_if_unused(const addr_storage& gaddr, const addr_storage& saddr);
 
-    source_list<source> get_available_sources(const addr_storage& gaddr, const source_list<source>& slist) const;
+    const source_list<source>& get_available_sources(const addr_storage& gaddr) const;
 
     const std::map<addr_storage, unsigned int>& get_interface_map(const addr_storage& gaddr) const;
 

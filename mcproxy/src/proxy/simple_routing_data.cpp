@@ -124,14 +124,15 @@ std::pair<source_list<source>::iterator, bool> simple_routing_data::refresh_sour
     return std::pair<source_list<source>::iterator, bool>(source_list<source>::iterator(), false);
 }
 
-source_list<source> simple_routing_data::get_available_sources(const addr_storage& gaddr, const source_list<source>& slist) const
+const source_list<source>& simple_routing_data::get_available_sources(const addr_storage& gaddr) const
 {
     HC_LOG_TRACE("");
-    source_list<source> rt;
+    static source_list<source> rt;
 
     auto gaddr_it = m_data.find(gaddr);
     if (gaddr_it != std::end(m_data)) {
-        rt = gaddr_it->second.m_source_list * slist;
+        rt.clear();
+        return gaddr_it->second.m_source_list;       
     }
 
     return rt;

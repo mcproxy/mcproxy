@@ -45,7 +45,7 @@ public:
     routing_management(const proxy_instance* p): m_p(p) {}
 
     virtual void event_new_source(const std::shared_ptr<proxy_msg>& msg) = 0;
-    virtual void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr, const source_list<source>& slist) = 0;
+    virtual void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr) = 0;
     virtual void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg) = 0;
 
     virtual std::string to_string() const {return std::string();}

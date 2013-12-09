@@ -39,7 +39,7 @@ class worker;
  * @brief Callback function to publish querier state change informations.
  * The callback function informs about the involved interface index, group address and the involved multicast sources.
  */
-using callback_querier_state_change = std::function<void(unsigned int, const addr_storage&, const source_list<source>&)>;
+using callback_querier_state_change = std::function<void(unsigned int, const addr_storage&)>;
 
 /**
  * @brief Defines the behaviour of a multicast querier for a specific interface.
@@ -90,7 +90,7 @@ private:
     void timer_triggerd_general_query_timer(const std::shared_ptr<timer_msg>& msg);
 
     //call the callback function querier_state_change
-    void state_change_notification(const addr_storage& gaddr, source_list<source>&& slist);
+    void state_change_notification(const addr_storage& gaddr);
 public:
 
     virtual ~querier();
