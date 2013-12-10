@@ -188,7 +188,7 @@ bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& 
         }
     }
 
-    q->igmp_cksum = m_sock.calc_checksum(reinterpret_cast<unsigned char*>(&q), size);
+    q->igmp_cksum = m_sock.calc_checksum(reinterpret_cast<unsigned char*>(q.get()), size);
 
     if (!m_sock.choose_if(if_index)) {
         return false;
