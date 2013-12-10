@@ -31,7 +31,44 @@
 #include <netinet/igmp.h>
 #include <netinet/ip.h>
 
+void print_buf(const unsigned char * buf, unsigned int size)
+{
 
+    for (unsigned int i = 0; i < size; i += 16) {
+        for (unsigned int j = i; j < 16 + i && j < size; j++) {
+
+            if (j % 8 == 0 && j % 16 != 0 && j != 0) {
+                printf(" ");
+            }
+
+            if (buf[j] == 0) {
+                printf("00 ");
+            } else if (buf[j] < 16 && buf[j] > 0) {
+                printf("0%X ", buf[j]);
+            } else {
+                printf("%X ", buf[j]);
+            }
+        }
+
+        printf("   ");
+
+        for (unsigned int j = i; j < 16 + i && j < size; j++) {
+
+            if (j % 8 == 0 && j % 16 != 0 && j != 0) {
+                printf(" ");
+            }
+
+            if (buf[j] == 0) {
+                printf(".");
+            } else {
+                printf("%c", buf[j]);
+            }
+        }
+
+        printf("\n");
+    }
+    printf("\n");
+}
 
 igmp_receiver::igmp_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode): receiver(pr_i, AF_INET, mrt_sock, interfaces, in_debug_testing_mode)
 {
@@ -153,6 +190,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             HC_LOG_ERROR("protocoll not supported igmpv2 leave group");
         } else if (igmp_hdr->igmp_type == IGMP_V3_MEMBERSHIP_REPORT) {
             HC_LOG_DEBUG("IGMP_V3_MEMBERSHIP_REPORT found");
+
             igmpv3_mc_report* v3_report = reinterpret_cast<igmpv3_mc_report*>(igmp_hdr);
             igmpv3_mc_record* rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(v3_report) + sizeof(igmpv3_mc_report));
 
@@ -177,12 +215,14 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 mcast_addr_record_type rec_type = static_cast<mcast_addr_record_type>(rec->type);
                 unsigned int aux_size = rec->aux_data_len * 4; //RFC 3376 Section 4.2.6 Aux Data Len
                 int nos = ntohs(rec->num_of_srcs);
+
                 gaddr = addr_storage(rec->gaddr);
                 source_list<source> slist;
+
+                in_addr* src = reinterpret_cast<in_addr*>(reinterpret_cast<unsigned char*>(rec) + sizeof(igmpv3_mc_record));
                 for (int j = 0; j < nos; ++j) {
-                    in_addr* src = reinterpret_cast<in_addr*>(reinterpret_cast<unsigned char*>(rec) + sizeof(in_addr));
                     slist.insert(addr_storage(*src));
-                    src++;
+                    ++src;
                 }
 
                 HC_LOG_DEBUG("record type: " << get_mcast_addr_record_type_name(rec_type));
