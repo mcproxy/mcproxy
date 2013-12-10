@@ -129,7 +129,7 @@ void tester(int arg_count, char* args[])
 
             for (unsigned int i = 1; i < g.size(); ++i) {
                 std::ostringstream s;
-                s << i << i << "." << i << "." << i << "." << i;
+                s << i << "." << i << "." << i << "." << i;
                 g[i] = s.str();
             }
         } else if (std::string(args[IP_VERSION]).compare("ipv6") == 0 ) {

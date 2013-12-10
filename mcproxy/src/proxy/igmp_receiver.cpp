@@ -188,6 +188,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 HC_LOG_DEBUG("record type: " << get_mcast_addr_record_type_name(rec_type));
                 HC_LOG_DEBUG("gaddr: " << gaddr);
                 HC_LOG_DEBUG("number of sources: " << slist.size());
+                HC_LOG_DEBUG("source_list: " << slist);
                 HC_LOG_DEBUG("send record to proxy_instance");
                 m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, move(slist), -1));
 
