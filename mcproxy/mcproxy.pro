@@ -1,14 +1,26 @@
 #QMAKE_CXX = clang
 #QMAKE_CC = clang
 
-TARGET = mcproxy
+CONFIG+=mcproxy #default mode
+
+tester {
+    CONFIG-=mcproxy #removes default mode
+    message("target tester")
+    TARGET = tester
+    DEFINES += TESTER
+}
+
+mcproxy { #default mode
+    message("target mcproxy")
+    TARGET = mcproxy
+}
 
 CONFIG(debug, debug|release) {
     message("debug mode")
     DEFINES += DEBUG_MODE
 }
 
-CONFIG(release, debug|release) {
+CONFIG(release, debug|release) { #default mode
     message("release mode")
 }
 
@@ -60,7 +72,10 @@ SOURCES += src/main.cpp \
            src/parser/token.cpp \
            src/parser/configuration.cpp \
            src/parser/parser.cpp \
-           src/parser/interface.cpp
+           src/parser/interface.cpp \
+                #tester
+           src/tester/config_map.cpp \
+           src/tester/tester.cpp
 
 HEADERS += include/hamcast_logging.h \
                 #utils
@@ -100,7 +115,10 @@ HEADERS += include/hamcast_logging.h \
            include/parser/token.hpp \
            include/parser/configuration.hpp \
            include/parser/parser.hpp \
-           include/parser/interface.hpp
+           include/parser/interface.hpp \
+                #tester
+           include/tester/config_map.hpp \
+           include/tester/tester.hpp
 
 
 LIBS += -L/usr/lib -lboost_thread \
@@ -108,6 +126,5 @@ LIBS += -L/usr/lib -lboost_thread \
         -lboost_system \
         -lpthread 
 
-QMAKE_CLEAN += $$TARGET
 QMAKE_CLEAN += thread* 
   

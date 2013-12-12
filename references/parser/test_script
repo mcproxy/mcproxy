@@ -2,30 +2,52 @@
 protocol IGMPv3; #default
 
 #configuration of proxy instance A) with the same behaviour of B) and C) 
-pinstance A: dummy0 dummy2 ==> dummy1 dummy3;
+pinstance myProxy: eth1 ==> eth4 eth5;
 
 #==================
 #                     
-#    A)   |      |    
-#         |      |    
-#      +--+------+--+ 
-#      | d0      d2 | 
+#    A)   |          
+#         |          
+#      +--+---------+ 
+#      | eth1       | 
 #      |            | 
-#      | d1      d3 | 
+#      | eth4  eth5 | 
 #      +--+------+--+ 
 #         |      |    
 #         |      |    
-#      Host_a  Host_b 
+#      mobi28  mobi29 
      
-table all_dummy1 {
-    dummy1(*|*)
+#table all_dummy1 {
+    #dummy1(*|*)
+#};
+
+#table all_dummy3 {
+    #dummy3(*|*)
+#};
+
+#pinstance A upstream dummy0 out whitelist table all_dummy1;
+#pinstance A upstream dummy2 in whitelist table all_dummy3;
+#pinstance A downstream dummy1 out whitelist table {(*|*)};
+#pinstance A upstream * out rulematching first;
+
+filter_1 {
+   (239.99.99.99 | *) 
 };
 
-table all_dummy3 {
-    dummy3(*|*)
+filter_2 {
+   (239.99.99.99 | 1.1.1.1) 
 };
 
-pinstance A upstream dummy0 out whitelist table all_dummy1;
-pinstance A upstream dummy2 in whitelist table all_dummy3;
-pinstance A downstream dummy1 out whitelist table {(*|*)};
-pinstance A upstream * out rulematching first;
+filter_3 {
+   eth1(239.99.99.99 | 1.1.1.1) 
+};
+
+filter_31 {
+   eth1(* | *) 
+};
+
+#filter_4 {
+    #(239.99.99.99 - 240.1.1.1. | * )
+#};
+
+pinstance myProxy downstream eth4 out whitelist table filter_1;

@@ -125,10 +125,6 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
 
     auto gr = std::static_pointer_cast<group_record_msg>(msg);
 
-    std::cout << "#######recieve group record" << std::endl;
-    std::cout << "#######get_gaddr: " << gr->get_gaddr() << std::endl;
-    std::cout << "#######get_slist: " << gr->get_slist() << std::endl;
-
     auto db_info_it = m_db.group_info.find(gr->get_gaddr());
 
     if (db_info_it == end(m_db.group_info)) {

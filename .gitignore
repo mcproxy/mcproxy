@@ -15,6 +15,7 @@
 #qmake
 mcproxy/Makefile
 mcproxy/mcproxy
+mcproxy/tester
 debug/tester/tester
 docs/html
 
