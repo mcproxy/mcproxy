@@ -46,7 +46,7 @@ tester::tester(int arg_count, char* args[])
 
 }
 
-void tester(int arg_count, char* args[])
+void tester_old(int arg_count, char* args[])
 {
 
     auto help = []() {
