@@ -41,10 +41,8 @@
 #include <iostream>
 #include <unistd.h>
 
-void tester(int arg_count, char* args[]);
+void test_tester(int arg_count, char* args[]);
 void test_log();
-void test_mctables();
-void test_MC_TestTool();
 void test_mcproxy(int arg_count, char* args[]);
 void test_test();
 
@@ -58,7 +56,7 @@ int main(int arg_count, char* args[])
 
 
 #else
-    tester(arg_count, args);
+    test_tester(arg_count, args);
 #endif
 
     return 0;
@@ -76,7 +74,7 @@ void test_log()
     HC_LOG_FATAL("HC_LOG_FATAL");
 }
 
-void tester(int arg_count, char* args[])
+void test_tester(int arg_count, char* args[])
 {
     try {
         tester(arg_count, args);

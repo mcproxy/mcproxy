@@ -72,6 +72,10 @@ public:
         if (i == m_data.end()) throw std::range_error("unknown group: " + group);
         return i->second;
     }
+
+    inline unsigned int size() const{
+        return m_data.size();         
+    }
 private:
     key_type m_empty;
     container_type m_data;

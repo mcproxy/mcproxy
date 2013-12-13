@@ -37,94 +37,68 @@ tester::tester(int arg_count, char* args[])
 {
     const int FILE_NAME = 1;
 
-    if (arg_count == FILE_NAME -1) {
-       m_config_map.read_ini(args[FILE_NAME]);
-    }else{
+    std::cout << "start tester" << std::endl;
+
+    if (arg_count == FILE_NAME - 1) {
+        m_config_map.read_ini(args[FILE_NAME]);
+    } else {
         m_config_map.read_ini(TESTER_DEFAULT_CONIG_PATH);
     }
 
+    //std::cout << "m_config_map.has_group(join)" << m_config_map.has_group("join") << std::endl;
+    //std::cout << "m_config_map.has_group(send)" << m_config_map.has_group("send") << std::endl;
+    //std::cout << "m_config_map.has_group(xxx)" << m_config_map.has_group("xxx") << std::endl;
 
+    //std::cout << "tester finished" << std::endl;
+
+    //for (auto it_group = m_config_map.begin(); it_group != m_config_map.end(); ++it_group) {
+    //std::cout << it_group->first << std::endl;
+    //for (auto it_key = it_group->second.begin(); it_key != it_group->second.end(); ++it_key) {
+    //std::cout << it_key->first <<  it_key->second << std::endl;
+    //}
+    //}
+
+    run(arg_count, args);
 }
 
-void tester_old(int arg_count, char* args[])
+void tester::run(int arg_count, char* args[])
 {
-
-    auto help = []() {
-        std::cout << "tester [<ifname>] [ipv4|ip6] [<group>] [<action>] [time in sec (default=10) or count]" << std::endl;
-        std::cout << "\te.g. eth0 ipv4 1 1 60" << std::endl;
-        std::cout << std::endl;
-        std::cout << "ipv4 [group]: " << "[1]= 239.1.1.1; [9]= 239.9.9.9; [255]= ..." << std::endl;
-        std::cout << "ipv6 [group]: " << "[1]= FF05::1:1; [9]= FF05::9:9; [FFFF]= ...."  << std::endl;
-        std::cout << std::endl;
-        std::cout << "[action]: " << "[1]= join group [group]" << std::endl;
-        std::cout << "\t[2]: [1] and set source filter INCLUDE_MODE with ip 1, 2, 3, 4" << std::endl;
-        std::cout << "\t[3]: [1] and set source filter INCLUDE_MODE with ip 5, 6, 7, 8" << std::endl;
-        std::cout << "\t[4]: [1] and set source filter EXLCUDE_MODE with ip 3, 4, 5, 6" << std::endl;
-        std::cout << "\t[5]: [1] and set source filter EXLCUDE_MODE with ip 1, 2, 7, 8" << std::endl;
-        std::cout << "\t[6]: send test packet to [group] [count]" << std::endl;
-        exit(0);
-    };
-
-    const int IF_NAME = 1;
-    const int IP_VERSION = 2;
-    const int GROUP = 3;
-    const int ACTION = 4;
-    const int TIME = 5;
-
-    if (arg_count - 1 == ACTION || arg_count - 1 == TIME) {
-        std::string if_name = args[IF_NAME];
-
-        mc_socket ms;
-        group_mem_protocol mem_protocol;
-        addr_storage gaddr;
-        int sleep_time;
-        int& count = sleep_time;
-
-        std::vector<addr_storage> g(9);
-
-        if (std::string(args[IP_VERSION]).compare("ipv4") == 0 ) {
-            mem_protocol = IGMPv3;
-            ms.create_udp_ipv4_socket();
-
-            for (unsigned int i = 1; i < g.size(); ++i) {
-                std::ostringstream s;
-                s << i << "." << i << "." << i << "." << i;
-                g[i] = s.str();
-            }
-        } else if (std::string(args[IP_VERSION]).compare("ipv6") == 0 ) {
-            mem_protocol = MLDv2;
-            ms.create_udp_ipv6_socket();
-
-            for (unsigned int i = 1; i < g.size(); ++i) {
-                std::ostringstream s;
-                s << i << "::" << i << ":" << i << ":" << i;
-                g[i] = s.str();
-            }
-        } else {
-            std::cout << "unknown protocol version: " << args[IP_VERSION] << std::endl;
+    if (arg_count == 2) {
+        std::string to_do = args[1];
+        if (!m_config_map.has_group(to_do)) {
+            std::cout << "group " << to_do << " not found" << std::endl;
             return;
         }
 
-        if (is_IPv4(mem_protocol)) {
-            std::ostringstream s;
-            s << "239." << args[GROUP] << "." << args[GROUP] << "." << args[GROUP];
-            gaddr = s.str();
-            if (!gaddr.is_valid()) {
-                std::cout << "unknown group: " << s.str()  << std::endl;
-                return;
-            }
-        } else if (is_IPv6(mem_protocol)) {
-            std::ostringstream s;
-            s << "FF05::" << args[GROUP] << ":" << args[GROUP];
-            gaddr = s.str();
-            if (!gaddr.is_valid()) {
-                std::cout << "unknown group: " << s.str()  << std::endl;
-                return;
-            }
-
-        } else {
-            std::cout << "unknon protocol version: " << args[IP_VERSION] << std::endl;
+        std::string if_name = m_config_map.get(to_do, "interface");
+        if (if_name.empty()) {
+            std::cout << "no interface found" << std::endl;
             return;
+        }
+
+        mc_socket ms;
+        addr_storage gaddr;
+        {
+            std::string tmp_gaddr = m_config_map.get(to_do, "group");
+            if(tmp_gaddr.empty()){
+                std::cout << "no group found" << std::endl; 
+                return;
+            }
+            gaddr = tmp_gaddr;
+            if(!gaddr.is_valid()){
+                std::cout << "group " << tmp_gaddr << " is not an ipaddress" << std::endl; 
+                return;
+            }
+        }
+        
+        int sleep_time;
+        int& count = sleep_time;
+
+        std::vector<addr_storage> s(9);
+        {
+        
+        
+        
         }
 
         if (arg_count - 1 == TIME) {
@@ -187,9 +161,43 @@ void tester_old(int arg_count, char* args[])
             }
             return;
         }
-    }
+    } else {
+        if (m_config_map.size() > 0) {
+            auto is_last = [this](config_map::const_iterator it) {
+                if (++it == m_config_map.end()) {
+                    return true;
+                } else {
+                    return false;
+                }
+            };
 
-    help();
+            auto is_first = [this](const config_map::const_iterator & it) {
+                if (it == m_config_map.begin()) {
+                    return true;
+                } else {
+                    return false;
+                }
+            };
+
+            std::cout << "wrong argument!! expect: " << args[0] << " [";
+            for (auto it = m_config_map.begin(); it != m_config_map.end(); ++it) {
+
+                if (is_first(it) && is_last(it)) {
+                    std::cout << it->first;
+                } else if (is_first(it)) {
+                    std::cout << it->first << " | ";
+                } else if (is_last(it)) {
+                    std::cout << it->first;
+                } else {
+                    std::cout << it->first << " ";
+                }
+            }
+
+            std::cout << "]" << std::endl;
+        }
+        //std::cout << "wrong argument: " << args[0] << " ";
+        //for(m_)
+    }
 }
 
 

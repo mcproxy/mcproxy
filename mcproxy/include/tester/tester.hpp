@@ -31,6 +31,7 @@ class tester
 {
 private:
     config_map m_config_map;
+    void run(int arg_count, char* args[]);
 public:
     tester(int arg_count, char* args[]);
 };
