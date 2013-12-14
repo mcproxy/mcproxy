@@ -35,30 +35,21 @@
 
 tester::tester(int arg_count, char* args[])
 {
-    const int FILE_NAME = 1;
+    HC_LOG_TRACE("");
 
-    std::cout << "start tester" << std::endl;
-
-    if (arg_count == FILE_NAME - 1) {
-        m_config_map.read_ini(args[FILE_NAME]);
+    if (arg_count == 2) {
+        if (std::string(args[1]).compare("-h") == 0 || std::string(args[1]).compare("--help") == 0) {
+            std::cout << "tester <to_do> [<config file>]" << std::endl;
+        } else {
+            m_config_map.read_ini(TESTER_DEFAULT_CONIG_PATH);
+            run(std::string(args[1]));
+        }
+    } else if (arg_count == 3) {
+        m_config_map.read_ini(args[2]);
+        run(std::string(args[1]));
     } else {
-        m_config_map.read_ini(TESTER_DEFAULT_CONIG_PATH);
+        run(std::string(std::string()));
     }
-
-    //std::cout << "m_config_map.has_group(join)" << m_config_map.has_group("join") << std::endl;
-    //std::cout << "m_config_map.has_group(send)" << m_config_map.has_group("send") << std::endl;
-    //std::cout << "m_config_map.has_group(xxx)" << m_config_map.has_group("xxx") << std::endl;
-
-    //std::cout << "tester finished" << std::endl;
-
-    //for (auto it_group = m_config_map.begin(); it_group != m_config_map.end(); ++it_group) {
-    //std::cout << it_group->first << std::endl;
-    //for (auto it_key = it_group->second.begin(); it_key != it_group->second.end(); ++it_key) {
-    //std::cout << it_key->first <<  it_key->second << std::endl;
-    //}
-    //}
-
-    run(arg_count, args);
 }
 
 addr_storage tester::get_gaddr(const std::string& to_do)
@@ -92,6 +83,7 @@ std::unique_ptr<const mc_socket> tester::get_mc_socket(int addr_family)
     }
     return std::move(ms);
 }
+
 std::list<addr_storage> tester::get_src_list(const std::string& to_do, int addr_family)
 {
     HC_LOG_TRACE("");
@@ -112,6 +104,7 @@ std::list<addr_storage> tester::get_src_list(const std::string& to_do, int addr_
             exit(0);
         }
         slist.push_back(saddr);
+        ++i;
     }
 
     return slist;
@@ -138,30 +131,11 @@ mc_filter tester::get_mc_filter(const std::string& to_do)
     return mf;
 }
 
-int tester::get_timeout(const std::string& to_do)
-{
-    HC_LOG_TRACE("");
-
-    std::string str_timeout= m_config_map.get(to_do, "");
-    int timeout;
-    if (str_timeout.empty()) {
-        timeout= 10; //sec
-    } else {
-        try {
-            timeout= std::stoi(str_timeout);
-        } catch (std::logic_error e) {
-            std::cout << "failed to parse timeout" << std::endl;
-            exit(0);
-        }
-    }
-    return timeout;
-}
-
 int tester::get_count(const std::string& to_do)
 {
     HC_LOG_TRACE("");
 
-    std::string str_count= m_config_map.get(to_do, "count");
+    std::string str_count = m_config_map.get(to_do, "count");
     int count;
     if (str_count.empty()) {
         count = 1;
@@ -264,21 +238,39 @@ std::string tester::get_msg(const std::string& to_do)
     return msg;
 }
 
-void tester::run(int arg_count, char* args[])
+void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port)
 {
     HC_LOG_TRACE("");
 
-    if (arg_count == 2) {
-        std::string to_do = args[1];
+    const unsigned int size = 151;
+    std::vector<unsigned char> buf(size, 0);
+    int info_size = 0;
+    long msg_count = 0;
+
+    if (!ms->bind_udp_socket(port)) {
+        std::cout << "failed to bind port " << port << " to socket" << std::endl;
+        exit(0);
+    }
+
+    while (true) {
+        std::cout << "\rcount: " << msg_count++ << "; last msg: " << buf.data();
+        std::flush(std::cout);
+        ms->receive_packet(buf.data(), size - 1, info_size);
+    }
+}
+
+void tester::run(const std::string& to_do)
+{
+    HC_LOG_TRACE("");
+    if (!to_do.empty()) {
         if (!m_config_map.has_group(to_do)) {
-            std::cout << "group " << to_do << " not found" << std::endl;
-            return;
+            std::cout << "to_do " << to_do << " not found" << std::endl;
+            exit(0);
         }
 
         std::string if_name = get_if_name(to_do);
         addr_storage gaddr = get_gaddr(to_do);
         const std::unique_ptr<const mc_socket> ms(get_mc_socket(gaddr.get_addr_family()));
-        int timeout= get_timeout(to_do);
         int count = get_count(to_do);
         std::list<addr_storage> slist = get_src_list(to_do, gaddr.get_addr_family());
         std::string action = get_action(to_do);
@@ -287,7 +279,7 @@ void tester::run(int arg_count, char* args[])
         int port = get_port(to_do);
         std::string msg = get_msg(to_do);
 
-        if (action.compare("send_record") == 0) {
+        if (action.compare("receive") == 0) {
             std::cout << "join group " << gaddr << " on interface " << if_name << std::endl;
             if (!ms->join_group(gaddr, interfaces::get_if_index(if_name))) {
                 std::cout << "failed to join group " << gaddr << std::endl;
@@ -302,9 +294,10 @@ void tester::run(int arg_count, char* args[])
                 }
             }
 
-            sleep(timeout);
+            receive_data(ms, port);
+
             return;
-        } else if (action.compare("send_packet") == 0) {
+        } else if (action.compare("send") == 0) {
             std::cout << "choose multicast interface" << std::endl;
             if (!ms->choose_if(interfaces::get_if_index(if_name))) {
                 std::cout << "failed to choose interface " << if_name << std::endl;
@@ -347,7 +340,7 @@ void tester::run(int arg_count, char* args[])
                 }
             };
 
-            std::cout << "wrong argument!! expect: " << args[0] << " [";
+            std::cout << "wrong argument!! expect: tester (";
             for (auto it = m_config_map.begin(); it != m_config_map.end(); ++it) {
 
                 if (is_first(it) && is_last(it)) {
@@ -361,7 +354,9 @@ void tester::run(int arg_count, char* args[])
                 }
             }
 
-            std::cout << "]" << std::endl;
+            std::cout << ") [<path>]" << std::endl;
+        } else {
+            std::cout << "wrong argument!! expect: tester <action> [<config file>]" << std::endl;
         }
     }
 }

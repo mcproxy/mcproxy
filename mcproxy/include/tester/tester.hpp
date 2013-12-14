@@ -37,20 +37,22 @@ class tester
 {
 private:
     config_map m_config_map;
-    void run(int arg_count, char* args[]);
+
+    void run(const std::string& to_do);
 
     addr_storage get_gaddr(const std::string& to_do);
     std::unique_ptr<const mc_socket> get_mc_socket(int addr_family);
     std::string get_if_name(const std::string& to_do);
     std::list<addr_storage> get_src_list(const std::string& to_do, int addr_family);
     mc_filter get_mc_filter(const std::string& to_do);
-    int get_timeout(const std::string& to_do);
     int get_count(const std::string& to_do);
     std::string get_action(const std::string& to_do);
     std::string source_list_to_string(const std::list<addr_storage>& slist);
     int get_ttl(const std::string& to_do);
     int get_port(const std::string& to_do);
     std::string get_msg(const std::string& to_do);
+
+    void receive_data(const std::unique_ptr<const mc_socket>& ms, int port);
 public:
     tester(int arg_count, char* args[]);
 };

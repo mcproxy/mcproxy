@@ -26,16 +26,30 @@ and send multicast packets for ipv4 and 6.
 
 Usage
 -----
-Build mcproxy in debug and tester mode and move it do directory
+Build the tester and move it do directory
 tester:
 
-  cd ../mcproxy/
-  qmake DEFINES+=TESTER
-  make
-  mv mcproxy ../debug/tester/tester
+    cd ../mcproxy/
+    qmake CONFIG+=tester
+    make
+    mv tester ../debug/tester/.
 
-run the tester without any arguments for the help output.
+The Tester loads per default the ini script tester.ini.
+The ini script example debug/tester/tester.ini defines 
+two actions: 
 
+    receive_data 
+        subscribes group 239.99.99.99 with three sources
+        in include mode and wait for arriving data
+
+    send_a_hello
+        sends a hello message to group 239.99.99.99       
+
+These actions can be executed with the following command:
+
+    ./tester receive_data
+        or
+    ./tester send_a_hello tester.ini 
 
 Kernel
 ==================
