@@ -1,8 +1,0 @@
-#!/bin/bash
-while :
-do
-    ./tester eth0 ipv4 1 6 1000000 
-done
-
-
-
