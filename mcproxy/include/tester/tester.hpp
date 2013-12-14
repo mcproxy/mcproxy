@@ -24,6 +24,12 @@
 #define TESTER_HPP
 
 #include "include/tester/config_map.hpp"
+#include "include/utils/addr_storage.hpp"
+#include "include/proxy/def.hpp"
+#include "include/utils/mc_socket.hpp"
+
+#include <memory>
+#include <list>
 
 #define TESTER_DEFAULT_CONIG_PATH "tester.ini"
 
@@ -32,6 +38,19 @@ class tester
 private:
     config_map m_config_map;
     void run(int arg_count, char* args[]);
+
+    addr_storage get_gaddr(const std::string& to_do);
+    std::unique_ptr<const mc_socket> get_mc_socket(int addr_family);
+    std::string get_if_name(const std::string& to_do);
+    std::list<addr_storage> get_src_list(const std::string& to_do, int addr_family);
+    mc_filter get_mc_filter(const std::string& to_do);
+    int get_timeout(const std::string& to_do);
+    int get_count(const std::string& to_do);
+    std::string get_action(const std::string& to_do);
+    std::string source_list_to_string(const std::list<addr_storage>& slist);
+    int get_ttl(const std::string& to_do);
+    int get_port(const std::string& to_do);
+    std::string get_msg(const std::string& to_do);
 public:
     tester(int arg_count, char* args[]);
 };
