@@ -356,7 +356,7 @@ void tester::run(const std::string& to_do)
 
             std::cout << ") [<path>]" << std::endl;
         } else {
-            std::cout << "wrong argument!! expect: tester <action> [<config file>]" << std::endl;
+            std::cout << "wrong argument!! expect: tester <to_do> [<config file>]" << std::endl;
         }
     }
 }
