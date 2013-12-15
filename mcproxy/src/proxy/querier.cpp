@@ -96,7 +96,7 @@ bool querier::send_general_query()
 {
     HC_LOG_TRACE("");
     if (m_db.general_query_timer.get() == nullptr) {
-        m_db.startup_query_count = m_timers_values.get_startup_query_count();
+        m_db.startup_query_count = m_timers_values.get_startup_query_count() -1;
     }
 
     std::chrono::seconds t;
