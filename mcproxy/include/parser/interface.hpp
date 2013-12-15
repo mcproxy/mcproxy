@@ -31,6 +31,7 @@
 #include "include/utils/addr_storage.hpp"
 
 struct addr_match {
+    bool is_wildcard(const addr_storage& addr, int addr_family) const;
     virtual bool match(const addr_storage& addr) const = 0;
     virtual std::string to_string() const = 0;
 };
@@ -187,12 +188,12 @@ class interface
     std::string m_if_name;
     std::unique_ptr<rule_binding> m_output_filter;
     std::unique_ptr<rule_binding> m_input_filter;
-    bool match_filter(const std::string& if_name, const addr_storage& saddr, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const;
+    bool match_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const;
 public:
     interface(const std::string& if_name);
     std::string get_if_name() const;
-    bool match_output_filter(const std::string& output_if_name, const addr_storage& saddr, const addr_storage& gaddr) const;
-    bool match_input_filter(const std::string& output_if_name, const addr_storage& saddr, const addr_storage& gaddr) const;
+    bool match_output_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr) const;
+    bool match_input_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr) const;
 
     std::string to_string_rule_binding() const;
     std::string to_string_interface() const;

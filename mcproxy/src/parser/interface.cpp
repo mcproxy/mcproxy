@@ -28,6 +28,11 @@
 #include <sstream>
 
 //-----------------------------------------------------
+bool addr_match::is_wildcard(const addr_storage& addr, int addr_family) const
+{
+    return addr == addr_storage(addr_family);
+}
+//-----------------------------------------------------
 single_addr::single_addr(const addr_storage& addr)
     : m_addr(addr)
 {
@@ -36,7 +41,7 @@ single_addr::single_addr(const addr_storage& addr)
 
 bool single_addr::match(const addr_storage& addr) const
 {
-    return addr == m_addr;
+    return addr == m_addr || is_wildcard(m_addr, addr.get_addr_family());
 }
 
 std::string single_addr::to_string() const
@@ -53,7 +58,7 @@ addr_range::addr_range(const addr_storage& from, const addr_storage& to)
 
 bool addr_range::match(const addr_storage& addr) const
 {
-    return addr >= m_from && addr <= m_to;
+    return (addr >= m_from || is_wildcard(m_from, addr.get_addr_family())) && (addr <= m_to || is_wildcard(m_to, addr.get_addr_family()) );
 }
 
 std::string addr_range::to_string() const
@@ -415,16 +420,16 @@ std::string interface::get_if_name() const
     return m_if_name;
 }
 
-bool interface::match_output_filter(const std::string& output_if_name, const addr_storage& saddr, const addr_storage& gaddr) const
+bool interface::match_output_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr) const
 {
     HC_LOG_TRACE("");
-    return match_filter(output_if_name, saddr, gaddr, m_output_filter);
+    return match_filter(input_if_name, saddr, gaddr, m_output_filter);
 }
 
-bool interface::match_input_filter(const std::string& output_if_name, const addr_storage& saddr, const addr_storage& gaddr) const
+bool interface::match_input_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr) const
 {
     HC_LOG_TRACE("");
-    return match_filter(output_if_name, saddr, gaddr, m_input_filter);
+    return match_filter(input_if_name, saddr, gaddr, m_input_filter);
 }
 
 std::string interface::to_string_rule_binding() const
@@ -453,10 +458,10 @@ std::string interface::to_string_interface() const
     return m_if_name;
 }
 
-bool interface::match_filter(const std::string& output_if_name, const addr_storage& saddr, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const
+bool interface::match_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const
 {
     if (filter != nullptr) {
-        return filter->match(output_if_name, saddr, gaddr);
+        return filter->match(input_if_name, saddr, gaddr);
     } else {
         return true; //default behaviour
     }
@@ -471,8 +476,9 @@ bool operator==(const interface& i1, const interface& i2)
 {
     return i1.m_if_name.compare(i2.m_if_name) == 0;
 }
-bool operator==(const std::shared_ptr<interface>& i1, const std::shared_ptr<interface>& i2){
-    return *i1 == *i2;    
+bool operator==(const std::shared_ptr<interface>& i1, const std::shared_ptr<interface>& i2)
+{
+    return *i1 == *i2;
 }
 //-----------------------------------------------------
 instance_definition::instance_definition(const std::string& instance_name)
@@ -573,9 +579,10 @@ bool inst_def_set::insert(const std::shared_ptr<instance_definition>& id)
     return m_instance_def_set.insert(id).second;
 }
 
-unsigned int inst_def_set::size() const{
+unsigned int inst_def_set::size() const
+{
     HC_LOG_TRACE("");
-    return m_instance_def_set.size();    
+    return m_instance_def_set.size();
 }
 
 std::string inst_def_set::to_string() const
