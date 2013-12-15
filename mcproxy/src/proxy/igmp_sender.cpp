@@ -165,7 +165,13 @@ bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& 
     }
 
     q->igmp_type = IGMP_MEMBERSHIP_QUERY;
-    q->igmp_code = tv.maxrespi_to_maxrespc_igmpv3(tv.get_query_response_interval());
+
+    if (gaddr == addr_storage(AF_INET)) { //general query
+        q->igmp_code = tv.maxrespi_to_maxrespc_igmpv3(tv.get_query_response_interval());
+    } else {
+        q->igmp_code = tv.maxrespi_to_maxrespc_igmpv3(tv.get_last_listener_query_time());
+    }
+
     q->igmp_cksum = 0;
     q->igmp_group = gaddr.get_in_addr();
     q->resv2 = 0;

@@ -17,7 +17,7 @@ Older Version Querier Present Tiemout -""-                                  cons
 Older Host Present Interval         Older Version Host Present Timeout      const: Robustness Variable * Query Interval + Query Response Interval
 
 QQIC IGMPv3 and MLDv2
---------------------
+---------------------
 QQIC (Queriers's Query Interval Code) 
 QQI (Querier's Query IntervaL) in seconds
 
