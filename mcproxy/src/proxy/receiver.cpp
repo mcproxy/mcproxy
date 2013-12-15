@@ -103,7 +103,7 @@ void receiver::worker_thread()
     msg.msg_iovlen = 1;
 
     msg.msg_control = ctrl.get();
-    msg.msg_controllen = get_iov_min_size(); //sizeof(ctrl);
+    msg.msg_controllen = get_ctrl_min_size(); //sizeof(ctrl);
 
     msg.msg_flags = 0;
     //########################
