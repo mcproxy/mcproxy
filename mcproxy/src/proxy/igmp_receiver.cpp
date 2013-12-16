@@ -102,37 +102,32 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
     unsigned int if_index = 0;
     addr_storage gaddr;
     addr_storage saddr;
-    //proxy_instance* pr_i;
 
-    //test_output::printPacket_IPv4_Infos(buf, msg_size);
     HC_LOG_DEBUG("received packet XXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
     /* packets sent up from kernel to daemon have ip->ip_p = 0 */
     if (ip_hdr->ip_p == IGMP_RECEIVER_KERNEL_MSG) {
-        HC_LOG_DEBUG("kernel msg");
-        struct igmpmsg *igmpctl;
-        igmpctl = (struct igmpmsg *) msg->msg_iov->iov_base;
+        HC_LOG_DEBUG("kernel msg received");
+        struct igmpmsg *igmpctl = (struct igmpmsg *) msg->msg_iov->iov_base;
 
         switch (igmpctl->im_msgtype) {
         case IGMPMSG_NOCACHE: {
             saddr = igmpctl->im_src;
-            HC_LOG_DEBUG("\tsrc: " << saddr);
+            HC_LOG_DEBUG("\tsaddr: " << saddr);
 
             gaddr = igmpctl->im_dst;
-            HC_LOG_DEBUG("\tgroup: " << gaddr);
+            HC_LOG_DEBUG("\tgaddr: " << gaddr);
 
             HC_LOG_DEBUG("\tvif: " << (int)igmpctl->im_vif);
             if ((if_index = m_interfaces->get_if_index(igmpctl->im_vif)) == 0) {
                 return;
             }
+            HC_LOG_DEBUG("\tif_index: " << if_index);
 
-            if (!is_if_index_relevant(if_index)) { //I think this is not nessessary (see line above)???????????????? and next message types
+            if (!is_if_index_relevant(if_index)) { 
                 return;
             }
 
-            HC_LOG_DEBUG("\tif_index: " << if_index);
-            HC_LOG_DEBUG("\tgaddr: " << gaddr);
-            HC_LOG_DEBUG("\tsaddr: " << saddr);
             m_proxy_instance->add_msg(std::make_shared<new_source_msg>(if_index, gaddr, saddr));
             break;
         }
@@ -153,7 +148,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             if ((if_index = m_interfaces->get_if_index(saddr)) == 0) {
                 return;
             }
-            HC_LOG_DEBUG("\tif_index: " << if_index);
+            HC_LOG_DEBUG("\treceived on interface:" << interfaces::get_if_name(if_index));
 
             //if ((pr_i = this->get_proxy_instance(if_index)) == nullptr) {
             //return;
@@ -189,24 +184,24 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
 
             HC_LOG_ERROR("protocoll not supported igmpv2 leave group");
         } else if (igmp_hdr->igmp_type == IGMP_V3_MEMBERSHIP_REPORT) {
-            HC_LOG_DEBUG("IGMP_V3_MEMBERSHIP_REPORT found");
+            HC_LOG_DEBUG("IGMP_V3_MEMBERSHIP_REPORT received");
 
             igmpv3_mc_report* v3_report = reinterpret_cast<igmpv3_mc_report*>(igmp_hdr);
             igmpv3_mc_record* rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(v3_report) + sizeof(igmpv3_mc_report));
 
             int num_records = ntohs(v3_report->num_of_mc_records);
-            HC_LOG_DEBUG("num of multicast records: " << num_records);
+            HC_LOG_DEBUG("\tnum of multicast records: " << num_records);
 
             saddr = ip_hdr->ip_src;
-            HC_LOG_DEBUG("saddr: " << saddr);
+            HC_LOG_DEBUG("\tsaddr: " << saddr);
 
             if ((if_index = m_interfaces->get_if_index(saddr)) == 0) {
                 HC_LOG_DEBUG("no if_index found");
                 return;
             }
-            HC_LOG_DEBUG("found on interface:" << interfaces::get_if_name(if_index));
+            HC_LOG_DEBUG("\treceived on interface:" << interfaces::get_if_name(if_index));
 
-            if (!is_if_index_relevant(if_index)) { //I think this is not nessessary (see line above)???????????????? and next message types
+            if (!is_if_index_relevant(if_index)) { 
                 HC_LOG_DEBUG("interface is not relevant");
                 return;
             }
@@ -225,11 +220,11 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                     ++src;
                 }
 
-                HC_LOG_DEBUG("record type: " << get_mcast_addr_record_type_name(rec_type));
-                HC_LOG_DEBUG("gaddr: " << gaddr);
-                HC_LOG_DEBUG("number of sources: " << slist.size());
-                HC_LOG_DEBUG("source_list: " << slist);
-                HC_LOG_DEBUG("send record to proxy_instance");
+                HC_LOG_DEBUG("\trecord type: " << get_mcast_addr_record_type_name(rec_type));
+                HC_LOG_DEBUG("\tgaddr: " << gaddr);
+                HC_LOG_DEBUG("\tnumber of sources: " << slist.size());
+                HC_LOG_DEBUG("\tsource_list: " << slist);
+                HC_LOG_DEBUG("\tsend record to proxy_instance");
                 m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, move(slist), -1));
 
                 rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(rec) + sizeof(igmpv3_mc_record) + nos * sizeof(in_addr) + aux_size);

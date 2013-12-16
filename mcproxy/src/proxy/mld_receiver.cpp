@@ -24,6 +24,7 @@
 #include "include/hamcast_logging.h"
 #include "include/proxy/mld_receiver.hpp"
 #include "include/proxy/proxy_instance.hpp"
+#include "include/utils/extended_mld_defines.hpp"
 
 #include <linux/mroute6.h>
 #include <netinet/ip6.h>
@@ -34,7 +35,7 @@
 #include <net/if.h>
 
 mld_receiver::mld_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode)
-    : receiver(pr_i, AF_INET6, mrt_sock,interfaces, in_debug_testing_mode)
+    : receiver(pr_i, AF_INET6, mrt_sock, interfaces, in_debug_testing_mode)
 {
     HC_LOG_TRACE("");
     if (!m_mrt_sock->set_recv_icmpv6_msg()) {
@@ -51,7 +52,7 @@ mld_receiver::mld_receiver(proxy_instance* pr_i, const std::shared_ptr<const mro
 int mld_receiver::get_iov_min_size()
 {
     HC_LOG_TRACE("");
-    int size_ip = sizeof(struct mld_hdr);
+    int size_ip = sizeof(struct mld_hdr) + 10000; //random number plz fix it??????????????????????????
     int size_kernel = sizeof(struct mrt6msg);
     return (size_ip < size_kernel) ? size_kernel : size_ip;
 }
@@ -61,7 +62,6 @@ int mld_receiver::get_ctrl_min_size()
     HC_LOG_TRACE("");
 
     return sizeof(struct cmsghdr) + sizeof(struct in6_pktinfo);
-    //return 400;
 }
 
 void mld_receiver::analyse_packet(struct msghdr* msg, int)
@@ -70,30 +70,36 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
 
 
     struct mld_hdr* hdr = (struct mld_hdr*)msg->msg_iov->iov_base;
-    //proxy_instance* pr_i;
-    addr_storage g_addr;
+    unsigned int if_index = 0;
+    addr_storage gaddr;
+    addr_storage saddr;
 
+    HC_LOG_DEBUG("received packet XXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+
+    /* packets sent up from kernel to daemon have ip->ip_p = 0 */
     if (hdr->mld_type == MLD_RECEIVER_KERNEL_MSG) { //kernel
+        HC_LOG_DEBUG("kernel msg received");
         struct mrt6msg* mldctl = (struct mrt6msg*)msg->msg_iov->iov_base;
 
         switch (mldctl->im6_msgtype) {
         case MRT6MSG_NOCACHE: {
-            addr_storage src_addr(mldctl->im6_src);
-            g_addr = mldctl->im6_dst;
+            saddr = mldctl->im6_src;
+            HC_LOG_DEBUG("\tsaddr: " << saddr);
 
-            int if_index;
+            gaddr = mldctl->im6_dst;
+            HC_LOG_DEBUG("\tgaddr: " << gaddr);
+
+            HC_LOG_DEBUG("\tvif: " << (int)mldctl->im6_mif);
             if ((if_index = m_interfaces->get_if_index(mldctl->im6_mif)) == 0) {
                 return;
             }
+            HC_LOG_DEBUG("\treceived on interface:" << interfaces::get_if_name(if_index));
 
-            //if ((pr_i = get_proxy_instance(if_index)) == nullptr) {
-                //return;
-            //}
+            if (!is_if_index_relevant(if_index)) {
+                return;
+            }
 
-            //proxy_msg m;
-            //m.type = proxy_msg::RECEIVER_MSG;
-            //m.msg = new struct receiver_msg(receiver_msg::CACHE_MISS, if_index, src_addr, g_addr);
-            //pr_i->add_msg(m);
+            m_proxy_instance->add_msg(std::make_shared<new_source_msg>(if_index, gaddr, saddr));
             break;
         }
         default:
@@ -112,22 +118,73 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
         }
 
         //if ((pr_i = this->get_proxy_instance(packet_info->ipi6_ifindex)) == nullptr) {
-            //return;    //?is ifindex registratet
+        //return;    //?is ifindex registratet
         //}
-        g_addr = hdr->mld_addr;
+        gaddr = hdr->mld_addr;
 
         //proxy_msg m;
         //m.type = proxy_msg::RECEIVER_MSG;
 
         //if (hdr->mld_type == MLD_LISTENER_REPORT) {
-            //m.msg = new struct receiver_msg(receiver_msg::JOIN, packet_info->ipi6_ifindex, g_addr);
+        //m.msg = new struct receiver_msg(receiver_msg::JOIN, packet_info->ipi6_ifindex, g_addr);
         //} else if (hdr->mld_type == MLD_LISTENER_REDUCTION) {
-            //m.msg = new struct receiver_msg(receiver_msg::LEAVE, packet_info->ipi6_ifindex, g_addr);
+        //m.msg = new struct receiver_msg(receiver_msg::LEAVE, packet_info->ipi6_ifindex, g_addr);
         //} else {
-            //HC_LOG_ERROR("wrong mld type");
+        //HC_LOG_ERROR("wrong mld type");
         //}
 
         //pr_i->add_msg(m);
+    } else if (hdr->mld_type == MLD_V2_LISTENER_REPORT) {
+        HC_LOG_DEBUG("MLD_V2_LISTENER_REPORT received");
+
+        struct in6_pktinfo* packet_info = nullptr;
+
+        for (struct cmsghdr* cmsgptr = CMSG_FIRSTHDR(msg); cmsgptr != nullptr; cmsgptr = CMSG_NXTHDR(msg, cmsgptr)) {
+            if (cmsgptr->cmsg_len > 0 && cmsgptr->cmsg_level == IPPROTO_IPV6 && cmsgptr->cmsg_type == IPV6_PKTINFO ) {
+                packet_info = (struct in6_pktinfo*)CMSG_DATA(cmsgptr);
+            }
+        }
+        if (packet_info == nullptr) {
+            return;
+        }
+
+        mldv2_mc_report* v3_report = reinterpret_cast<mldv2_mc_report*>(hdr);
+        mldv2_mc_record* rec = reinterpret_cast<mldv2_mc_record*>(reinterpret_cast<unsigned char*>(v3_report) + sizeof(mldv2_mc_report));
+
+        int num_records = ntohs(v3_report->num_of_mc_records);
+        HC_LOG_DEBUG("\tnum of multicast records: " << num_records);
+
+        if_index = packet_info->ipi6_ifindex;
+        HC_LOG_DEBUG("\treceived on interface:" << interfaces::get_if_name(if_index));
+
+        if (!is_if_index_relevant(if_index)) {
+            HC_LOG_DEBUG("interface is not relevant");
+            return;
+        }
+
+        for (int i = 0; i < num_records; ++i) {
+            mcast_addr_record_type rec_type = static_cast<mcast_addr_record_type>(rec->type);
+            unsigned int aux_size = rec->aux_data_len * 4; //RFC 3810 Section 5.2.6 Aux Data Len
+            int nos = ntohs(rec->num_of_srcs);
+
+            gaddr = addr_storage(rec->gaddr);
+            source_list<source> slist;
+
+            in6_addr* src = reinterpret_cast<in6_addr*>(reinterpret_cast<unsigned char*>(rec) + sizeof(mldv2_mc_record));
+            for (int j = 0; j < nos; ++j) {
+                slist.insert(addr_storage(*src));
+                ++src;
+            }
+
+            HC_LOG_DEBUG("\trecord type: " << get_mcast_addr_record_type_name(rec_type));
+            HC_LOG_DEBUG("\tgaddr: " << gaddr);
+            HC_LOG_DEBUG("\tnumber of sources: " << slist.size());
+            HC_LOG_DEBUG("\tsource_list: " << slist);
+            HC_LOG_DEBUG("\tsend record to proxy_instance");
+            m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, move(slist), -1));
+
+            rec = reinterpret_cast<mldv2_mc_record*>(reinterpret_cast<unsigned char*>(rec) + sizeof(mldv2_mc_record) + nos * sizeof(in6_addr) + aux_size);
+        }
     } else {
         HC_LOG_DEBUG("unknown MLD-packet: " << (int)(hdr->mld_type));
     }
