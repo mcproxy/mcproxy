@@ -247,7 +247,7 @@ bool interfaces::is_interface(unsigned if_index, unsigned int interface_flags) c
         if (prop != nullptr) {
             return prop->ifa_flags & interface_flags;
         } else {
-            HC_LOG_WARN("failed to get interface ipv6 properties of interface: " << get_if_name(if_index));
+            HC_LOG_WARN("failed to get interface ipv4 properties of interface: " << get_if_name(if_index));
             return false;
         }
     } else if (m_addr_family == AF_INET6) {
