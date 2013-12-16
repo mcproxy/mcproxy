@@ -69,7 +69,7 @@ public:
     //--------------------------------------
     std::chrono::milliseconds maxrespc_mldv2_to_maxrespi(bool first_bit, unsigned int exp, unsigned int mant) const;
     std::chrono::milliseconds maxrespc_mldv2_to_maxrespi(uint16_t max_resp_code) const;
-    uint16_t maxrespi_to_maxrespc_mldv2(std::chrono::milliseconds msec) const;
+    uint16_t maxrespi_to_maxrespc_mldv2(const std::chrono::milliseconds& msec) const;
 
     unsigned int get_robustness_variable() const;
     std::chrono::seconds get_query_interval() const;

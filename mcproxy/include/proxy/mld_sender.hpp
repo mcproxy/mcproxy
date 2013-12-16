@@ -51,24 +51,21 @@ typedef u_int16_t pad2 ; //padding
 class mld_sender: public sender
 {
 private:
-    enum msg_type { //for intern type handling
-        GENERAL_QUERY, MC_ADDR_SPECIFIC_QUERY
-    };
- 
-    //int get_msg_min_size() const;
     bool add_hbh_opt_header() const;
-    //bool create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr = nullptr) const;
 
+    bool send_mldv2_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, const source_list<source>& slist) const;
 public:
-    /**
-     * @brief Create an mld_sender.
-     */
     mld_sender();
 
-    //bool send_general_query(int if_index) const override;
-    //bool send_group_specific_query(int if_index, const addr_storage& g_addr) const override;
-    //bool send_report(int if_index, const addr_storage& g_addr) const override;
-    //bool send_leave(int if_index, const addr_storage& g_addr) const override;
+    bool send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const override;
+
+    virtual bool send_general_query(unsigned int if_index, const timers_values& tv, group_mem_protocol gmp) const override;
+
+    bool send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const override;
+
+    bool send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const override;
+
+    static void test_igmp_sender();
 };
 
 #endif // MLD_SENDER_HPP

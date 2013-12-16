@@ -45,7 +45,7 @@ bool igmp_sender::send_report(unsigned int if_index, mc_filter filter_mode, cons
     if (filter_mode == INCLUDE_MODE && slist.empty() ) {
         m_sock.leave_group(gaddr, if_index);
         return true;
-    } else {
+    } else if(filter_mode == EXLCUDE_MODE){
         m_sock.join_group(gaddr, if_index);
         std::list<addr_storage> src_list;
         for (auto & e : slist) {
@@ -53,6 +53,9 @@ bool igmp_sender::send_report(unsigned int if_index, mc_filter filter_mode, cons
         }
 
         return m_sock.set_source_filter(if_index, gaddr, filter_mode, src_list);
+    }else{
+        HC_LOG_ERROR("unknown filter mode"); 
+        return false;
     }
 }
 
@@ -68,8 +71,7 @@ bool igmp_sender::send_general_query(unsigned int if_index, const timers_values&
         HC_LOG_ERROR("igmpv2 not supported");
         return false;
     case IGMPv3: {
-        source_list<source> tmp;
-        return send_igmpv3_query(if_index, tv, addr_storage(AF_INET), false, tmp);
+        return send_igmpv3_query(if_index, tv, addr_storage(AF_INET), false, source_list<source>());
     }
     default:
         HC_LOG_ERROR("unknown group membership protocol");
@@ -89,8 +91,7 @@ bool igmp_sender::send_mc_addr_specific_query(unsigned int if_index, const timer
         HC_LOG_ERROR("igmpv2 not supported");
         return false;
     case IGMPv3: {
-        source_list<source> tmp;
-        return send_igmpv3_query(if_index, tv, gaddr, s_flag, tmp);
+        return send_igmpv3_query(if_index, tv, gaddr, s_flag, source_list<source>());
     }
     default:
         HC_LOG_ERROR("unknown group membership protocol");
@@ -159,16 +160,20 @@ bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& 
     if (slist.empty()) {
         size = sizeof(igmpv3_query);
         q.reset(new igmpv3_query);
-    } else {
+    } else { //all other types of queries
         size = sizeof(igmpv3_query) + (slist.size() * sizeof(in_addr));
         q.reset(reinterpret_cast<igmpv3_query*>(new unsigned char[size]));
     }
 
     q->igmp_type = IGMP_MEMBERSHIP_QUERY;
 
+    addr_storage dst_addr;
+
     if (gaddr == addr_storage(AF_INET)) { //general query
+        dst_addr = IPV4_ALL_HOST_ADDR;
         q->igmp_code = tv.maxrespi_to_maxrespc_igmpv3(tv.get_query_response_interval());
     } else {
+        dst_addr = gaddr;
         q->igmp_code = tv.maxrespi_to_maxrespc_igmpv3(tv.get_last_listener_query_time());
     }
 
@@ -200,7 +205,7 @@ bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& 
         return false;
     }
 
-    return m_sock.send_packet(addr_storage(IPV4_ALL_HOST_ADDR), reinterpret_cast<unsigned char*>(q.get()), size);
+    return m_sock.send_packet(dst_addr, reinterpret_cast<unsigned char*>(q.get()), size);
 }
 
 

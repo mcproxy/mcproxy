@@ -22,6 +22,8 @@
 
 #include "include/hamcast_logging.h"
 #include "include/proxy/mld_sender.hpp"
+#include "include/proxy/message_format.hpp"
+#include "include/utils/extended_mld_defines.hpp"
 
 #include <net/if.h>
 #include <netinet/icmp6.h>
@@ -45,6 +47,175 @@ mld_sender::mld_sender(): sender(MLDv2)
         throw "wrong address family";
     }
 }
+
+bool mld_sender::send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const
+{
+    HC_LOG_TRACE("");
+
+    if (filter_mode == INCLUDE_MODE && slist.empty() ) {
+        m_sock.leave_group(gaddr, if_index);
+        return true;
+    } else if (filter_mode == EXLCUDE_MODE) {
+        m_sock.join_group(gaddr, if_index);
+        std::list<addr_storage> src_list;
+        for (auto & e : slist) {
+            src_list.push_back(e.saddr);
+        }
+
+        return m_sock.set_source_filter(if_index, gaddr, filter_mode, src_list);
+    } else {
+        HC_LOG_ERROR("unknown filter mode");
+        return false;
+    }
+}
+
+bool mld_sender::send_general_query(unsigned int if_index, const timers_values& tv, group_mem_protocol gmp) const
+{
+    HC_LOG_TRACE("");
+
+    switch (gmp) {
+    case MLDv1:
+        HC_LOG_ERROR("mldv1 not supported");
+        return false;
+    case MLDv2: {
+        return send_mldv2_query(if_index, tv, addr_storage(AF_INET6), false, source_list<source>());
+    }
+    default:
+        HC_LOG_ERROR("unknown group membership protocol");
+        return false;
+    }
+}
+
+bool mld_sender::send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const
+{
+    HC_LOG_TRACE("");
+
+    switch (gmp) {
+    case MLDv1:
+        HC_LOG_ERROR("mldv1 not supported");
+        return false;
+    case MLDv2: {
+        return send_mldv2_query(if_index, tv, gaddr, s_flag, source_list<source>());
+    }
+    default:
+        HC_LOG_ERROR("unknown group membership protocol");
+        return false;
+    }
+}
+
+bool mld_sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const
+{
+    HC_LOG_TRACE("");
+
+    switch (gmp) {
+    case MLDv1:
+        HC_LOG_ERROR("MLDv1 not supported");
+        return false;
+    case MLDv2: {
+        source_list<source> slist_lower;
+        source_list<source> slist_higher;
+        bool rc = false;
+        for (auto & e : slist) {
+            if (e.retransmission_count > 0) {
+                e.retransmission_count--;
+
+                if (e.retransmission_count > 0 ) {
+                    rc = true;
+                }
+
+                if (e.shared_source_timer.get() != nullptr) {
+                    if (e.shared_source_timer->is_remaining_time_greater_than(tv.get_last_listener_query_time())) {
+                        slist_higher.insert(e);
+                    } else {
+                        slist_lower.insert(e);
+                    }
+                } else {
+                    HC_LOG_ERROR("the shared source timer shouldnt be null");
+                }
+            }
+        }
+
+        if (!slist_higher.empty()) {
+            send_mldv2_query(if_index, tv, gaddr, true, slist_higher);
+        }
+
+        if (!slist_lower.empty()) {
+            send_mldv2_query(if_index, tv, gaddr, false, slist_lower);
+        }
+
+        return rc;
+    }
+    default:
+        HC_LOG_ERROR("unknown group membership protocol");
+        return false;
+    }
+}
+
+bool mld_sender::send_mldv2_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, const source_list<source>& slist) const
+{
+    HC_LOG_TRACE("");
+
+    std::unique_ptr<mldv2_query> q;
+    unsigned int size;
+
+    if (slist.empty()) {
+        size = sizeof(mldv2_query);
+        q.reset(new mldv2_query);
+    } else {
+        size = sizeof(mldv2_query) + (slist.size() * sizeof(in6_addr));
+        q.reset(reinterpret_cast<mldv2_query*>(new unsigned char[size]));
+    }
+
+    q->type = MLD_LISTENER_QUERY;
+    q->code = 0;
+    q->checksum = MC_MASSAGES_AUTO_FILL;
+
+    addr_storage dst_addr;
+
+    if (gaddr == addr_storage(AF_INET6)) { //general query
+        dst_addr = IPV6_ALL_NODES_ADDR;
+        q->max_resp_delay = tv.maxrespi_to_maxrespc_mldv2(tv.get_query_response_interval());
+    } else { //all other types of queries
+        dst_addr = gaddr;
+        q->max_resp_delay = tv.maxrespi_to_maxrespc_mldv2(tv.get_last_listener_query_time());
+    }
+
+    q->reserved = 0;
+    q->gaddr = gaddr.get_in6_addr();
+    q->resv2 = 0;
+    q->suppress = s_flag;
+
+    if (tv.get_robustness_variable() <= 7) {
+        q->qrv = tv.get_robustness_variable();
+    } else {
+        q->qrv = 0;
+    }
+
+    q->qqic = tv.qqi_to_qqic(tv.get_query_interval());
+    q->num_of_srcs = ntohs(slist.size());
+
+    if (!slist.empty()) {
+        in6_addr* source_ptr = reinterpret_cast<in6_addr*>(reinterpret_cast<unsigned char*>(q.get()) + sizeof(mldv2_query));
+        for (auto & e : slist) {
+            *source_ptr = e.saddr.get_in6_addr();
+            source_ptr++;
+        }
+    }
+
+    if (!m_sock.choose_if(if_index)) {
+        return false;
+    }
+
+    return m_sock.send_packet(dst_addr, reinterpret_cast<unsigned char*>(q.get()), size);
+}
+
+//----------------------------------------------------------------------------------------Vy
+//----------------------------------------------------------------------------------------Vy
+//----------------------------------------------------------------------------------------Vy
+//----------------------------------------------------------------------------------------Vy
+//----------------------------------------------------------------------------------------Vy
+//----------------------------------------------------------------------------------------Vy
+//----------------------------------------------------------------------------------------Vy
 
 //bool mld_sender::send_general_query(int if_index) const
 //{
@@ -119,38 +290,38 @@ mld_sender::mld_sender(): sender(MLDv2)
 
 //bool mld_sender::create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr) const
 //{
-    //HC_LOG_TRACE("");
+//HC_LOG_TRACE("");
 
-    //if (m_version == 1) {
-        //struct mld_hdr* mld_Hdr = (struct mld_hdr*)buf;
+//if (m_version == 1) {
+//struct mld_hdr* mld_Hdr = (struct mld_hdr*)buf;
 
-        //mld_Hdr->mld_type = MLD_LISTENER_QUERY;
-        //mld_Hdr->mld_code = 0;
-        //mld_Hdr->mld_cksum = MC_MASSAGES_AUTO_FILL;
-        //mld_Hdr->mld_reserved = 0;
+//mld_Hdr->mld_type = MLD_LISTENER_QUERY;
+//mld_Hdr->mld_code = 0;
+//mld_Hdr->mld_cksum = MC_MASSAGES_AUTO_FILL;
+//mld_Hdr->mld_reserved = 0;
 
-        //if (type == GENERAL_QUERY) {
-            //mld_Hdr->mld_maxdelay = htons(MC_TV_QUERY_RESPONSE_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
-            //mld_Hdr->mld_addr = addr_storage(m_addr_family).get_in6_addr(); //0.0.0.0
-        //} else if (type == MC_ADDR_SPECIFIC_QUERY) {
-            //if (!g_addr) {
-                //HC_LOG_ERROR("g_addr is NULL");
-                //return false;
-            //}
+//if (type == GENERAL_QUERY) {
+//mld_Hdr->mld_maxdelay = htons(MC_TV_QUERY_RESPONSE_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
+//mld_Hdr->mld_addr = addr_storage(m_addr_family).get_in6_addr(); //0.0.0.0
+//} else if (type == MC_ADDR_SPECIFIC_QUERY) {
+//if (!g_addr) {
+//HC_LOG_ERROR("g_addr is NULL");
+//return false;
+//}
 
-            //mld_Hdr->mld_maxdelay = htons(MC_TV_LAST_LISTENER_QUERY_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
-            //mld_Hdr->mld_addr = g_addr->get_in6_addr();
-        //} else {
-            //HC_LOG_ERROR("wrong type: " << type);
-            //return false;
-        //}
+//mld_Hdr->mld_maxdelay = htons(MC_TV_LAST_LISTENER_QUERY_INTERVAL * MC_TV_MAX_RESPONSE_DELAY_UNIT);
+//mld_Hdr->mld_addr = g_addr->get_in6_addr();
+//} else {
+//HC_LOG_ERROR("wrong type: " << type);
+//return false;
+//}
 
-        //return true;
-    //} else {
-        //HC_LOG_ERROR("wrong verson: " << m_version);
-        //return false;
-    //}
-    //return true;
+//return true;
+//} else {
+//HC_LOG_ERROR("wrong verson: " << m_version);
+//return false;
+//}
+//return true;
 //}
 
 bool mld_sender::add_hbh_opt_header() const

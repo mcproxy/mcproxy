@@ -152,7 +152,7 @@ std::chrono::milliseconds timers_values::maxrespc_mldv2_to_maxrespi(uint16_t max
     }
 }
 
-uint16_t timers_values::maxrespi_to_maxrespc_mldv2(std::chrono::milliseconds msec) const
+uint16_t timers_values::maxrespi_to_maxrespc_mldv2(const std::chrono::milliseconds& msec) const
 {
     HC_LOG_TRACE("");
 
