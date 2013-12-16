@@ -149,7 +149,7 @@ bool igmp_sender::send_mc_addr_and_src_specific_query(unsigned int if_index, con
     }
 }
 
-bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, source_list<source>& slist) const
+bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, const source_list<source>& slist) const
 {
     HC_LOG_TRACE("");
 

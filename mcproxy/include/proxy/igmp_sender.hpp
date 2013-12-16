@@ -36,16 +36,8 @@
 class igmp_sender : public sender
 {
 private:
-    enum msg_type { //for intern type handling
-        GENERAL_QUERY, GROUP_SPECIFIC_QUERY
-    };
+    bool send_igmpv3_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, const source_list<source>& slist) const;
 
-    bool create_mc_query(msg_type type, unsigned char* buf, const addr_storage* g_addr = nullptr) const;
-
-    //with side affect ....
-    bool send_igmpv3_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, source_list<source>& slist) const;
-
-    //int get_msg_min_size() const;
 public:
     /**
      * @brief Create an igmp_sender.
