@@ -174,10 +174,10 @@ bool mld_sender::send_mldv2_query(unsigned int if_index, const timers_values& tv
 
     if (gaddr == addr_storage(AF_INET6)) { //general query
         dst_addr = IPV6_ALL_NODES_ADDR;
-        q->max_resp_delay = tv.maxrespi_to_maxrespc_mldv2(tv.get_query_response_interval());
+        q->max_resp_delay = htons(tv.maxrespi_to_maxrespc_mldv2(tv.get_query_response_interval()));
     } else { //all other types of queries
         dst_addr = gaddr;
-        q->max_resp_delay = tv.maxrespi_to_maxrespc_mldv2(tv.get_last_listener_query_time());
+        q->max_resp_delay = htons(tv.maxrespi_to_maxrespc_mldv2(tv.get_last_listener_query_time()));
     }
 
     q->reserved = 0;
