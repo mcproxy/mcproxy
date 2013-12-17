@@ -174,7 +174,7 @@ u_int16_t mroute_socket::calc_checksum(const unsigned char* buf, int buf_size) c
     return ~sum;
 }
 
-bool mroute_socket::set_default_icmp6_checksum_calc(bool enable) const
+bool mroute_socket::set_ipv6_auto_icmp6_checksum_calc(bool enable) const
 {
     HC_LOG_TRACE("");
 
@@ -201,7 +201,7 @@ bool mroute_socket::set_default_icmp6_checksum_calc(bool enable) const
 
 }
 
-bool mroute_socket::add_extension_header(const unsigned char* buf, unsigned int buf_size) const
+bool mroute_socket::add_ipv6_extension_header(const unsigned char* buf, unsigned int buf_size) const
 {
     HC_LOG_TRACE("");
 
@@ -228,7 +228,32 @@ bool mroute_socket::add_extension_header(const unsigned char* buf, unsigned int 
     }
 }
 
-bool mroute_socket::set_recv_icmpv6_msg() const
+bool mroute_socket::set_ipv4_router_alert_header(bool enable) const
+{
+    HC_LOG_TRACE("");
+
+    if (!is_udp_valid()) {
+        HC_LOG_ERROR("raw_socket invalid");
+        return false;
+    }
+
+    if (m_addrFamily == AF_INET) {
+        int one = enable? 1: 0;
+        int rc = setsockopt(m_sock, IPPROTO_IP, IP_ROUTER_ALERT, &one, sizeof(one));
+
+        if (rc == -1) {
+            HC_LOG_ERROR("failed to add router alert header! Error: " << strerror(errno) << " errno: " << errno);
+            return false;
+        } else {
+            return true;
+        }
+    } else {
+        HC_LOG_ERROR("wrong address family");
+        return false;
+    }
+}
+
+bool mroute_socket::set_ipv6_recv_icmpv6_msg() const
 {
     HC_LOG_TRACE("");
 
@@ -263,7 +288,7 @@ bool mroute_socket::set_recv_icmpv6_msg() const
 
 }
 
-bool mroute_socket::set_recv_pkt_info() const
+bool mroute_socket::set_ipv6_recv_pkt_info() const
 {
 
     if (!is_udp_valid()) {
@@ -289,7 +314,7 @@ bool mroute_socket::set_recv_pkt_info() const
     }
 }
 
-bool mroute_socket::set_recv_hop_by_hop_msg() const
+bool mroute_socket::set_ipv6_recv_hop_by_hop_msg() const
 {
     HC_LOG_TRACE("");
 
@@ -1208,8 +1233,8 @@ void mroute_socket::test_mcrouter_vifs_routes(int addrFamily)
 void mroute_socket::quick_test()
 {
 
- //https://github.com/torvalds/linux/blob/b3a3a9c441e2c8f6b6760de9331023a7906a4ac6/drivers/net/dummy.c
- //
+//https://github.com/torvalds/linux/blob/b3a3a9c441e2c8f6b6760de9331023a7906a4ac6/drivers/net/dummy.c
+//
     auto assert = [](bool test, std::string s) {
         if (test) {
             std::cout << "process: " << s << std::endl;
@@ -1271,9 +1296,9 @@ void mroute_socket::quick_test()
     //std::cout << "eth4(t1,v1) ==> eth0(t1,v2) ==> eth0(t2,v2) ==> dummy1(t2,v1)" << std::endl;
 
     //while (true) {
-        //ma.print_mroute_stats(addr_storage("192.168.0.38"), addr_storage("239.99.99.99"));
-        //mb.print_mroute_stats(addr_storage("192.168.0.38"), addr_storage("239.99.99.99"));
-        //sleep(2);
+    //ma.print_mroute_stats(addr_storage("192.168.0.38"), addr_storage("239.99.99.99"));
+    //mb.print_mroute_stats(addr_storage("192.168.0.38"), addr_storage("239.99.99.99"));
+    //sleep(2);
     //}
 }
 

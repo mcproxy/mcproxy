@@ -38,11 +38,11 @@ mld_receiver::mld_receiver(proxy_instance* pr_i, const std::shared_ptr<const mro
     : receiver(pr_i, AF_INET6, mrt_sock, interfaces, in_debug_testing_mode)
 {
     HC_LOG_TRACE("");
-    if (!m_mrt_sock->set_recv_icmpv6_msg()) {
+    if (!m_mrt_sock->set_ipv6_recv_icmpv6_msg()) {
         throw "failed to set receive icmpv6 message";
     }
 
-    if (!m_mrt_sock->set_recv_pkt_info()) {
+    if (!m_mrt_sock->set_ipv6_recv_pkt_info()) {
         throw "faield to set receive paket info";
     }
 

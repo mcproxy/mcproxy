@@ -36,6 +36,14 @@ igmp_sender::igmp_sender(): sender(IGMPv3)
 {
     HC_LOG_TRACE("");
 
+    if (is_IPv4(m_group_mem_protocol)) {
+        if (!m_sock.set_ipv4_router_alert_header(true)) {
+            throw "failed to add router alert header";
+        }
+    } else {
+        HC_LOG_ERROR("wrong address family: " << get_group_mem_protocol_name(m_group_mem_protocol));
+        throw "wrong address family";
+    }
 }
 
 bool igmp_sender::send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const
@@ -45,7 +53,7 @@ bool igmp_sender::send_report(unsigned int if_index, mc_filter filter_mode, cons
     if (filter_mode == INCLUDE_MODE && slist.empty() ) {
         m_sock.leave_group(gaddr, if_index);
         return true;
-    } else if(filter_mode == EXLCUDE_MODE){
+    } else if (filter_mode == EXLCUDE_MODE) {
         m_sock.join_group(gaddr, if_index);
         std::list<addr_storage> src_list;
         for (auto & e : slist) {
@@ -53,8 +61,8 @@ bool igmp_sender::send_report(unsigned int if_index, mc_filter filter_mode, cons
         }
 
         return m_sock.set_source_filter(if_index, gaddr, filter_mode, src_list);
-    }else{
-        HC_LOG_ERROR("unknown filter mode"); 
+    } else {
+        HC_LOG_ERROR("unknown filter mode");
         return false;
     }
 }
@@ -208,32 +216,6 @@ bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& 
     return m_sock.send_packet(dst_addr, reinterpret_cast<unsigned char*>(q.get()), size);
 }
 
-
-void igmp_sender::test_igmp_sender()
-{
-    //send_report(1,);
-    igmp_sender s;
-    //s.send_general_query(interfaces::get_if_index("lo"),timers_values(),IGMPv3);
-
-//struct source_timer : public timer_msg {
-    //source_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(SOURCE_TIMER_MSG, if_index, gaddr, duration) {
-    //HC_LOG_TRACE("");
-    //}
-
-    source_list<source> sl;
-    source s1(addr_storage("123.123.123.123"));
-    s1.shared_source_timer = std::make_shared<source_timer>(0, addr_storage(), std::chrono::milliseconds(50));
-    s1.retransmission_count = 5;
-
-    source s2(addr_storage("124.124.124.124"));
-    s2.shared_source_timer = std::make_shared<source_timer>(0, addr_storage(), std::chrono::minutes(50));
-    s2.retransmission_count = 5;
-
-    sl.insert(s1);
-    sl.insert(s2);
-
-    s.send_mc_addr_and_src_specific_query(interfaces::get_if_index("lo"), timers_values(), addr_storage("239.99.99.99"), sl, IGMPv3);
-}
 
 //------------------------------------------------------------------------------------------
 

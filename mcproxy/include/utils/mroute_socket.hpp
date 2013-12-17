@@ -117,7 +117,7 @@ public:
      * @param enable if true the checsum will be calculate.
      * @return Return true on success.
      */
-    bool set_default_icmp6_checksum_calc(bool enable) const;
+    bool set_ipv6_auto_icmp6_checksum_calc(bool enable) const;
 
     /**
      * @brief Add an extension header to a sending packet.
@@ -125,25 +125,27 @@ public:
      * @param buf_size size of the extension header
      * @return Return true on success.
      */
-    bool add_extension_header(const unsigned char* buf, unsigned int buf_size) const;
+    bool add_ipv6_extension_header(const unsigned char* buf, unsigned int buf_size) const;
+
+    bool set_ipv4_router_alert_header(bool enable) const;
 
     /**
      * @brief Set to pass all icmpv6 packets to userpace.
      * @return Return true on success.
      */
-    bool set_recv_icmpv6_msg() const;
+    bool set_ipv6_recv_icmpv6_msg() const;
 
     /**
      * @brief Set to pass the Hob-by-Hob header to userpace.
      * @return Return true on success
      */
-    bool set_recv_hop_by_hop_msg() const;
+    bool set_ipv6_recv_hop_by_hop_msg() const;
 
     /**
      * @brief Set to pass the receive packet information to userpace.
      * @return Return true on success
      */
-    bool set_recv_pkt_info() const;
+    bool set_ipv6_recv_pkt_info() const;
 
     /**
      * @brief Enable or disable MRT flag to manipulate the multicast routing tables.

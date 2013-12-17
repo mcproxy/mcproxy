@@ -298,7 +298,7 @@ void tester::run(const std::string& to_do)
 
             return;
         } else if (action.compare("send") == 0) {
-            std::cout << "choose multicast interface" << std::endl;
+            std::cout << "choose multicast interface: " << if_name << std::endl;
             if (!ms->choose_if(interfaces::get_if_index(if_name))) {
                 std::cout << "failed to choose interface " << if_name << std::endl;
                 exit(0);
@@ -310,7 +310,7 @@ void tester::run(const std::string& to_do)
                 exit(0);
             }
 
-            std::cout << "send packet: " << msg  << " to port " << port << std::endl;
+            std::cout << "send msg: \"" << msg  << "\" to port " << port << std::endl;
             for (int i = 0; i < count; ++i) {
                 if (!ms->send_packet(gaddr.set_port(port), msg )) {
                     std::cout << "failed to send packet" << std::endl;

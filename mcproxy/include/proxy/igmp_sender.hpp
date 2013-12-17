@@ -49,7 +49,6 @@ public:
 
     bool send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const override;
 
-    static void test_igmp_sender();
 };
 
 #endif // IGMP_SENDER_HPP

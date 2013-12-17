@@ -36,11 +36,11 @@ mld_sender::mld_sender(): sender(MLDv2)
     HC_LOG_TRACE("");
 
     if (is_IPv6(m_group_mem_protocol)) {
-        if (!m_sock.set_default_icmp6_checksum_calc(true)) {
+        if (!m_sock.set_ipv6_auto_icmp6_checksum_calc(true)) {
             throw "failed to set default icmmpv6 checksum";
         }
         if (!add_hbh_opt_header()) {
-            throw "failed to add hop by hop header";
+            throw "failed to add router alert header";
         }
     } else {
         HC_LOG_ERROR("wrong address family: " << get_group_mem_protocol_name(m_group_mem_protocol));
@@ -343,7 +343,7 @@ bool mld_sender::add_hbh_opt_header() const
 
     *pad_Hdr = IP6OPT_PADN;
 
-    if (!m_sock.add_extension_header((unsigned char*)hbh_Hdr, sizeof(struct ip6_hbh) + sizeof(struct ip6_opt_router) + sizeof(pad2))) {
+    if (!m_sock.add_ipv6_extension_header((unsigned char*)hbh_Hdr, sizeof(struct ip6_hbh) + sizeof(struct ip6_opt_router) + sizeof(pad2))) {
         return false;
     }
 
