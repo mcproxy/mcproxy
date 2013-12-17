@@ -23,6 +23,7 @@
 
 #include "include/hamcast_logging.h"
 #include "include/utils/mroute_socket.hpp"
+#include "include/utils/extended_mld_defines.hpp"
 
 #include <netinet/icmp6.h>
 #include <sys/socket.h>
@@ -246,6 +247,7 @@ bool mroute_socket::set_recv_icmpv6_msg() const
         ICMP6_FILTER_SETBLOCKALL(&myfilter);
         ICMP6_FILTER_SETPASS(MLD_LISTENER_REPORT, &myfilter);
         ICMP6_FILTER_SETPASS(MLD_LISTENER_REDUCTION, &myfilter);
+        ICMP6_FILTER_SETPASS(MLD_V2_LISTENER_REPORT, &myfilter);
 
 
         if (setsockopt(m_sock, IPPROTO_ICMPV6, ICMP6_FILTER, &myfilter, sizeof(myfilter)) < 0) {
