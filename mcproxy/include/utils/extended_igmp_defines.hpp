@@ -25,18 +25,25 @@
 
 #include <stdint.h>
 #include <sys/types.h>
-#include <netinet/igmp.h> 
+#include <netinet/igmp.h>
 
 #ifndef IGMP_V3_MEMBERSHIP_REPORT
 #define IGMP_V3_MEMBERSHIP_REPORT 0x22
 #endif
 
 //struct igmp {
-  //u_int8_t igmp_type;             [> IGMP type <]
-  //u_int8_t igmp_code;             [> routing code <]
-  //u_int16_t igmp_cksum;           [> checksum <]
-  //struct in_addr igmp_group;      [> group address <]
+//u_int8_t igmp_type;             [> IGMP type <]
+//u_int8_t igmp_code;             [> routing code <]
+//u_int16_t igmp_cksum;           [> checksum <]
+//struct in_addr igmp_group;      [> group address <]
 //};
+
+//RFC 2113
+struct router_alert_option {
+    uint8_t type = 0x94; //Ccopied flag: 1, Option class: 0, Option number: 20
+    uint8_t length = 0x4;
+    uint16_t value = 0;
+};
 
 struct igmpv3_query: igmp {
 #if BYTE_ORDER == LITTLE_ENDIAN //is this right?????????????????ßß 

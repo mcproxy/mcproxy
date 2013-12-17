@@ -164,15 +164,15 @@ bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& 
 
     std::unique_ptr<unsigned char[]> packet;
     unsigned int size;
-    
+
     if (slist.empty()) {
-        size = sizeof(ip) + sizeof(igmpv3_query);
+        size = sizeof(ip) + sizeof(router_alert_option) + sizeof(igmpv3_query);
         packet.reset(new unsigned char[size]);
     } else { //all other types of queries
-        size = sizeof(ip) + sizeof(igmpv3_query) + (slist.size() * sizeof(in_addr));
+        size = sizeof(ip) + sizeof(router_alert_option) + sizeof(igmpv3_query) + (slist.size() * sizeof(in_addr));
         packet.reset(new unsigned char[size]);
     }
-    
+
     addr_storage dst_addr;
 
     if (gaddr == addr_storage(AF_INET)) { //is general query
@@ -181,29 +181,34 @@ bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& 
         dst_addr = gaddr;
     }
 
+    //-------------------------------------------------------------------
+    //fill ip header
     ip* ip_hdr = reinterpret_cast<ip*>(packet.get());
+
     ip_hdr->ip_v = 4;
-    ip_hdr->ip_hl = 5; //bob
+    ip_hdr->ip_hl = (sizeof(ip) + sizeof(router_alert_option)) / 4;
     ip_hdr->ip_tos = 0;
-    ip_hdr->ip_len = htons(32);  //bob
+    ip_hdr->ip_len = htons(size); 
     ip_hdr->ip_id = 0;
     ip_hdr->ip_off = htons(0 | IP_DF); //dont fragment flag
     ip_hdr->ip_ttl = 1;
-    ip_hdr->ip_p = 2; //bob
+    ip_hdr->ip_p = IPPROTO_IGMP; 
     ip_hdr->ip_sum = 0;
     ip_hdr->ip_src = m_interfaces->get_saddr(interfaces::get_if_name(if_index)).get_in_addr();
     ip_hdr->ip_dst = dst_addr.get_in_addr();
 
-    ip_hdr->ip_sum = m_sock.calc_checksum(reinterpret_cast<unsigned char*>(ip_hdr),sizeof(ip));
+    //-------------------------------------------------------------------
+    //fill router_alert_option header 
+    router_alert_option* ra_hdr = reinterpret_cast<router_alert_option*>(reinterpret_cast<unsigned char*>(ip_hdr) + sizeof(ip));
+    *ra_hdr = router_alert_option();
 
-//#define	IPOPT_RA		148		[> router alert <]
+    ip_hdr->ip_sum = m_sock.calc_checksum(reinterpret_cast<unsigned char*>(ip_hdr), sizeof(ip) + sizeof(router_alert_option));
 
-
-    igmpv3_query* query = reinterpret_cast<igmpv3_query*>(reinterpret_cast<unsigned char*>(ip_hdr) + sizeof(ip));
-
+    //-------------------------------------------------------------------
+    //fill igmpv3 query 
+    igmpv3_query* query = reinterpret_cast<igmpv3_query*>(reinterpret_cast<unsigned char*>(ra_hdr) + sizeof(router_alert_option));
 
     query->igmp_type = IGMP_MEMBERSHIP_QUERY;
-
 
     if (gaddr == addr_storage(AF_INET)) { //general query
         query->igmp_code = tv.maxrespi_to_maxrespc_igmpv3(tv.get_query_response_interval());
@@ -225,6 +230,8 @@ bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& 
     query->qqic = tv.qqi_to_qqic(tv.get_query_interval());
     query->num_of_srcs = ntohs(slist.size());
 
+    //-------------------------------------------------------------------
+    //add sources
     if (!slist.empty()) {
         in_addr* source_ptr = reinterpret_cast<in_addr*>(reinterpret_cast<unsigned char*>(query) + sizeof(igmpv3_query));
         for (auto & e : slist) {
