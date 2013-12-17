@@ -102,7 +102,7 @@ public:
      *        IP header is always included in the packet.
      * @return Return true on success.
      */
-    bool set_no_ip_hdr() const;
+    bool set_no_ip_hdr(bool enable) const;
 
     /**
      * @brief Calculate an internet checksum needed for IPv4 IGMP header.
@@ -127,7 +127,7 @@ public:
      */
     bool add_ipv6_extension_header(const unsigned char* buf, unsigned int buf_size) const;
 
-    bool set_ipv4_router_alert_header(bool enable) const;
+    bool set_ipv4_receive_packets_with_router_alert_header(bool enable) const;
 
     /**
      * @brief Set to pass all icmpv6 packets to userpace.

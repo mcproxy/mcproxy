@@ -127,7 +127,7 @@ bool mroute_socket::set_kernel_table(int table) const
     return true;
 }
 
-bool mroute_socket::set_no_ip_hdr() const
+bool mroute_socket::set_no_ip_hdr(bool enable) const
 {
     HC_LOG_TRACE("");
 
@@ -145,7 +145,7 @@ bool mroute_socket::set_no_ip_hdr() const
         HC_LOG_ERROR("wrong address family");
         return false;
     }
-    int one = 1;
+    int one = enable ? 1 : 0;
     if (setsockopt (m_sock, proto, IP_HDRINCL, &one, sizeof (one)) < 0) {
         HC_LOG_ERROR("failed to set no ip header! Error: " << strerror(errno) << " errno: " << errno);
         return false;
@@ -228,7 +228,7 @@ bool mroute_socket::add_ipv6_extension_header(const unsigned char* buf, unsigned
     }
 }
 
-bool mroute_socket::set_ipv4_router_alert_header(bool enable) const
+bool mroute_socket::set_ipv4_receive_packets_with_router_alert_header(bool enable) const
 {
     HC_LOG_TRACE("");
 

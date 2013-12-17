@@ -31,7 +31,7 @@
 
 #include <memory>
 
-mld_sender::mld_sender(): sender(MLDv2)
+mld_sender::mld_sender(const std::shared_ptr<const interfaces>& interfaces): sender(interfaces, MLDv2)
 {
     HC_LOG_TRACE("");
 

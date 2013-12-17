@@ -119,9 +119,9 @@ bool proxy_instance::init_sender()
 {
     HC_LOG_TRACE("");
     if (is_IPv4(m_group_mem_protocol)) {
-        m_sender = std::make_shared<igmp_sender>();
+        m_sender = std::make_shared<igmp_sender>(m_interfaces);
     } else if (is_IPv6(m_group_mem_protocol)) {
-        m_sender = std::make_shared<mld_sender>();
+        m_sender = std::make_shared<mld_sender>(m_interfaces);
     } else {
         HC_LOG_ERROR("unknown ip version");
         return false;

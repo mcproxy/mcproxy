@@ -27,10 +27,11 @@
 #include "include/proxy/timers_values.hpp"
 
 #include <iostream>
-sender::sender(group_mem_protocol gmp)
+sender::sender(const std::shared_ptr<const interfaces>& interfaces, group_mem_protocol gmp)
+    : m_group_mem_protocol(gmp)
+    , m_interfaces(interfaces)
 {
     HC_LOG_TRACE("");
-    m_group_mem_protocol = gmp;
 
     if (is_IPv4(m_group_mem_protocol)) {
         if (!m_sock.create_raw_ipv4_socket()) {

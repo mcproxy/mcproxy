@@ -31,8 +31,9 @@
 
 #include "include/utils/mroute_socket.hpp"
 #include "include/proxy/def.hpp"
+#include "include/proxy/interfaces.hpp"
 
-#include <chrono>
+#include "memory"
 
 class timers_values;
 struct source;
@@ -44,19 +45,14 @@ class sender
 {
 private:
 protected:
-    /**
-     * @brief Used IP version (AF_INET or AF_INET6).
-     */
     group_mem_protocol m_group_mem_protocol;
+    const std::shared_ptr<const interfaces>& m_interfaces;
 
-    /**
-     * @brief Abstracted multicast socket, that use raw-socket to send the messages.
-     */
     mroute_socket m_sock;
 
 public:
 
-    sender(group_mem_protocol gmp);
+    sender(const std::shared_ptr<const interfaces>& interfaces, group_mem_protocol gmp);
 
     virtual bool send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const;
 

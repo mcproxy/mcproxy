@@ -159,6 +159,27 @@ int interfaces::get_virtual_if_index(unsigned int if_index) const
 
 }
 
+addr_storage interfaces::get_saddr(const std::string& if_name) const
+{
+    HC_LOG_TRACE("");
+
+    if (m_addr_family == AF_INET) {
+        auto tmp = m_if_prop.get_ip4_if(if_name);
+        return addr_storage(*tmp->ifa_addr);
+    } else if  (m_addr_family == AF_INET6) {
+        auto addr_list = m_if_prop.get_ip6_if(if_name);
+        if (addr_list->begin() != addr_list->end()) {
+            const struct ifaddrs* addr = *addr_list->begin();
+            return addr_storage(*addr->ifa_addr);
+        } else {
+            return addr_storage();
+        }
+    } else {
+        HC_LOG_ERROR("unkown addr_family: " << m_addr_family);
+        return addr_storage();
+    }
+}
+
 std::string interfaces::get_if_name(unsigned int if_index)
 {
     HC_LOG_TRACE("");

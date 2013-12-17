@@ -39,7 +39,7 @@ private:
     bool send_igmpv3_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, const source_list<source>& slist) const;
 
 public:
-    igmp_sender();
+    igmp_sender(const std::shared_ptr<const interfaces>& interfaces);
 
     bool send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const override;
 
