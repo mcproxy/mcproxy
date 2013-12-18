@@ -78,7 +78,7 @@ void proxy::help_output()
 {
     using namespace std;
     HC_LOG_TRACE("");
-    cout << "Mcproxy version 1.0.0-beta" << endl;
+    cout << "Mcproxy version 1.1.0" << endl;
 
 #ifdef DEBUG_MODE
     cout << " - Compiled in debug mode." << endl;
@@ -229,12 +229,12 @@ void proxy::start_proxy_instances()
                 throw "interface not found";
             }
 
-            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!here I mod the timers and values for debugging aim" << std::endl;
+            //std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!here I mod the timers and values for debugging aim" << std::endl;
             timers_values tv;
-            tv.set_query_interval(std::chrono::seconds(30));
-            tv.set_startup_query_interval(std::chrono::seconds(10));
-            tv.set_last_listener_query_count(3);
-            tv.set_last_listener_query_interval(std::chrono::seconds(4));
+            //tv.set_query_interval(std::chrono::seconds(30));
+            //tv.set_startup_query_interval(std::chrono::seconds(10));
+            //tv.set_last_listener_query_count(3);
+            //tv.set_last_listener_query_interval(std::chrono::seconds(4));
 
             pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, if_index, d, tv));
         }
