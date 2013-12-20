@@ -33,7 +33,7 @@ every kernel tabel useses there own vif number range
 
 
 General stuff
- -- implement MLDv2 in and output 
+ -- create an how to for the configuration script
  -- implement compatibility stuff
  -- implement dynamic interface state updating
  -- clean class routing 
@@ -44,8 +44,18 @@ General stuff
  -- remove all ???????? from the code
  -- remove deprecated functions like htonl ...
  -- overwork addr_storage compare function
-
  -- overwork exception concept ????
+
+ 
+
+Email
+ -- How much will the implementation protect against killing SSM by
+ASM receivers ? Aka: If  your proxy receives an IGMPv3 INCLUDE(S,G1)
+membership from host 1 and an IGMPv3 EXCLUDE({},G1) from host 2, what
+will it send out on the upstream interface ?
+    Very interesting question, I never thought about this problem. So the current version would sends unaware of any protection the report EXCLUDE({},G1) to the upstream
+    But I think I could update the proxy in the following way:
+    Currently it is possible to define filter rules, for example “forward only data of the channel (S,G1) to the downstream interface eth0 and ignore all other data”. In this case, if the proxy receives an IGMPv3 EXCLUDE({}, G1) on the downstream interface eth0, it could be easily converted to the report INCLUDE(S,G1).
 
 future work
  -- matrace2
