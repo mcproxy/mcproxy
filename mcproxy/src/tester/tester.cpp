@@ -241,7 +241,7 @@ std::string tester::get_msg(const std::string& to_do)
     return msg;
 }
 
-std::chrono::milliseconds tester::get_interval(const std::string& to_do)
+std::chrono::milliseconds tester::get_send_interval(const std::string& to_do)
 {
     HC_LOG_TRACE("");
 
@@ -381,7 +381,7 @@ void tester::run(const std::string& to_do)
         int ttl = get_ttl(to_do);
         int port = get_port(to_do);
         std::string msg = get_msg(to_do);
-        std::chrono::milliseconds interval = get_interval(to_do);
+        std::chrono::milliseconds interval = get_send_interval(to_do);
         bool print_status_msg = get_print_status_msg(to_do);
         bool save_to_file = get_save_to_file(to_do);
         std::string file_name = get_file_name(to_do);
@@ -425,7 +425,8 @@ void tester::run(const std::string& to_do)
                     std::cout << "failed to send packet" << std::endl;
                     exit(0);
                 }
-                usleep(interval.count());
+                 
+                usleep(std::chrono::duration_cast<std::chrono::microseconds>(interval).count());
             }
             return;
         } else {

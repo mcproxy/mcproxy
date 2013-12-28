@@ -52,7 +52,7 @@ private:
     int get_ttl(const std::string& to_do);
     int get_port(const std::string& to_do);
     std::string get_msg(const std::string& to_do);
-    std::chrono::milliseconds get_interval(const std::string& to_do);
+    std::chrono::milliseconds get_send_interval(const std::string& to_do);
     bool get_print_status_msg(const std::string& to_do);
     bool get_save_to_file(const std::string& to_do);
     std::string get_file_name(const std::string& to_do);
