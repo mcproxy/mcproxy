@@ -32,6 +32,8 @@
 #include <vector>
 #include <limits>
 #include <thread>
+#include <fstream>
+#include <iostream>
 
 
 tester::tester(int arg_count, char* args[])
@@ -308,13 +310,24 @@ std::string tester::get_file_name(const std::string& to_do)
     return result;
 }
 
-void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, bool print_status_msg)
+void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, bool print_status_msg, bool save_to_file, const std::string& file_name)
 {
     HC_LOG_TRACE("");
 
     const unsigned int size = 201;
     std::vector<unsigned char> buf(size, 0);
     int info_size = 0;
+
+    std::ofstream file;
+    if(save_to_file){
+        file.open(file_name); 
+        if(!file.is_open()){
+            std::cout << "failed to open file" << std::endl;
+            exit(0);
+        }else{
+            file << "count\tdelay\tmessage" << std::endl; 
+        }
+    }
 
     if (!ms->bind_udp_socket(port)) {
         std::cout << "failed to bind port " << port << " to socket" << std::endl;
@@ -335,7 +348,17 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
             std::cout << "\rcount: " << count << "; last delay: " << delay << "ms ; last msg: " << iss.rdbuf();
             std::flush(std::cout);
         }
+
+        if (save_to_file){
+            file <<  count << "\t" << delay << "\t" << iss.rdbuf() << std::endl;   
+        }
+
         ms->receive_packet(buf.data(), size - 1, info_size);
+    }
+
+
+    if(save_to_file){
+        file.close(); 
     }
 }
 
@@ -378,7 +401,7 @@ void tester::run(const std::string& to_do)
                 }
             }
 
-            receive_data(ms, port,print_status_msg);
+            receive_data(ms, port,print_status_msg, save_to_file, file_name);
 
             return;
         } else if (action.compare("send") == 0) {
