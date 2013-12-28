@@ -401,19 +401,32 @@ void tester::run(const std::string& to_do)
         }
 
         std::string if_name = get_if_name(to_do);
+        HC_LOG_DEBUG("if_name: " << if_name);
         addr_storage gaddr = get_gaddr(to_do);
+        HC_LOG_DEBUG("gaddr: " << gaddr);
         const std::unique_ptr<const mc_socket> ms(get_mc_socket(gaddr.get_addr_family()));
         int count = get_count(to_do);
+        HC_LOG_DEBUG("count: " << count);
         std::list<addr_storage> slist = get_src_list(to_do, gaddr.get_addr_family());
+        HC_LOG_DEBUG("source list size: " << slist.size());
         std::string action = get_action(to_do);
+        HC_LOG_DEBUG("action: " << action);
         mc_filter mfilter = get_mc_filter(to_do);
+        HC_LOG_DEBUG("filter mode: " << get_mc_filter_name(mfilter));
         int ttl = get_ttl(to_do);
+        HC_LOG_DEBUG("ttl: " << ttl);
         int port = get_port(to_do);
+        HC_LOG_DEBUG("port: " << port);
         std::string msg = get_msg(to_do);
+        HC_LOG_DEBUG("msg: " << msg);
         std::chrono::milliseconds interval = get_send_interval(to_do);
+        HC_LOG_DEBUG("interval: " << interval.count() << "milliseconds");
         bool print_status_msg = get_print_status_msg(to_do);
+        HC_LOG_DEBUG("print_status_msg: " << print_status_msg);
         bool save_to_file = get_save_to_file(to_do);
+        HC_LOG_DEBUG("save_to_file: " << save_to_file);
         std::string file_name = get_file_name(to_do);
+        HC_LOG_DEBUG("file_name: " << file_name);
 
         if (action.compare("receive") == 0) {
             std::cout << "join group " << gaddr << " on interface " << if_name << std::endl;
