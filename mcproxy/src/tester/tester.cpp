@@ -356,6 +356,9 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
         ms->receive_packet(buf.data(), size - 1, info_size);
     }
 
+    if (print_status_msg) {
+        std::cout << std::endl;
+    }
 
     if (save_to_file) {
         file.close();
@@ -379,7 +382,8 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
         oss << count << " " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() << " " << msg;
 
         if (print_status_msg) {
-            std::cout << "\rsend: " << i+1 << "/" << count << std::endl;
+            std::cout << "\rsend: " << i + 1 << "/" << count;
+            std::flush(std::cout);
         }
 
         if (!ms->send_packet(gaddr.set_port(port), oss.str() )) {
@@ -388,6 +392,10 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
         }
 
         usleep(std::chrono::duration_cast<std::chrono::microseconds>(interval).count());
+    }
+
+    if (print_status_msg) {
+        std::cout << std::endl;
     }
 }
 
@@ -434,7 +442,7 @@ void tester::run(const std::string& to_do)
 
         bool save_to_file = get_save_to_file(to_do);
         HC_LOG_DEBUG("save_to_file: " << save_to_file);
-        
+
         std::string file_name = get_file_name(to_do);
         HC_LOG_DEBUG("file_name: " << file_name);
 
