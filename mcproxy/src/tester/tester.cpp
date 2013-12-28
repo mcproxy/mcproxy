@@ -328,7 +328,7 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
             std::cout << "failed to open file" << std::endl;
             exit(0);
         } else {
-            file << "count\tdelay\tmessage" << std::endl;
+            file << "count time_stamp_sender time_stamp_receiver delay message" << std::endl;
         }
     }
 
@@ -341,19 +341,19 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
         std::istringstream iss(std::string(reinterpret_cast<char*>(buf.data())));
 
         long send_time_stamp;
+        long receive_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
         long delay = 0;
         int count = 0;
 
-
         iss >> count >> send_time_stamp;
-        delay = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() - send_time_stamp;;
+        delay = receive_time_stamp - send_time_stamp;;
         if (print_status_msg) {
             std::cout << "\rcount: " << count << "; last delay: " << delay << "ms; last msg: " << iss.rdbuf();
             std::flush(std::cout);
         }
 
         if (save_to_file) {
-            file <<  count << "\t" << delay << "\t" << iss.rdbuf() << std::endl;
+            file <<  count << " " << send_time_stamp << " " << receive_time_stamp << delay << "  " << iss.rdbuf() << std::endl;
         }
 
         ms->receive_packet(buf.data(), size - 1, info_size);
@@ -382,7 +382,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
 
     for (int i = 0; i < count; ++i) {
         std::ostringstream oss;
-        oss << i << " " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() << " " << msg;
+        oss << i + 1 << " " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() << " " << msg;
 
         if (print_status_msg) {
             std::cout << "\rsend: " << i + 1 << "/" << count;
