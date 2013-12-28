@@ -30,6 +30,7 @@
 
 #include <memory>
 #include <list>
+#include <chrono>
 
 #define TESTER_DEFAULT_CONIG_PATH "tester.ini"
 
@@ -39,7 +40,7 @@ private:
     config_map m_config_map;
 
     void run(const std::string& to_do);
-
+    
     addr_storage get_gaddr(const std::string& to_do);
     std::unique_ptr<const mc_socket> get_mc_socket(int addr_family);
     std::string get_if_name(const std::string& to_do);
@@ -51,8 +52,12 @@ private:
     int get_ttl(const std::string& to_do);
     int get_port(const std::string& to_do);
     std::string get_msg(const std::string& to_do);
+    std::chrono::milliseconds get_interval(const std::string& to_do);
+    bool get_print_status_msg(const std::string& to_do);
+    bool get_save_to_file(const std::string& to_do);
+    std::string get_file_name(const std::string& to_do);
 
-    void receive_data(const std::unique_ptr<const mc_socket>& ms, int port);
+    void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, bool print_status_msg);
 public:
     tester(int arg_count, char* args[]);
 };

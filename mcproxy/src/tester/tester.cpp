@@ -31,6 +31,7 @@
 
 #include <vector>
 #include <limits>
+#include <thread>
 
 
 tester::tester(int arg_count, char* args[])
@@ -233,19 +234,87 @@ std::string tester::get_msg(const std::string& to_do)
 
     std::string msg = m_config_map.get(to_do, "msg");
     if (msg.empty()) {
-        msg = "this is test message";
+        msg = "this is a test message";
     }
     return msg;
 }
 
-void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port)
+std::chrono::milliseconds tester::get_interval(const std::string& to_do)
 {
     HC_LOG_TRACE("");
 
-    const unsigned int size = 151;
+    std::string str_interval = m_config_map.get(to_do, "send_interval");
+    int interval;
+    if (str_interval.empty()) {
+        interval = 1000; //milliseconds
+    } else {
+        try {
+            interval = std::stoi(str_interval);
+        } catch (std::logic_error e) {
+            std::cout << "failed to parse interval" << std::endl;
+            exit(0);
+        }
+    }
+    return std::chrono::milliseconds(interval);
+}
+
+bool tester::get_print_status_msg(const std::string& to_do)
+{
+    HC_LOG_TRACE("");
+
+    std::string result = m_config_map.get(to_do, "print_status_msg");
+    if (result.empty()) {
+        return false;
+    }
+
+    if(result.compare("true")){
+        return true; 
+    }else if(result.compare("false")){
+        return false; 
+    }else{
+        std::cout << "failed to parse print_status_msg" << std::endl; 
+        exit(0);
+    }
+}
+
+bool tester::get_save_to_file(const std::string& to_do)
+{
+    HC_LOG_TRACE("");
+
+    std::string result = m_config_map.get(to_do, "save_to_file");
+    if (result.empty()) {
+        return false;
+    }
+
+    if(result.compare("true")){
+        return true; 
+    }else if(result.compare("false")){
+        return false; 
+    }else{
+        std::cout << "failed to parse save_to_file" << std::endl; 
+        exit(0);
+    }
+}
+
+std::string tester::get_file_name(const std::string& to_do)
+{
+    HC_LOG_TRACE("");
+
+    std::string result = m_config_map.get(to_do, "save_to_file");
+    if (result.empty()) {
+        return std::string("delay_measurment_file");
+    }
+    
+    return result;
+}
+
+void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, bool print_status_msg)
+{
+    HC_LOG_TRACE("");
+
+    const unsigned int size = 201;
     std::vector<unsigned char> buf(size, 0);
     int info_size = 0;
-    long msg_count = 0;
 
     if (!ms->bind_udp_socket(port)) {
         std::cout << "failed to bind port " << port << " to socket" << std::endl;
@@ -253,8 +322,19 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port)
     }
 
     while (true) {
-        std::cout << "\rcount: " << msg_count++ << "; last msg: " << buf.data();
-        std::flush(std::cout);
+        std::istringstream iss(std::string(reinterpret_cast<char*>(buf.data())));
+
+        long send_time_stamp;
+        long delay = 0;
+        int count = 0;
+
+        iss >> count >> send_time_stamp;
+        delay = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() - send_time_stamp;;
+
+        if (print_status_msg) {
+            std::cout << "\rcount: " << count << "; last delay: " << delay << "ms ; last msg: " << iss.rdbuf();
+            std::flush(std::cout);
+        }
         ms->receive_packet(buf.data(), size - 1, info_size);
     }
 }
@@ -278,6 +358,10 @@ void tester::run(const std::string& to_do)
         int ttl = get_ttl(to_do);
         int port = get_port(to_do);
         std::string msg = get_msg(to_do);
+        std::chrono::milliseconds interval = get_interval(to_do);
+        bool print_status_msg = get_print_status_msg(to_do);
+        bool save_to_file = get_save_to_file(to_do);
+        std::string file_name = get_file_name(to_do);
 
         if (action.compare("receive") == 0) {
             std::cout << "join group " << gaddr << " on interface " << if_name << std::endl;
@@ -294,7 +378,7 @@ void tester::run(const std::string& to_do)
                 }
             }
 
-            receive_data(ms, port);
+            receive_data(ms, port,print_status_msg);
 
             return;
         } else if (action.compare("send") == 0) {
@@ -312,10 +396,13 @@ void tester::run(const std::string& to_do)
 
             std::cout << "send msg: \"" << msg  << "\" to port " << port << std::endl;
             for (int i = 0; i < count; ++i) {
-                if (!ms->send_packet(gaddr.set_port(port), msg )) {
+                std::ostringstream oss;
+                oss << count << " " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() << " " << msg;
+                if (!ms->send_packet(gaddr.set_port(port), oss.str() )) {
                     std::cout << "failed to send packet" << std::endl;
                     exit(0);
                 }
+                usleep(interval.count());
             }
             return;
         } else {
