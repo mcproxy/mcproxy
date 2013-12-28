@@ -269,12 +269,12 @@ bool tester::get_print_status_msg(const std::string& to_do)
         return false;
     }
 
-    if(result.compare("true")){
-        return true; 
-    }else if(result.compare("false")){
-        return false; 
-    }else{
-        std::cout << "failed to parse print_status_msg" << std::endl; 
+    if (result.compare("true")) {
+        return true;
+    } else if (result.compare("false")) {
+        return false;
+    } else {
+        std::cout << "failed to parse print_status_msg" << std::endl;
         exit(0);
     }
 }
@@ -288,12 +288,12 @@ bool tester::get_save_to_file(const std::string& to_do)
         return false;
     }
 
-    if(result.compare("true")){
-        return true; 
-    }else if(result.compare("false")){
-        return false; 
-    }else{
-        std::cout << "failed to parse save_to_file" << std::endl; 
+    if (result.compare("true")) {
+        return true;
+    } else if (result.compare("false")) {
+        return false;
+    } else {
+        std::cout << "failed to parse save_to_file" << std::endl;
         exit(0);
     }
 }
@@ -306,7 +306,7 @@ std::string tester::get_file_name(const std::string& to_do)
     if (result.empty()) {
         return std::string("delay_measurment_file");
     }
-    
+
     return result;
 }
 
@@ -319,13 +319,13 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     int info_size = 0;
 
     std::ofstream file;
-    if(save_to_file){
-        file.open(file_name); 
-        if(!file.is_open()){
+    if (save_to_file) {
+        file.open(file_name);
+        if (!file.is_open()) {
             std::cout << "failed to open file" << std::endl;
             exit(0);
-        }else{
-            file << "count\tdelay\tmessage" << std::endl; 
+        } else {
+            file << "count\tdelay\tmessage" << std::endl;
         }
     }
 
@@ -349,16 +349,45 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
             std::flush(std::cout);
         }
 
-        if (save_to_file){
-            file <<  count << "\t" << delay << "\t" << iss.rdbuf() << std::endl;   
+        if (save_to_file) {
+            file <<  count << "\t" << delay << "\t" << iss.rdbuf() << std::endl;
         }
 
         ms->receive_packet(buf.data(), size - 1, info_size);
     }
 
 
-    if(save_to_file){
-        file.close(); 
+    if (save_to_file) {
+        file.close();
+    }
+}
+
+void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, int count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg)
+{
+    HC_LOG_TRACE("");
+
+    std::cout << "set ttl to " << ttl << std::endl;
+    if (!ms->set_ttl(ttl)) {
+        std::cout << "failed to set ttl" << std::endl;
+        exit(0);
+    }
+
+    std::cout << "send message:" << msg << " to port " << port << std::endl;
+
+    for (int i = 0; i < count; ++i) {
+        std::ostringstream oss;
+        oss << count << " " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() << " " << msg;
+
+        if (print_status_msg) {
+            std::cout << "\rsend: " << i+1 << "/" << count << std::endl;
+        }
+
+        if (!ms->send_packet(gaddr.set_port(port), oss.str() )) {
+            std::cout << "failed to send packet" << std::endl;
+            exit(0);
+        }
+
+        usleep(std::chrono::duration_cast<std::chrono::microseconds>(interval).count());
     }
 }
 
@@ -401,7 +430,7 @@ void tester::run(const std::string& to_do)
                 }
             }
 
-            receive_data(ms, port,print_status_msg, save_to_file, file_name);
+            receive_data(ms, port, print_status_msg, save_to_file, file_name);
 
             return;
         } else if (action.compare("send") == 0) {
@@ -411,23 +440,8 @@ void tester::run(const std::string& to_do)
                 exit(0);
             }
 
-            std::cout << "set ttl to " << ttl << std::endl;
-            if (!ms->set_ttl(ttl)) {
-                std::cout << "failed to set ttl" << std::endl;
-                exit(0);
-            }
+            send_data(ms, gaddr, port, ttl, count, interval, msg, print_status_msg);
 
-            std::cout << "send msg: \"" << msg  << "\" to port " << port << std::endl;
-            for (int i = 0; i < count; ++i) {
-                std::ostringstream oss;
-                oss << count << " " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() << " " << msg;
-                if (!ms->send_packet(gaddr.set_port(port), oss.str() )) {
-                    std::cout << "failed to send packet" << std::endl;
-                    exit(0);
-                }
-                 
-                usleep(std::chrono::duration_cast<std::chrono::microseconds>(interval).count());
-            }
             return;
         } else {
             std::cout << "action " << action << " not available" << std::endl;

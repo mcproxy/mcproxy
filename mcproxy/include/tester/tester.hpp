@@ -57,6 +57,7 @@ private:
     bool get_save_to_file(const std::string& to_do);
     std::string get_file_name(const std::string& to_do);
 
+    void send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, int count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg);
     void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, bool print_status_msg, bool save_to_file, const std::string& file_name);
 public:
     tester(int arg_count, char* args[]);
