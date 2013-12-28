@@ -28,6 +28,7 @@
 #include "include/proxy/interfaces.hpp"
 
 #include <unistd.h>
+#include <string.h>
 
 #include <vector>
 #include <limits>
@@ -302,7 +303,7 @@ std::string tester::get_file_name(const std::string& to_do)
 {
     HC_LOG_TRACE("");
 
-    std::string result = m_config_map.get(to_do, "save_to_file");
+    std::string result = m_config_map.get(to_do, "file_name");
     if (result.empty()) {
         return std::string("delay_measurment_file");
     }
@@ -316,6 +317,8 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
 
     const unsigned int size = 201;
     std::vector<unsigned char> buf(size, 0);
+    strncpy(reinterpret_cast<char*>(buf.data()), "0 0 null", size);
+
     int info_size = 0;
 
     std::ofstream file;
@@ -340,12 +343,14 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
         long send_time_stamp;
         long delay = 0;
         int count = 0;
+        
+        int debug_i=0;
 
         iss >> count >> send_time_stamp;
         delay = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() - send_time_stamp;;
 
         if (print_status_msg) {
-            std::cout << "\rcount: " << count << "; last delay: " << delay << "ms ; last msg: " << iss.rdbuf();
+            std::cout << "\r" << debug_i++ << " count: " << count << "; last delay: " << delay << "ms; last msg: " << iss.rdbuf();
             std::flush(std::cout);
         }
 
@@ -375,7 +380,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
         exit(0);
     }
 
-    std::cout << "send message:" << msg << " to port " << port << std::endl;
+    std::cout << "send message: " << msg << " to port " << port << std::endl;
 
     for (int i = 0; i < count; ++i) {
         std::ostringstream oss;
