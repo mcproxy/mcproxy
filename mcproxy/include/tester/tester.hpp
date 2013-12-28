@@ -34,13 +34,14 @@
 
 #define TESTER_DEFAULT_CONIG_PATH "tester.ini"
 
-class tester 
+class tester
 {
 private:
     config_map m_config_map;
+    static bool m_running;
 
     void run(const std::string& to_do);
-    
+
     addr_storage get_gaddr(const std::string& to_do);
     std::unique_ptr<const mc_socket> get_mc_socket(int addr_family);
     std::string get_if_name(const std::string& to_do);
@@ -59,6 +60,8 @@ private:
 
     void send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, int count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg);
     void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, bool print_status_msg, bool save_to_file, const std::string& file_name);
+
+    static void signal_handler(int sig);
 public:
     tester(int arg_count, char* args[]);
 };

@@ -29,6 +29,7 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 
 #include <vector>
 #include <limits>
@@ -36,10 +37,14 @@
 #include <fstream>
 #include <iostream>
 
+bool tester::m_running = false;
 
 tester::tester(int arg_count, char* args[])
 {
     HC_LOG_TRACE("");
+
+    signal(SIGINT, tester::signal_handler);
+    signal(SIGTERM, tester::signal_handler);
 
     if (arg_count == 2) {
         if (std::string(args[1]).compare("-h") == 0 || std::string(args[1]).compare("--help") == 0) {
@@ -337,7 +342,12 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
         exit(0);
     }
 
-    while (true) {
+    if (!ms->set_receive_timeout(100)) {
+        std::cout << "failed to set receive timeout" << std::endl;
+        exit(0);
+    }
+
+    while (m_running) {
         std::istringstream iss(std::string(reinterpret_cast<char*>(buf.data())));
 
         long send_time_stamp;
@@ -346,17 +356,26 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
         int count = 0;
 
         iss >> count >> send_time_stamp;
-        delay = receive_time_stamp - send_time_stamp;;
+        delay = receive_time_stamp - send_time_stamp;
         if (print_status_msg) {
             std::cout << "\rcount: " << count << "; last delay: " << delay << "ms; last msg: " << iss.rdbuf();
             std::flush(std::cout);
         }
 
         if (save_to_file) {
-            file <<  count << " " << send_time_stamp << " " << receive_time_stamp << delay << "  " << iss.rdbuf() << std::endl;
+            file <<  count << " " << send_time_stamp << " " << receive_time_stamp << " " << delay << "  " << iss.rdbuf() << std::endl;
         }
 
-        ms->receive_packet(buf.data(), size - 1, info_size);
+        while (m_running) {
+            if (!ms->receive_packet(buf.data(), size - 1, info_size)) {
+                std::cout << "received failed" << std::endl;
+                exit(0);
+            }
+            if (info_size != 0) {
+                break; //no timeout
+            }
+        }
+
     }
 
     if (print_status_msg) {
@@ -520,4 +539,7 @@ void tester::run(const std::string& to_do)
     }
 }
 
-
+void tester::signal_handler(int)
+{
+    tester::m_running = false;
+}
