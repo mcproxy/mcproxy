@@ -37,7 +37,7 @@
 #include <fstream>
 #include <iostream>
 
-bool tester::m_running = false;
+bool tester::m_running = true;
 
 tester::tester(int arg_count, char* args[])
 {
@@ -140,17 +140,17 @@ mc_filter tester::get_mc_filter(const std::string& to_do)
     return mf;
 }
 
-int tester::get_count(const std::string& to_do)
+long tester::get_count(const std::string& to_do)
 {
     HC_LOG_TRACE("");
 
     std::string str_count = m_config_map.get(to_do, "count");
-    int count;
+    long count;
     if (str_count.empty()) {
         count = 1;
     } else {
         try {
-            count = std::stoi(str_count);
+            count = std::stol(str_count);
         } catch (std::logic_error e) {
             std::cout << "failed to parse count" << std::endl;
             exit(0);
@@ -321,11 +321,9 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     HC_LOG_TRACE("");
 
     const unsigned int size = 201;
-    std::vector<unsigned char> buf(size, 0);
-    strncpy(reinterpret_cast<char*>(buf.data()), "0 0 null", size);
+    std::vector<char> buf(size, 0);
 
     int info_size = 0;
-
     std::ofstream file;
     if (save_to_file) {
         file.open(file_name);
@@ -333,7 +331,7 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
             std::cout << "failed to open file" << std::endl;
             exit(0);
         } else {
-            file << "count time_stamp_sender time_stamp_receiver delay message" << std::endl;
+            file << "count(#) time_stamp_sender(ms) time_stamp_receiver(ms) delay(ms) message(str)" << std::endl;
         }
     }
 
@@ -347,32 +345,48 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
         exit(0);
     }
 
+    if (print_status_msg) {
+        std::cout << "count: 0; last delay: 0ms; lost packets: 0; last msg: ";
+        std::flush(std::cout);
+    }
+
+    long lost_packets = 0;
+    long old_count = 0;
+
     while (m_running) {
-        std::istringstream iss(std::string(reinterpret_cast<char*>(buf.data())));
 
-        long send_time_stamp;
-        long receive_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-        long delay = 0;
-        int count = 0;
-
-        iss >> count >> send_time_stamp;
-        delay = receive_time_stamp - send_time_stamp;
-        if (print_status_msg) {
-            std::cout << "\rcount: " << count << "; last delay: " << delay << "ms; last msg: " << iss.rdbuf();
-            std::flush(std::cout);
+        if (!ms->receive_packet(reinterpret_cast<unsigned char*>(buf.data()), size - 1, info_size)) {
+            usleep(100); //this could be an error but it could be also an interrupt (SIGINIT)
         }
 
-        if (save_to_file) {
-            file <<  count << " " << send_time_stamp << " " << receive_time_stamp << " " << delay << "  " << iss.rdbuf() << std::endl;
-        }
+        if (info_size != 0 && m_running) { //no timeout
+            std::istringstream iss(std::string(buf.data()));
+            std::ostringstream oss;
 
-        while (m_running) {
-            if (!ms->receive_packet(buf.data(), size - 1, info_size)) {
-                std::cout << "received failed" << std::endl;
-                exit(0);
+            long send_time_stamp = 0;
+            long receive_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+            long delay = 0;
+            long count = 0;
+
+            iss >> count >> send_time_stamp;
+            oss << iss.rdbuf();
+            delay = receive_time_stamp - send_time_stamp;
+
+            if (print_status_msg) {
+
+                // unsorted packets counts as packet lost
+                // and duplicated packets are ignored
+                if (count > old_count + 1) {
+                    lost_packets += count - old_count - 1;
+                }
+                old_count = count;
+
+                std::cout << "\rcount: " << count << "; last delay: " << delay <<  "ms; lost packets: " << lost_packets << "; last msg:" << oss.str();
+                std::flush(std::cout);
             }
-            if (info_size != 0) {
-                break; //no timeout
+
+            if (save_to_file) {
+                file <<  count << " " << send_time_stamp << " " << receive_time_stamp << " " << delay << oss.str() << std::endl;
             }
         }
 
@@ -387,7 +401,7 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     }
 }
 
-void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, int count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg)
+void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, long count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg)
 {
     HC_LOG_TRACE("");
 
@@ -399,7 +413,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
 
     std::cout << "send message: " << msg << " to port " << port << std::endl;
 
-    for (int i = 0; i < count; ++i) {
+    for (long i = 0; i < count; ++i) {
         std::ostringstream oss;
         oss << i + 1 << " " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() << " " << msg;
 
@@ -435,7 +449,7 @@ void tester::run(const std::string& to_do)
         addr_storage gaddr = get_gaddr(to_do);
         HC_LOG_DEBUG("gaddr: " << gaddr);
         const std::unique_ptr<const mc_socket> ms(get_mc_socket(gaddr.get_addr_family()));
-        int count = get_count(to_do);
+        long count = get_count(to_do);
         HC_LOG_DEBUG("count: " << count);
 
         std::list<addr_storage> slist = get_src_list(to_do, gaddr.get_addr_family());

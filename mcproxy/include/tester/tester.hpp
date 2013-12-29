@@ -47,7 +47,7 @@ private:
     std::string get_if_name(const std::string& to_do);
     std::list<addr_storage> get_src_list(const std::string& to_do, int addr_family);
     mc_filter get_mc_filter(const std::string& to_do);
-    int get_count(const std::string& to_do);
+    long get_count(const std::string& to_do);
     std::string get_action(const std::string& to_do);
     std::string source_list_to_string(const std::list<addr_storage>& slist);
     int get_ttl(const std::string& to_do);
@@ -58,7 +58,7 @@ private:
     bool get_save_to_file(const std::string& to_do);
     std::string get_file_name(const std::string& to_do);
 
-    void send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, int count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg);
+    void send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, long count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg);
     void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, bool print_status_msg, bool save_to_file, const std::string& file_name);
 
     static void signal_handler(int sig);
