@@ -364,7 +364,7 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
             std::ostringstream oss;
 
             long send_time_stamp = 0;
-            long receive_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+            long receive_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             long delay = 0;
             long count = 0;
 
@@ -415,7 +415,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
 
     for (long i = 0; i < count; ++i) {
         std::ostringstream oss;
-        oss << i + 1 << " " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() << " " << msg;
+        oss << i + 1 << " " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << " " << msg;
 
         if (print_status_msg) {
             std::cout << "\rsend: " << i + 1 << "/" << count;
