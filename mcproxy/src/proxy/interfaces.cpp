@@ -72,8 +72,8 @@ bool interfaces::add_interface(unsigned int if_index)
 
         auto rc_if_vif = m_if_vif.insert(std::pair<int, int>(if_index, free_vif));
         if (!rc_if_vif.second) {
-            HC_LOG_ERROR("failed to add interface: " << get_if_name(if_index) << "; interface already in use");
-            return false;
+            HC_LOG_DEBUG("failed to add interface: " << get_if_name(if_index) << "; interface already in use");
+            return true;
         }
 
         auto rc_vif_if = m_vif_if.insert(std::pair<int, int>(free_vif, if_index));

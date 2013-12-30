@@ -118,6 +118,9 @@ pinstance A upstream a1 out blacklist table piA_peering_ifs; #(u3_1)
 pinstance A downstream ap in blacklist table allways; #(d1)   
 pinstance A downstream ap out blacklist table piA_upstreams; #(d2, d2_1, d3, d4)   
 
+#pinstance A downstream a2 in whitelist table {(*|*)}; #default 
+#pinstance A downstream a2 out whitelist table {(*|*)}; #default 
+
 ###########################################
 table piB_peering_ifs { bp(*|*) };
 
@@ -137,6 +140,8 @@ pinstance B upstream b1 out blacklist table piB_peering_ifs; #(u3_1)
 pinstance B downstream bp in blacklist table allways; #(d1)   
 pinstance B downstream bp out blacklist table piB_upstreams; #(d2, d2_1, d3, d4)   
 
+#pinstance B downstream b2 in whitelist table {(*|*)}; #default 
+#pinstance B downstream b2 out whitelist table {(*|*)}; #default 
 
 #Explanation
 #
