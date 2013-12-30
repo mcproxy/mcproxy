@@ -31,10 +31,10 @@ pinstance A downstream b2 out whitelist table {b1(*|*)};
 
 #This configuration has the following problem: 
 #   A multicast forwarding rule looks like this: (Source, Group, Input interface, list of output interface),
-#   whereby the tuple (Source, Group) represents the rule and musst be uniqe per proxy instancce. This means 
-#   the proxy intances B) and C) can create both a forwarding rule to there with the tuple (S1, G1).
+#   whereby the tuple (Source, Group) represents the rule and musst be unique per proxy instancce. This means 
+#   the proxy intances B) and C) can create both a forwarding rule to with the tuple (S1, G1).
 #   This is nessasary if Host_b want to receive the  multicast stream of Host_a (let's say the upstreams of B) and C)
-#   are connected to each other over a bigger network infracture). Then B) needs the rule (Host_a, G1, a2, {a1}) and C)
+#   are connected to each other over a bigger network infrastructure). Then B) needs the rule (Host_a, G1, a2, {a1}) and C)
 #   needs the rule (Host_a, G1, b1, {b2}). The data of Host_a will be forwarded to the upstream a1 and back to the
 #   downstream b2. This behaviour is maybe inefficient but I will fix it in Example B. Otherwise this behaviour cannot be 
 #   adapted to A) because the tuple (Host_a, G1) would be exist two times. Example B) and C) solves this problem in different
@@ -56,13 +56,8 @@ pinstance A downstream b2 out whitelist table {b1(*|*)};
 #      Host_a  Host_b 
 
 pinstance A: a1 b1 ==> a2 b2;
-pinstance A upstream a1 out whitelist table {a2(*|*)};
-pinstance A downstream a2 out whitelist table {a1(*|*)};
 
-#Explanation
-#   I removed only the last to rules (pinstance A upstream b1 ... and pinstance A downstream b2 ...), and now if Host_b subscribe the data of
-#   Host_a the proxy instance A) will set the forwarding rule (Host_a, G1, a2, {a1, b2}). This is much more efficent and the tuple (Host_a, G1)
-#   is used only once.
+pinstance A upstream * in rulematching mutex 10000; #define the behaviour  #pinstance A upstream * out rulematching all; #default pinstance A upstream a1 out whitelist table {a2(*|*)}; pinstance A downstream a2 out whitelist table {a1(*|*)}; #Explanation #   I removed the last to rules (pinstance A upstream b1 ... and pinstance A downstream b2 ...) of example A, and now if Host_b subscribe the data of #   Host_a the proxy instance A) will set the forwarding rule (Host_a, G1, a2, {a1, b2}). This is much more efficent and the tuple (Host_a, G1) #   is used only once.
 
 ##-- Example C --##
 #==================
@@ -101,6 +96,7 @@ pinstance B: bp b1 ==> bp b2;
 table allways {
     (*|*)
 };
+
 ###########################################
 table piA_peering_ifs {
     ap(*|*)
@@ -110,30 +106,36 @@ table piA_upstreams {
     a1(*|*)
 };
 
-pinstance A upstream ap out blacklist table allways; #(u1)
+pinstance A upstream * in rulematching mutex 10000; #(u4)
+#pinstance A upstream * out rulematching all; #default 
 
-pinstance A upstream ap in rulematching mutex 10000; #(u4)
+pinstance A upstream ap out blacklist table allways; #(u1)
 #pinstance A upstream ap in whitelist table {(*|*)}; #default (u2, u3)
+
 pinstance A upstream a1 out blacklist table piA_peering_ifs; #(u3_1)
+#pinstance A upstream a1 in whitelist table {(*|*)}; #default 
+
 pinstance A downstream ap in blacklist table allways; #(d1)   
 pinstance A downstream ap out blacklist table piA_upstreams; #(d2, d2_1, d3, d4)   
-###########################################
-table piB_peering_ifs {
-    bp(*|*)
-};
 
-table piA_upstreams {
+###########################################
+table piB_peering_ifs { bp(*|*) };
+
+table piB_upstreams {
     b1(*|*)
 };
 
-pinstance B upstream bp out blacklist table allways; #(u1)
+pinstance B upstream * in rulematching mutex 10000;  #(u4)
+#pinstance B upstream * out rulematching all; #default 
 
-pinstance B upstream bp in rulematching mutex 10000;  #(u4)
-#pinstance B upstream ap whitelist in table {(*|*)}; #default (u2, u3)
+pinstance B upstream bp out blacklist table allways; #(u1)
+#pinstance B upstream bp whitelist in table {(*|*)}; #default (u2, u3)
+
 pinstance B upstream b1 out blacklist table piB_peering_ifs; #(u3_1)
+#pinstance b upstream b1 in whitelist table {(*|*)}; #default 
+
 pinstance B downstream bp in blacklist table allways; #(d1)   
 pinstance B downstream bp out blacklist table piB_upstreams; #(d2, d2_1, d3, d4)   
-###########################################
 
 
 #Explanation
