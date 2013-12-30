@@ -54,6 +54,8 @@ tester::tester(int arg_count, char* args[])
     std::cout << "6: " <<  std::chrono::time_point<std::chrono::high_resolution_clock>(std::chrono::high_resolution_clock::now()).time_since_epoch().count() << std::endl;
     long bob = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
     std::cout << "7: " << bob << std::endl;
+    long long bob1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    std::cout << "8: " << bob1 << std::endl;
 
               //if (arg_count == 2) {
               //if (std::string(args[1]).compare("-h") == 0 || std::string(args[1]).compare("--help") == 0) {
