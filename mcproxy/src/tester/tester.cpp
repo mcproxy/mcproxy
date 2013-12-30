@@ -46,30 +46,19 @@ tester::tester(int arg_count, char* args[])
     signal(SIGINT, tester::signal_handler);
     signal(SIGTERM, tester::signal_handler);
 
-    std::cout << "1: " <<  std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() << std::endl;
-    std::cout << "2: " <<  std::chrono::duration_cast<std::chrono::hours>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() << std::endl;
-    std::cout << "3: " <<  std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << std::endl;
-    std::cout << "4: " <<  std::chrono::duration_cast<std::chrono::hours>(std::chrono::system_clock::now().time_since_epoch()).count() << std::endl;
-    std::cout << "5: " <<  std::chrono::system_clock::now().time_since_epoch().count() << std::endl;
-    std::cout << "6: " <<  std::chrono::time_point<std::chrono::high_resolution_clock>(std::chrono::high_resolution_clock::now()).time_since_epoch().count() << std::endl;
-    long bob = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-    std::cout << "7: " << bob << std::endl;
-    long long bob1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-    std::cout << "8: " << bob1 << std::endl;
-
-              //if (arg_count == 2) {
-              //if (std::string(args[1]).compare("-h") == 0 || std::string(args[1]).compare("--help") == 0) {
-              //std::cout << "tester <to_do> [<config file>]" << std::endl;
-              //} else {
-              //m_config_map.read_ini(TESTER_DEFAULT_CONIG_PATH);
-              //run(std::string(args[1]));
-              //}
-              //} else if (arg_count == 3) {
-              //m_config_map.read_ini(args[2]);
-              //run(std::string(args[1]));
-              //} else {
-              //run(std::string(std::string()));
-              //}
+    if (arg_count == 2) {
+        if (std::string(args[1]).compare("-h") == 0 || std::string(args[1]).compare("--help") == 0) {
+            std::cout << "tester <to_do> [<config file>]" << std::endl;
+        } else {
+            m_config_map.read_ini(TESTER_DEFAULT_CONIG_PATH);
+            run(std::string(args[1]));
+        }
+    } else if (arg_count == 3) {
+        m_config_map.read_ini(args[2]);
+        run(std::string(args[1]));
+    } else {
+        run(std::string(std::string()));
+    }
 }
 
 addr_storage tester::get_gaddr(const std::string& to_do)
@@ -374,9 +363,9 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
             std::istringstream iss(std::string(buf.data()));
             std::ostringstream oss;
 
-            long send_time_stamp = 0;
-            long receive_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-            long delay = 0;
+            long long send_time_stamp = 0;
+            long long receive_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+            long long delay = 0;
             long count = 0;
 
             iss >> count >> send_time_stamp;
@@ -426,7 +415,8 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
 
     for (long i = 0; i < count; ++i) {
         std::ostringstream oss;
-        oss << i + 1 << " " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() << " " << msg;
+        long long send_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+        oss << i + 1 << " " << send_time_stamp << " " << msg;
 
         if (print_status_msg) {
             std::cout << "\rsend: " << i + 1 << "/" << count;
