@@ -52,20 +52,22 @@ tester::tester(int arg_count, char* args[])
     std::cout << "4: " <<  std::chrono::duration_cast<std::chrono::hours>(std::chrono::system_clock::now().time_since_epoch()).count() << std::endl;
     std::cout << "5: " <<  std::chrono::system_clock::now().time_since_epoch().count() << std::endl;
     std::cout << "6: " <<  std::chrono::time_point<std::chrono::high_resolution_clock>(std::chrono::high_resolution_clock::now()).time_since_epoch().count() << std::endl;
+    long bob = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    std::cout << "7: " << bob << std::endl;
 
-    //if (arg_count == 2) {
-    //if (std::string(args[1]).compare("-h") == 0 || std::string(args[1]).compare("--help") == 0) {
-    //std::cout << "tester <to_do> [<config file>]" << std::endl;
-    //} else {
-    //m_config_map.read_ini(TESTER_DEFAULT_CONIG_PATH);
-    //run(std::string(args[1]));
-    //}
-    //} else if (arg_count == 3) {
-    //m_config_map.read_ini(args[2]);
-    //run(std::string(args[1]));
-    //} else {
-    //run(std::string(std::string()));
-    //}
+              //if (arg_count == 2) {
+              //if (std::string(args[1]).compare("-h") == 0 || std::string(args[1]).compare("--help") == 0) {
+              //std::cout << "tester <to_do> [<config file>]" << std::endl;
+              //} else {
+              //m_config_map.read_ini(TESTER_DEFAULT_CONIG_PATH);
+              //run(std::string(args[1]));
+              //}
+              //} else if (arg_count == 3) {
+              //m_config_map.read_ini(args[2]);
+              //run(std::string(args[1]));
+              //} else {
+              //run(std::string(std::string()));
+              //}
 }
 
 addr_storage tester::get_gaddr(const std::string& to_do)
