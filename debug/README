@@ -51,6 +51,23 @@ These actions can be executed with the following command:
         or
     ./tester send_a_hello tester.ini 
 
+packet_dropper
+==============
+With the packet dropper it is possible to interrupt links 
+without changing interface states. packet_dropper configure
+an interface to drop all outgoing packets (Maybe it is nessesary
+to run it on both sides of the connection)
+
+Usage
+-----
+To interrupt the link:
+    cd packet_dropper
+    packet_dropper eth0 drop
+
+To connect that link
+    cd packet_dropper
+    packet_dropper eth0 clear
+
 Kernel
 ==================
 If you miss a kernel module you have to build your own kernel.
