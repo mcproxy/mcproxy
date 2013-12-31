@@ -206,17 +206,15 @@ unsigned int interfaces::get_if_index(const addr_storage& addr) const
     if (addr.get_addr_family() == AF_INET) {
         prop_map = m_if_prop.get_if_props();
         for (auto & e : *prop_map) {
-            if (e.second.ip4_addr->ifa_netmask != nullptr && e.second.ip4_addr->ifa_addr != nullptr) {
+            if (e.second.ip4_addr != nullptr && e.second.ip4_addr->ifa_netmask != nullptr && e.second.ip4_addr->ifa_addr != nullptr) {
                 tmp_mask = *e.second.ip4_addr->ifa_netmask;
                 own_addr = *e.second.ip4_addr->ifa_addr;
                 own_addr.mask_ipv4(tmp_mask);
-                if ( own_addr == tmp_mask.mask_ipv4(addr)) {
+                if (own_addr == tmp_mask.mask_ipv4(addr)) {
                     return get_if_index(e.second.ip4_addr->ifa_name);
                 }
             }
         }
-    } else {
-        HC_LOG_ERROR("cannot map IPv6 addr to interface index:" << addr);
     }
 
     HC_LOG_WARN("cannot map IPv6 addr to interface index:" << addr);
