@@ -413,7 +413,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
 
     std::cout << "send message: " << msg << " to port " << port << std::endl;
 
-    for (long i = 0; i < count; ++i) {
+    for (long i = 0; (i < count) && (m_running) ; ++i) {
         std::ostringstream oss;
         long long send_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         oss << i + 1 << " " << send_time_stamp << " " << msg;
