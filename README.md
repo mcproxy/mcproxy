@@ -37,13 +37,13 @@ command:
         apt-get install libboost-all-dev
 
 *  To use the IPv6 functionality the kernel has to be configured and 
-compiled with the experimental kernel feature <IPv6: multicast routing>.
-For more details go to chapter <Startup>.
+compiled with the experimental kernel feature _IPv6: multicast routing_.
+For more details go to chapter [Startup](#startup).
 
 *  To use more then one proxy instance for IPv4 and IPv6 the kernel has
 to  be configured and compiled with the experimental kernel feature
-<IP: multicast policy routing> and <IPv6: multicast policy routing>. 
-For more details go to chapter <Startup>.
+_IP: multicast policy routing_ and _IPv6: multicast policy routing_. 
+For more details go to chapter [Startup](#startup).
 
 *  To build the documentation, doxygen must be installed. This can be
 done with the following command:
