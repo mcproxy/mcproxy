@@ -45,6 +45,8 @@ General stuff
  -- remove deprecated functions like htonl ...
  -- overwork addr_storage compare function
  -- overwork exception concept ????
+ -- change receive polling / forward a signal to this thread
+ -- move the routing class to simpel management routing class
 
  
 
