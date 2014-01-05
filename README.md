@@ -38,7 +38,7 @@ command:
 
 *  To use the IPv6 functionality the kernel has to be configured and 
 compiled with the experimental kernel feature <IPv6: multicast routing>.
-For more details go to chapter [Startup](#Startup).
+For more details go to chapter [Startup](#startup).
 
 *  To use more then one proxy instance for IPv4 and IPv6 the kernel has
 to  be configured and compiled with the experimental kernel feature
