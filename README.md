@@ -13,7 +13,7 @@ and listeners (RFC 6224). The mcproxy meets the requirements of the
 IGMP/MLD proxying standard (RFC 4605) and has additional functionalities. 
 The multicast proxy can be instantiated multiple times, is dynamically
 configurable at runtime, supports multiple upstreams and peering-interfaces 
-for a not hierarchical interconnection of multicast proxies.
+for a non hierarchical interconnection of multicast proxies.
 
 
 Requirements
