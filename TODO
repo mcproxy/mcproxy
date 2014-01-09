@@ -45,6 +45,7 @@ General stuff
  -- remove deprecated functions like htonl ...
  -- overwork addr_storage compare function
  -- overwork exception concept ????
+ -- check peering interface (ASM/SSM behaviour)
 
  
 
