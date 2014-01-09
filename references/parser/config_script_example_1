@@ -112,7 +112,7 @@ table piA_upstreams {
 
 pinstance A upstream ap out blacklist table allways; #(u1)
 
-pinstance A upstream ap in rulematching mutex 10000; #(u4)
+pinstance A upstream ap in rulematching mutex 50; #(u4)
 #pinstance A upstream ap in whitelist table {(*|*)}; #default (u2, u3)
 pinstance A upstream a1 out blacklist table piA_peering_ifs; #(u3_1)
 pinstance A downstream ap in blacklist table allways; #(d1)   
@@ -128,7 +128,7 @@ table piA_upstreams {
 
 pinstance B upstream bp out blacklist table allways; #(u1)
 
-pinstance B upstream bp in rulematching mutex 10000;  #(u4)
+pinstance B upstream bp in rulematching mutex 50;  #(u4)
 #pinstance B upstream ap whitelist in table {(*|*)}; #default (u2, u3)
 pinstance B upstream b1 out blacklist table piB_peering_ifs; #(u3_1)
 pinstance B downstream bp in blacklist table allways; #(d1)   
