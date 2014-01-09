@@ -7,13 +7,13 @@ multicast networks with a larger multicast infrastructure. In contrast
 to multicast routers, proxies are lightweight and do not require the 
 support of a multicast routing protocol such as PIM or DVMRP. A 
 common use case is a local stub networks that interconnects with a 
-remote multicast routing domain, e.g. via a tunnel. Another usage 
-example is in the Proxy Mobile IPv6 (PMIPv6 - RFC 5213) domains that 
-want to provide transparent multicast services for mobile nodes. The 
-mcproxy meets the requirements of the IGMP/MLD proxy standard 
-(RFC 4605) and has additional functionalities. The multicast proxy can 
-be instantiated multiple times and is dynamically configurable at 
-runtime.
+remote multicast routing domain, e.g. via a tunnel. But it can also be
+used in PMIPv6 domain to enable multicast for sources (pmipv6-source-draft) 
+and listeners (RFC 6224). The mcproxy meets the requirements of the 
+IGMP/MLD proxying standard (RFC 4605) and has additional functionalities. 
+The multicast proxy can be instantiated multiple times, is dynamically
+configurable at runtime, supports multiple upstreams and peering-interfaces 
+for a not hierarchical interconnection of multicast proxies.
 
 
 Requirements
@@ -28,7 +28,7 @@ the following command:
 
   older systems: 
 
-      apt-get install qt4-qmake
+        apt-get install qt4-qmake
 
 *  To build the mcproxy, the libraries boost_threat, boost_date_time and 
 boost_system must be installed. This can be done with the following 
