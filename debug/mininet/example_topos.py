@@ -1,16 +1,7 @@
 #!/usr/bin/python
-"""Custom topology example
+"""Custom topology example"""
 
-Two directly connected switches plus a host for each switch:
-
-   host --- switch --- switch --- host
-
-Adding the 'topos' dict with a key/value pair to generate our newly defined
-topology enables one to pass in '--topo=mytopo' from the command line.
-"""
 from time import sleep
-
-
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.node import CPULimitedHost
@@ -26,54 +17,142 @@ class Example2( Topo ):
         Topo.__init__( self,**opts )
 
         # Add hosts and switches
-        h1 = self.addHost( 'h1' )
-        h2 = self.addHost( 'h2' )
-        p1 = self.addHost( 'p1' )
+        #h1 = self.addHost( 'h1' )
+        #h2 = self.addHost( 'h2' )
+        #p1 = self.addHost( 'p1' )
         
-        s1 =self.addSwitch('s1')
-        s2 =self.addSwitch('s2')
+        #s1 =self.addSwitch('s1')
+        #s2 =self.addSwitch('s2')
 
-        #self.addLink(host, switch, bw=10, delay='5ms', loss=10, max_queue_size=1000, use_htb=True)        # Add links
-        #linkopts = dict(bw=10, delay='5ms')
-        #RTT: 24ms
-        #self.addLink( h1,h2,delay='2ms')
-        self.addLink( h1,s1,delay='2ms')
-        self.addLink(s1,p1,delay='2ms')# eth0 weil zuerst
+        ##self.addLink(host, switch, bw=10, delay='5ms', loss=10, max_queue_size=1000, use_htb=True)        # Add links
+        ##linkopts = dict(bw=10, delay='5ms')
+        ##RTT: 24ms
+        ##self.addLink( h1,h2,delay='2ms')
+        #self.addLink( h1,s1,delay='2ms')
+        #self.addLink(s1,p1,delay='2ms')# eth0 weil zuerst
         
-        self.addLink( p1,s2,delay='2ms')
-        self.addLink(s2,h2,delay='2ms')
-        #self.addLink( s2,s3,delay='2ms',bw=1)
+        #self.addLink( p1,s2,delay='2ms')
+        #self.addLink(s2,h2,delay='2ms')
+        ##self.addLink( s2,s3,delay='2ms',bw=1)
 
+        # Add hosts 
+        mag1 = self.addHost('mag1')
+        mag2 = self.addHost('mag2')
+        lma1 = self.addHost('lma1')
+        lma2 = self.addHost('lma2')
+        h1 = self.addHost('h1')
+        h2 = self.addHost('h2')
+        h3 = self.addHost('h3')
+              
+        # link hosts
+        ##mag peering
+        self.addLink(mag1, mag2) 
 
+        ##lma interconection
+        self.addLink(lma1, lma2)
 
-#dumbbel topology
-class Example3( Topo ):
-    def __init__( self,**opts):
-        topoopts=dict(link=TCLink)
-        Topo.__init__( self,**opts )
-            
-        # Add hosts and switches
-        h1 = self.addHost( 'h1' )
-        h2 = self.addHost( 'h2' )
+        ##lmas to mas
+        self.addLink(lma1, mag1)
+        self.addLink(lma2, mag2)
+        self.addLink(lma1, mag2)
+        self.addLink(lma2, mag1)
 
-        h3 = self.addHost( 'h3' )
-        h4 = self.addHost( 'h4' )
+        ##host to mags
+        self.addLink(h1, mag1) 
+        self.addLink(h3, mag2) 
+        self.addLink(h2, mag1) 
+        self.addLink(h2, mag2) 
 
+def x(subnet):
+    return '192.168.' + subnet 
 
-        s1 = self.addSwitch( 's1' )
-        s2 = self.addSwitch( 's2' )
+def reset_rp_filter(host, if_list):
+    for interf in if_list:
+        print host.cmd('echo 0 >/proc/sys/net/ipv4/conf/' + interf +'/rp_filter')
 
-        #self.addLink(host, switch, bw=10, delay='5ms', loss=10, max_queue_size=1000, use_htb=True)        # Add links
-        #linkopts = dict(bw=10, delay='5ms')
-        #RTT: 24ms
-        self.addLink( h1,s1,delay='2ms')
-        self.addLink( h3,s1,delay='2ms')
+def ping(host, subnet):
+    print host
+    print host.cmd('ping -qnc 2 ' + x(subnet))
 
-        self.addLink( s2,h2,delay='2ms')
-        self.addLink( s2,h4,delay='2ms')
-        self.addLink( s1,s2,delay='8ms', bw=2)
+def TopoTest():
+    topo=Example2()	
+    net = Mininet(topo=topo, controller = OVSController, link=TCLink)
+    net.start()
 
+    mag1 = net.get('mag1') 
+    mag2 = net.get('mag2') 
+    lma1 = net.get('lma1')
+    lma2 = net.get('lma2')
+    h1 = net.get('h1')
+    h2 = net.get('h2')
+    h3 = net.get('h3')
 
+    #config lma1
+    lma1.setIP(x('1.1'), 24, 'lma1-eth0')
+    lma1.setIP(x('2.1'), 24, 'lma1-eth1')
+    lma1.setIP(x('4.1'), 24, 'lma1-eth2')
+
+    reset_rp_filter(lma1, ['all', 'lma1-eth0', 'lma1-eth1','lma1-eth2'])
+
+    #config lma2
+    lma2.setIP(x('1.2'), 24, 'lma2-eth0')
+    lma2.setIP(x('3.1'), 24, 'lma2-eth1')
+    lma2.setIP(x('5.1'), 24, 'lma2-eth2')
+
+    reset_rp_filter(lma2, ['all', 'lma2-eth0', 'lma2-eth1','lma2-eth2'])
+
+    #config mag1
+    mag1.setIP(x('0.1'), 24, 'mag1-eth0')
+    mag1.setIP(x('2.2'), 24, 'mag1-eth1')
+    mag1.setIP(x('5.2'), 24, 'mag1-eth2')
+    mag1.setIP(x('10.1'), 24, 'mag1-eth3')
+    mag1.setIP(x('11.1'), 24, 'mag1-eth4')
+
+    reset_rp_filter(mag1, ['all', 'mag1-eth0', 'mag1-eth1','mag1-eth2', 'mag1-eth3', 'mag1-eth4'])
+
+    #config mag2
+    mag2.setIP(x('0.2'), 24, 'mag2-eth0')
+    mag2.setIP(x('3.2'), 24, 'mag2-eth1')
+    mag2.setIP(x('4.2'), 24, 'mag2-eth2')
+    mag2.setIP(x('13.1'), 24, 'mag2-eth3')
+    mag2.setIP(x('12.1'), 24, 'mag2-eth4')
+
+    reset_rp_filter(mag2, ['all', 'mag2-eth0', 'mag2-eth1','mag2-eth2', 'mag2-eth3', 'mag2-eth4'])
+
+    #config h1 
+    h1.setIP(x('10.2'), 24, 'h1-eth0')
+    reset_rp_filter(h1, ['all', 'h1-eth0'])
+
+    #config h2 
+    h2.setIP(x('11.2'), 24, 'h2-eth0')
+    h2.setIP(x('12.2'), 24, 'h2-eth1')
+    reset_rp_filter(h2, ['all', 'h2-eth0', 'h2-eth1'])
+
+    #config h3 
+    h3.setIP(x('13.2'), 24, 'h3-eth0')
+    reset_rp_filter(h3, ['all', 'h3-eth0'])
+
+    #print '##-- mag1 --##'
+    #print mag1.cmd('ifconfig')
+    #print '##-- mag2 --##'
+    #print mag2.cmd('ifconfig')
+    #print '##-- lma1 --##'
+    #print lma1.cmd('ifconfig')
+    #print '##-- mag2 --##'
+    #print mag2.cmd('ifconfig')
+    #print '##-- h3 --##'
+    #print h3.cmd('ifconfig')
+    #print '##-- ping --##'
+    ping(mag1,'0.2')
+    ping(lma1,'1.2')
+    ping(lma1,'2.2')
+    ping(lma1,'4.2')
+    ping(lma2,'5.2')
+    ping(lma2,'3.2')
+    ping(h1,'10.1')
+    ping(h2,'11.1')
+    ping(h2,'12.1')
+    ping(h3,'13.1')
 
 def TopoTest2():
     topo=Example2()	
@@ -129,15 +208,5 @@ def TopoTest2():
     net.stop()
 
 if __name__=='__main__':
-	print("hallo")
-	
-	#Topo2Test()
-	#Topo3Test()
-	#TopoTest("topotest3",Example3(),["TW","SM","KO","TC","UH","G4"],["fs"])
-	#TopoTest2("topotest2",["TW","SM","KO","TC","UH","G4"],["fs"])
-	#TopoTest2("topotest2",["TW"],["fs","ns","r","s"])
-	#TopoTest2("topotest2",["TW"],["fs"])
-	
-	TopoTest2()
-	#Topo3Test("topotest3",["TW"],["fs"])
-	print("Alle tests beendet")
+    #TopoTest2()
+    TopoTest()
