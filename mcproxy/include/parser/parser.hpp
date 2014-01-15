@@ -54,6 +54,7 @@ private:
     std::unique_ptr<table> parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, bool inside_rule_box);
 
     void parse_interface_table_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, const inst_def_set& ids);
+
     void parse_interface_rule_match_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, const inst_def_set& ids);
 
 public:
