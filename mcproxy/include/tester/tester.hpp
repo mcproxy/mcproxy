@@ -47,19 +47,22 @@ private:
     std::string get_if_name(const std::string& to_do);
     std::list<addr_storage> get_src_list(const std::string& to_do, int addr_family);
     mc_filter get_mc_filter(const std::string& to_do);
-    long get_count(const std::string& to_do);
+    unsigned long get_max_count(const std::string& to_do);
     std::string get_action(const std::string& to_do);
     std::string source_list_to_string(const std::list<addr_storage>& slist);
     int get_ttl(const std::string& to_do);
     int get_port(const std::string& to_do);
     std::string get_msg(const std::string& to_do);
     std::chrono::milliseconds get_send_interval(const std::string& to_do);
+    std::chrono::milliseconds get_lifetime(const std::string& to_do);
+
     bool get_print_status_msg(const std::string& to_do);
     bool get_save_to_file(const std::string& to_do);
     std::string get_file_name(const std::string& to_do);
+    std::string get_to_do_next(const std::string& to_do);
 
-    void send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, long count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg);
-    void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, bool print_status_msg, bool save_to_file, const std::string& file_name);
+    void send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg);
+    void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name);
 
     static void signal_handler(int sig);
 public:
