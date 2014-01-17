@@ -45,6 +45,10 @@ tester::tester(int arg_count, char* args[])
     signal(SIGINT, tester::signal_handler);
     signal(SIGTERM, tester::signal_handler);
 
+
+
+
+
     if (arg_count == 2) {
         if (std::string(args[1]).compare("-h") == 0 || std::string(args[1]).compare("--help") == 0) {
             std::cout << "tester <to_do> [<config file>]" << std::endl;
@@ -322,6 +326,25 @@ bool tester::get_save_to_file(const std::string& to_do)
     }
 }
 
+bool tester::get_include_file_header(const std::string& to_do)
+{
+    HC_LOG_TRACE("");
+
+    std::string result = m_config_map.get(to_do, "include_file_header");
+    if (result.empty()) {
+        return true;
+    }
+
+    if (result.compare("true") == 0) {
+        return true;
+    } else if (result.compare("false") == 0) {
+        return false;
+    } else {
+        std::cout << "failed to parse save_to_file" << std::endl;
+        exit(0);
+    }
+}
+
 std::string tester::get_file_name(const std::string& to_do)
 {
     HC_LOG_TRACE("");
@@ -329,6 +352,23 @@ std::string tester::get_file_name(const std::string& to_do)
     std::string result = m_config_map.get(to_do, "file_name");
     if (result.empty()) {
         return std::string("delay_measurment_file");
+    }
+
+    return result;
+}
+
+std::string tester::get_file_operation_mode(const std::string& to_do)
+{
+    HC_LOG_TRACE("");
+
+    std::string result = m_config_map.get(to_do, "file_operation_mode");
+    if (result.empty()) {
+        return std::string("override");
+    }
+
+    if (result.compare("override") != 0 && result.compare("append") != 0) {
+        std::cout << "failed to file_operation_mode" << std::endl;
+        exit(0);
     }
 
     return result;
@@ -351,7 +391,7 @@ std::string tester::get_to_do_next(const std::string& to_do)
     return to_do_next;
 }
 
-void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name)
+void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, const std::string& file_operation_mode)
 {
     HC_LOG_TRACE("");
 
@@ -361,12 +401,19 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     int info_size = 0;
     std::ofstream file;
     if (save_to_file) {
-        file.open(file_name);
+        if (file_operation_mode.compare("override")) {
+            file.open(file_name, std::ios::trunc);
+        } else if (file_operation_mode.compare("append")) {
+            file.open(file_name, std::ios::app);
+        }
+
         if (!file.is_open()) {
             std::cout << "failed to open file" << std::endl;
             exit(0);
         } else {
-            file << "packet_number(#) time_stamp_sender(ms) time_stamp_receiver(ms) delay(ms) message(str)" << std::endl;
+            if (include_file_header) {
+                file << "packet_number(#) time_stamp_sender(ms) time_stamp_receiver(ms) delay(ms) message(str)" << std::endl;
+            }
         }
     }
 
@@ -476,142 +523,110 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
 
 void tester::run(const std::string& to_do)
 {
-    HC_LOG_TRACE("");
-    if (!to_do.empty()) {
-        if (!m_config_map.has_group(to_do)) {
-            std::cout << "to_do " << to_do << " not found" << std::endl;
+    HC_LOG_TRACE("to_do: " << to_do);
+    if (!m_config_map.has_group(to_do)) {
+        std::cout << "to_do " << to_do << " not found" << std::endl;
+        exit(0);
+    }
+
+    m_running = true;
+
+    std::string if_name = get_if_name(to_do);
+    HC_LOG_DEBUG("if_name: " << if_name);
+    addr_storage gaddr = get_gaddr(to_do);
+    HC_LOG_DEBUG("gaddr: " << gaddr);
+    const std::unique_ptr<const mc_socket> ms(get_mc_socket(gaddr.get_addr_family()));
+    unsigned long max_count = get_max_count(to_do);
+    HC_LOG_DEBUG("max_count: " << max_count);
+
+    std::list<addr_storage> slist = get_src_list(to_do, gaddr.get_addr_family());
+    HC_LOG_DEBUG("source list size: " << slist.size());
+
+    std::string action = get_action(to_do);
+    HC_LOG_DEBUG("action: " << action);
+
+    mc_filter mfilter = get_mc_filter(to_do);
+    HC_LOG_DEBUG("filter mode: " << get_mc_filter_name(mfilter));
+
+    int ttl = get_ttl(to_do);
+    HC_LOG_DEBUG("ttl: " << ttl);
+
+    int port = get_port(to_do);
+    HC_LOG_DEBUG("port: " << port);
+
+    std::string msg = get_msg(to_do);
+    HC_LOG_DEBUG("msg: " << msg);
+
+    std::chrono::milliseconds interval = get_send_interval(to_do);
+    HC_LOG_DEBUG("interval: " << interval.count() << "milliseconds");
+
+    bool print_status_msg = get_print_status_msg(to_do);
+    HC_LOG_DEBUG("print_status_msg: " << print_status_msg);
+
+    bool save_to_file = get_save_to_file(to_do);
+    HC_LOG_DEBUG("save_to_file: " << save_to_file);
+
+    std::string file_name = get_file_name(to_do);
+    HC_LOG_DEBUG("file_name: " << file_name);
+
+    bool include_file_header = get_include_file_header(to_do);
+    HC_LOG_DEBUG("include_file_header: " << include_file_header);
+
+    std::string file_operation_mode = get_file_operation_mode(to_do);
+    HC_LOG_DEBUG("file_operation_mode: " << file_operation_mode);
+
+    std::chrono::milliseconds lifetime = get_lifetime(to_do);
+    HC_LOG_DEBUG("lifetime: " << lifetime.count() << "milliseconds");
+
+    std::string to_do_next = get_to_do_next(to_do);
+    HC_LOG_DEBUG("to_do_next: " << to_do_next);
+
+    if (lifetime.count() > 0) {
+        std::thread t([&]() {
+            HC_LOG_TRACE("");
+            std::this_thread::sleep_for(lifetime);
+            raise(SIGINT);
+        });
+        t.detach();
+    }
+
+    if (action.compare("receive") == 0) {
+        std::cout << "join group " << gaddr << " on interface " << if_name << std::endl;
+        if (!ms->join_group(gaddr, interfaces::get_if_index(if_name))) {
+            std::cout << "failed to join group " << gaddr << std::endl;
             exit(0);
         }
 
-        m_running = true;
-
-        std::string if_name = get_if_name(to_do);
-        HC_LOG_DEBUG("if_name: " << if_name);
-        addr_storage gaddr = get_gaddr(to_do);
-        HC_LOG_DEBUG("gaddr: " << gaddr);
-        const std::unique_ptr<const mc_socket> ms(get_mc_socket(gaddr.get_addr_family()));
-        unsigned long max_count = get_max_count(to_do);
-        HC_LOG_DEBUG("max_count: " << max_count);
-
-        std::list<addr_storage> slist = get_src_list(to_do, gaddr.get_addr_family());
-        HC_LOG_DEBUG("source list size: " << slist.size());
-
-        std::string action = get_action(to_do);
-        HC_LOG_DEBUG("action: " << action);
-
-        mc_filter mfilter = get_mc_filter(to_do);
-        HC_LOG_DEBUG("filter mode: " << get_mc_filter_name(mfilter));
-
-        int ttl = get_ttl(to_do);
-        HC_LOG_DEBUG("ttl: " << ttl);
-
-        int port = get_port(to_do);
-        HC_LOG_DEBUG("port: " << port);
-
-        std::string msg = get_msg(to_do);
-        HC_LOG_DEBUG("msg: " << msg);
-
-        std::chrono::milliseconds interval = get_send_interval(to_do);
-        HC_LOG_DEBUG("interval: " << interval.count() << "milliseconds");
-
-        bool print_status_msg = get_print_status_msg(to_do);
-        HC_LOG_DEBUG("print_status_msg: " << print_status_msg);
-
-        bool save_to_file = get_save_to_file(to_do);
-        HC_LOG_DEBUG("save_to_file: " << save_to_file);
-
-        std::string file_name = get_file_name(to_do);
-        HC_LOG_DEBUG("file_name: " << file_name);
-
-        std::chrono::milliseconds lifetime = get_lifetime(to_do);
-        HC_LOG_DEBUG("lifetime: " << lifetime.count() << "milliseconds");
-
-        std::string to_do_next = get_to_do_next(to_do);
-        HC_LOG_DEBUG("to_do_next: " << to_do_next);
-
-        if (lifetime.count() > 0) {
-            std::thread t([&]() {
-                HC_LOG_TRACE("");
-                std::this_thread::sleep_for(lifetime);
-                raise(SIGINT);
-            });
-            t.detach();
+        if (!slist.empty()) {
+            std::cout << "set source filter " << get_mc_filter_name(mfilter) << " with source address: " << source_list_to_string(slist) << std::endl;
+            if (!ms->set_source_filter(interfaces::get_if_index(if_name), gaddr, mfilter, slist)) {
+                std::cout << "failed to set source filter" << std::endl;
+                exit(0);
+            }
         }
 
-        if (action.compare("receive") == 0) {
-            std::cout << "join group " << gaddr << " on interface " << if_name << std::endl;
-            if (!ms->join_group(gaddr, interfaces::get_if_index(if_name))) {
-                std::cout << "failed to join group " << gaddr << std::endl;
-                exit(0);
-            }
+        receive_data(ms, port, max_count, print_status_msg, save_to_file, file_name, include_file_header, file_operation_mode);
+        if (to_do_next.compare("null") != 0) {
+            run(to_do_next);
+        }
 
-            if (!slist.empty()) {
-                std::cout << "set source filter " << get_mc_filter_name(mfilter) << " with source address: " << source_list_to_string(slist) << std::endl;
-                if (!ms->set_source_filter(interfaces::get_if_index(if_name), gaddr, mfilter, slist)) {
-                    std::cout << "failed to set source filter" << std::endl;
-                    exit(0);
-                }
-            }
-
-            receive_data(ms, port, max_count, print_status_msg, save_to_file, file_name);
-            if (to_do_next.compare("null") != 0) {
-               run(to_do_next); 
-            }
-
-            return;
-        } else if (action.compare("send") == 0) {
-            std::cout << "choose multicast interface: " << if_name << std::endl;
-            if (!ms->choose_if(interfaces::get_if_index(if_name))) {
-                std::cout << "failed to choose interface " << if_name << std::endl;
-                exit(0);
-            }
-
-            send_data(ms, gaddr, port, ttl, max_count, interval, msg, print_status_msg);
-            if (to_do_next.compare("null") != 0) {
-               run(to_do_next); 
-            }
-
-            return;
-        } else {
-            std::cout << "action " << action << " not available" << std::endl;
+        return;
+    } else if (action.compare("send") == 0) {
+        std::cout << "choose multicast interface: " << if_name << std::endl;
+        if (!ms->choose_if(interfaces::get_if_index(if_name))) {
+            std::cout << "failed to choose interface " << if_name << std::endl;
             exit(0);
         }
+
+        send_data(ms, gaddr, port, ttl, max_count, interval, msg, print_status_msg);
+        if (to_do_next.compare("null") != 0) {
+            run(to_do_next);
+        }
+
+        return;
     } else {
-        if (m_config_map.size() > 0) {
-            auto is_last = [this](config_map::const_iterator it) {
-                if (++it == m_config_map.end()) {
-                    return true;
-                } else {
-                    return false;
-                }
-            };
-
-            auto is_first = [this](const config_map::const_iterator & it) {
-                if (it == m_config_map.begin()) {
-                    return true;
-                } else {
-                    return false;
-                }
-            };
-
-            std::cout << "wrong argument!! expect: tester (";
-            for (auto it = m_config_map.begin(); it != m_config_map.end(); ++it) {
-
-                if (is_first(it) && is_last(it)) {
-                    std::cout << it->first;
-                } else if (is_first(it)) {
-                    std::cout << it->first << " | ";
-                } else if (is_last(it)) {
-                    std::cout << it->first;
-                } else {
-                    std::cout << it->first << " ";
-                }
-            }
-
-            std::cout << ") [<path>]" << std::endl;
-        } else {
-            std::cout << "wrong argument!! expect: tester <to_do> [<config file>]" << std::endl;
-        }
+        std::cout << "action " << action << " not available" << std::endl;
+        exit(0);
     }
 }
 

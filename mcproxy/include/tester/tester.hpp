@@ -58,11 +58,13 @@ private:
 
     bool get_print_status_msg(const std::string& to_do);
     bool get_save_to_file(const std::string& to_do);
+    bool get_include_file_header(const std::string& to_do);
     std::string get_file_name(const std::string& to_do);
+    std::string get_file_operation_mode(const std::string& to_do);
     std::string get_to_do_next(const std::string& to_do);
 
     void send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg);
-    void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name);
+    void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, const std::string& file_operation_mode);
 
     static void signal_handler(int sig);
 public:

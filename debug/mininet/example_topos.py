@@ -38,8 +38,10 @@ def TwoHostsTest():
     print 'receiver'
     print r.cmd('ifconfig') 
 
-    tester='/home/woelke/Desktop/tmp/mcproxy/mcproxy/tester'
-    ini='/home/woelke/Desktop/tmp/mcproxy/debug/mininet/tester_twohosts.ini'
+    #tester='/home/woelke/Desktop/tmp/mcproxy/mcproxy/tester'
+    tester='../../mcproxy/tester'
+    #ini='/home/woelke/Desktop/tmp/mcproxy/debug/mininet/tester_twohosts.ini'
+    ini='./tester_twohosts.ini' 
 
     r.cmd('xterm -e "' + tester + ' recv ' + ini +'; echo receiver ende; sleep 20s"&')
     #s.cmd('xterm -e "' + tester + ' send ' + ini +'; echo sender ende; sleep 20s"&')
