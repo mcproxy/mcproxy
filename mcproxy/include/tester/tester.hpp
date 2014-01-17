@@ -39,8 +39,8 @@ class tester
 private:
     config_map m_config_map;
     static bool m_running;
-
-    void run(const std::string& to_do);
+    void help();
+    void run(const std::string& to_do, const std::string& output_file);
 
     addr_storage get_gaddr(const std::string& to_do);
     std::unique_ptr<const mc_socket> get_mc_socket(int addr_family);
@@ -59,7 +59,7 @@ private:
     bool get_print_status_msg(const std::string& to_do);
     bool get_save_to_file(const std::string& to_do);
     bool get_include_file_header(const std::string& to_do);
-    std::string get_file_name(const std::string& to_do);
+    std::string get_file_name(const std::string& to_do, const std::string& proposal);
     std::string get_file_operation_mode(const std::string& to_do);
     std::string get_to_do_next(const std::string& to_do);
 

@@ -27,7 +27,7 @@
 #include "include/utils/mc_socket.hpp"
 #include "include/proxy/interfaces.hpp"
 
-#include <string.h>
+#include <cstring>
 #include <thread>
 #include <csignal>
 #include <vector>
@@ -35,6 +35,8 @@
 #include <thread>
 #include <fstream>
 #include <iostream>
+
+#include <unistd.h> //for getopt
 
 bool tester::m_running = true;
 
@@ -45,23 +47,86 @@ tester::tester(int arg_count, char* args[])
     signal(SIGINT, tester::signal_handler);
     signal(SIGTERM, tester::signal_handler);
 
+    std::string config_file;
+    std::string output_file;
+    std::string to_do;
 
-
-
-
-    if (arg_count == 2) {
-        if (std::string(args[1]).compare("-h") == 0 || std::string(args[1]).compare("--help") == 0) {
-            std::cout << "tester <to_do> [<config file>]" << std::endl;
-        } else {
-            m_config_map.read_ini(TESTER_DEFAULT_CONIG_PATH);
-            run(std::string(args[1]));
+    int c;
+    optind = 2;
+    while ( (c = getopt(arg_count, args, "i:o:")) != -1) {
+        switch (c) {
+        case 'i':
+            config_file = optarg;
+            break;
+        case 'o':
+            output_file = optarg;
+            break;
+        default:
+            std::cout << "Unknown argument" << std::endl;
+            exit(0);
         }
-    } else if (arg_count == 3) {
-        m_config_map.read_ini(args[2]);
-        run(std::string(args[1]));
-    } else {
-        run(std::string());
     }
+
+    if (optind < arg_count) {
+        std::cout << "Unknown option argument: " << args[optind] << std::endl;
+        exit(0);
+    }
+
+    if (arg_count >= 1) {
+        to_do =  args[1];
+        if (to_do.compare("-h") == 0 || to_do.compare("--help") == 0 || to_do.compare("help") == 0) {
+            help();
+            exit(0) ;
+        }
+    } else {
+        std::cout << "to do not defined" << std::endl;
+        exit(0);
+    }
+
+    std::cout << "to do: " << to_do << std::endl;
+    std::cout << "config file: " << config_file << std::endl;
+    std::cout << "output file: " << output_file << std::endl;
+
+    if (config_file.empty()) {
+        m_config_map.read_ini(TESTER_DEFAULT_CONIG_PATH);
+    } else {
+        m_config_map.read_ini(config_file);
+    }
+
+    run(to_do, output_file);
+}
+
+void tester::help()
+{
+    HC_LOG_TRACE("");
+
+    using namespace std;
+    HC_LOG_TRACE("");
+    cout << "Multicast tester" << endl;
+
+    cout << "Project page: http://mcproxy.realmv6.org/" << endl;
+    cout << endl;
+    cout << "Usage:" << endl;
+    cout << "  tester [-h]" << endl;
+    cout << "  tester [to do] [-i <config file>] [-o <output file]" << endl;
+    cout << endl;
+    cout << "\t-h" << endl;
+    cout << "\t\tDisplay this help screen." << endl;
+
+    cout << "\tto do" << endl;
+    cout << "\t\tThe name of *to do* is defined in the INI-file" << endl;
+
+    cout << "\t-i" << endl;
+    cout << "\t\tDefine an configuration file (default " << TESTER_DEFAULT_CONIG_PATH << ")" << endl;
+
+    cout << "\t-o" << endl;
+    cout << "\t\tSet the log file name of the receiver (higher priority)" << endl;
+
+    cout << endl;
+    cout << "\tfor example:" << endl;
+    cout << "\t\t./tester send" << endl;
+    cout << "\t\t./tester recv -i tester.ini" << endl;
+    cout << "\t\t./tester send_a_hallo -i tester.ini -o logfile" << endl;
 }
 
 addr_storage tester::get_gaddr(const std::string& to_do)
@@ -345,16 +410,20 @@ bool tester::get_include_file_header(const std::string& to_do)
     }
 }
 
-std::string tester::get_file_name(const std::string& to_do)
+std::string tester::get_file_name(const std::string& to_do, const std::string& proposal)
 {
     HC_LOG_TRACE("");
 
-    std::string result = m_config_map.get(to_do, "file_name");
-    if (result.empty()) {
-        return std::string("delay_measurment_file");
-    }
+    if (!proposal.empty()) {
+        return proposal;
+    } else {
+        std::string result = m_config_map.get(to_do, "file_name");
+        if (result.empty()) {
+            return std::string("delay_measurment_file");
+        }
 
-    return result;
+        return result;
+    }
 }
 
 std::string tester::get_file_operation_mode(const std::string& to_do)
@@ -521,7 +590,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
     }
 }
 
-void tester::run(const std::string& to_do)
+void tester::run(const std::string& to_do, const std::string& output_file)
 {
     HC_LOG_TRACE("to_do: " << to_do);
     if (!m_config_map.has_group(to_do)) {
@@ -566,7 +635,7 @@ void tester::run(const std::string& to_do)
     bool save_to_file = get_save_to_file(to_do);
     HC_LOG_DEBUG("save_to_file: " << save_to_file);
 
-    std::string file_name = get_file_name(to_do);
+    std::string file_name = get_file_name(to_do, output_file);
     HC_LOG_DEBUG("file_name: " << file_name);
 
     bool include_file_header = get_include_file_header(to_do);
@@ -607,7 +676,7 @@ void tester::run(const std::string& to_do)
 
         receive_data(ms, port, max_count, print_status_msg, save_to_file, file_name, include_file_header, file_operation_mode);
         if (to_do_next.compare("null") != 0) {
-            run(to_do_next);
+            run(to_do_next, output_file);
         }
 
         return;
@@ -620,7 +689,7 @@ void tester::run(const std::string& to_do)
 
         send_data(ms, gaddr, port, ttl, max_count, interval, msg, print_status_msg);
         if (to_do_next.compare("null") != 0) {
-            run(to_do_next);
+            run(to_do_next, output_file);
         }
 
         return;
