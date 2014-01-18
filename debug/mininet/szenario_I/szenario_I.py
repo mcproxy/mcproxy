@@ -56,7 +56,7 @@ def ping(host, subnet):
     print host.cmd('ping -qnc 2 ' + x(subnet))
 
 def start_mcproxy(host, config_file):
-    mcproxy='../../mcproxy/mcproxy'
+    mcproxy='../../../mcproxy/mcproxy'
     host.cmd('xterm -e "' + mcproxy + ' -sdvv -f ' + config_file + '"&')
 
 def TopoTest():
