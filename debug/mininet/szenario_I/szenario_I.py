@@ -1,6 +1,7 @@
 #!/usr/bin/python
 """Custom topology example"""
 
+import random
 from time import sleep
 from mininet.topo import Topo
 from mininet.net import Mininet
@@ -27,7 +28,7 @@ class Example2( Topo ):
               
         # link hosts
         ##mag peering
-        self.addLink(mag1, mag2) 
+        self.addLink(mag1, mag2)
 
         ##lma interconection
         self.addLink(lma1, lma2)
@@ -42,7 +43,7 @@ class Example2( Topo ):
         self.addLink(h1, mag1) 
         self.addLink(h3, mag2) 
         self.addLink(h2, mag1) 
-        self.addLink(h2, mag2) 
+        self.addLink(h2, mag2)
 
 def x(subnet):
     return '192.168.' + subnet 
@@ -59,13 +60,54 @@ def start_mcproxy(host, config_file):
     mcproxy='../../../mcproxy/mcproxy'
     host.cmd('xterm -e "' + mcproxy + ' -sdvv -f ' + config_file + '"&')
 
+
+def set_interface_delay(action, host, interface, delay): #action: add/change/delete
+    print host.cmd('tc qdisc ' + action + ' dev ' + interface + ' root handle 1: netem delay ' + delay)
+
+def killall(host):
+    host.cmd('killall mcproxy')    
+    host.cmd('killall tester')
+
+def get_random_delay_value(delay_from, delay_to):
+    return str(random.randint(delay_from, delay_to)) + 'ms'
+
+def set_random_interface_delays(action, lma1, lma2, mag1, mag2, h1, h2, h3):
+    umts_delay = '200ms 50ms' 
+    lte_delay = '5ms 3ms' 
+    wireless_tec_delay = lte_delay 
+
+    set_interface_delay(action, lma1, 'lma1-eth0', get_random_delay_value(20,40))
+    set_interface_delay(action, lma1, 'lma1-eth1', get_random_delay_value(20,40))
+    set_interface_delay(action, lma1, 'lma1-eth2', get_random_delay_value(20,40))
+
+    set_interface_delay(action, lma2, 'lma2-eth0', get_random_delay_value(20,40))
+    set_interface_delay(action, lma2, 'lma2-eth1', get_random_delay_value(20,40))
+    set_interface_delay(action, lma2, 'lma2-eth2', get_random_delay_value(20,40))
+
+    set_interface_delay(action, mag1, 'mag1-eth0', get_random_delay_value(20,40))
+    set_interface_delay(action, mag1, 'mag1-eth1', get_random_delay_value(20,40))
+    set_interface_delay(action, mag1, 'mag1-eth2', get_random_delay_value(20,40))
+    set_interface_delay(action, mag1, 'mag1-eth3', wireless_tec_delay)
+    set_interface_delay(action, mag1, 'mag1-eth4', wireless_tec_delay)
+
+    set_interface_delay(action, mag2, 'mag2-eth0', get_random_delay_value(20,40))
+    set_interface_delay(action, mag2, 'mag2-eth1', get_random_delay_value(20,40))
+    set_interface_delay(action, mag2, 'mag2-eth2', get_random_delay_value(20,40))
+    set_interface_delay(action, mag2, 'mag2-eth3', wireless_tec_delay)
+    set_interface_delay(action, mag2, 'mag2-eth4', wireless_tec_delay)
+
+    set_interface_delay(action, h1, 'h1-eth0', wireless_tec_delay)
+
+    set_interface_delay(action, h2, 'h2-eth0', wireless_tec_delay)
+    set_interface_delay(action, h2, 'h2-eth1', wireless_tec_delay)
+
+    set_interface_delay(action, h3, 'h3-eth0', wireless_tec_delay)
+
 def TopoTest():
     topo=Example2()	
     net = Mininet(topo=topo, controller = OVSController, link=TCLink)
     net.start()
-
-    tester='../../mcproxy/tester'
-
+    
     mag1 = net.get('mag1') 
     mag2 = net.get('mag2') 
     lma1 = net.get('lma1')
@@ -81,6 +123,7 @@ def TopoTest():
 
     reset_rp_filter(lma1, ['all', 'lma1-eth0', 'lma1-eth1','lma1-eth2'])
     start_mcproxy(lma1, 'lma1.conf')
+    #lma1.cmd('xterm&')
 
     #config lma2
     lma2.setIP(x('1.2'), 24, 'lma2-eth0')
@@ -112,16 +155,42 @@ def TopoTest():
 
     #config h1 
     h1.setIP(x('10.2'), 24, 'h1-eth0')
+
     reset_rp_filter(h1, ['all', 'h1-eth0'])
 
     #config h2 
     h2.setIP(x('11.2'), 24, 'h2-eth0')
     h2.setIP(x('12.2'), 24, 'h2-eth1')
+
     reset_rp_filter(h2, ['all', 'h2-eth0', 'h2-eth1'])
 
     #config h3 
     h3.setIP(x('13.2'), 24, 'h3-eth0')
+
     reset_rp_filter(h3, ['all', 'h3-eth0'])
+
+
+    #delays
+    set_random_interface_delays('add', lma1, lma2, mag1, mag2, h1, h2, h3)
+
+    #run programms
+    tester='../../../mcproxy/tester'
+
+    #1)
+    h1.cmd('xterm -e "' + tester + ' send"&')
+    h3.cmd('xterm -e "' + tester + ' recv -o messungen/test/a"')
+    
+    #2)
+    set_random_interface_delays('change', lma1, lma2, mag1, mag2, h1, h2, h3)
+    h3.cmd('xterm -e "' + tester + ' recv -o messungen/test/b"')
+
+    #3)
+    set_random_interface_delays('change', lma1, lma2, mag1, mag2, h1, h2, h3)
+    h3.cmd('xterm -e "' + tester + ' recv -o messungen/test/c"')
+
+    #4)
+    set_random_interface_delays('change', lma1, lma2, mag1, mag2, h1, h2, h3)
+    h3.cmd('xterm -e "' + tester + ' recv -o messungen/test/d"')
 
     #print '##-- mag1 --##'
     #print mag1.cmd('ifconfig')
@@ -144,8 +213,21 @@ def TopoTest():
     #ping(h2,'11.1')
     #ping(h2,'12.1')
     #ping(h3,'13.1')
-    sleep(10000000)
+
+
+    # Set the signal handler and a 5-second alarm
+
+    killall(lma1)    
+    killall(lma2)    
+    killall(mag1)    
+    killall(mag2)    
+    killall(h1)    
+    killall(h2)    
+    killall(h3)    
+    print 'all killed'
 
 if __name__=='__main__':
     #TwoHostsTest()
     TopoTest()
+
+
