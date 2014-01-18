@@ -98,10 +98,9 @@ tester::tester(int arg_count, char* args[])
 
 void tester::help()
 {
-    HC_LOG_TRACE("");
-
     using namespace std;
     HC_LOG_TRACE("");
+
     cout << "Multicast tester" << endl;
 
     cout << "Project page: http://mcproxy.realmv6.org/" << endl;
