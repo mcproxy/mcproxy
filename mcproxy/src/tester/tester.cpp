@@ -469,9 +469,9 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     int info_size = 0;
     std::ofstream file;
     if (save_to_file) {
-        if (file_operation_mode.compare("override")) {
+        if (file_operation_mode.compare("override") == 0) {
             file.open(file_name, std::ios::trunc);
-        } else if (file_operation_mode.compare("append")) {
+        } else if (file_operation_mode.compare("append") == 0) {
             file.open(file_name, std::ios::app);
         }
 
