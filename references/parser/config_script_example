@@ -15,7 +15,8 @@ pinstance 1:                 eth0 eth1 eth3 ==> eth4 eth5 eth10; #first upstream
 pinstance MyLocalInstance:      wlan0 wlan1 ==> dummy0 eth6 dummy1;
 pinstance testLocal:                     lo ==> eth7;
 pinstance quierer_only:                     ==> eth8;
-pinstance split:                tunU1 tunU2 ==> tunD1 tunD2;
+pinstance split(10):                tunU1 tunU2 ==> tunD1 tunD2; #proxy instance of the name split gets the multicast routing table number 10
+
 #define forwarding rules for an interfaces
 # table [<table name>] {(group | source) (group | source) ... };
 table 1 {

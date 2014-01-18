@@ -20,7 +20,11 @@
 
 #include "include/hamcast_logging.h"
 #include "include/parser/parser.hpp"
+
 #include <algorithm>
+
+#include <stdexcept>
+	
 
 parser::parser(unsigned int current_line, const std::string& cmd)
     : m_scanner(current_line, cmd)
@@ -41,7 +45,7 @@ parser_type parser::get_parser_type()
         return PT_TABLE;
     } else if (m_current_token.get_type() == TT_PINSTANCE) {
         auto cmp_token = m_scanner.get_next_token(true, 1);
-        if (cmp_token.get_type() == TT_DOUBLE_DOT) {
+        if (cmp_token.get_type() == TT_DOUBLE_DOT || cmp_token.get_type() == TT_LEFT_BRACKET) {
             return PT_INSTANCE_DEFINITION;
         } else if (cmp_token.get_type() == TT_UPSTREAM || cmp_token.get_type() == TT_DOWNSTREAM) {
             return PT_INTERFACE_RULE_BINDING;
@@ -107,12 +111,40 @@ void parser::parse_instance_definition(inst_def_set& ids)
     std::list<std::shared_ptr<interface>> upstreams;
     std::list<std::shared_ptr<interface>> downstreams;
     std::string instance_name;
+    int table_number = 0;
+    bool user_selected_table_number = false;
 
     if (get_parser_type() == PT_INSTANCE_DEFINITION) {
         get_next_token();
         if (m_current_token.get_type() == TT_STRING) {
             instance_name = m_current_token.get_string();
             get_next_token();
+
+            if (m_current_token.get_type() == TT_LEFT_BRACKET) {
+                get_next_token();
+                if (m_current_token.get_type() == TT_STRING) {
+                    try {
+                        table_number = std::stoi(m_current_token.get_string());
+                        user_selected_table_number = true;
+                    } catch (std::logic_error e) {
+                        HC_LOG_ERROR("failed to parse line " << m_current_line << " table number: " << table_number << " is not a number");
+                        throw "failed to parse config file";
+                    }
+
+                    get_next_token();
+                    if (m_current_token.get_type() == TT_RIGHT_BRACKET) {
+                        get_next_token();
+                    } else {
+                        HC_LOG_ERROR("failed to parse line " << m_current_line << " instance " << instance_name << " with unknown table number");
+                        throw "failed to parse config file";
+                    }
+
+                } else {
+                    HC_LOG_ERROR("failed to parse line " << m_current_line << " instance " << instance_name << " with unknown table number");
+                    throw "failed to parse config file";
+                }
+            }
+
             if (m_current_token.get_type() == TT_DOUBLE_DOT) {
 
                 get_next_token();
@@ -130,7 +162,7 @@ void parser::parse_instance_definition(inst_def_set& ids)
                     }
 
                     if (downstreams.size() > 0 && m_current_token.get_type() == TT_NIL) {
-                        if (!ids.insert(std::make_shared<instance_definition>(instance_name, std::move(upstreams), std::move(downstreams)))) {
+                        if (!ids.insert(std::make_shared<instance_definition>(instance_name, std::move(upstreams), std::move(downstreams), table_number, user_selected_table_number))) {
                             HC_LOG_ERROR("failed to parse line " << m_current_line << " instance " << instance_name << " already exists");
                             throw "failed to parse config file";
                         } else {
@@ -419,9 +451,9 @@ void parser::parse_interface_rule_binding(const std::shared_ptr<const global_tab
 }
 
 void parser::parse_interface_table_binding(
-    std::string&& instance_name
+    std::string && instance_name
     , rb_interface_type interface_type
-    , std::string&& if_name
+    , std::string && if_name
     , rb_interface_direction filter_direction
     , const std::shared_ptr<const global_table_set>& gts
     , group_mem_protocol gmp
@@ -506,9 +538,9 @@ void parser::parse_interface_table_binding(
 }
 
 void parser::parse_interface_rule_match_binding(
-    std::string&& instance_name
+    std::string && instance_name
     , rb_interface_type interface_type
-    , std::string&& if_name
+    , std::string && if_name
     , rb_interface_direction filter_direction
     , const inst_def_set& ids)
 {

@@ -206,17 +206,21 @@ public:
 class instance_definition
 {
     std::string m_instance_name;
+    int m_table_number;
+    bool m_user_selected_table_number; 
     std::list<std::shared_ptr<interface>> m_upstreams;
     std::list<std::shared_ptr<interface>> m_downstreams;
 
     std::list<std::shared_ptr<rule_binding>> m_global_settings;
 public:
     instance_definition(const std::string& instance_name);
-    instance_definition(const std::string& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams);
-    const std::string& get_instance_name();
+    instance_definition(const std::string& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams, int table_number, bool user_selected_table_number);
+    const std::string& get_instance_name() const;
     const std::list<std::shared_ptr<interface>>& get_upstreams() const;
     const std::list<std::shared_ptr<interface>>& get_downstreams() const;
     const std::list<std::shared_ptr<rule_binding>>& get_global_settings() const;
+    int get_table_number() const;
+    bool get_user_selected_table_number() const; 
     friend bool operator<(const instance_definition& i1, const instance_definition& i2);
     friend class parser;
     std::string to_string_instance() const;
