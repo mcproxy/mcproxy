@@ -177,45 +177,15 @@ def TopoTest():
     tester='../../../mcproxy/tester'
 
     #1)
-    h1.cmd('xterm -e "' + tester + ' send"&')
-    h3.cmd('xterm -e "' + tester + ' recv -o messungen/test/a"')
-    
-    #2)
+    h1.cmd('xterm -e "sleep 2; ' + tester + ' h1_send"&')
+
+    #for file_name in range(0,5):
+        #set_random_interface_delays('change', lma1, lma2, mag1, mag2, h1, h2, h3)
+        #h2.cmd('xterm -e "' + tester + ' h2_recv -o messungen/test/' + str(file_name) + '; sleep 10"')
+
+    file_name='asdf' 
     set_random_interface_delays('change', lma1, lma2, mag1, mag2, h1, h2, h3)
-    h3.cmd('xterm -e "' + tester + ' recv -o messungen/test/b"')
-
-    #3)
-    set_random_interface_delays('change', lma1, lma2, mag1, mag2, h1, h2, h3)
-    h3.cmd('xterm -e "' + tester + ' recv -o messungen/test/c"')
-
-    #4)
-    set_random_interface_delays('change', lma1, lma2, mag1, mag2, h1, h2, h3)
-    h3.cmd('xterm -e "' + tester + ' recv -o messungen/test/d"')
-
-    #print '##-- mag1 --##'
-    #print mag1.cmd('ifconfig')
-    #print '##-- mag2 --##'
-    #print mag2.cmd('ifconfig')
-    #print '##-- lma1 --##'
-    #print lma1.cmd('ifconfig')
-    #print '##-- mag2 --##'
-    #print mag2.cmd('ifconfig')
-    #print '##-- h3 --##'
-    #print h3.cmd('ifconfig')
-    #print '##-- ping --##'
-    #ping(mag1,'0.2')
-    #ping(lma1,'1.2')
-    #ping(lma1,'2.2')
-    #ping(lma1,'4.2')
-    #ping(lma2,'5.2')
-    #ping(lma2,'3.2')
-    #ping(h1,'10.1')
-    #ping(h2,'11.1')
-    #ping(h2,'12.1')
-    #ping(h3,'13.1')
-
-
-    # Set the signal handler and a 5-second alarm
+    h2.cmd('xterm -e "' + tester + ' h2_recv -o messungen/test/' + str(file_name) + '"')
 
     killall(lma1)    
     killall(lma2)    

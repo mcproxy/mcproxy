@@ -37,7 +37,6 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 
-
 std::string ipAddrResolver(std::string ipAddr)
 {
     std::string str[][2] = {
@@ -87,7 +86,7 @@ bool mc_socket::create_udp_ipv4_socket()
     HC_LOG_TRACE("");
 
     if (is_udp_valid()) {
-        close(m_sock);
+        close_socket();
     }
 
     //          IP-Protokollv4, UDP,    Protokoll
@@ -109,7 +108,7 @@ bool mc_socket::create_udp_ipv6_socket()
     HC_LOG_TRACE("");
 
     if (is_udp_valid()) {
-        close(m_sock);
+        close_socket();
     }
 
     //          IP-Protokollv6, UDP,    Protokoll
@@ -130,7 +129,7 @@ bool mc_socket::set_own_socket(int sck, int addr_family)
     HC_LOG_TRACE("");
 
     if (is_udp_valid()) {
-        close(m_sock);
+        close_socket();
     }
 
     if (sck < 0) {
@@ -197,6 +196,30 @@ bool mc_socket::bind_udp_socket(in_port_t port) const
         return true;
     }
 }
+
+bool mc_socket::set_reuse_port() const
+{
+    HC_LOG_TRACE("");
+
+    if (!is_udp_valid()) {
+        HC_LOG_ERROR("udp_socket invalid");
+        return false;
+    }
+
+    int rc;
+    int option = 1;
+
+    rc = setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
+
+    if (rc == -1) {
+        HC_LOG_ERROR("failed to set socket option reuseport! Error: " << strerror(errno) << " errno: " << errno);
+        return false;
+    } else {
+        return true;
+    }
+}
+
+
 
 bool mc_socket::set_loop_back(bool enable) const
 {
@@ -930,13 +953,19 @@ void mc_socket::test_all()
     //test_mc_source_advanced_api("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6.to_string(), saddr_v6a.to_string());
 }
 
-mc_socket::~mc_socket()
-{
+void mc_socket::close_socket() const{
     HC_LOG_TRACE("");
-
+    
     if (is_udp_valid() && m_own_socket) {
         close(m_sock);
     }
+}
+
+mc_socket::~mc_socket()
+{
+    HC_LOG_TRACE("");
+    
+    close_socket();
 }
 
 

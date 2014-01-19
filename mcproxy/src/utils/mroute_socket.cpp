@@ -51,7 +51,7 @@ bool mroute_socket::create_raw_ipv4_socket()
     HC_LOG_TRACE("");
 
     if (is_udp_valid()) {
-        close(m_sock);
+        close_socket();
     }
 
     //          IP-Protokollv4, UDP,    Protokoll
@@ -73,7 +73,7 @@ bool mroute_socket::create_raw_ipv6_socket()
     HC_LOG_TRACE("");
 
     if (is_udp_valid()) {
-        close(m_sock);
+        close_socket();
     }
 
     //          IP-Protokollv6, UDP,    Protokoll

@@ -114,6 +114,11 @@ public:
     virtual ~mc_socket();
 
     /**
+     * @brief Close the internal datagram socket.
+     */
+    void close_socket() const;
+
+    /**
      * @brief Create an IPv4 datagram socket.
      */
     virtual bool create_udp_ipv4_socket();
@@ -141,6 +146,13 @@ public:
      * @return Return true on success.
      */
     bool bind_udp_socket(in_port_t port) const;
+
+    /**
+     * @brief allow the reuse of binded ports 
+     * @return Return true on success.
+     */
+    bool set_reuse_port() const;
+
 
     /**
      * @brief Enable or disable multicast loopback.

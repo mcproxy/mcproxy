@@ -485,6 +485,11 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
         }
     }
 
+    if (!ms->set_reuse_port()) {
+        std::cout << "failed to set socket option reuse port" << std::endl;
+        exit(0);
+    }
+
     if (!ms->bind_udp_socket(port)) {
         std::cout << "failed to bind port " << port << " to socket" << std::endl;
         exit(0);
@@ -674,6 +679,7 @@ void tester::run(const std::string& to_do, const std::string& output_file)
         }
 
         receive_data(ms, port, max_count, print_status_msg, save_to_file, file_name, include_file_header, file_operation_mode);
+        ms->close_socket();
         if (to_do_next.compare("null") != 0) {
             run(to_do_next, output_file);
         }
@@ -687,6 +693,7 @@ void tester::run(const std::string& to_do, const std::string& output_file)
         }
 
         send_data(ms, gaddr, port, ttl, max_count, interval, msg, print_status_msg);
+        ms->close_socket();
         if (to_do_next.compare("null") != 0) {
             run(to_do_next, output_file);
         }
