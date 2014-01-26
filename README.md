@@ -8,7 +8,7 @@ to multicast routers, proxies are lightweight and do not require the
 support of a multicast routing protocol such as PIM or DVMRP. A 
 common use case is a local stub networks that interconnects with a 
 remote multicast routing domain, e.g. via a tunnel. But it can also be
-used in PMIPv6 domain to enable multicast for sources ([pmipv6-source-draft](http://tools.ietf.org/search/draft-ietf-multimob-pmipv6-source-07)) 
+used in PMIPv6 domain to enable multicast for sources ([pmipv6-source-draft](http://tools.ietf.org/html/draft-ietf-multimob-pmipv6-source)) 
 and listeners ([RFC 6224](http://tools.ietf.org/html/rfc6224)). The mcproxy
 meets the requirements of the IGMP/MLD proxying standard 
 ([RFC 4605](http://tools.ietf.org/html/rfc4605)) and has additional functionalities. 
