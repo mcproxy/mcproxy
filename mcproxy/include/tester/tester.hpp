@@ -30,29 +30,43 @@
 
 #include <memory>
 #include <list>
+#include <chrono>
 
 #define TESTER_DEFAULT_CONIG_PATH "tester.ini"
 
-class tester 
+class tester
 {
 private:
     config_map m_config_map;
-
-    void run(const std::string& to_do);
+    static bool m_running;
+    void help();
+    void run(const std::string& to_do, const std::string& output_file);
 
     addr_storage get_gaddr(const std::string& to_do);
     std::unique_ptr<const mc_socket> get_mc_socket(int addr_family);
     std::string get_if_name(const std::string& to_do);
     std::list<addr_storage> get_src_list(const std::string& to_do, int addr_family);
     mc_filter get_mc_filter(const std::string& to_do);
-    int get_count(const std::string& to_do);
+    unsigned long get_max_count(const std::string& to_do);
     std::string get_action(const std::string& to_do);
     std::string source_list_to_string(const std::list<addr_storage>& slist);
     int get_ttl(const std::string& to_do);
     int get_port(const std::string& to_do);
     std::string get_msg(const std::string& to_do);
+    std::chrono::milliseconds get_send_interval(const std::string& to_do);
+    std::chrono::milliseconds get_lifetime(const std::string& to_do);
 
-    void receive_data(const std::unique_ptr<const mc_socket>& ms, int port);
+    bool get_print_status_msg(const std::string& to_do);
+    bool get_save_to_file(const std::string& to_do);
+    bool get_include_file_header(const std::string& to_do);
+    std::string get_file_name(const std::string& to_do, const std::string& proposal);
+    std::string get_file_operation_mode(const std::string& to_do);
+    std::string get_to_do_next(const std::string& to_do);
+
+    void send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg);
+    void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, const std::string& file_operation_mode);
+
+    static void signal_handler(int sig);
 public:
     tester(int arg_count, char* args[]);
 };

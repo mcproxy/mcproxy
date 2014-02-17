@@ -127,6 +127,18 @@ token scanner::read_next_token()
     case '|':
         read_next_char();
         return token(TT_PIPE);
+    case '"': {
+        std::ostringstream s;
+
+        read_next_char();
+        while (m_current_cmd_char != 0 && m_current_cmd_char != '"') {
+            s << m_current_cmd_char;
+            read_next_char();
+        }
+        read_next_char();
+
+        return token(TT_STRING, s.str());
+    }
     default:
         if (is_string(m_current_cmd_char)) {
             std::ostringstream s;

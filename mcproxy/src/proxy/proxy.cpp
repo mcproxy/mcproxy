@@ -199,9 +199,14 @@ void proxy::start_proxy_instances()
 
         const std::string& instance_name = pinstance->get_instance_name();
 
-        table_number++;
-        if (inst_set.size() <= 1) {
-            table_number = 0; //single instance
+
+        if (!pinstance->get_user_selected_table_number()) {
+            table_number++;
+            if (inst_set.size() <= 1) {
+                table_number = 0; //single instance
+            }
+        } else {
+            table_number = pinstance->get_table_number();
         }
 
         auto& upstreams = pinstance->get_upstreams();

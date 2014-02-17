@@ -18,8 +18,13 @@ delete all dummy interface
 
     sudo dummy_interfaces/auto_dummy.sh delete
 
+Mininet
+==================
+"Mininet creates a realistic virtual network, running real kernel, switch and
+application code, on a single machine" (mininet.org). The mininet/README 
+explaines how to use mcproxy within mininet.
 
-mcproxy tester
+Mcproxy tester
 ==================
 With the mcproxy tester you can join groups, set source filter
 and send multicast packets for ipv4 and 6.
@@ -30,9 +35,10 @@ Build the tester and move it do directory
 tester:
 
     cd ../mcproxy/
+    make clean 
     qmake CONFIG+=tester
     make
-    mv tester ../debug/tester/.
+    cp tester ../debug/tester/.
 
 The Tester loads per default the ini script tester.ini.
 The ini script example debug/tester/tester.ini defines 
@@ -50,6 +56,23 @@ These actions can be executed with the following command:
     ./tester receive_data
         or
     ./tester send_a_hello tester.ini 
+
+Packet_dropper
+==============
+With the packet dropper it is possible to interrupt links 
+without changing interface states. packet_dropper configure
+an interface to drop all outgoing packets (Maybe it is nessesary
+to run it on both sides of the connection)
+
+Usage
+-----
+To interrupt the link:
+    cd packet_dropper
+    packet_dropper eth0 drop
+
+To connect that link
+    cd packet_dropper
+    packet_dropper eth0 clear
 
 Kernel
 ==================
@@ -84,7 +107,7 @@ Locations:
       |====> IPv6: multicast routing
 
 
-General debug stuff
+General debugging stuff
 ==================
 /proc/net/igmp
 /proc/net/igmp6
@@ -99,12 +122,13 @@ ip maddress show
 /proc/net/ip_mr_cache
 /proc/net/ip6_mr_cache
     shows the multicast forwarding rules
-    (only for the default multicast talbe)
+    (only for the default multicast table)
 
 /proc/sys/net/ipv4/conf/all/mc_forwarding
 /proc/sys/net/ipv6/conf/all/mc_forwarding
     shows if the multicast routing (mrt) flag is set
-    can only be hold once per system by a socket at a time 
+    can only be hold once per multicast routing table
+        by a socket at a time 
 
 /proc/sys/net/ipv4/conf/eth0/mc_forwarding
 /proc/sys/net/ipv6/conf/eth0/mc_forwarding
@@ -120,6 +144,6 @@ ip -6 -s mroute show table 0
 
 /proc/sys/net/ipv4/igmp_max_msf
 /proc/sys/net/ipv6/igmp_max_msf
-    defines the maximum allowed soursce filter 
+    defines the maximum allowed source filter 
 
 

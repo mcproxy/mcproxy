@@ -483,19 +483,23 @@ bool operator==(const std::shared_ptr<interface>& i1, const std::shared_ptr<inte
 //-----------------------------------------------------
 instance_definition::instance_definition(const std::string& instance_name)
     : m_instance_name(instance_name)
+    , m_table_number(0)
+    , m_user_selected_table_number(false)
 {
     HC_LOG_TRACE("");
 }
 
-instance_definition::instance_definition(const std::string& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams)
+instance_definition::instance_definition(const std::string& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams, int table_number, bool user_selected_table_number)
     : m_instance_name(instance_name)
+    , m_table_number(table_number)
+    , m_user_selected_table_number(user_selected_table_number)
     , m_upstreams(std::move(upstreams))
     , m_downstreams(std::move(downstreams))
 {
     HC_LOG_TRACE("");
 }
 
-const std::string& instance_definition::get_instance_name()
+const std::string& instance_definition::get_instance_name() const
 {
     HC_LOG_TRACE("");
     return m_instance_name;
@@ -517,6 +521,19 @@ const std::list<std::shared_ptr<rule_binding>>& instance_definition::get_global_
 {
     HC_LOG_TRACE("");
     return m_global_settings;
+}
+
+
+int instance_definition::get_table_number() const
+{
+    HC_LOG_TRACE("");
+    return m_table_number;
+}
+
+bool instance_definition::get_user_selected_table_number() const
+{
+    HC_LOG_TRACE("");
+    return m_user_selected_table_number;
 }
 
 bool operator<(const instance_definition& i1, const instance_definition& i2)

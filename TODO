@@ -46,7 +46,8 @@ General stuff
  -- overwork addr_storage compare function
  -- overwork exception concept ????
  -- check peering interface (ASM/SSM behaviour, timout)
- 
+ -- change receive polling / forward a signal to this thread
+ -- move the routing class to simpel management routing class
 
  
 

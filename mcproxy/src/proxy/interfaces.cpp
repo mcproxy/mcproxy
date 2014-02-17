@@ -72,8 +72,8 @@ bool interfaces::add_interface(unsigned int if_index)
 
         auto rc_if_vif = m_if_vif.insert(std::pair<int, int>(if_index, free_vif));
         if (!rc_if_vif.second) {
-            HC_LOG_ERROR("failed to add interface: " << get_if_name(if_index) << "; interface already in use");
-            return false;
+            HC_LOG_DEBUG("failed to add interface: " << get_if_name(if_index) << "; interface already in use");
+            return true;
         }
 
         auto rc_vif_if = m_vif_if.insert(std::pair<int, int>(free_vif, if_index));
@@ -206,17 +206,15 @@ unsigned int interfaces::get_if_index(const addr_storage& addr) const
     if (addr.get_addr_family() == AF_INET) {
         prop_map = m_if_prop.get_if_props();
         for (auto & e : *prop_map) {
-            if (e.second.ip4_addr->ifa_netmask != nullptr && e.second.ip4_addr->ifa_addr != nullptr) {
+            if (e.second.ip4_addr != nullptr && e.second.ip4_addr->ifa_netmask != nullptr && e.second.ip4_addr->ifa_addr != nullptr) {
                 tmp_mask = *e.second.ip4_addr->ifa_netmask;
                 own_addr = *e.second.ip4_addr->ifa_addr;
                 own_addr.mask_ipv4(tmp_mask);
-                if ( own_addr == tmp_mask.mask_ipv4(addr)) {
+                if (own_addr == tmp_mask.mask_ipv4(addr)) {
                     return get_if_index(e.second.ip4_addr->ifa_name);
                 }
             }
         }
-    } else {
-        HC_LOG_ERROR("cannot map IPv6 addr to interface index:" << addr);
     }
 
     HC_LOG_WARN("cannot map IPv6 addr to interface index:" << addr);
