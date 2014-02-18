@@ -37,7 +37,7 @@ every instance are described in configuration files lma.conf, mag1.conf, mag2.co
      
 Requirements
 ------------
-You have to install mininet, which can usually be done with the following comand:
+You have to install mininet, which can usually be done with the following command:
     sudo apt-get install mininet
     
 You have to compile the mcproxy and the mcproxy tester (see chapter mcproxy tester in ../README).
