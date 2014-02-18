@@ -41,22 +41,30 @@
 #include <iostream>
 #include <unistd.h>
 
-void test_tester(int arg_count, char* args[]);
 void test_log();
-void test_mcproxy(int arg_count, char* args[]);
 void test_test();
 
 int main(int arg_count, char* args[])
 {
-    hc_set_default_log_fun(HC_LOG_TRACE_LVL);
 
 #ifndef TESTER
-    test_mcproxy(arg_count, args);
+
+    try {
+        proxy p(arg_count, args);
+    } catch (const char* e) {
+        std::cout << e << std::endl;
+    }
+
     //test_test();
 
-
 #else
-    test_tester(arg_count, args);
+
+    try {
+        tester(arg_count, args);
+    } catch (const char* e) {
+        std::cout << e << std::endl;
+    }
+
 #endif
 
     return 0;
@@ -73,27 +81,6 @@ void test_log()
     HC_LOG_ERROR("HC_LOG_ERROR");
     HC_LOG_FATAL("HC_LOG_FATAL");
 }
-
-void test_tester(int arg_count, char* args[])
-{
-    try {
-        tester(arg_count, args);
-    } catch (const char* e) {
-        std::cout << e << std::endl;
-    }
-}
-
-void test_mcproxy(int arg_count, char* args[])
-{
-    hc_set_default_log_fun(HC_LOG_ERROR_LVL);
-
-    try {
-        proxy p(arg_count, args);
-    } catch (const char* e) {
-        std::cout << e << std::endl;
-    }
-}
-
 
 void test_test()
 {

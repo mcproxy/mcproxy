@@ -16,11 +16,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * written by Dominik Charousset <dominik.charousset@haw-hamburg.de>
+ * updated by Sebastian Woelke
  */
 
 #include <fstream>
-#include <boost/thread.hpp>
-#include <boost/date_time.hpp>
+#include <thread>
+#include <mutex>
+#include <cstdint>
+#include <chrono>
+//#include <boost/thread.hpp>
+//#include <boost/date_time.hpp>
 
 #include "include/hamcast_logging.h"
 
@@ -30,14 +35,14 @@ namespace
 {
 
 hc_log_fun_t m_log_fun = 0;
-boost::shared_mutex m_log_fun_mtx;
+//boost::shared_mutex m_log_fun_mtx;
 
-boost::mutex m_next_id_mtx;
-boost::uint32_t m_next_id = 0;
+std::mutex m_next_id_mtx;
+std::uint32_t m_next_id = 0;
 
-boost::uint32_t next_session_id()
+std::uint32_t next_session_id()
 {
-    boost::mutex::scoped_lock lock(m_next_id_mtx);
+    std::lock_guard<std::mutex> lock(m_next_id_mtx);
     return m_next_id++;
 }
 
@@ -45,7 +50,7 @@ class logger
 {
 
     bool m_enabled;
-    boost::uint32_t m_id;
+    std::uint32_t m_id;
     std::fstream m_stream;
 
 public:
@@ -67,9 +72,11 @@ public:
     }
 
     void log(int lvl, const char* fun, const char* what) {
-        using boost::get_system_time;
-        using boost::posix_time::to_iso_extended_string;
-        std::string time_stamp = to_iso_extended_string(get_system_time());
+        //using boost::get_system_time;
+        //using boost::posix_time::to_iso_extended_string;
+        //std::string time_stamp = to_iso_extended_string(get_system_time());
+       
+        unsigned long long time_stamp = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         std::ostringstream os;
         os.width(28);
         os << std::left << time_stamp;
@@ -114,19 +121,20 @@ public:
 
 };
 
-boost::thread_specific_ptr<logger> m_logger;
+thread_local logger m_logger;
 
-logger& thread_logger()
-{
-    if (!(m_logger.get())) {
-        m_logger.reset(new logger);
-    }
-    return *(m_logger.get());
-}
+//logger& thread_logger()
+//{
+    //if (!(m_logger.get())) {
+        //m_logger.reset(new logger);
+    //}
+    //return *(m_logger.get());
+//}
 
 void log_all_fun(int lvl, const char* fun_name, const char* line)
 {
-    thread_logger().log(lvl, fun_name, line);
+    //thread_logger().log(lvl, fun_name, line);
+    m_logger.log(lvl, fun_name, line);
 }
 
 void log_debug_fun(int lvl, const char* fun_name, const char* line)
@@ -168,19 +176,19 @@ void log_fatal_fun(int lvl, const char* fun_name, const char* line)
 
 extern "C" hc_log_fun_t hc_get_log_fun()
 {
-    boost::shared_lock<boost::shared_mutex> guard(m_log_fun_mtx);
+    //boost::shared_lock<boost::shared_mutex> guard(m_log_fun_mtx);
     return m_log_fun;
 }
 
 extern "C" void hc_set_log_fun(hc_log_fun_t function_ptr)
 {
-    boost::lock_guard<boost::shared_mutex> guard(m_log_fun_mtx);
+    //boost::lock_guard<boost::shared_mutex> guard(m_log_fun_mtx);
     m_log_fun = function_ptr;
 }
 
 extern "C" void hc_log(int loglvl, const char* func_name, const char* msg)
 {
-    boost::shared_lock<boost::shared_mutex> guard(m_log_fun_mtx);
+    //boost::shared_lock<boost::shared_mutex> guard(m_log_fun_mtx);
     if (m_log_fun) {
         m_log_fun(loglvl, func_name, msg);
     }

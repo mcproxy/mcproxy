@@ -8,6 +8,14 @@ tester {
     message("target tester")
     TARGET = tester
     DEFINES += TESTER
+
+    SOURCES += src/tester/config_map.cpp \
+           src/tester/tester.cpp
+
+    HEADERS += include/tester/config_map.hpp \
+           include/tester/tester.hpp
+
+    LIBS += -L/usr/lib -lboost_regex
 }
 
 mcproxy { #default mode
@@ -72,10 +80,7 @@ SOURCES += src/main.cpp \
            src/parser/token.cpp \
            src/parser/configuration.cpp \
            src/parser/parser.cpp \
-           src/parser/interface.cpp \
-                #tester
-           src/tester/config_map.cpp \
-           src/tester/tester.cpp
+           src/parser/interface.cpp
 
 HEADERS += include/hamcast_logging.h \
                 #utils
@@ -115,17 +120,9 @@ HEADERS += include/hamcast_logging.h \
            include/parser/token.hpp \
            include/parser/configuration.hpp \
            include/parser/parser.hpp \
-           include/parser/interface.hpp \
-                #tester
-           include/tester/config_map.hpp \
-           include/tester/tester.hpp
+           include/parser/interface.hpp
 
-
-LIBS += -L/usr/lib -lboost_thread \
-        -lboost_date_time \
-        -lboost_system \
-        -lboost_regex \
-        -lpthread 
+LIBS += -L/usr/lib -lpthread 
 
 QMAKE_CLEAN += thread* 
   
