@@ -19,6 +19,8 @@ for a non hierarchical interconnection of multicast proxies.
 
 Requirements
 ============
+*  A g++ version equal or higher 4.8 is required.
+
 *  To generate a makefile, qmake must be installed. This can be done with
 the following command:
   
