@@ -91,6 +91,9 @@ group_mem_protocol parser::parse_group_mem_proto()
             throw "failed to parse config file";
             break;
         }
+    }else{
+        HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << ", expected \"protocol\"");
+        throw "failed to parse config file";
     }
 
     get_next_token();
