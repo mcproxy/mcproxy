@@ -24,7 +24,6 @@
 #include "include/hamcast_logging.h"
 #include "include/utils/mc_socket.hpp"
 
-#include <boost/lexical_cast.hpp>
 #include <netpacket/packet.h>
 #include <cstring> //memset
 #include <iostream>
@@ -36,6 +35,8 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <numeric>
+#include <stdio.h>
 
 std::string ipAddrResolver(std::string ipAddr)
 {
