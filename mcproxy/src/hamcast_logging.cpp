@@ -24,6 +24,7 @@
 #include <mutex>
 #include <cstdint>
 #include <chrono>
+#include <atomic>
 //#include <boost/thread.hpp>
 //#include <boost/date_time.hpp>
 
@@ -34,8 +35,7 @@
 namespace
 {
 
-hc_log_fun_t m_log_fun = 0;
-//boost::shared_mutex m_log_fun_mtx;
+std::atomic<hc_log_fun_t> m_log_fun(nullptr);
 
 std::mutex m_next_id_mtx;
 std::uint32_t m_next_id = 0;
@@ -123,17 +123,8 @@ public:
 
 thread_local logger m_logger;
 
-//logger& thread_logger()
-//{
-    //if (!(m_logger.get())) {
-        //m_logger.reset(new logger);
-    //}
-    //return *(m_logger.get());
-//}
-
 void log_all_fun(int lvl, const char* fun_name, const char* line)
 {
-    //thread_logger().log(lvl, fun_name, line);
     m_logger.log(lvl, fun_name, line);
 }
 
@@ -176,19 +167,16 @@ void log_fatal_fun(int lvl, const char* fun_name, const char* line)
 
 extern "C" hc_log_fun_t hc_get_log_fun()
 {
-    //boost::shared_lock<boost::shared_mutex> guard(m_log_fun_mtx);
     return m_log_fun;
 }
 
 extern "C" void hc_set_log_fun(hc_log_fun_t function_ptr)
 {
-    //boost::lock_guard<boost::shared_mutex> guard(m_log_fun_mtx);
     m_log_fun = function_ptr;
 }
 
 extern "C" void hc_log(int loglvl, const char* func_name, const char* msg)
 {
-    //boost::shared_lock<boost::shared_mutex> guard(m_log_fun_mtx);
     if (m_log_fun) {
         m_log_fun(loglvl, func_name, msg);
     }
