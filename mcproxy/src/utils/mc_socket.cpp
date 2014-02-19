@@ -36,7 +36,7 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <numeric>
-#include <stdio.h>
+#include <unistd.h>
 
 std::string ipAddrResolver(std::string ipAddr)
 {
