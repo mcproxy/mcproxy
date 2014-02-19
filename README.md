@@ -33,12 +33,6 @@ the following command:
 
         apt-get install qt4-qmake
 
-*  To build the mcproxy, the libraries boost_threat, boost_date_time and 
-boost_system must be installed. This can be done with the following 
-command:
-  
-        apt-get install libboost-all-dev
-
 *  To use the IPv6 functionality the kernel has to be configured and 
 compiled with the experimental kernel feature _IPv6: multicast routing_.
 For more details go to chapter [Startup](#startup).
