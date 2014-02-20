@@ -4,33 +4,33 @@ This is a simple example of how to use mcproxy within mininet (mininet.org)
 
 The topologie discribed by the file network.py looks like this:   
                   
-                       +-----------+
-                       |           |
-                       |   #LMA#   |
-                       |  (table 1)|
-                       +-----------+
-                lma-eth0 /       \ lma-eth1         
-                       /           \        
-                     /               \      
-                   /                   \    
-                 /                       \  
-               /                           \
-   mag1-eth0 /                               \ mag2-eth0
-       +-----------+                   +-----------+
-       |           |                   |           |
-       |  #MAG1#   |                   |  #MAG2#   |
-       |  (table 2)|                   |  (table 3)|
-       +-----------+                   +-----------+
-   mag1-eth1 |                               | mag2-eth1 
-             |                               | 
-             |                               | 
-             |                               | 
-  host1-eth0 |                               | host2-eth0 
-       +-----------+                   +-----------+
-       |           |                   |           |
-       |  #Host1#  |                   |  #Host2#  |
-       |   (sender)|                   | (receiver)|
-       +-----------+                   +-----------+
+                         +-----------+
+                         |           |
+                         |   #LMA#   |
+                         |  (table 1)|
+                         +-----------+
+                  lma-eth0 /       \ lma-eth1         
+                         /           \        
+                       /               \      
+                     /                   \    
+                   /                       \  
+                 /                           \
+     mag1-eth0 /                               \ mag2-eth0
+         +-----------+                   +-----------+
+         |           |                   |           |
+         |  #MAG1#   |                   |  #MAG2#   |
+         |  (table 2)|                   |  (table 3)|
+         +-----------+                   +-----------+
+     mag1-eth1 |                               | mag2-eth1 
+               |                               | 
+               |                               | 
+               |                               | 
+    host1-eth0 |                               | host2-eth0 
+         +-----------+                   +-----------+
+         |           |                   |           |
+         |  #Host1#  |                   |  #Host2#  |
+         |   (sender)|                   | (receiver)|
+         +-----------+                   +-----------+
           
 On the boxes LMA, MAG1, and MAG2 runs a single proxy instance each with a
 different multicast routing table. The behaviour every instance are described
