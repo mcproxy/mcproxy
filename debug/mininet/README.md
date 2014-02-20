@@ -1,5 +1,5 @@
 Introduction
-===============
+============
 This is a simple example of how to use mcproxy within mininet (mininet.org) 
 
 The topologie discribed by the file network.py looks like this:   
@@ -32,8 +32,12 @@ The topologie discribed by the file network.py looks like this:
        |   (sender)|                   | (receiver)|
        +-----------+                   +-----------+
           
-For the boxes LMA, MAG1, and MAG2 is a proxy instance started. The behaviour of
-every instance are described in configuration files lma.conf, mag1.conf, mag2.conf. The Host1 sends group packages of the group 239.99.99.99 to the interface host1-eth0 and Host2 receives hopefully these packages on inteface host2-eth0. The exact behaviours of the hosts are described in the file tester.ini.
+On the boxes LMA, MAG1, and MAG2 runs a single proxy instance each with a
+different multicast routing table. The behaviour every instance are described
+in configuration files lma.conf, mag1.conf, mag2.conf.  The Host1 sends group
+packages of the group 239.99.99.99 to the interface host1-eth0 and Host2
+receives hopefully these packages on inteface host2-eth0. The exact behaviours
+of the hosts are described in the file tester.ini. as
      
 Requirements
 ------------
@@ -50,5 +54,4 @@ Usage
    
    
    
-   
-
+   /* vim: set tw=72 sts=2 sw=2 ts=2 expandtab: */
