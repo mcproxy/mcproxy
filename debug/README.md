@@ -49,14 +49,9 @@ Build the tester and move it do directory tester:
 The Tester loads per default an INI file with the name _tester.ini_. This INI file
 [example](tester/tester.ini) defines two simple configurable actions: 
 
-receive_data: 
+* **receive_data** subscribes group 239.99.99.99 with three sources in include mode and wait for arriving data
 
-    subscribes group 239.99.99.99 with three sources
-    in include mode and wait for arriving data
-
-send_a_hello:
-
-    sends a hello message to group 239.99.99.99       
+* **send_a_hello** sends a hello message to group 239.99.99.99       
 
 #### Usage
 These actions can be executed with the following command:
@@ -71,30 +66,31 @@ Packet Dropper
 ==============
 With the _Packet Dropper_ it is possible to interrupt links without changing
 interface states. It configures an interface to drop all outgoing
-packets (**Hint**: It is nessesary to run it on both sides of the connection).
+packets (**Hint**: It is nessesary to run it on both sides of the link).
 
 #### Usage
 To interrupt the link:
 
-    cd packet_dropper
-    packet_dropper eth0 drop
+    packet_dropper/packet_dropper eth0 drop
 
 To reconnect the link:
 
-    cd packet_dropper
-    packet_dropper eth0 clear
+    packet_dropper/packet_dropper eth0 clear
 
 Kernel
-=====
+======
 If you miss a kernel module you have to build your own kernel. The script
-(install_kernel-sh)[./kernel/install_kernel-sh] download, configure, compile and
-install one for you.
+[install_kernel-sh](./kernel/install_kernel-sh) download, configure, compile and
+installs one for you.
 
 #### Usage
-    see ./kernel/install_kernel-sh help
+Type the following command for more information:
+
+    kernel/install_kernel-sh help
 
 #### Kernel Configuration Options
-    The following options should be enabled:
+The following options should be enabled:
+
         IP_MULTICAST=y
         IP_MROUTE=y
         IP_MROUTE_MULTIPLE_TABLES=y
@@ -103,55 +99,52 @@ install one for you.
         IPV6_MROUTE=y
         IPV6_MROUTE_MULTIPLE_TABLES=y
 
-    Locations:
+Locations:
+
     +-> Networking support
     |-+-> Networking options
       |-+-> TCP/IP networking
         |  
-        |====> IP: multicast routing
+        |----> IP: multicast routing
         |
         |-+-> The IPv6 protocol
           |
-          |====> IPv6: multicast routing
+          |----> IPv6: multicast routing
 
 
 General Debugging Stuff
 =======================
+Displays the subscribed groups per interface:
     /proc/net/igmp
     /proc/net/igmp6
     ip maddress show
-        shows the subscribed groups per interface
 
+Displays announced network interfaces for multicast routing (only for the default
+multicast talbe):
     /proc/net/ip_mr_vif
     /proc/net/ip6_mr_vif
-        shows announced network interfaces for multicast routing
-        (only for the default multicast talbe)
 
+Displays the multicast forwarding rules (only for the default multicast table):
     /proc/net/ip_mr_cache
     /proc/net/ip6_mr_cache
-        shows the multicast forwarding rules
-        (only for the default multicast table)
 
+Displays the status of the multicast routing flag (mrt). It can only be hold by
+one socket per multiast routing table at a time):
     /proc/sys/net/ipv4/conf/all/mc_forwarding
     /proc/sys/net/ipv6/conf/all/mc_forwarding
-        shows if the multicast routing (mrt) flag is set
-        can only be hold once per multicast routing table
-            by a socket at a time 
 
+Displays all announced interfaces for multicast routing:
     /proc/sys/net/ipv4/conf/eth0/mc_forwarding
     /proc/sys/net/ipv6/conf/eth0/mc_forwarding
-        shows if the interface is announced for multicast routing
-
+    
+Displays the multicast routing rules for a specific table (table 0 is the
+default table and summaries all tables):
     ip -s mroute show table 0
     ip -6 -s mroute show table 0
-        shows the multicast routing rules for a specific table 
-        table 0 is the default table and summaries all tables  
 
+Defines the maximum allowed memberships:
     /proc/sys/net/ipv4/igmp_max_memberships
-        defines the maximum allowed memberships 
 
+Defines the maximum allowed source filter:
     /proc/sys/net/ipv4/igmp_max_msf
     /proc/sys/net/ipv6/igmp_max_msf
-        defines the maximum allowed source filter 
-
-
