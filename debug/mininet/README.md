@@ -1,4 +1,4 @@
-<!--vim: set textwidth=80-->
+<!--vim: set textwidth=80 formatoptions+=t wrapmargin=5 -->
 
 Mcproxy and Mininet
 ===================
