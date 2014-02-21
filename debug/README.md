@@ -46,7 +46,7 @@ Build the _Tester_ and move it do directory tester:
     cp tester ../debug/tester/.
 
 #### Configuration
-The Tester loads per default an INI file with the name _tester.ini_. This INI file
+The _Tester_ loads per default an INI file with the name _tester.ini_. This INI file
 [example](tester/tester.ini) defines two simple configurable actions: 
 
 * **receive_data** subscribes group 239.99.99.99 with three sources in include mode and wait for arriving data

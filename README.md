@@ -92,9 +92,9 @@ the following command:
 
     sudo mcproxy -c
    
-If a kernel feature you need failed you have to reconfigure and recompile your
-linux kernel. In the debug folder is a README file which could help you with
-this problem.
+If a kernel feature you need is missing you have to reconfigure and recompile
+your linux kernel. In the debug folder is a [README](debug/README.md) file
+which could help you with this problem.
 
 To run the mcproxy you need to create a valid configuration file.  There is an
 example in the project folder (mcproxy.conf).
