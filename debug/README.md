@@ -5,7 +5,7 @@ Debugging and Testing the Mcproxy
 Here you find a tools and backround knowledge to debug and test the mcproxy.
 
 
-Dummy interface
+Dummy Interface
 ===============
 An easy way to test the mcproxy without physical hardware is to create dummy
 network interfaces.
@@ -21,14 +21,14 @@ Delete all dummy interfaces:
 
 Mininet
 =======
-"Mininet creates a realistic virtual network, running real kernel, switch and
-application code, on a single machine" ([mininet](mininet.org)). This
+([Mininet](mininet.org)) creates a realistic virtual network, running real
+kernel, switch and application code, on a single machine . This
 [REAMDE](mininet/README.md) explains how to use mcproxy within mininet.
 
-Mcproxy tester
+Mcproxy Tester
 ==============
 With the mcproxy tester you can join groups, set source filter and send
-multicast packets for IPv4 and IPv6.
+multicast packets for IPv4 and IPv6. 
 
 #### Requirements
 To build the mcproxy tester, the library _boost_regex_ must be installed. This
@@ -45,8 +45,8 @@ Build the tester and move it do directory tester:
     make
     cp tester ../debug/tester/.
 
-The Tester loads per default the INI file _tester.ini_.  The INI file
-[example](tester/tester.ini) defines two actions: 
+The Tester loads per default an INI file with the name _tester.ini_. This INI file
+[example](tester/tester.ini) defines two simple configurable actions: 
 
 receive_data: 
 
