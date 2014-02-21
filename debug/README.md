@@ -21,23 +21,23 @@ Delete all dummy interfaces:
 
 Mininet
 =======
-([Mininet](mininet.org)) creates a realistic virtual network, running real
+[Mininet](mininet.org) creates a realistic virtual network, running real
 kernel, switch and application code, on a single machine . This
 [REAMDE](mininet/README.md) explains how to use mcproxy within mininet.
 
 Mcproxy Tester
 ==============
-With the mcproxy tester you can join groups, set source filter and send
+With the _Mcproxy Tester_ you can join groups, set source filter and send
 multicast packets for IPv4 and IPv6. 
 
 #### Requirements
-To build the mcproxy tester, the library _boost_regex_ must be installed. This
+To build the _Mcproxy Tester_, the library _boost_regex_ must be installed. This
 can be done with the following command:
   
     apt-get install libboost-all-dev
 
 #### Compilation
-Build the tester and move it do directory tester:
+Build the _Tester_ and move it do directory tester:
 
     cd ../mcproxy/
     make clean 
@@ -80,7 +80,7 @@ To reconnect the link:
 Kernel
 ======
 If you miss a kernel module you have to build your own kernel. The script
-[install_kernel-sh](./kernel/install_kernel-sh) download, configure, compile and
+[install_kernel-sh](./kernel/install_kernel-sh) downloads, configures, compiles and
 installs one for you.
 
 #### Usage
@@ -91,13 +91,13 @@ Type the following command for more information:
 #### Kernel Configuration Options
 The following options should be enabled:
 
-        IP_MULTICAST=y
-        IP_MROUTE=y
-        IP_MROUTE_MULTIPLE_TABLES=y
+    IP_MULTICAST=y
+    IP_MROUTE=y
+    IP_MROUTE_MULTIPLE_TABLES=y
 
-        IPV6=y
-        IPV6_MROUTE=y
-        IPV6_MROUTE_MULTIPLE_TABLES=y
+    IPV6=y
+    IPV6_MROUTE=y
+    IPV6_MROUTE_MULTIPLE_TABLES=y
 
 Locations:
 
@@ -115,36 +115,44 @@ Locations:
 General Debugging Stuff
 =======================
 Displays the subscribed groups per interface:
+
     /proc/net/igmp
     /proc/net/igmp6
     ip maddress show
 
 Displays announced network interfaces for multicast routing (only for the default
 multicast talbe):
+
     /proc/net/ip_mr_vif
     /proc/net/ip6_mr_vif
 
 Displays the multicast forwarding rules (only for the default multicast table):
+
     /proc/net/ip_mr_cache
     /proc/net/ip6_mr_cache
 
 Displays the status of the multicast routing flag (mrt). It can only be hold by
 one socket per multiast routing table at a time):
+
     /proc/sys/net/ipv4/conf/all/mc_forwarding
     /proc/sys/net/ipv6/conf/all/mc_forwarding
 
 Displays all announced interfaces for multicast routing:
+
     /proc/sys/net/ipv4/conf/eth0/mc_forwarding
     /proc/sys/net/ipv6/conf/eth0/mc_forwarding
     
 Displays the multicast routing rules for a specific table (table 0 is the
 default table and summaries all tables):
+
     ip -s mroute show table 0
     ip -6 -s mroute show table 0
 
 Defines the maximum allowed memberships:
+
     /proc/sys/net/ipv4/igmp_max_memberships
 
 Defines the maximum allowed source filter:
+
     /proc/sys/net/ipv4/igmp_max_msf
     /proc/sys/net/ipv6/igmp_max_msf
