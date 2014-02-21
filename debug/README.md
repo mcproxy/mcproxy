@@ -15,15 +15,15 @@ Create 12 dummy interfaces:
 
     sudo dummy_interfaces/auto_dummy.sh create 12
 
-Delete all dummy interface
+Delete all dummy interface:
 
     sudo dummy_interfaces/auto_dummy.sh delete
 
 Mininet
 =======
 "Mininet creates a realistic virtual network, running real kernel, switch and
-application code, on a single machine" ((mininet)[mininet.org]). This
-(REAMDE)[mininet/README.md] explains how to use mcproxy within mininet.
+application code, on a single machine" ([mininet](mininet.org)). This
+[REAMDE](mininet/README.md) explains how to use mcproxy within mininet.
 
 Mcproxy tester
 ==============
