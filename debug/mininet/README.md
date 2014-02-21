@@ -1,6 +1,23 @@
-Introduction
-============
-This is a simple example of how to use mcproxy within mininet (mininet.org) 
+<!--vim: set textwidth=80-->
+
+Mcproxy and Mininet
+===================
+Here you can find examples of how to use mcproxy within [mininet](mininet.org).
+
+Requirements
+------------
+You have to install mininet, which can usually be done with the following command:
+    sudo apt-get install mininet
+    
+You have to compile the mcproxy and the mcproxy tester (see chapter mcproxy tester in ../README).
+
+Usage   
+-----   
+    sudo su
+    mn -c
+    python2 network.py  
+
+
 
 The topologie discribed by the file network.py looks like this:   
                   
@@ -39,19 +56,5 @@ packages of the group 239.99.99.99 to the interface host1-eth0 and Host2
 receives hopefully these packages on inteface host2-eth0. The exact behaviours
 of the hosts are described in the file tester.ini. as
      
-Requirements
-------------
-You have to install mininet, which can usually be done with the following command:
-    sudo apt-get install mininet
-    
-You have to compile the mcproxy and the mcproxy tester (see chapter mcproxy tester in ../README).
-
-Usage   
------   
-    sudo su
-    mn -c
-    python2 network.py  
    
    
-   
-   /* vim: set tw=72 sts=2 sw=2 ts=2 expandtab: */
