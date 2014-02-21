@@ -36,7 +36,7 @@ can be done with the following command:
   
     apt-get install libboost-all-dev
 
-#### Usage
+#### Compilation
 Build the tester and move it do directory tester:
 
     cd ../mcproxy/
@@ -45,6 +45,7 @@ Build the tester and move it do directory tester:
     make
     cp tester ../debug/tester/.
 
+#### Configuration
 The Tester loads per default an INI file with the name _tester.ini_. This INI file
 [example](tester/tester.ini) defines two simple configurable actions: 
 
@@ -57,6 +58,7 @@ send_a_hello:
 
     sends a hello message to group 239.99.99.99       
 
+#### Usage
 These actions can be executed with the following command:
 
     ./tester receive_data
@@ -67,9 +69,9 @@ or
 
 Packet Dropper
 ==============
-With the packet dropper it is possible to interrupt links without changing
-interface states. packet_dropper configure an interface to drop all outgoing
-packets (Maybe it is nessesary to run it on both sides of the connection).
+With the _Packet Dropper_ it is possible to interrupt links without changing
+interface states. It configures an interface to drop all outgoing
+packets (**Hint**: It is nessesary to run it on both sides of the connection).
 
 #### Usage
 To interrupt the link:
@@ -77,13 +79,13 @@ To interrupt the link:
     cd packet_dropper
     packet_dropper eth0 drop
 
-To connect that link
+To reconnect the link:
 
     cd packet_dropper
     packet_dropper eth0 clear
 
 Kernel
-======
+=====
 If you miss a kernel module you have to build your own kernel. The script
 (install_kernel-sh)[./kernel/install_kernel-sh] download, configure, compile and
 install one for you.
