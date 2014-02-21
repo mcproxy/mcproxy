@@ -21,7 +21,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
 #include "include/hamcast_logging.h"
 #include "include/tester/tester.hpp"
 #include "include/utils/mc_socket.hpp"
@@ -510,7 +509,6 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     unsigned long count = 0;
 
     while (m_running && (max_count == 0 || count < max_count)) {
-
         if (!ms->receive_packet(reinterpret_cast<unsigned char*>(buf.data()), size - 1, info_size)) {
             std::this_thread::sleep_for(std::chrono::microseconds(100));
             //this could be an error but it could be also an interrupt (SIGINIT)

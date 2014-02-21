@@ -43,7 +43,6 @@ class addr_storage;
  */
 class sender
 {
-private:
 protected:
     group_mem_protocol m_group_mem_protocol;
     const std::shared_ptr<const interfaces>& m_interfaces;
@@ -64,7 +63,6 @@ public:
 
     virtual ~sender();
 };
-
 
 #endif // SENDER_HPP
 /** @} */

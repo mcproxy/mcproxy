@@ -44,6 +44,7 @@ private:
     token read_next_token();    
 
     void fill_token_vec();
+
 public:
     scanner(unsigned int current_line, const std::string& cmd);
     
@@ -52,6 +53,5 @@ public:
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const scanner& scan);
 };
-
 
 #endif // SCANNER_HPP

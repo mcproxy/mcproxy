@@ -27,7 +27,6 @@
 #include <string>
 #include <chrono>
 
-
 struct timers_values_tank {
     unsigned int robustness_variable = 2;
     std::chrono::seconds query_interval = std::chrono::seconds(125);
@@ -39,7 +38,6 @@ struct timers_values_tank {
     std::chrono::milliseconds unsolicited_report_interval = std::chrono::milliseconds(1000);
 };
 
-
 static timers_values_tank default_timers_values_tank = timers_values_tank();
 
 class timers_values
@@ -49,6 +47,7 @@ private:
     timers_values_tank* tank = &default_timers_values_tank;
 
     void set_new_tank();
+
 public:
     timers_values() = default;
     timers_values(const timers_values& tv);
@@ -103,6 +102,5 @@ public:
     static void test_timers_values();
     static void test_timers_values_copy();
 };
-
 
 #endif // TIMERS_VALUES_HPP

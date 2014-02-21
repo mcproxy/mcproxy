@@ -73,4 +73,3 @@ struct igmpv3_mc_report {
 } __attribute__ ((packed));
 
 #endif
-

@@ -82,7 +82,6 @@ public:
       * @return Return true on success.
       */
     bool del_route(int vif, const addr_storage& g_addr, const addr_storage& src_addr) const;
-
 };
 
 #endif // ROUTING_HPP

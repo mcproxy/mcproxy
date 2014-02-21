@@ -52,6 +52,7 @@ private:
 
     void process_upstream_in_first(const addr_storage& gaddr, const proxy_instance* pi);
     void process_upstream_in_mutex(const addr_storage& gaddr, const proxy_instance* pi, const simple_routing_data& routing_data);
+
 public:
     interface_memberships(rb_rule_matching_type upstream_in_rule_matching_type, const addr_storage& gaddr, const proxy_instance* pi, const simple_routing_data& routing_data);
     
@@ -83,6 +84,7 @@ private:
     bool check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int checking_if_index, unsigned int input_if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
 
     void process_membership_aggregation(rb_rule_matching_type rule_matching_type, const addr_storage& gaddr);
+
 public:
     simple_mc_proxy_routing(const proxy_instance* p);
 
@@ -95,6 +97,4 @@ public:
     std::string to_string() const override;
 };
 
-
 #endif // SIMPLE_MC_PROXY_ROUTING_HPP
-

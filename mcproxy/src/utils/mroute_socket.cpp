@@ -20,7 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
 #include "include/hamcast_logging.h"
 #include "include/utils/mroute_socket.hpp"
 #include "include/utils/extended_mld_defines.hpp"
@@ -44,7 +43,6 @@ mroute_socket::mroute_socket()
 {
     HC_LOG_TRACE("");
 }
-
 
 bool mroute_socket::create_raw_ipv4_socket()
 {
@@ -107,7 +105,6 @@ bool mroute_socket::set_kernel_table(int table) const
 #else
         HC_LOG_ERROR("multiple ipv4 multicast routing table not supported: MRT_TABLE not defined");
         return false
-
 #endif
     } else if (m_addrFamily == AF_INET6) {
 #ifdef MRT6_TABLE
@@ -198,7 +195,6 @@ bool mroute_socket::set_ipv6_auto_icmp6_checksum_calc(bool enable) const
         HC_LOG_ERROR("wrong address family");
         return false;
     }
-
 }
 
 bool mroute_socket::add_ipv6_extension_header(const unsigned char* buf, unsigned int buf_size) const
@@ -274,7 +270,6 @@ bool mroute_socket::set_ipv6_recv_icmpv6_msg() const
         ICMP6_FILTER_SETPASS(MLD_LISTENER_REDUCTION, &myfilter);
         ICMP6_FILTER_SETPASS(MLD_V2_LISTENER_REPORT, &myfilter);
 
-
         if (setsockopt(m_sock, IPPROTO_ICMPV6, ICMP6_FILTER, &myfilter, sizeof(myfilter)) < 0) {
             HC_LOG_ERROR("failed to set ICMP6 filter! Error: " << strerror(errno) << " errno: " << errno);
             return false;
@@ -285,12 +280,10 @@ bool mroute_socket::set_ipv6_recv_icmpv6_msg() const
         HC_LOG_ERROR("wrong address family");
         return false;
     }
-
 }
 
 bool mroute_socket::set_ipv6_recv_pkt_info() const
 {
-
     if (!is_udp_valid()) {
         HC_LOG_ERROR("raw_socket invalid");
         return false;
@@ -437,7 +430,6 @@ bool mroute_socket::add_vif(int vifNum, uint32_t if_index, const addr_storage& i
         } else {
             return true;
         }
-
     } else if (m_addrFamily == AF_INET6) {
         struct mif6ctl mc;
 
@@ -458,7 +450,6 @@ bool mroute_socket::add_vif(int vifNum, uint32_t if_index, const addr_storage& i
         } else {
             return true;
         }
-
     } else {
         HC_LOG_ERROR("wrong address family");
         return false;
@@ -627,7 +618,6 @@ bool mroute_socket::add_mroute(int vif_index, const addr_storage& source_addr, c
             mc.mfcc_ttls[e] = MROUTE_DEFAULT_TTL;
         }
 
-
         rc = setsockopt(m_sock, IPPROTO_IP, MRT_ADD_MFC, (void *)&mc, sizeof(mc));
         if (rc == -1) {
             HC_LOG_ERROR("failed to add multicast route! Error: " << strerror(errno) << " errno: " << errno);
@@ -635,7 +625,6 @@ bool mroute_socket::add_mroute(int vif_index, const addr_storage& source_addr, c
         } else {
             return true;
         }
-
     } else if (m_addrFamily == AF_INET6) {
         struct mf6cctl mc;
         memset(&mc, 0, sizeof(mc));
@@ -660,7 +649,6 @@ bool mroute_socket::add_mroute(int vif_index, const addr_storage& source_addr, c
         } else {
             return true;
         }
-
     } else {
         HC_LOG_ERROR("wrong address family");
         return false;
@@ -694,7 +682,6 @@ bool mroute_socket::del_mroute(int vif_index, const addr_storage& source_addr, c
         } else {
             return true;
         }
-
     } else if (m_addrFamily == AF_INET6) {
         struct mf6cctl mc;
         memset(&mc, 0, sizeof(mc));
@@ -740,7 +727,6 @@ bool mroute_socket::get_vif_stats(int vif_index, struct sioc_vif_req* req_v4, st
             } else {
                 return true;
             }
-
         } else {
             HC_LOG_ERROR("failed to get vif stats! Error: claimed parameter req_v4 is null");
             return false;
@@ -757,7 +743,6 @@ bool mroute_socket::get_vif_stats(int vif_index, struct sioc_vif_req* req_v4, st
             } else {
                 return true;
             }
-
         } else {
             HC_LOG_ERROR("failed to get vif stats! Error: claimed parameter req_v6 is null");
             return false;
@@ -782,7 +767,6 @@ bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr
 
     if (m_addrFamily == AF_INET) {
         if (sgreq_v4 != nullptr) {
-
             memset(sgreq_v4, 0, sizeof(struct sioc_sg_req));
 
             sgreq_v4->src = source_addr.get_in_addr();
@@ -802,7 +786,6 @@ bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr
         }
     } else if (m_addrFamily == AF_INET6) {
         if (sgreq_v6 != nullptr) {
-
             memset(sgreq_v6, 0, sizeof(struct sioc_sg_req6));
 
             sgreq_v6->src.sin6_addr = source_addr.get_in6_addr();
@@ -843,7 +826,6 @@ void mroute_socket::print_vif_stats(int vif_index) const
 
         cout << " -In packets[" << req.ibytes << " bytes]:" << req.icount << endl;
         cout << " -Out packets[" << req.obytes << " bytes]:" << req.ocount << endl;
-
     } else if (m_addrFamily == AF_INET6) {
         struct sioc_mif_req6 req;
         if (!get_vif_stats(vif_index, nullptr, &req)) {
@@ -853,7 +835,6 @@ void mroute_socket::print_vif_stats(int vif_index) const
 
         cout << " -In packets[" << req.ibytes << " bytes]:" << req.icount << endl;
         cout << " -Out packets[" << req.obytes << " bytes]:" << req.ocount << endl;
-
     } else {
         HC_LOG_ERROR("wrong address family");
         cout << "wrong address family" << endl;
@@ -877,7 +858,6 @@ void mroute_socket::print_mroute_stats(const addr_storage& source_addr, const ad
 
         cout << " -packets[" << req.bytecnt << " bytes]:" << req.pktcnt << endl;
         cout << " -wrong packets:" << req.wrong_if << endl;
-
     } else if (m_addrFamily == AF_INET6) {
         struct sioc_sg_req6 req;
         if (!get_mroute_stats(source_addr, group_addr, nullptr, &req)) {
@@ -887,7 +867,6 @@ void mroute_socket::print_mroute_stats(const addr_storage& source_addr, const ad
 
         cout << " -packets[" << req.bytecnt << " bytes]:" << req.pktcnt << endl;
         cout << " -wrong packets:" << req.wrong_if << endl;
-
     } else {
         HC_LOG_ERROR("wrong address family");
         cout << "wrong address family" << endl;
@@ -1061,7 +1040,6 @@ void mroute_socket::test_mcrouter_mrt_flag()
     } else {
         cout << "reset 2 FAILED!" << endl;
     }
-
 }
 
 void mroute_socket::test_add_vifs(mroute_socket* m)
@@ -1073,7 +1051,6 @@ void mroute_socket::test_add_vifs(mroute_socket* m)
     string str_if_one = MROUTE_SOCKET_IF_STR_ONE;
     int if_two = MROUTE_SOCKET_IF_NUM_TWO;
     string str_if_two = MROUTE_SOCKET_IF_STR_TWO;
-
 
     cout << "-- addVIFs test --" << endl;
     if (m->add_vif(if_one, if_nametoindex(str_if_one.c_str()), addr_storage())) {
@@ -1088,13 +1065,11 @@ void mroute_socket::test_add_vifs(mroute_socket* m)
         //cout << "addVIF " << str_if_two << " FAILED!" << end;
     }
 
-
     /*if(m->addVIF(if_three, str_if_three.c_str(),false,false,false,NULL)){
           cout << "addVIF " << str_if_three << " OK!" << endl;
      }else{
           cout << "addVIF " << str_if_three << " FAILED!" << endl;
      }*/
-
 }
 
 
@@ -1232,7 +1207,6 @@ void mroute_socket::test_mcrouter_vifs_routes(int addrFamily)
 
 void mroute_socket::quick_test()
 {
-
 //https://github.com/torvalds/linux/blob/b3a3a9c441e2c8f6b6760de9331023a7906a4ac6/drivers/net/dummy.c
 //
     auto assert = [](bool test, std::string s) {

@@ -27,7 +27,6 @@
 #include <algorithm>
 #include <fstream>
 
-
 configuration::configuration(const std::string& path, bool reset_reverse_path_filter)
     : m_reset_reverse_path_filter(reset_reverse_path_filter)
     , m_gmp(IGMPv3) //default setting
@@ -217,7 +216,6 @@ void configuration::test_configuration()
     configuration conf("../references/parser/test_script", false);
 
     cout << conf.to_string() << endl;
-
 
     //cout << "1<" << s.delete_comments("#1234\n1234") << ">" << endl;
     //cout << "2<" << s.delete_comments("1234\n#1234") << ">" << endl;

@@ -191,7 +191,6 @@ token scanner::read_next_token()
             } else {
                 return token(TT_STRING, s.str());
             }
-
         } else {
             HC_LOG_ERROR("failed to scan config file. Unsupported char <" << m_current_cmd_char << "> in line " << m_current_line << " and postion " << m_current_cmd_pos);
             throw "failed to scan config file. Unsupported char";
@@ -234,5 +233,3 @@ std::ostream& operator<<(std::ostream& stream, const scanner& scan)
 {
     return stream << scan.to_string();
 }
-
-

@@ -121,7 +121,6 @@ public:
     std::string to_string() const override;
 };
 
-
 enum rb_type {
     RBT_FILTER, RBT_RULE_MATCHING, RBT_TIMER_VALUE
 };
@@ -161,6 +160,7 @@ private:
 
     std::string to_string_table_filter() const;
     std::string to_string_rule_matching() const;
+
 public:
     rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table);
     rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, const std::chrono::milliseconds& timeout);
@@ -189,6 +189,7 @@ class interface
     std::unique_ptr<rule_binding> m_output_filter;
     std::unique_ptr<rule_binding> m_input_filter;
     bool match_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const;
+
 public:
     interface(const std::string& if_name);
     std::string get_if_name() const;
@@ -212,6 +213,7 @@ class instance_definition
     std::list<std::shared_ptr<interface>> m_downstreams;
 
     std::list<std::shared_ptr<rule_binding>> m_global_settings;
+
 public:
     instance_definition(const std::string& instance_name);
     instance_definition(const std::string& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams, int table_number, bool user_selected_table_number);
@@ -240,6 +242,7 @@ private:
     using const_iterator = instance_definition_set::const_iterator;
 
     instance_definition_set m_instance_def_set;
+
 public:
     inst_def_set();
     bool insert(const std::shared_ptr<instance_definition>& id);

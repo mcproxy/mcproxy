@@ -36,15 +36,12 @@
 
 #define WORKER_MESSAGE_QUEUE_DEFAULT_SIZE 150
 
-
-
 /**
  * @brief Wraps a priority job queue like a very simple actor pattern.
  * The priority queue syncronised the received jobs for squentially processing.
  */
 class worker
 {
-private:
 protected:
     std::unique_ptr<std::thread> m_thread;
 
@@ -65,8 +62,8 @@ protected:
     void join() const;
     void start();
     void stop();
-public:
 
+public:
     /**
      * @brief Create a worker with a maximum job queue size.
      * @param max_msg defines the maximum size of the job queue
@@ -75,7 +72,6 @@ public:
     worker(int queue_size);
 
     virtual ~worker();
-
 
     /**
      * @brief checks if the worker thread is still running. 

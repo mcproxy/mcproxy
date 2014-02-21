@@ -55,7 +55,6 @@ class interface_memberships;
 class proxy_instance: public worker
 {
 private:
-
     struct downstream_infos {
         downstream_infos(std::unique_ptr<querier> querier, const std::shared_ptr<interface>& interf)
             : m_querier(std::move(querier))
@@ -91,7 +90,6 @@ private:
     std::unique_ptr<routing> m_routing;
     std::unique_ptr<routing_management> m_routing_management;
 
-
     //to match the proxy debug output with the wireshark time stamp
     const std::chrono::time_point<std::chrono::steady_clock> m_proxy_start_time;
 
@@ -124,8 +122,8 @@ private:
 
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const proxy_instance& pr_i);
-public:
 
+public:
     /**
      * @param group_mem_protocol Defines the highest group membership protocol version for IPv4 or Ipv6 to use.
      * @param table_number Set the multicast routing table. If set to 0 (default routing table) no other instances running on the system (this simplifie the kernel calls).

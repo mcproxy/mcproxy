@@ -20,7 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
 #include "include/hamcast_logging.h"
 #include "include/utils/addr_storage.hpp"
 
@@ -365,7 +364,6 @@ const sockaddr_in6& addr_storage::get_sockaddr_in6() const
     return *((const  sockaddr_in6*)(&m_addr));
 }
 
-
 std::string addr_storage::to_string() const
 {
     int af = m_addr.ss_family;
@@ -388,12 +386,10 @@ std::string addr_storage::to_string() const
         } else {
             return std::string(addressBuffer);
         }
-
     } else {
         HC_LOG_ERROR("wrong address family");
         return std::string();
     }
-
 }
 
 addr_storage& addr_storage::mask_ipv4(const addr_storage& s)
@@ -491,8 +487,6 @@ void addr_storage::test_addr_storage_a()
     addr_storage s4_1;
     addr_storage s6_1;
 
-
-
     cout << "-- string in addr_storage, cout stream, sockaddr_storage to string --" << endl;
     s4 = addr4;
     s6 = addr6;
@@ -520,7 +514,6 @@ void addr_storage::test_addr_storage_a()
          endl;
     cout << "s6_1: str<" << s6_1 << "> s6_1<" << s6_1 << "> ==>" << (s6_1 == s6_1 ? "OK!" : "FAILED!") << endl;
 
-
     cout << "--  in_addr and in6_addr --" << endl;
     in_addr4 = s4.get_in_addr();
     in_addr6 = s6.get_in6_addr();
@@ -528,7 +521,6 @@ void addr_storage::test_addr_storage_a()
     if (inet_pton(AF_INET6, addr6.c_str(), (void*)&in_addr6tmp) <= 0) {
         cout << "Error convert " << addr6 << " to in6_addr FAILED! " << endl;
     }
-
     cout << "addr_storage to  in_addr ==>" << (in_addr4.s_addr == inet_addr(addr4.c_str()) ? "OK!" : "FAILED!") <<
          endl;
     cout << "addr_storage to  in6_addr ==>" << (IN6_ARE_ADDR_EQUAL(&in_addr6,
@@ -569,7 +561,6 @@ void addr_storage::test_addr_storage_a()
     s6 = "ffff:ffff:ffff:ffff::0";
     cout << s4 << " is less then " << s6  << ": " << (s4 < s6 ? "true ==>OK!" : "false ==>FAILED!") << endl;
     cout << s6 << " is less then " << s4  << ": " << (s6 < s4 ? "true ==>FAILED!" : "false ==>OK!") << endl;
-
 }
 
 void addr_storage::test_addr_storage_b()
@@ -986,4 +977,3 @@ void addr_storage::test_addr_storage_b()
         cout << "FAILED!" << endl;
     }
 }
-

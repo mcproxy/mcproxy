@@ -74,12 +74,12 @@ class token
 private:
     token_type m_type;
     std::string m_string;
+
 public:
     token(token_type type= TT_NIL, const std::string str= "");
 
     token_type get_type() const; 
     const std::string& get_string() const;
 };
-
 
 #endif //TOKEN_HPP

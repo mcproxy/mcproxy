@@ -20,7 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
 #ifndef IF_PROP_NEW_HPP
 #define IF_PROP_NEW_HPP
 
@@ -32,8 +31,6 @@
 //typedef pair<struct ifaddrs*, list<struct ifaddrs*> > ipv4_6_pair;
 
 struct ipv4_6_pair {
-
-
     const struct ifaddrs* ip4_addr;
     std::list<const struct ifaddrs*> ip6_addr;
 
@@ -41,7 +38,6 @@ struct ipv4_6_pair {
         this->ip4_addr = ip4_addr;
         this->ip6_addr = ip6_addr;
     }
-
 };
 
 //map<if_name, <ipv4 struct, ipv6 struct list> >
@@ -56,6 +52,7 @@ class if_prop
 private:
     if_prop_map m_if_map;
     struct ifaddrs* m_if_addrs;
+
 public:
     /**
      * @brief Create the class if_prop.

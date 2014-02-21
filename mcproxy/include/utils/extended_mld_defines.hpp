@@ -69,4 +69,3 @@ struct mldv2_mc_report {
 } __attribute__ ((packed));
 
 #endif
-

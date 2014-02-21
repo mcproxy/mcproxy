@@ -41,6 +41,7 @@ class routing_management
 {
 protected:
     const proxy_instance* const m_p;
+
 public:
     routing_management(const proxy_instance* p): m_p(p) {}
 

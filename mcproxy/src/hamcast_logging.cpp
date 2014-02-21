@@ -34,7 +34,6 @@
 
 namespace
 {
-
 std::atomic<hc_log_fun_t> m_log_fun(nullptr);
 
 std::mutex m_next_id_mtx;
@@ -48,13 +47,11 @@ std::uint32_t next_session_id()
 
 class logger
 {
-
     bool m_enabled;
     std::uint32_t m_id;
     std::fstream m_stream;
 
 public:
-
     logger(bool enabled = true)
         : m_enabled(enabled), m_id(next_session_id()) {
         std::ostringstream oss;
@@ -118,7 +115,6 @@ public:
         m_stream.flush();
         m_stream.close();
     }
-
 };
 
 thread_local logger m_logger;
@@ -240,4 +236,3 @@ extern "C" int hc_logging_enabled()
 }
 
 #endif // ifndef DEBUG_MODE
-

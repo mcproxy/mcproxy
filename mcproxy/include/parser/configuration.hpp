@@ -53,6 +53,7 @@ private:
     void initalize_interfaces();
 
     std::map<std::string, std::shared_ptr<interfaces>> m_interfaces_map;
+
 public:
     configuration(const std::string& path, bool reset_reverse_path_filter);
 
@@ -65,6 +66,4 @@ public:
     static void test_configuration();
 };
 
-
 #endif // CONFIGURATION_HPP
-
