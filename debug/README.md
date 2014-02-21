@@ -15,7 +15,7 @@ Create 12 dummy interfaces:
 
     sudo dummy_interfaces/auto_dummy.sh create 12
 
-Delete all dummy interface:
+Delete all dummy interfaces:
 
     sudo dummy_interfaces/auto_dummy.sh delete
 
@@ -28,10 +28,10 @@ application code, on a single machine" ([mininet](mininet.org)). This
 Mcproxy tester
 ==============
 With the mcproxy tester you can join groups, set source filter and send
-multicast packets for ipv4 and 6.
+multicast packets for IPv4 and IPv6.
 
 #### Requirements
-To build the mcproxy tester, the library boost_regex must be installed. This
+To build the mcproxy tester, the library _boost_regex_ must be installed. This
 can be done with the following command:
   
     apt-get install libboost-all-dev
@@ -45,17 +45,17 @@ Build the tester and move it do directory tester:
     make
     cp tester ../debug/tester/.
 
-The Tester loads per default the ini script tester.ini.  The ini script example
-debug/tester/tester.ini defines two actions: 
+The Tester loads per default the INI file _tester.ini_.  The INI file
+[example](tester/tester.ini) defines two actions: 
 
-    receive_data 
+receive_data: 
 
-        subscribes group 239.99.99.99 with three sources
-        in include mode and wait for arriving data
+    subscribes group 239.99.99.99 with three sources
+    in include mode and wait for arriving data
 
-    send_a_hello
+send_a_hello:
 
-        sends a hello message to group 239.99.99.99       
+    sends a hello message to group 239.99.99.99       
 
 These actions can be executed with the following command:
 
