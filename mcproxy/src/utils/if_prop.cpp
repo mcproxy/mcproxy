@@ -57,7 +57,7 @@ bool if_prop::refresh_network_interfaces()
 
     struct ifaddrs* ifEntry = nullptr;
     for (ifEntry = m_if_addrs; ifEntry != nullptr; ifEntry = ifEntry->ifa_next) {
-        if (ifEntry->ifa_addr->sa_data == nullptr) {
+        if (ifEntry->ifa_addr == nullptr || ifEntry->ifa_addr->sa_data == nullptr) {
             continue;
         }
 
