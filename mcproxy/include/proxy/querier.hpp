@@ -91,8 +91,8 @@ private:
 
     //call the callback function querier_state_change
     void state_change_notification(const addr_storage& gaddr);
-public:
 
+public:
     virtual ~querier();
 
     /**

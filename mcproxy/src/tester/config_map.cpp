@@ -18,7 +18,6 @@
  * written by Dominik Charousset <dominik.charousset@haw-hamburg.de>
  */
 
-
 #include <utility>
 #include <fstream>
 #include <iostream>
@@ -137,4 +136,3 @@ void config_map::read_ini(const string& filename)
         }
     }
 }
-

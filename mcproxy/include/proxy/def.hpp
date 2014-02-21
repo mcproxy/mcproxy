@@ -136,4 +136,3 @@ inline std::ostream& operator<<(std::ostream& stream, const source_list<T> sl)
 }
 
 #endif //DEF_HPP
-

@@ -67,9 +67,9 @@ private:
     void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, const std::string& file_operation_mode);
 
     static void signal_handler(int sig);
+
 public:
     tester(int arg_count, char* args[]);
 };
-
 
 #endif // TESTER_HPP

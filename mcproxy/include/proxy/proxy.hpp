@@ -31,7 +31,6 @@
 #ifndef PROXY_HPP
 #define PROXY_HPP
 
-
 #include <vector>
 #include <string>
 #include <memory>
@@ -86,4 +85,3 @@ public:
 
 #endif // PROXY_HPP
 /** @}*/
-

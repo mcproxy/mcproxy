@@ -20,7 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
 #include "include/hamcast_logging.h"
 #include "include/utils/if_prop.hpp"
 #include "include/utils/addr_storage.hpp"
@@ -61,7 +60,6 @@ bool if_prop::refresh_network_interfaces()
             continue;
         }
 
-
         if (ifEntry->ifa_addr->sa_family == AF_INET) {
             if_prop_map::iterator iter = m_if_map.find(ifEntry->ifa_name);
             if (iter != m_if_map.end()) { //existing interface
@@ -88,7 +86,6 @@ bool if_prop::refresh_network_interfaces()
             //It isn't IPv4 or IPv6
             continue;
         }
-
     }
     return true;
 }

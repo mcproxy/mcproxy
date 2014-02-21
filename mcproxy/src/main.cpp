@@ -46,9 +46,7 @@ void test_test();
 
 int main(int arg_count, char* args[])
 {
-
 #ifndef TESTER
-
     try {
         proxy p(arg_count, args);
     } catch (const char* e) {
@@ -56,15 +54,12 @@ int main(int arg_count, char* args[])
     }
 
     //test_test();
-
 #else
-
     try {
         tester(arg_count, args);
     } catch (const char* e) {
         std::cout << e << std::endl;
     }
-
 #endif
 
     return 0;

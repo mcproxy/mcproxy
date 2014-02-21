@@ -20,7 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
 #ifndef MCSOCKET_H_
 #define MCSOCKET_H_
 
@@ -76,6 +75,7 @@ class mc_socket
 private:
     bool generic_source_sockopt(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index, int optname) const;
     bool generic_group_sockopt(const addr_storage& gaddr, uint32_t if_index, int optname) const;
+
 protected:
     /**
      * @brief Used socket descriptor
@@ -152,7 +152,6 @@ public:
      * @return Return true on success.
      */
     bool set_reuse_port() const;
-
 
     /**
      * @brief Enable or disable multicast loopback.
@@ -291,7 +290,6 @@ public:
         return m_sock > 0;
     }
 
-
     void print_source_filter(uint32_t if_index, const addr_storage& gaddr) const;
 
     /**
@@ -312,4 +310,3 @@ public:
 };
 
 #endif
-

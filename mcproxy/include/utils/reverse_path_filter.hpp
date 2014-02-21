@@ -51,5 +51,4 @@ public:
     friend std::ostream& operator<<(std::ostream& stream, const reverse_path_filter& r);
 };
 
-
 #endif // REVERSE_PATH_FILTER_HPP

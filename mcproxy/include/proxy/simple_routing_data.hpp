@@ -34,7 +34,6 @@ struct source;
 struct timer_msg;
 class mroute_socket;
 
-
 struct sr_data_value {
     sr_data_value(const source_list<source>& slist, std::map<addr_storage, unsigned int> if_map)
         : m_source_list(slist)
@@ -59,6 +58,7 @@ private:
     group_mem_protocol m_group_mem_protocol;
     std::shared_ptr<mroute_socket> m_mrt_sock;
     unsigned long get_current_packet_count(const addr_storage& gaddr, const addr_storage& saddr);
+
 public:
     simple_routing_data(group_mem_protocol group_mem_protocol, std::shared_ptr<mroute_socket> mrt_sock);
 
@@ -74,13 +74,10 @@ public:
 
     const std::map<addr_storage, unsigned int>& get_interface_map(const addr_storage& gaddr) const;
 
-
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const simple_routing_data& srd); 
 
     static void test_simple_routing_data();
 };
-
-
 
 #endif // SIMPLE_ROUTING_DATA_HPP

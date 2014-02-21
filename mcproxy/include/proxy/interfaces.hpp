@@ -20,7 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
 #ifndef INTERFACES_HPP
 #define INTERFACES_HPP
 
@@ -57,6 +56,7 @@ private:
 
     //flags example: IFF_UP IFF_LOOPBACK IFF_POINTOPOINT IFF_RUNNING IFF_ALLMULTI
     bool is_interface(unsigned if_index, unsigned int interface_flags) const;
+
 public:
     interfaces(int addr_family, bool reset_reverse_path_filter);
     ~interfaces();
@@ -86,6 +86,4 @@ public:
     friend std::ostream& operator<<(std::ostream& stream, const interfaces& i);
 };
 
-
 #endif // INTERFACES_HPP
-

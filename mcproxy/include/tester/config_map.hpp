@@ -19,7 +19,6 @@
  *
  */
 
-
 #ifndef CONFIG_MAP_HPP
 #define CONFIG_MAP_HPP
 
@@ -76,10 +75,10 @@ public:
     inline unsigned int size() const{
         return m_data.size();         
     }
+
 private:
     key_type m_empty;
     container_type m_data;
 };
-
 
 #endif // CONFIG_MAP_HPP

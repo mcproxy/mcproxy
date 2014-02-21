@@ -87,5 +87,3 @@ token::token(token_type type, const std::string str)
     , m_string(str)
 {
 }
-
-
