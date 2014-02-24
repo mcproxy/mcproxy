@@ -29,7 +29,7 @@ Example **PMIPv6**
 =================
 The topologie discribed by the file [network.py](pmipv6/network.py) looks like this:   
                   
-<img src="figures/pmipv6.png" alt="pmipv6 topologie" height="42"> 
+<img src="figures/pmipv6.png" alt="pmipv6 topologie" height="170"> 
 
 On the boxes LMA, MAG1, and MAG2 runs a single proxy instance each with a
 different multicast routing table. The behaviour every instance are described
