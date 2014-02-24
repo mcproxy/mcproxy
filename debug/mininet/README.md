@@ -2,24 +2,32 @@
 
 Mcproxy and Mininet
 ===================
-Here you can find examples of how to use mcproxy within [mininet](mininet.org).
+Here you can find examples of how to use mcproxy within [Mininet](mininet.org).
 
-Requirements
-------------
-You have to install mininet, which can usually be done with the following command:
+#### Requirements
+You have to install Mininet, which can usually be done with the following command:
+
     sudo apt-get install mininet
     
-You have to compile the mcproxy and the mcproxy tester (see chapter mcproxy tester in ../README).
+You have to compile the mcproxy and the mcproxy tester (see [README](../README.md#Mininet Tester)).
 
-Usage   
------   
+#### Usage   
+For Mininet you need a root shell:
+
     sudo su
-    mn -c
+
+To run the network simulation type:
+
     python2 network.py  
 
+If you have problems to start mininet, try:
 
+    killall ovs-controller
+    mn -c
 
-The topologie discribed by the file network.py looks like this:   
+Example **PMIPv6**
+=================
+The topologie discribed by the file [network.py](pmipv6/network.py) looks like this:   
                   
 ![pmipv6.png](figures/pmipv6.png)
 
