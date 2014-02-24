@@ -2,14 +2,14 @@
 
 Mcproxy and Mininet
 ===================
-Here you can find examples of how to use mcproxy within [Mininet](mininet.org).
+Here you can find examples of how to use Mcproxy within [Mininet](mininet.org).
 
 #### Requirements
 You have to install Mininet, which can usually be done with the following command:
 
     sudo apt-get install mininet
     
-You have to compile the mcproxy and the mcproxy tester (see [README](../README.md#mcproxy-tester)).
+You have to compile the Mcproxy and the Mcproxy Tester (see [README](../README.md#mcproxy-tester)).
 
 #### Usage   
 For Mininet you need a root shell:

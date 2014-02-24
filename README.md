@@ -12,7 +12,7 @@ networks that interconnects with a remote multicast routing domain, e.g. via a
 tunnel. But it can also be used in PMIPv6 domain to enable multicast for
 sources
 ([pmipv6-source-draft](http://tools.ietf.org/html/draft-ietf-multimob-pmipv6-source))
-and listeners ([RFC 6224](http://tools.ietf.org/html/rfc6224)). The mcproxy
+and listeners ([RFC 6224](http://tools.ietf.org/html/rfc6224)). The Mcproxy
 meets the requirements of the IGMP/MLD proxying standard ([RFC
         4605](http://tools.ietf.org/html/rfc4605)) and has additional
 functionalities.  The multicast proxy can be instantiated multiple times, is
@@ -50,20 +50,20 @@ the following command:
 
         apt-get install doxygen
 
-*  The mcproxy has to be started with root privileges.
+*  The Mcproxy has to be started with root privileges.
 
 *  A Linux kernel version greater than version 2.6.32 is required.
 
 
 Compilation
 ===========
-Build mcproxy in release mode:
+Build Mcproxy in release mode:
 
     cd mcproxy/
     qmake 
     make
 
-Build mcproxy in debug mode:
+Build Mcproxy in debug mode:
 
     cd mcproxy/
     qmake CONFIG+=debug
@@ -72,7 +72,7 @@ Build mcproxy in debug mode:
 
 Installation
 ============
-To copy mcproxy to the system directory, run (optional):
+To copy Mcproxy to the system directory, run (optional):
 
     make install
 
@@ -96,10 +96,10 @@ If a kernel feature you need is missing you have to reconfigure and recompile
 your linux kernel. In the debug folder is a [README](debug/README.md) file
 which could help you with this problem.
 
-To run the mcproxy you need to create a valid configuration file.  There is an
+To run the Mcproxy you need to create a valid configuration file.  There is an
 example in the project folder (mcproxy.conf).
 
-*  To run the mcproxy in the background type the following command:
+*  To run the Mcproxy in the background type the following command:
 
         sudo nohup mcproxy -f <path/to/config_file> &
 

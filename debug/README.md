@@ -2,12 +2,12 @@
 
 Debugging and Testing the Mcproxy
 =================================
-Here you find a tools and backround knowledge to debug and test the mcproxy.
+Here you find a tools and backround knowledge to debug and test the Mcproxy.
 
 
 Dummy Interface
 ===============
-An easy way to test the mcproxy without physical hardware is to create dummy
+An easy way to test the Mcproxy without physical hardware is to create dummy
 network interfaces.
 
 #### Usage
@@ -23,7 +23,7 @@ Mininet
 =======
 [Mininet](mininet.org) creates a realistic virtual network, running real
 kernel, switch and application code, on a single machine . This
-[REAMDE](mininet/README.md) explains how to use mcproxy within mininet.
+[REAMDE](mininet/README.md) explains how to use Mcproxy within mininet.
 
 Mcproxy Tester
 ==============
