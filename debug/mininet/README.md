@@ -52,7 +52,7 @@ The topologie discribed by the file network.py looks like this:
 
 asdf asdf asdf asdf 
 
-![Bilby Stampede](figures/pmipv6.png)
+![Bilby Stampede](figures/pmipv6.pdf)
 
 asdf asdf adsf
 
