@@ -48,7 +48,14 @@ The topologie discribed by the file network.py looks like this:
          |  #Host1#  |                   |  #Host2#  |
          |   (sender)|                   | (receiver)|
          +-----------+                   +-----------+
-          
+
+
+asdf asdf asdf asdf 
+
+![Bilby Stampede](figures/pmipv6.png)
+
+asdf asdf adsf
+
 On the boxes LMA, MAG1, and MAG2 runs a single proxy instance each with a
 different multicast routing table. The behaviour every instance are described
 in configuration files lma.conf, mag1.conf, mag2.conf.  The Host1 sends group
