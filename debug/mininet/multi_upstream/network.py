@@ -54,81 +54,72 @@ def killall(host):
 def get_random_delay_value(delay_from, delay_to):
     return str(random.randint(delay_from, delay_to)) + 'ms'
 
-def set_random_interface_delays(action, lma, mag1, mag2, host1, host2):
+def set_random_interface_delays(action, proxy, host1, host2, host3, host4):
     #action = 'add' or 'change'
 
-    lma_mag_delay =  '20ms 5ms' #delay, jitter
-    mag_host_delay =  '30ms 10ms' #delay, jitter
+    proxy_host_delay=  '20ms 5ms' #delay, jitter
 
-    set_interface_delay(action, lma, 'lma-eth0', lma_mag_delay)
-    set_interface_delay(action, lma, 'lma-eth1', lma_mag_delay)
+    set_interface_delay(action, proxy, 'proxy-eth0', proxy_host_delay)
+    set_interface_delay(action, proxy, 'proxy-eth1', proxy_host_delay)
+    set_interface_delay(action, proxy, 'proxy-eth2', proxy_host_delay)
+    set_interface_delay(action, proxy, 'proxy-eth3', proxy_host_delay)
 
-    set_interface_delay(action, mag1, 'mag1-eth0', lma_mag_delay)
-    set_interface_delay(action, mag1, 'mag1-eth1', mag_host_delay)
-
-    set_interface_delay(action, mag2, 'mag2-eth0', lma_mag_delay)
-    set_interface_delay(action, mag2, 'mag2-eth1', mag_host_delay)
-
-    set_interface_delay(action, host1, 'host1-eth0', mag_host_delay)
-    set_interface_delay(action, host2, 'host2-eth0', mag_host_delay)
+    set_interface_delay(action, host1, 'host1-eth0', proxy_host_delay)
+    set_interface_delay(action, host2, 'host2-eth0', proxy_host_delay)
+    set_interface_delay(action, host3, 'host3-eth0', proxy_host_delay)
+    set_interface_delay(action, host4, 'host4-eth0', proxy_host_delay)
 
 def TopoTest():
     topo=Example()	
     net = Mininet(topo=topo, controller = OVSController, link=TCLink)
     net.start()
     
-    mag1 = net.get('mag1') 
-    mag2 = net.get('mag2') 
-    lma = net.get('lma')
+    proxy = net.get('proxy') 
     host1 = net.get('host1')
     host2 = net.get('host2')
+    host3 = net.get('host3')
+    host4 = net.get('host4')
 
-    #config lma
-    lma.setIP(x('1.1'), 24, 'lma-eth0')
-    lma.setIP(x('2.1'), 24, 'lma-eth1')
+    #configure proxy
+    proxy.setIP(x('0.1'), 24, 'proxy-eth0')
+    proxy.setIP(x('1.1'), 24, 'proxy-eth1')
+    proxy.setIP(x('2.1'), 24, 'proxy-eth2')
+    proxy.setIP(x('3.1'), 24, 'proxy-eth3')
 
-    reset_rp_filter(lma, ['all', 'lma-eth0', 'lma-eth1'])
-    start_mcproxy(lma, 'lma.conf')
+    reset_rp_filter(proxy, ['all', 'proxy-eth0', 'proxy-eth1', 'proxy-eth2', 'proxy-eth3'])
 
-    #config mag1
-    mag1.setIP(x('1.2'), 24, 'mag1-eth0')
-    mag1.setIP(x('10.1'), 24, 'mag1-eth1')
+    #configure hosts
+    host1.setIP(x('0.2'), 24, 'host1-eth0')
+    host2.setIP(x('1.2'), 24, 'host2-eth0')
+    host3.setIP(x('2.2'), 24, 'host3-eth0')
+    host4.setIP(x('3.2'), 24, 'host4-eth0')
 
-    reset_rp_filter(mag1, ['all', 'mag1-eth0', 'mag1-eth1'])
-    start_mcproxy(mag1, 'mag1.conf')
-
-    #config mag2
-    mag2.setIP(x('2.2'), 24, 'mag2-eth0')
-    mag2.setIP(x('11.1'), 24, 'mag2-eth1')
-
-    reset_rp_filter(mag2, ['all', 'mag2-eth0', 'mag2-eth1'])
-    start_mcproxy(mag2, 'mag2.conf')
-
-    #config host1 
-    host1.setIP(x('10.2'), 24, 'host1-eth0')
     reset_rp_filter(host1, ['all', 'host1-eth0'])
-
-    #config h2 
-    host2.setIP(x('11.2'), 24, 'host2-eth0')
     reset_rp_filter(host2, ['all', 'host2-eth0'])
+    reset_rp_filter(host3, ['all', 'host3-eth0'])
+    reset_rp_filter(host4, ['all', 'host4-eth0'])
 
     #delays
-    set_random_interface_delays('add', lma, mag1, mag2, host1, host2)
+    set_random_interface_delays('add', proxy, host1, host2, host3, host4)
 
     #run programms
     ##################################################
+    start_mcproxy(proxy, 'proxy.conf')
+
     tester='../../../mcproxy/tester'
 
+    host1.cmd('xterm -e "' + tester + ' h1_recv"&')
     host2.cmd('xterm -e "' + tester + ' h2_recv"&')
-    host1.cmd('xterm -e "' + tester + ' h1_send"&')
+    host3.cmd('xterm -e "' + tester + ' h3_send"&')
+    #host4.cmd('xterm -e "' + tester + ' h4_send"&')
     
     sleep(300)
 
-    killall(lma)    
-    killall(mag1)    
-    killall(mag2)    
+    killall(proxy)    
     killall(host1)    
     killall(host2)    
+    killall(host3)    
+    killall(host4)    
     print 'all killed'
 
 if __name__=='__main__':

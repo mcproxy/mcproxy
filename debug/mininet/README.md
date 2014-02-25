@@ -25,8 +25,8 @@ If you have problems to start mininet, try:
     killall ovs-controller
     mn -c
 
-Example **PMIPv6**
-==================
+Example - PMIPv6
+================
 The topologie of the PMIPv6 example discribed by the file
 [pmipv6/network.py](pmipv6/network.py) looks like this:   
                   
@@ -40,10 +40,11 @@ group packages of the group 239.99.99.99 to the interface host1-eth0 and Host2
 receives hopefully these packages on inteface host2-eth0. The exact behaviours
 of the hosts are described in the file [tester.ini](pmipv6/tester.ini).
      
-Example **Multi Upstream Proxy**
-================================
-The topologie of the PMIPv6 example discribed by the file
-[multi_upstream/network.py](multi_upstream/network.py) looks like this:   
+Example - Multi Upstream Proxy
+==============================
+The topologie of the Multi Upstream example discribed by the file
+[multi_upstream/network.py](multi_upstream/network.py) is shown in the following
+figure:   
                   
 <img src="figures/multi_upstream.png" alt="multi upstream topologie example" height="300"> 
 
