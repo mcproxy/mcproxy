@@ -43,7 +43,7 @@ def ping(host, subnet):
     print host.cmd('ping -qnc 2 ' + x(subnet))
 
 def start_mcproxy(host, config_file):
-    mcproxy='../../mcproxy/mcproxy'
+    mcproxy='../../../mcproxy/mcproxy'
     host.cmd('xterm -e "' + mcproxy + ' -sdvv -f ' + config_file + '"&')
 
 def set_interface_delay(action, host, interface, delay): #action: add/change/delete
@@ -119,12 +119,12 @@ def TopoTest():
 
     #run programms
     ##################################################
-    tester='../../mcproxy/tester'
+    tester='../../../mcproxy/tester'
 
     host2.cmd('xterm -e "' + tester + ' h2_recv"&')
     host1.cmd('xterm -e "' + tester + ' h1_send"&')
     
-    sleep(30)
+    sleep(300)
 
     killall(lma)    
     killall(mag1)    
