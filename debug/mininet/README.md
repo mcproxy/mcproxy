@@ -30,7 +30,7 @@ Example **PMIPv6**
 The topologie of the PMIPv6 example discribed by the file
 [pmipv6/network.py](pmipv6/network.py) looks like this:   
                   
-<img src="figures/pmipv6.png" alt="pmipv6 topologie" height="300"> 
+<img src="figures/pmipv6.png" alt="pmipv6 topologie example" height="300"> 
 
 On the boxes LMA, MAG1, and MAG2 runs a single proxy instance each working on 
 a different multicast routing table. The behaviour of every instance is
@@ -40,5 +40,11 @@ group packages of the group 239.99.99.99 to the interface host1-eth0 and Host2
 receives hopefully these packages on inteface host2-eth0. The exact behaviours
 of the hosts are described in the file [tester.ini](pmipv6/tester.ini).
      
-   
+Example **Multi Upstream Proxy**
+================================
+The topologie of the PMIPv6 example discribed by the file
+[multi_upstream/network.py](multi_upstream/network.py) looks like this:   
+                  
+<img src="figures/multi_upstream.png" alt="multi upstream topologie example" height="300"> 
+
    
