@@ -40,7 +40,6 @@
 #include <tuple>
 #include <map>
 
-
 #define TIMING_IDLE_POLLING_INTERVAL 1 //sec
 
 class worker;
@@ -56,7 +55,6 @@ using timing_db_pair = std::pair<timing_db_key, timing_db_value>;
 class timing
 {
 private:
-
     timing_db m_db;
 
     bool m_running;
@@ -74,6 +72,7 @@ private:
     timing(const timing&&) = delete;
     timing& operator=(const timing&) = delete;
     timing& operator=(const timing&&) = delete;
+
 public:
     timing();
 
@@ -91,7 +90,6 @@ public:
      */
     void stop_all_time(const worker* msg_worker);
 
-
     virtual ~timing();
     
         /**
@@ -99,8 +97,6 @@ public:
      */
     static void test_timing();
 };
-
-
 
 #endif // TIME_HPP
 /** @} */

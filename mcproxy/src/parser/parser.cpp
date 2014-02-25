@@ -25,7 +25,6 @@
 
 #include <stdexcept>
 	
-
 parser::parser(unsigned int current_line, const std::string& cmd)
     : m_scanner(current_line, cmd)
     , m_current_line(current_line)
@@ -34,7 +33,6 @@ parser::parser(unsigned int current_line, const std::string& cmd)
 
     get_next_token();
 }
-
 
 parser_type parser::get_parser_type()
 {
@@ -141,7 +139,6 @@ void parser::parse_instance_definition(inst_def_set& ids)
                         HC_LOG_ERROR("failed to parse line " << m_current_line << " instance " << instance_name << " with unknown table number");
                         throw "failed to parse config file";
                     }
-
                 } else {
                     HC_LOG_ERROR("failed to parse line " << m_current_line << " instance " << instance_name << " with unknown table number");
                     throw "failed to parse config file";
@@ -149,7 +146,6 @@ void parser::parse_instance_definition(inst_def_set& ids)
             }
 
             if (m_current_token.get_type() == TT_DOUBLE_DOT) {
-
                 get_next_token();
                 while (m_current_token.get_type() == TT_STRING) {
                     upstreams.push_back(std::make_shared<interface>(m_current_token.get_string()));
@@ -190,7 +186,6 @@ std::unique_ptr<table> parser::parse_table(const std::shared_ptr<const global_ta
     if (get_parser_type() == PT_TABLE) {
         get_next_token();
         if ((!inside_rule_box && m_scanner.get_next_token(true, 0).get_type() == TT_NIL) || (inside_rule_box && m_scanner.get_next_token(true, 0).get_type() == TT_RIGHT_BRACKET )) { //table reference
-
             if (m_current_token.get_type() == TT_STRING) {
                 table_name = m_current_token.get_string();
                 if (gts->get_table(table_name) != nullptr) {
@@ -249,7 +244,6 @@ std::unique_ptr<rule_box> parser::parse_rule(const std::shared_ptr<const global_
         }
 
         if (m_current_token.get_type() == TT_LEFT_BRACKET) {
-
             get_next_token();
             if (m_current_token.get_type() == TT_TABLE) {
                 std::unique_ptr<rule_box> result(new rule_table(parse_table(gts, gmp, true)));
@@ -339,7 +333,6 @@ std::unique_ptr<addr_match> parser::parse_rule_part(group_mem_protocol gmp)
                     std::unique_ptr<addr_match> result(new addr_range(addr_from, addr_to));
                     return result;
                 }
-
             }
         }
     }
@@ -397,7 +390,6 @@ void parser::parse_interface_rule_binding(const std::shared_ptr<const global_tab
     };
 
     if (get_parser_type() == PT_INTERFACE_RULE_BINDING) {
-
         get_next_token();
         if (m_current_token.get_type() == TT_STRING) {
             instance_name = m_current_token.get_string();
@@ -557,7 +549,6 @@ void parser::parse_interface_rule_match_binding(
     std::chrono::milliseconds timeout(0);
     //pinstance A upstream ap in rulematching mutex 10000;
     if (m_current_token.get_type() == TT_RULE_MATCHING) {
-
         get_next_token();
         if (m_current_token.get_type() == TT_ALL) {
             rule_matching_type = RMT_ALL;
@@ -619,7 +610,6 @@ void parser::parse_interface_rule_match_binding(
 
     //}
     //}
-
 }
 
 void parser::get_next_token()

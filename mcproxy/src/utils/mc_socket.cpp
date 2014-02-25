@@ -20,7 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
 #include "include/hamcast_logging.h"
 #include "include/utils/mc_socket.hpp"
 
@@ -101,7 +100,6 @@ bool mc_socket::create_udp_ipv4_socket()
         m_own_socket = true;
         return true;
     }
-
 }
 
 bool mc_socket::create_udp_ipv6_socket()
@@ -219,8 +217,6 @@ bool mc_socket::set_reuse_port() const
         return true;
     }
 }
-
-
 
 bool mc_socket::set_loop_back(bool enable) const
 {
@@ -516,14 +512,12 @@ bool mc_socket::block_source(const addr_storage& gaddr, const addr_storage& sadd
     return generic_source_sockopt(gaddr, saddr, if_index, MCAST_BLOCK_SOURCE);
 }
 
-
 bool mc_socket::unblock_source(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index) const
 {
     HC_LOG_TRACE("gaddr: " << gaddr <<  " saddr: " << saddr << " if_index: " << if_index << " optname: MCAST_UNBLOCK_SOURCE(" << MCAST_UNBLOCK_SOURCE << ")");
 
     return generic_source_sockopt(gaddr, saddr, if_index, MCAST_UNBLOCK_SOURCE);
 }
-
 
 bool mc_socket::join_source_group(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index) const
 {
@@ -538,7 +532,6 @@ bool mc_socket::leave_source_group(const addr_storage& gaddr, const addr_storage
 
     return generic_source_sockopt(gaddr, saddr, if_index, MCAST_LEAVE_SOURCE_GROUP);
 }
-
 
 bool mc_socket::generic_group_sockopt(const addr_storage& gaddr, uint32_t if_index, int optname) const
 {
@@ -565,7 +558,6 @@ bool mc_socket::generic_group_sockopt(const addr_storage& gaddr, uint32_t if_ind
     } else {
         return true;
     }
-
 }
 
 bool mc_socket::generic_source_sockopt(const addr_storage& gaddr, const addr_storage& saddr, uint32_t if_index, int optname) const
@@ -593,7 +585,6 @@ bool mc_socket::generic_source_sockopt(const addr_storage& gaddr, const addr_sto
     } else {
         return true;
     }
-
 }
 
 bool mc_socket::set_source_filter(uint32_t if_index, const addr_storage& gaddr, uint32_t filter_mode, const std::list<addr_storage>& src_list) const
@@ -703,7 +694,6 @@ void mc_socket::print_source_filter(uint32_t if_index, const addr_storage& gaddr
         i++;
     }
     cout << endl;
-
 }
 
 void mc_socket::test_mc_group_functions(std::string ipversion, std::string msg, std::string interface, std::string gaddr, in_port_t port)
@@ -760,7 +750,6 @@ void mc_socket::test_mc_group_functions(std::string ipversion, std::string msg, 
     } else {
         cout << "send FAILED!" << endl;
     }
-
 }
 
 void mc_socket::test_mc_source_delta_based_api(std::string ipversion, std::string interface, std::string gaddr, std::string saddr)
@@ -968,5 +957,3 @@ mc_socket::~mc_socket()
     
     close_socket();
 }
-
-

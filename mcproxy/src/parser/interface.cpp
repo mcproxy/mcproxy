@@ -523,7 +523,6 @@ const std::list<std::shared_ptr<rule_binding>>& instance_definition::get_global_
     return m_global_settings;
 }
 
-
 int instance_definition::get_table_number() const
 {
     HC_LOG_TRACE("");
@@ -619,4 +618,3 @@ std::string inst_def_set::to_string() const
     }
     return s.str();
 }
-

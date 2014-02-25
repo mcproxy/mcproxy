@@ -20,7 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
 #ifndef ADDR_STORAGE_HPP
 #define ADDR_STORAGE_HPP
 
@@ -38,8 +37,8 @@ private:
     sockaddr_storage m_addr;
     inline void clean();
     inline socklen_t get_addr_len(int addr_family) const;
-public:
 
+public:
     addr_storage(addr_storage&&) = default;
     addr_storage& operator=(addr_storage && ) = default;
 
@@ -50,10 +49,6 @@ public:
      * @brief Create an empty and invalid addr_storage.
      */
     addr_storage();
-
-    /**
-     * @brief Copy constructor
-     */
 
     /**
      * @brief Create a zero address specific storage.
@@ -139,7 +134,6 @@ public:
      * basic implementation
      */
     bool operator==(const addr_storage& addr) const;
-
 
     /**
      * @brief lower then operator
@@ -246,7 +240,6 @@ public:
 
     void set_invalid();
 
-
     //-----------------------------------------------------------
 
     /**
@@ -256,6 +249,4 @@ public:
     static void test_addr_storage_b();
 };
 
-
 #endif // ADDR_STORAGE_HPP
-

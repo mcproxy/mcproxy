@@ -28,7 +28,6 @@
 #include "include/parser/token.hpp"
 #include "include/parser/interface.hpp"
 
-
 #include <string>
 #include <list>
 #include <tuple>
@@ -69,8 +68,5 @@ public:
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const parser& scan);
 };
-
-
-
 
 #endif // PARSER_HPP

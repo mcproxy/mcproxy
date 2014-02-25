@@ -42,7 +42,6 @@
 #include <chrono>
 
 struct proxy_msg {
-
     enum message_type {
         INIT_MSG,
         TEST_MSG,
@@ -247,15 +246,17 @@ struct new_source_timer : public timer_msg {
 private:
     addr_storage m_saddr;
 };
+
 //------------------------------------------------------------------------
+
 struct debug_msg : public proxy_msg {
     debug_msg(): proxy_msg(DEBUG_MSG, USER_INPUT) {
         HC_LOG_TRACE("");
     }
 };
 
-
 //------------------------------------------------------------------------
+
 struct source {
     source() = default;
     source(source&&) = default;
@@ -302,7 +303,6 @@ struct source {
 };
 
 struct group_record_msg : public proxy_msg {
-
     group_record_msg()
         : group_record_msg(0, MODE_IS_INCLUDE, addr_storage(), source_list<source>(), -1 ) {}
 
@@ -386,7 +386,6 @@ private:
 
 //------------------------------------------------------------------------
 struct config_msg : public proxy_msg {
-
     enum config_instruction {
         ADD_DOWNSTREAM,
         DEL_DOWNSTREAM,

@@ -29,7 +29,6 @@ reverse_path_filter::reverse_path_filter()
     : m_used_earlier(false)
 {
     HC_LOG_TRACE("");
-
 }
 
 reverse_path_filter::~reverse_path_filter()
@@ -45,7 +44,6 @@ void reverse_path_filter::restore_rp_filter()
     for (auto & e : m_restore_if_state) {
         set_rp_filter(e, true);
     }
-
 }
 
 bool reverse_path_filter::get_rp_filter(const std::string& if_name) const
@@ -100,7 +98,6 @@ void reverse_path_filter::reset_rp_filter(const std::string& if_name)
                 m_used_earlier = true;
                 reset_rp_filter(REVERSE_PATH_FILTER_THE_ALL_INTERFACE);
             }
-
         }
     }
 }

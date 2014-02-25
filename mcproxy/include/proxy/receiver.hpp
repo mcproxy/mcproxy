@@ -69,6 +69,7 @@ private:
 
     void stop();
     void join();
+
 protected:
     const proxy_instance * const m_proxy_instance;
 
@@ -77,7 +78,6 @@ protected:
     const std::shared_ptr<const mroute_socket> m_mrt_sock;
 
     const std::shared_ptr<const interfaces> m_interfaces;
-
 
     void start();
 
@@ -111,7 +111,6 @@ public:
      */
     virtual ~receiver();
 
-
     /**
      * @brief Register an interface at the receiver.
      * @param if_index interface index of the registered interface
@@ -131,9 +130,7 @@ public:
      * @brief Check whether the receiver is running.
      */
     bool is_running();
-
 };
-
 
 #endif // RECEIVER_HPP
 /** @} */

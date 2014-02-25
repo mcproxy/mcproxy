@@ -20,7 +20,6 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
 #ifndef MROUTE_SOCKET_HPP
 #define MROUTE_SOCKET_HPP
 
@@ -54,7 +53,6 @@ private:
     }
 
 public:
-
     /**
      * @brief Create a mroute_socket.
      */
@@ -69,7 +67,6 @@ public:
      * @brief Mroute_socket mustnt be assigned because its contain an unique socket.
      */
     mroute_socket& operator=(const mroute_socket& copy) = delete;
-
 
     /**
     * @brief Close raw socket.
@@ -181,7 +178,6 @@ public:
      * @return Return true on success.
      */
     bool unbind_vif_form_table(uint32_t if_index, int table) const;
-
 
     /**
      * @brief Delete the virtual interface from the multicast routing table.

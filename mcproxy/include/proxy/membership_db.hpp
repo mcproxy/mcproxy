@@ -34,7 +34,6 @@
 #include <chrono>
 #include <memory>
 
-
 struct gaddr_info {
     gaddr_info(group_mem_protocol compatibility_mode_variable);
     gaddr_info(const gaddr_info&) = default;
@@ -87,6 +86,4 @@ struct membership_db {
     friend std::ostream& operator<<(std::ostream& stream, const membership_db& mdb);
 };
 
-
 #endif // MEMBERSHIP_DB_HPP
-

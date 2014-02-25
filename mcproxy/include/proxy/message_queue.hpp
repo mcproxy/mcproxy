@@ -37,7 +37,6 @@
 #include <climits>
 #include <vector>
 
-
 /**
  * @brief Fixed sized synchronised priority job queue.
  */
@@ -50,6 +49,7 @@ private:
 
     std::mutex m_global_lock;
     std::condition_variable cond_empty;
+
 public:
     /**
       * @brief Create a message_queue with a maximum size.
@@ -96,7 +96,6 @@ message_queue<T,Compare>::message_queue(int size, Compare compare)
     HC_LOG_TRACE("");
 }
 
-
 template< typename T, typename Compare>
 bool message_queue<T, Compare>::is_empty() const
 {
@@ -106,7 +105,6 @@ bool message_queue<T, Compare>::is_empty() const
 
     return m_q.empty();
 }
-
 
 template< typename T, typename Compare>
 unsigned int message_queue<T, Compare>::size() const
