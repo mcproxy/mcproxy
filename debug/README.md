@@ -37,7 +37,7 @@ can be done with the following command:
     apt-get install libboost-all-dev
 
 #### Compilation
-Build the _Tester_ and move it do directory tester:
+Build the _Tester_ and move it to the directory tester:
 
     cd ../mcproxy/
     make clean 
