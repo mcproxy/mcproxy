@@ -34,7 +34,7 @@ The topologie of the PMIPv6 example discribed by the file
 
 On the boxes LMA, MAG1, and MAG2 runs a single proxy instance each working on 
 a different multicast routing table. The behaviour of every instance is
-described in configuration files [lma.conf](pmipv6/lma.conf),
+described in the configuration files [lma.conf](pmipv6/lma.conf),
 [mag1.conf](pmipv6/mag1.conf), [mag2.conf](pmipv6/mag2.conf). The Host1 sends
 group packages of the group 239.99.99.99 to the interface _host1-eth0_ and Host2
 receives hopefully these packages on inteface _host2-eth0_. The exact behaviours
