@@ -219,7 +219,7 @@ void proxy::start_proxy_instances()
 
         //global rule bindung      
         auto& global_settings = pinstance->get_global_settings();
-        for ( auto & r : global_settings) {
+        for (auto & r : global_settings) {
                 pr_i->add_msg(std::make_shared<config_msg>(config_msg::SET_GLOBAL_RULE_BINDING, r));
         }
 
