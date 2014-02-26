@@ -22,7 +22,7 @@ Delete all dummy interfaces:
 Mininet
 =======
 [Mininet](mininet.org) creates a realistic virtual network, running real
-kernel, switch and application code, on a single machine . This
+kernel, switch and application code, on a single machine. This
 [REAMDE](mininet/README.md) explains how to use Mcproxy within Mininet.
 
 Mcproxy Tester
