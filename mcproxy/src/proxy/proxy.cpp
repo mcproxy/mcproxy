@@ -253,15 +253,23 @@ void proxy::start()
     using namespace std;
     HC_LOG_TRACE("");
 
-    cout << *this << endl;
-    cout << endl;
+    if (m_print_proxy_status) {
+        cout << *this << endl;
+        cout << endl;
+    }
 
     m_running = true;
     while (m_running) {
-        for (auto & e : m_proxy_instances) {
-            e.second->add_msg(std::make_shared<debug_msg>());
+
+        if (m_print_proxy_status) {
+            for (auto & e : m_proxy_instances) {
+                e.second->add_msg(std::make_shared<debug_msg>());
+                sleep(2);
+            }
+        } else {
             sleep(2);
         }
+
     }
 
 
