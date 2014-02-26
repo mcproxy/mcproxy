@@ -9,7 +9,7 @@ You have to install Mininet, which can usually be done with the following comman
 
     sudo apt-get install mininet
     
-You have to compile the Mcproxy and the Mcproxy Tester (see [README](../README.md#mcproxy-tester)).
+Also, you have to compile the Mcproxy and the Mcproxy Tester (see [README](../README.md#mcproxy-tester)).
 
 #### Usage   
 For Mininet you need a root shell:
