@@ -56,11 +56,11 @@ class simple_routing_data
 private:
     s_routing_data m_data;
     group_mem_protocol m_group_mem_protocol;
-    std::shared_ptr<mroute_socket> m_mrt_sock;
+    const std::shared_ptr<const mroute_socket> m_mrt_sock;
     unsigned long get_current_packet_count(const addr_storage& gaddr, const addr_storage& saddr);
 
 public:
-    simple_routing_data(group_mem_protocol group_mem_protocol, std::shared_ptr<mroute_socket> mrt_sock);
+    simple_routing_data(group_mem_protocol group_mem_protocol, const std::shared_ptr<const mroute_socket>& mrt_sock);
 
     void set_source(unsigned int if_index, const addr_storage& gaddr, const source& saddr);
 

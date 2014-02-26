@@ -26,7 +26,7 @@
 #include "include/utils/mroute_socket.hpp"
 #include "include/proxy/interfaces.hpp"
 
-simple_routing_data::simple_routing_data(group_mem_protocol group_mem_protocol, std::shared_ptr<mroute_socket> mrt_sock)
+simple_routing_data::simple_routing_data(group_mem_protocol group_mem_protocol, const std::shared_ptr<const mroute_socket>& mrt_sock)
     : m_group_mem_protocol(group_mem_protocol)
     , m_mrt_sock(mrt_sock)
 {

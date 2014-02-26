@@ -242,6 +242,9 @@ std::string proxy_instance::to_string() const
     double seconds = time_span.count()  * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
 
     s << "@@##-- proxy instance " << m_instance_name << " (table:" << m_table_number << ",lifetime:" << seconds << "sec)" << " --##@@" << std::endl;;
+    s << m_upstream_input_rule->to_string() << std::endl;
+    s << m_upstream_output_rule->to_string() << std::endl;
+
     s << *m_routing_management << std::endl;
 
     s << "##-- upstream interfaces --##" << std::endl;
