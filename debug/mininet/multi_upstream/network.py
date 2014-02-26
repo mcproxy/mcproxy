@@ -42,7 +42,7 @@ def ping(host, subnet):
 
 def start_mcproxy(host, config_file):
     mcproxy='../../../mcproxy/mcproxy'
-    host.cmd('xterm -e "' + mcproxy + ' -sdvv -f ' + config_file + '"&')
+    host.cmd('xterm -e "' + mcproxy + ' -sdvv -f ' + config_file + '; sleep 2"&')
 
 def set_interface_delay(action, host, interface, delay): #action: add/change/delete
     print host.cmd('tc qdisc ' + action + ' dev ' + interface + ' root handle 1: netem delay ' + delay)
@@ -108,9 +108,9 @@ def TopoTest():
 
     tester='../../../mcproxy/tester'
 
-    host1.cmd('xterm -e "' + tester + ' h1_recv"&')
-    host2.cmd('xterm -e "' + tester + ' h2_recv"&')
-    host3.cmd('xterm -e "' + tester + ' h3_send"&')
+    host1.cmd('xterm -e "' + tester + ' h1_recv; sleep 2"&')
+    host2.cmd('xterm -e "' + tester + ' h2_recv; sleep 2"&')
+    host3.cmd('xterm -e "' + tester + ' h3_send; sleep 2"&')
     #host4.cmd('xterm -e "' + tester + ' h4_send"&')
     
     sleep(300)
