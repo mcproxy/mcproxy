@@ -2,7 +2,7 @@
 
 Debugging and Testing the Mcproxy
 =================================
-Here you find a tools and backround knowledge to debug and test the Mcproxy.
+Here you find tools and backround knowledge to debug and test the Mcproxy.
 
 
 Dummy Interface
