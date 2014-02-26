@@ -34,7 +34,7 @@ multicast packets for IPv4 and IPv6.
 To build the _Mcproxy Tester_, the library boost_regex must be installed. This
 can be done with the following command:
   
-    apt-get install libboost-all-dev
+    sudo apt-get install libboost-all-dev
 
 #### Compilation
 Build the _Tester_ and move it to the directory tester:
