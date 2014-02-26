@@ -216,6 +216,14 @@ void proxy::start_proxy_instances()
 
         std::unique_ptr<proxy_instance> pr_i(new proxy_instance(m_configuration->get_group_mem_protocol(), instance_name, table_number, interfaces, m_timing));
 
+
+        //global rule bindung      
+        auto& global_settings = pinstance->get_global_settings();
+        for ( auto & r : global_settings) {
+                pr_i->add_msg(std::make_shared<config_msg>(config_msg::SET_GLOBAL_RULE_BINDING, r));
+        }
+
+        //add upstream
         unsigned int position = 0;
         for (auto & u : upstreams) {
             unsigned int if_index = interfaces::get_if_index(u->get_if_name());
@@ -227,6 +235,7 @@ void proxy::start_proxy_instances()
             position++;
         }
 
+        //add downstream
         for (auto & d : downstreams) {
             unsigned int if_index = interfaces::get_if_index(d->get_if_name());
             if (if_index == 0) {
@@ -234,8 +243,8 @@ void proxy::start_proxy_instances()
                 throw "interface not found";
             }
 
-            //std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!here I mod the timers and values for debugging aim" << std::endl;
             timers_values tv;
+            //std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!here I mod the timers and values for debugging aim" << std::endl;
             //tv.set_query_interval(std::chrono::seconds(30));
             //tv.set_startup_query_interval(std::chrono::seconds(10));
             //tv.set_last_listener_query_count(3);

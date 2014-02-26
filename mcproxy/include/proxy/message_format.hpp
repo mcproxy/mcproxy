@@ -416,8 +416,9 @@ struct config_msg : public proxy_msg {
         HC_LOG_TRACE("");
     }
 
-    config_msg(std::shared_ptr<rule_binding> rule_binding)
+    config_msg(config_instruction instruction, const std::shared_ptr<rule_binding>& rule_binding)
         : proxy_msg(CONFIG_MSG, SYSTEMIC)
+        , m_instruction(instruction)
         , m_rule_binding(rule_binding) {
         HC_LOG_TRACE("");
     }
