@@ -31,45 +31,6 @@
 #include <netinet/igmp.h>
 #include <netinet/ip.h>
 
-void print_buf(const unsigned char * buf, unsigned int size)
-{
-
-    for (unsigned int i = 0; i < size; i += 16) {
-        for (unsigned int j = i; j < 16 + i && j < size; j++) {
-
-            if (j % 8 == 0 && j % 16 != 0 && j != 0) {
-                printf(" ");
-            }
-
-            if (buf[j] == 0) {
-                printf("00 ");
-            } else if (buf[j] < 16 && buf[j] > 0) {
-                printf("0%X ", buf[j]);
-            } else {
-                printf("%X ", buf[j]);
-            }
-        }
-
-        printf("   ");
-
-        for (unsigned int j = i; j < 16 + i && j < size; j++) {
-
-            if (j % 8 == 0 && j % 16 != 0 && j != 0) {
-                printf(" ");
-            }
-
-            if (buf[j] == 0) {
-                printf(".");
-            } else {
-                printf("%c", buf[j]);
-            }
-        }
-
-        printf("\n");
-    }
-    printf("\n");
-}
-
 igmp_receiver::igmp_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode): receiver(pr_i, AF_INET, mrt_sock, interfaces, in_debug_testing_mode)
 {
     HC_LOG_TRACE("");
