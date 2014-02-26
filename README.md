@@ -97,7 +97,7 @@ your linux kernel. In the debug folder is a [README](debug/README.md) file
 which could help you with this problem.
 
 To run the Mcproxy you need to create a valid configuration file.  There is an
-example in the project folder (mcproxy.conf).
+example in the project folder ([mcproxy.conf](mcproxy/mcproxy.conf)).
 
 *  To run the Mcproxy in the background type the following command:
 
