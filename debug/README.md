@@ -105,11 +105,11 @@ Locations:
     |-+-> Networking options
       |-+-> TCP/IP networking
         |  
-        |----> IP: multicast routing
+        |====> IP: multicast routing
         |
         |-+-> The IPv6 protocol
           |
-          |----> IPv6: multicast routing
+          |====> IPv6: multicast routing
 
 
 General Debugging Informations
