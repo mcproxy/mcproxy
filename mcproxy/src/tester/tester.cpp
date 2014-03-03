@@ -477,7 +477,7 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
         }
 
         if (!file.is_open()) {
-            std::cout << "failed to open file" << std::endl;
+            std::cout << "failed to open file: " << file_name << std::endl;
             exit(0);
         } else {
             if (include_file_header) {
