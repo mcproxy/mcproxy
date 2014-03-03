@@ -46,6 +46,8 @@ tester::tester(int arg_count, char* args[])
     signal(SIGINT, tester::signal_handler);
     signal(SIGTERM, tester::signal_handler);
 
+    hc_set_default_log_fun(HC_LOG_TRACE_LVL);
+
     std::string config_file;
     std::string output_file;
     std::string to_do;
@@ -451,7 +453,7 @@ std::string tester::get_to_do_next(const std::string& to_do)
     }
 
     if (to_do_next.compare("null") != 0 && !m_config_map.has_group(to_do_next)) {
-        std::cout << "to_do_next " << to_do << " not found" << std::endl;
+        std::cout << "to_do_next " << to_do_next << " not found" << std::endl;
         exit(0);
     }
 
