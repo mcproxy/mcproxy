@@ -677,7 +677,7 @@ bool mroute_socket::del_mroute(int vif_index, const addr_storage& source_addr, c
 
         rc = setsockopt(m_sock, IPPROTO_IP, MRT_DEL_MFC, (void *)&mc, sizeof(mc));
         if (rc == -1) {
-            HC_LOG_ERROR("failed to add multicast route! Error: " << strerror(errno) << " errno: " << errno);
+            HC_LOG_ERROR("failed to delete multicast route! Error: " << strerror(errno) << " errno: " << errno);
             return false;
         } else {
             return true;
@@ -692,7 +692,7 @@ bool mroute_socket::del_mroute(int vif_index, const addr_storage& source_addr, c
 
         rc = setsockopt(m_sock, IPPROTO_IPV6, MRT6_DEL_MFC, (void *)&mc, sizeof(mc));
         if (rc == -1) {
-            HC_LOG_ERROR("failed to add multicast route! Error: " << strerror(errno) << " errno: " << errno);
+            HC_LOG_ERROR("failed to delete multicast route! Error: " << strerror(errno) << " errno: " << errno);
             return false;
         } else {
             return true;
