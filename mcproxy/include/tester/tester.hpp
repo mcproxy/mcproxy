@@ -34,13 +34,23 @@
 
 #define TESTER_DEFAULT_CONIG_PATH "tester.ini"
 
+class packet_manager
+{
+private:
+    unsigned int m_max_count;
+    std::set<long> m_data;
+public:
+    packet_manager(unsigned int max_count);     
+    bool is_packet_new(long packet_number);
+};
+
 class tester
 {
 private:
     config_map m_config_map;
     static bool m_running;
     void help();
-    void run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number);
+    void run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number, packet_manager& pmanager);
 
     addr_storage get_gaddr(const std::string& to_do);
     std::unique_ptr<const mc_socket> get_mc_socket(int addr_family);
@@ -59,12 +69,13 @@ private:
     bool get_print_status_msg(const std::string& to_do);
     bool get_save_to_file(const std::string& to_do);
     bool get_include_file_header(const std::string& to_do);
+    bool get_ignore_duplicated_packets(const std::string& to_do);
     std::string get_file_name(const std::string& to_do, const std::string& proposal);
     std::string get_file_operation_mode(const std::string& to_do);
     std::string get_to_do_next(const std::string& to_do);
 
     void send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, unsigned int& current_packet_number, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg);
-    void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, const std::string& file_operation_mode);
+    void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, bool ignore_duplicated_packets, packet_manager& pmanager, const std::string& file_operation_mode);
 
     static void signal_handler(int sig);
 

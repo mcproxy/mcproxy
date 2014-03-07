@@ -39,6 +39,26 @@
 
 bool tester::m_running = true;
 
+packet_manager::packet_manager(unsigned int max_count)
+    : m_max_count(max_count)
+{
+    HC_LOG_TRACE("");
+}
+
+bool packet_manager::is_packet_new(long packet_number)
+{
+    HC_LOG_TRACE("");
+    auto result = m_data.insert(packet_number);
+    if (result.second) {
+        if (m_data.size() > m_max_count) {
+            m_data.erase(m_data.begin());
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
 tester::tester(int arg_count, char* args[])
 {
     HC_LOG_TRACE("");
@@ -94,7 +114,8 @@ tester::tester(int arg_count, char* args[])
         m_config_map.read_ini(config_file);
     }
 
-    run(to_do, output_file, 0);
+    packet_manager pmanager(1000);
+    run(to_do, output_file, 0, pmanager);
 }
 
 void tester::help()
@@ -410,6 +431,25 @@ bool tester::get_include_file_header(const std::string& to_do)
     }
 }
 
+bool tester::get_ignore_duplicated_packets(const std::string& to_do)
+{
+    HC_LOG_TRACE("");
+
+    std::string result = m_config_map.get(to_do, "ignore_duplicated_packets");
+    if (result.empty()) {
+        return false;
+    }
+
+    if (result.compare("true") == 0) {
+        return true;
+    } else if (result.compare("false") == 0) {
+        return false;
+    } else {
+        std::cout << "failed to parse ignore_duplicated_packets" << std::endl;
+        exit(0);
+    }
+}
+
 std::string tester::get_file_name(const std::string& to_do, const std::string& proposal)
 {
     HC_LOG_TRACE("");
@@ -460,7 +500,7 @@ std::string tester::get_to_do_next(const std::string& to_do)
     return to_do_next;
 }
 
-void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, const std::string& file_operation_mode)
+void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, bool ignore_duplicated_packets, packet_manager& pmanager, const std::string& file_operation_mode)
 {
     HC_LOG_TRACE("");
 
@@ -502,12 +542,10 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     }
 
     if (print_status_msg) {
-        std::cout << "packet number: 0; last delay: 0ms; lost packets: 0; last msg: ";
+        std::cout << "packet number: 0; last delay: 0ms; last msg: ";
         std::flush(std::cout);
     }
 
-    long lost_packets = 0;
-    long old_packet_number = 0;
     unsigned long count = 0;
 
     while (m_running && (max_count == 0 || count < max_count)) {
@@ -529,16 +567,12 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
             oss << iss.rdbuf();
             delay = receive_time_stamp - send_time_stamp;
 
+            if (ignore_duplicated_packets && !pmanager.is_packet_new(packet_number)) {
+                continue;
+            }
+
             if (print_status_msg) {
-
-                // unsorted packets counts as packet lost
-                // and duplicated packets are ignored
-                if (packet_number > old_packet_number + 1) {
-                    lost_packets += packet_number - old_packet_number - 1;
-                }
-                old_packet_number = packet_number;
-
-                std::cout << "\rpacket number: " << packet_number << "; last delay: " << delay <<  "ms; lost packets: " << lost_packets << "; last msg:" << oss.str();
+                std::cout << "\rpacket number: " << packet_number << "; last delay: " << delay <<  "ms; last msg:" << oss.str();
                 std::flush(std::cout);
             }
 
@@ -597,7 +631,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
     }
 }
 
-void tester::run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number)
+void tester::run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number, packet_manager& pmanager)
 {
     HC_LOG_TRACE("to_do: " << to_do);
     if (!m_config_map.has_group(to_do)) {
@@ -648,6 +682,9 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
     bool include_file_header = get_include_file_header(to_do);
     HC_LOG_DEBUG("include_file_header: " << include_file_header);
 
+    bool ignore_duplicated_packets = get_ignore_duplicated_packets(to_do);
+    HC_LOG_DEBUG("ignore_duplicated_packets: " << ignore_duplicated_packets);
+
     std::string file_operation_mode = get_file_operation_mode(to_do);
     HC_LOG_DEBUG("file_operation_mode: " << file_operation_mode);
 
@@ -682,10 +719,10 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
             }
         }
 
-        receive_data(ms, port, max_count, print_status_msg, save_to_file, file_name, include_file_header, file_operation_mode);
+        receive_data(ms, port, max_count, print_status_msg, save_to_file, file_name, include_file_header, ignore_duplicated_packets, pmanager, file_operation_mode);
         ms->close_socket();
         if (to_do_next.compare("null") != 0) {
-            run(to_do_next, output_file, current_packet_number);
+            run(to_do_next, output_file, current_packet_number, pmanager);
         }
 
         return;
@@ -699,7 +736,7 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
         send_data(ms, gaddr, port, ttl, max_count, current_packet_number, interval, msg, print_status_msg);
         ms->close_socket();
         if (to_do_next.compare("null") != 0) {
-            run(to_do_next, output_file, current_packet_number);
+            run(to_do_next, output_file, current_packet_number, pmanager);
         }
 
         return;
