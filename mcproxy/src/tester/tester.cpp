@@ -94,7 +94,7 @@ tester::tester(int arg_count, char* args[])
         m_config_map.read_ini(config_file);
     }
 
-    run(to_do, output_file);
+    run(to_do, output_file, 0);
 }
 
 void tester::help()
@@ -559,9 +559,11 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     }
 }
 
-void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg)
+void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, unsigned int& current_packet_number,  const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg)
 {
     HC_LOG_TRACE("");
+
+    unsigned int start_packet_number = current_packet_number;
 
     std::cout << "set ttl to " << ttl << std::endl;
     if (!ms->set_ttl(ttl)) {
@@ -574,7 +576,8 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
     for (unsigned long i = 0; (i < max_count || max_count == 0 ) && (m_running) ; ++i) {
         std::ostringstream oss;
         long long send_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-        oss << i + 1 << " " << send_time_stamp << " " << msg;
+        current_packet_number = start_packet_number + i + 1;
+        oss << current_packet_number << " " << send_time_stamp << " " << msg;
 
         if (print_status_msg) {
             std::cout << "\rsend: " << i + 1 << "/" << max_count;
@@ -594,7 +597,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
     }
 }
 
-void tester::run(const std::string& to_do, const std::string& output_file)
+void tester::run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number)
 {
     HC_LOG_TRACE("to_do: " << to_do);
     if (!m_config_map.has_group(to_do)) {
@@ -654,6 +657,7 @@ void tester::run(const std::string& to_do, const std::string& output_file)
     std::string to_do_next = get_to_do_next(to_do);
     HC_LOG_DEBUG("to_do_next: " << to_do_next);
 
+
     if (lifetime.count() > 0) {
         std::thread t([&]() {
             HC_LOG_TRACE("");
@@ -681,7 +685,7 @@ void tester::run(const std::string& to_do, const std::string& output_file)
         receive_data(ms, port, max_count, print_status_msg, save_to_file, file_name, include_file_header, file_operation_mode);
         ms->close_socket();
         if (to_do_next.compare("null") != 0) {
-            run(to_do_next, output_file);
+            run(to_do_next, output_file, current_packet_number);
         }
 
         return;
@@ -692,10 +696,10 @@ void tester::run(const std::string& to_do, const std::string& output_file)
             exit(0);
         }
 
-        send_data(ms, gaddr, port, ttl, max_count, interval, msg, print_status_msg);
+        send_data(ms, gaddr, port, ttl, max_count, current_packet_number, interval, msg, print_status_msg);
         ms->close_socket();
         if (to_do_next.compare("null") != 0) {
-            run(to_do_next, output_file);
+            run(to_do_next, output_file, current_packet_number);
         }
 
         return;
