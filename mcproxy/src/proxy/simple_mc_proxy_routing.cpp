@@ -483,7 +483,7 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
             if (input_if_it != std::end(input_if_index_map)) {
                 input_if_index = input_if_it->second;
             } else {
-                HC_LOG_ERROR("failed to find input interface of  (" << gaddr << ", " << e.first.saddr);
+                HC_LOG_ERROR("failed to find input interface of  (" << gaddr << ", " << e.first.saddr << ")");
                 continue;
             }
 
@@ -517,7 +517,7 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
                 }
 
             } else {
-                HC_LOG_ERROR("failed to find input interface of  (" << gaddr << ", " << e.first.saddr);
+                HC_LOG_ERROR("failed to find input interface of  (" << gaddr << ", " << e.first.saddr << ")");
                 continue;
             }
 
