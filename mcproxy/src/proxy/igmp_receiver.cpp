@@ -225,7 +225,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 HC_LOG_DEBUG("\tnumber of sources: " << slist.size());
                 HC_LOG_DEBUG("\tsource_list: " << slist);
                 HC_LOG_DEBUG("\tsend record to proxy_instance");
-                m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, move(slist), -1));
+                m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, move(slist), IGMPv3));
 
                 rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(rec) + sizeof(igmpv3_mc_record) + nos * sizeof(in_addr) + aux_size);
             }

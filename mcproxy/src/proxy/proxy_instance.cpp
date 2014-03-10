@@ -434,7 +434,7 @@ void proxy_instance::test_querier(std::string if_name)
     auto print_proxy_instance = bind(&proxy_instance::add_msg, &pr_i, make_shared<debug_msg>());
 
     auto __tmp = [&, if_name](mcast_addr_record_type t, source_list<source> && slist) {
-        return make_shared<group_record_msg>(interfaces::get_if_index(if_name), t, gaddr, move(slist), 0);
+        return make_shared<group_record_msg>(interfaces::get_if_index(if_name), t, gaddr, move(slist), IGMPv3);
     };
 
     auto send_record = bind(&proxy_instance::add_msg, &pr_i, bind(__tmp, placeholders::_1, placeholders::_2));

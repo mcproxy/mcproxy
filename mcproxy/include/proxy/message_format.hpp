@@ -303,10 +303,10 @@ struct source {
 };
 
 struct group_record_msg : public proxy_msg {
-    group_record_msg()
-        : group_record_msg(0, MODE_IS_INCLUDE, addr_storage(), source_list<source>(), -1 ) {}
+    //group_record_msg()
+        //: group_record_msg(0, MODE_IS_INCLUDE, addr_storage(), source_list<source>(), IGMPv3) {}
 
-    group_record_msg(unsigned int if_index, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& slist, int report_version)
+    group_record_msg(unsigned int if_index, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& slist, group_mem_protocol report_version)
         : proxy_msg(GROUP_RECORD_MSG, LOSEABLE)
         , m_if_index(if_index)
         , m_record_type(record_type)
@@ -325,7 +325,7 @@ struct group_record_msg : public proxy_msg {
         s << "record_type: " << get_mcast_addr_record_type_name(m_record_type) << std::endl;
         s << "group address: " << m_gaddr << std::endl;
         s << "source list: " << m_slist << std::endl;
-        s << "report version: " << m_report_version;
+        s << "report version: " << get_group_mem_protocol_name(m_report_version);
         return s.str();
     }
 
@@ -345,8 +345,8 @@ struct group_record_msg : public proxy_msg {
         return m_slist;
     }
 
-    int get_report_version() {
-        return m_record_type;
+    group_mem_protocol get_report_version() {
+        return m_report_version;
     }
 
 private:
@@ -354,7 +354,7 @@ private:
     mcast_addr_record_type m_record_type;
     addr_storage m_gaddr;
     source_list<source> m_slist;
-    int m_report_version;
+    group_mem_protocol m_report_version;
 };
 
 struct new_source_msg : public proxy_msg {

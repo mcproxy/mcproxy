@@ -153,7 +153,7 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
 
 }
 
-void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo)
+void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol report_version, gaddr_info& ginfo)
 {
     HC_LOG_TRACE("record type: " << record_type);
     //7.4.1.  Reception of Current State Records
@@ -250,7 +250,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
 
 }
 
-void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo)
+void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol report_version, gaddr_info& ginfo)
 {
     HC_LOG_TRACE("record type: " << record_type);
     //7.4.1.  Reception of Current State Records

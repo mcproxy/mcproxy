@@ -61,8 +61,8 @@ private:
     bool send_general_query();
 
     //
-    void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo);
-    void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, int report_version, gaddr_info& ginfo);
+    void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol report_version, gaddr_info& ginfo);
+    void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol report_version, gaddr_info& ginfo);
 
     //RFC3810 Section 7.2.3 Definition of Souce timers
     //Updates the filter_timer to the Multicast Address Listener Interval

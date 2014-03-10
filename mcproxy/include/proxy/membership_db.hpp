@@ -77,7 +77,7 @@ struct membership_db {
 
     group_mem_protocol querier_version_mode; //RFC3810 - 8.3.1. In the Presence of MLDv1 Routers
     bool is_querier;
-    gaddr_map group_info; //subscribed multicast group with there source lists
+    gaddr_map group_info; //subscribed multicast group with their source lists
 
     static void test_arithmetic();
 
