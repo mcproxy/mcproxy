@@ -95,7 +95,7 @@ void interface_memberships::process_upstream_in_first(const addr_storage& gaddr,
 
     std::list<std::pair<source_state, const std::shared_ptr<const interface>&>> init_sstate_list;
     for (auto & downs_e : pi->m_downstreams) {
-        init_sstate_list.push_back(std::pair<source_state, const std::shared_ptr<const interface>>(source_state(downs_e.second.m_querier->get_group_mebership_infos(gaddr)), downs_e.second.m_interface));
+        init_sstate_list.push_back(std::pair<source_state, const std::shared_ptr<const interface>>(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
     }
 
     //init and fill database
@@ -150,7 +150,7 @@ void interface_memberships::process_upstream_in_mutex(const addr_storage& gaddr,
     std::list<std::pair<source_state, const std::shared_ptr<const interface>>> ref_sstate_list;
 
     for (auto & downs_e : pi->m_downstreams) {
-        ref_sstate_list.push_back(std::pair<source_state, const std::shared_ptr<const interface>&>(source_state(downs_e.second.m_querier->get_group_mebership_infos(gaddr)), downs_e.second.m_interface));
+        ref_sstate_list.push_back(std::pair<source_state, const std::shared_ptr<const interface>&>(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
     }
 
     //init and fill database

@@ -768,7 +768,7 @@ void querier::suggest_to_forward_traffic(const addr_storage& gaddr, std::list<st
 
 }
 
-std::pair<mc_filter, source_list<source>> querier::get_group_mebership_infos(const addr_storage& gaddr)
+std::pair<mc_filter, source_list<source>> querier::get_group_membership_infos(const addr_storage& gaddr)
 {
     HC_LOG_TRACE("");
     std::pair<mc_filter, source_list<source>> rt_pair;

@@ -132,7 +132,7 @@ public:
     /**
      * @return return all group membership information of group address gaddr
      */
-    std::pair<mc_filter, source_list<source>> get_group_mebership_infos(const addr_storage& gaddr);
+    std::pair<mc_filter, source_list<source>> get_group_membership_infos(const addr_storage& gaddr);
 
     /**
      * @brief Roadworks
