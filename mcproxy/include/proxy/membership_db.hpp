@@ -79,7 +79,7 @@ struct membership_db {
     std::shared_ptr<general_query_timer_msg> general_query_timer;
     int startup_query_count;
 
-    group_mem_protocol querier_version_mode; //RFC3810 - 8.3.1. In the Presence of MLDv1 Routers
+    group_mem_protocol querier_version_mode; 
     bool is_querier;
     gaddr_map group_info; //subscribed multicast group with their source lists
 

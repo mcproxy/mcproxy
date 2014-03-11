@@ -183,6 +183,7 @@ void proxy_instance::worker_thread()
         case proxy_msg::SOURCE_TIMER_MSG:
         case proxy_msg::RET_GROUP_TIMER_MSG:
         case proxy_msg::RET_SOURCE_TIMER_MSG:
+        case proxy_msg::OLDER_HOST_PRESENT_TIMER_MSG:
         case proxy_msg::GENERAL_QUERY_TIMER_MSG: {
             auto it = m_downstreams.find(std::static_pointer_cast<timer_msg>(msg)->get_if_index());
             if (it != std::end(m_downstreams)) {
@@ -442,11 +443,12 @@ void proxy_instance::test_querier(std::string if_name)
     //-----------------------------------------------------------------
     //quick_test(send_record, print_proxy_instance);
     //rand_test(send_record, print_proxy_instance);
-    //test_a(send_record,print_proxy_instance);
-    //test_b(send_record, print_proxy_instance);
-    //test_c(send_record, print_proxy_instance);
+    test_a(send_record, print_proxy_instance);
+    test_b(send_record, print_proxy_instance);
+    test_c(send_record, print_proxy_instance);
     //test_d(send_record, print_proxy_instance);
-    test_backward_compatibility(send_record, print_proxy_instance);
+    //test_backward_compatibility(send_record, print_proxy_instance);
+    //test_backward_compatibility(send_record, print_proxy_instance);
 }
 
 void proxy_instance::quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance)
@@ -654,27 +656,27 @@ void proxy_instance::test_backward_compatibility(std::function < void(mcast_addr
     print_proxy_instance();
 
     sleep(2);
-    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv3);
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s3, s2}, IGMPv3);
     print_proxy_instance();
 
     sleep(2);
-    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv2);
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s4, s2}, IGMPv2);
     print_proxy_instance();
 
     sleep(2);
-    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv3);
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s5, s2}, IGMPv3);
     print_proxy_instance();
 
     sleep(2);
-    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv3);
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s6, s2}, IGMPv3);
     print_proxy_instance();
 
     sleep(2);
-    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv2);
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s7, s2}, IGMPv2);
     print_proxy_instance();
 
     sleep(4);
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 23; ++i) {
         sleep(2);
         send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv3);
         print_proxy_instance();

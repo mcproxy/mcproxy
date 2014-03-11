@@ -135,7 +135,7 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
 
     //backwards compatibility coordination
     if (!is_newest_version(gr->get_grp_mem_proto()) && is_older_or_equal_version(gr->get_grp_mem_proto(), m_db.querier_version_mode) ) {
-        db_info_it->second.compatibility_mode_variable = gr->get_grp_mem_proto(); 
+        db_info_it->second.compatibility_mode_variable = gr->get_grp_mem_proto();
         auto ohpt = std::make_shared<older_host_present_timer_msg>(m_if_index, db_info_it->first, m_timers_values.get_older_host_present_interval());
         db_info_it->second.older_host_present_timer = ohpt;
         m_timing->add_time(m_timers_values.get_older_host_present_interval(), m_msg_worker, ohpt);
@@ -390,7 +390,8 @@ void querier::timer_triggerd(const std::shared_ptr<proxy_msg>& msg)
         case proxy_msg::FILTER_TIMER_MSG:
         case proxy_msg::SOURCE_TIMER_MSG:
         case proxy_msg::RET_GROUP_TIMER_MSG:
-        case proxy_msg::RET_SOURCE_TIMER_MSG: {
+        case proxy_msg::RET_SOURCE_TIMER_MSG:
+        case proxy_msg::OLDER_HOST_PRESENT_TIMER_MSG: {
             tm = std::static_pointer_cast<timer_msg>(msg);
 
             db_info_it = m_db.group_info.find(tm->get_gaddr());
@@ -402,6 +403,7 @@ void querier::timer_triggerd(const std::shared_ptr<proxy_msg>& msg)
         }
         break;
         case proxy_msg::GENERAL_QUERY_TIMER_MSG:
+            tm = std::static_pointer_cast<timer_msg>(msg);
             break;
         default:
             HC_LOG_ERROR("unknown timer message format");

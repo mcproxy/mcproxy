@@ -151,7 +151,7 @@ std::string membership_db::to_string() const
 {
     using namespace std;
     ostringstream s;
-    s << "compatibility mode variable: " << get_group_mem_protocol_name(querier_version_mode) << endl;
+    s << "querier version: " << get_group_mem_protocol_name(querier_version_mode) << endl;
     s << "is querier: " << (is_querier ? "true" : "false") << endl;
     if (general_query_timer.get() != nullptr) {
         s << "general query timer: " << general_query_timer->get_remaining_time() << endl;
