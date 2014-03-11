@@ -248,7 +248,7 @@ std::string proxy_instance::to_string() const
     s << *m_routing_management << std::endl;
 
     s << "##-- upstream interfaces --##" << std::endl;
-    for (auto & e: m_upstreams) {
+    for (auto & e : m_upstreams) {
         s << interfaces::get_if_name(e.m_if_index) << "(index:" << e.m_if_index << ") ";
     }
     s << std::endl;
@@ -433,29 +433,30 @@ void proxy_instance::test_querier(std::string if_name)
 
     auto print_proxy_instance = bind(&proxy_instance::add_msg, &pr_i, make_shared<debug_msg>());
 
-    auto __tmp = [&, if_name](mcast_addr_record_type t, source_list<source> && slist) {
-        return make_shared<group_record_msg>(interfaces::get_if_index(if_name), t, gaddr, move(slist), IGMPv3);
+    auto __tmp = [&, if_name](mcast_addr_record_type t, source_list<source> && slist, group_mem_protocol gmp) {
+        return make_shared<group_record_msg>(interfaces::get_if_index(if_name), t, gaddr, move(slist), gmp);
     };
 
-    auto send_record = bind(&proxy_instance::add_msg, &pr_i, bind(__tmp, placeholders::_1, placeholders::_2));
+    auto send_record = bind(&proxy_instance::add_msg, &pr_i, bind(__tmp, placeholders::_1, placeholders::_2, placeholders::_3));
 
     //-----------------------------------------------------------------
-    quick_test(send_record, print_proxy_instance);
+    //quick_test(send_record, print_proxy_instance);
     //rand_test(send_record, print_proxy_instance);
     //test_a(send_record,print_proxy_instance);
     //test_b(send_record, print_proxy_instance);
     //test_c(send_record, print_proxy_instance);
     //test_d(send_record, print_proxy_instance);
+    test_backward_compatibility(send_record, print_proxy_instance);
 }
 
-void proxy_instance::quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
+void proxy_instance::quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance)
 {
     using namespace std;
     cout << "##-- querier quick test --##" << endl;
     print_proxy_instance();
 
-    send_record(MODE_IS_INCLUDE, source_list<source> {});
-    send_record(MODE_IS_INCLUDE, source_list<source> {});
+    send_record(MODE_IS_INCLUDE, source_list<source> {}, IGMPv3);
+    send_record(MODE_IS_INCLUDE, source_list<source> {}, IGMPv3);
 
     //send_record(MODE_IS_INCLUDE, source_list<source> {});
 
@@ -468,7 +469,7 @@ void proxy_instance::quick_test(std::function < void(mcast_addr_record_type, sou
     cout << "##-- querier end --##" << endl;
 }
 
-void proxy_instance::test_a(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
+void proxy_instance::test_a(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance)
 {
     using namespace std;
     source s1(addr_storage("1.1.1.1"));
@@ -482,34 +483,34 @@ void proxy_instance::test_a(std::function < void(mcast_addr_record_type, source_
     cout << "##-- querier test A --##" << endl;
     print_proxy_instance();
 
-    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s2, s3, s4, s5});
+    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s2, s3, s4, s5}, IGMPv3);
     print_proxy_instance();
 
     sleep(4);
-    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s3, s5});
+    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s3, s5}, IGMPv3);
     print_proxy_instance();
 
     sleep(5);
-    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s3, s5});
+    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s3, s5}, IGMPv3);
     print_proxy_instance();
 
     sleep(2);
     print_proxy_instance();
 
     sleep(1);
-    send_record(MODE_IS_EXCLUDE, source_list<source> {s1, s2, s3});
+    send_record(MODE_IS_EXCLUDE, source_list<source> {s1, s2, s3}, IGMPv3);
     print_proxy_instance();
 
     sleep(5);
-    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s2});
+    send_record(MODE_IS_INCLUDE, source_list<source> {s1, s2}, IGMPv3);
     print_proxy_instance();
 
     sleep(1);
-    send_record(MODE_IS_EXCLUDE, source_list<source> {s6, s7});
+    send_record(MODE_IS_EXCLUDE, source_list<source> {s6, s7}, IGMPv3);
     print_proxy_instance();
 
     sleep(1);
-    send_record(MODE_IS_EXCLUDE, source_list<source> {s6, s7});
+    send_record(MODE_IS_EXCLUDE, source_list<source> {s6, s7}, IGMPv3);
     print_proxy_instance();
 
     for (int i = 0; i < 6; ++i) {
@@ -521,7 +522,7 @@ void proxy_instance::test_a(std::function < void(mcast_addr_record_type, source_
     cout << "##-- querier end --##" << endl;
 }
 
-void proxy_instance::test_b(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
+void proxy_instance::test_b(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance)
 {
 
     using namespace std;
@@ -537,11 +538,11 @@ void proxy_instance::test_b(std::function < void(mcast_addr_record_type, source_
     print_proxy_instance();
 
     sleep(1);
-    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2, s3});
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2, s3}, IGMPv3);
     print_proxy_instance();
 
     sleep(1);
-    send_record(BLOCK_OLD_SOURCES, source_list<source> {s2});
+    send_record(BLOCK_OLD_SOURCES, source_list<source> {s2}, IGMPv3);
     print_proxy_instance();
 
     for (int i = 0; i < 6; ++i) {
@@ -553,7 +554,7 @@ void proxy_instance::test_b(std::function < void(mcast_addr_record_type, source_
     cout << "##-- querier end --##" << endl;
 }
 
-void proxy_instance::test_c(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
+void proxy_instance::test_c(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance)
 {
     using namespace std;
     source s1(addr_storage("1.1.1.1"));
@@ -568,19 +569,19 @@ void proxy_instance::test_c(std::function < void(mcast_addr_record_type, source_
     print_proxy_instance();
 
     sleep(1);
-    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2, s3, s4});
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2, s3, s4}, IGMPv3);
     print_proxy_instance();
 
     sleep(1);
-    send_record(CHANGE_TO_EXCLUDE_MODE, source_list<source> {s3, s4, s5, s6});
+    send_record(CHANGE_TO_EXCLUDE_MODE, source_list<source> {s3, s4, s5, s6}, IGMPv3);
     print_proxy_instance();
 
     sleep(1);
-    send_record(ALLOW_NEW_SOURCES, source_list<source> {s7});
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s7}, IGMPv3);
     print_proxy_instance();
 
     sleep(1);
-    send_record(ALLOW_NEW_SOURCES, source_list<source> {s6});
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s6}, IGMPv3);
     print_proxy_instance();
 
     for (int i = 0; i < 6; ++i) {
@@ -592,7 +593,7 @@ void proxy_instance::test_c(std::function < void(mcast_addr_record_type, source_
     cout << "##-- querier end --##" << endl;
 }
 
-void proxy_instance::test_d(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
+void proxy_instance::test_d(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance)
 {
     using namespace std;
     source s1(addr_storage("1.1.1.1"));
@@ -603,27 +604,27 @@ void proxy_instance::test_d(std::function < void(mcast_addr_record_type, source_
     source s6(addr_storage("6.6.6.6"));
     source s7(addr_storage("7.7.7.7"));
 
-    cout << "##-- querier test C --##" << endl;
+    cout << "##-- querier test D --##" << endl;
     print_proxy_instance();
 
     sleep(1);
-    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2});
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv3);
     print_proxy_instance();
 
     sleep(2);
-    send_record(MODE_IS_EXCLUDE, source_list<source> {s2, s3});
+    send_record(MODE_IS_EXCLUDE, source_list<source> {s2, s3}, IGMPv3);
     print_proxy_instance();
 
     sleep(2);
-    send_record(BLOCK_OLD_SOURCES, source_list<source> {s2, s7});
+    send_record(BLOCK_OLD_SOURCES, source_list<source> {s2, s7}, IGMPv3);
     print_proxy_instance();
 
     sleep(2);
-    send_record(CHANGE_TO_INCLUDE_MODE, source_list<source> {s1, s2});
+    send_record(CHANGE_TO_INCLUDE_MODE, source_list<source> {s1, s2}, IGMPv3);
     print_proxy_instance();
 
     sleep(4);
-    send_record(CHANGE_TO_EXCLUDE_MODE, source_list<source> {s1, s7});
+    send_record(CHANGE_TO_EXCLUDE_MODE, source_list<source> {s1, s7}, IGMPv3);
     print_proxy_instance();
     for (int i = 0; i < 6; ++i) {
         sleep(2);
@@ -634,7 +635,56 @@ void proxy_instance::test_d(std::function < void(mcast_addr_record_type, source_
     cout << "##-- querier end --##" << endl;
 }
 
-void proxy_instance::rand_test(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance)
+void proxy_instance::test_backward_compatibility(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance)
+{
+    using namespace std;
+    source s1(addr_storage("1.1.1.1"));
+    source s2(addr_storage("2.2.2.2"));
+    source s3(addr_storage("3.3.3.3"));
+    source s4(addr_storage("4.4.4.4"));
+    source s5(addr_storage("5.5.5.5"));
+    source s6(addr_storage("6.6.6.6"));
+    source s7(addr_storage("7.7.7.7"));
+
+    cout << "##-- querier test BACKWARD COMPATIBILITY --##" << endl;
+    print_proxy_instance();
+
+    sleep(1);
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv3);
+    print_proxy_instance();
+
+    sleep(2);
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv3);
+    print_proxy_instance();
+
+    sleep(2);
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv2);
+    print_proxy_instance();
+
+    sleep(2);
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv3);
+    print_proxy_instance();
+
+    sleep(2);
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv3);
+    print_proxy_instance();
+
+    sleep(2);
+    send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv2);
+    print_proxy_instance();
+
+    sleep(4);
+    for (int i = 0; i < 20; ++i) {
+        sleep(2);
+        send_record(ALLOW_NEW_SOURCES, source_list<source> {s1, s2}, IGMPv3);
+        print_proxy_instance();
+    }
+
+    sleep(1);
+    cout << "##-- querier end --##" << endl;
+}
+
+void proxy_instance::rand_test(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance)
 {
     using namespace std;
     default_random_engine re;
@@ -676,7 +726,7 @@ void proxy_instance::rand_test(std::function < void(mcast_addr_record_type, sour
         cout << endl;
 
         sleep(time);
-        send_record(r_type[d_r_type(re)], get_src_list());
+        send_record(r_type[d_r_type(re)], get_src_list(), IGMPv3);
         print_proxy_instance();
     }
     sleep(1);

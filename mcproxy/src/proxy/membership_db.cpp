@@ -101,8 +101,12 @@ std::string gaddr_info::to_string() const
 {
     using namespace std;
     ostringstream s;
-    s << get_group_mem_protocol_name(compatibility_mode_variable) << ", " << get_mc_filter_name(filter_mode);
+    s << get_group_mem_protocol_name(compatibility_mode_variable);
+    if (older_host_present_timer != nullptr){
+        s << "(" << older_host_present_timer->get_remaining_time() << ")";    
+    }
 
+    s << ", " << get_mc_filter_name(filter_mode);
     if ((filter_mode == EXLCUDE_MODE) && (group_retransmission_timer.get() != nullptr)) {
         s << "(" << shared_filter_timer->get_remaining_time() << "," << group_retransmission_timer->get_remaining_time() << "," << group_retransmission_count << "x)" << endl;
     } else if (filter_mode == EXLCUDE_MODE) {

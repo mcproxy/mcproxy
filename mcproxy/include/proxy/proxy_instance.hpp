@@ -140,13 +140,14 @@ public:
 
     static void test_querier(std::string if_name);
 
-    static void test_a(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
-    static void test_b(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
-    static void test_c(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
-    static void test_d(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
+    static void test_a(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
+    static void test_b(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
+    static void test_c(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
+    static void test_d(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
+    static void test_backward_compatibility(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
 
-    static void quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
-    static void rand_test(std::function < void(mcast_addr_record_type, source_list<source>&&) > send_record, std::function<void()> print_proxy_instance);
+    static void quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
+    static void rand_test(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
 
     friend routing_management;
     friend simple_mc_proxy_routing;

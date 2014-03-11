@@ -244,10 +244,10 @@ void proxy::start_proxy_instances()
             }
 
             timers_values tv;
-            //std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!here I mod the timers and values for debugging aim" << std::endl;
-            //tv.set_query_interval(std::chrono::seconds(30));
-            //tv.set_startup_query_interval(std::chrono::seconds(10));
-            //tv.set_last_listener_query_count(3);
+            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!here I mod the timers and values for debugging aim" << std::endl;
+            tv.set_query_interval(std::chrono::seconds(10));
+            tv.set_startup_query_interval(std::chrono::seconds(10));
+            //tv.set_last_listener_query_count(2);
             //tv.set_last_listener_query_interval(std::chrono::seconds(4));
 
             pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_DOWNSTREAM, if_index, d, tv));
