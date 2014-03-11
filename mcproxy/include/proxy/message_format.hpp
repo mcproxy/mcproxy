@@ -52,7 +52,8 @@ struct proxy_msg {
         NEW_SOURCE_TIMER_MSG,
         RET_GROUP_TIMER_MSG, //retransmission group timer message
         RET_SOURCE_TIMER_MSG,
-        GENERAL_QUERY_MSG,
+        OLDER_HOST_PRESENT_TIMER_MSG,
+        GENERAL_QUERY_TIMER_MSG,
         CONFIG_MSG,
         GROUP_RECORD_MSG,
         DEBUG_MSG
@@ -75,7 +76,8 @@ struct proxy_msg {
             {NEW_SOURCE_TIMER_MSG, "NEW_SOURCE_TIMER_MSG"},
             {RET_GROUP_TIMER_MSG,  "RET_GROUP_TIMER_MSG" },
             {RET_SOURCE_TIMER_MSG, "RET_SOURCE_TIMER_MSG"},
-            {GENERAL_QUERY_MSG,    "GENERAL_QUERY_MSG"   },
+            {OLDER_HOST_PRESENT_TIMER_MSG, "OLDER_HOST_PRESENT_TIMER_MSG"},
+            {GENERAL_QUERY_TIMER_MSG,      "GENERAL_QUERY_TIMER_MSG"     },
             {CONFIG_MSG,           "CONFIG_MSG"          },
             {GROUP_RECORD_MSG,     "GROUP_RECORD_MSG"    },
             {DEBUG_MSG,            "DEBUG_MSG"           }
@@ -154,7 +156,11 @@ private:
 
 //------------------------------------------------------------------------
 struct timer_msg : public proxy_msg {
-    timer_msg(message_type type, unsigned int if_index, const addr_storage& gaddr, const std::chrono::milliseconds& duration): proxy_msg(type, SYSTEMIC), m_if_index(if_index), m_gaddr(gaddr), m_end_time(std::chrono::steady_clock::now() + duration) {
+    timer_msg(message_type type, unsigned int if_index, const addr_storage& gaddr, const std::chrono::milliseconds& duration)
+        : proxy_msg(type, SYSTEMIC)
+        , m_if_index(if_index)
+        , m_gaddr(gaddr)
+        , m_end_time(std::chrono::steady_clock::now() + duration) {
         HC_LOG_TRACE("");
     }
 
@@ -190,8 +196,8 @@ private:
     std::chrono::time_point<std::chrono::steady_clock> m_end_time;
 };
 
-struct filter_timer : public timer_msg {
-    filter_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(FILTER_TIMER_MSG, if_index, gaddr, duration), m_is_used_as_source_timer(false) {
+struct filter_timer_msg : public timer_msg {
+    filter_timer_msg(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(FILTER_TIMER_MSG, if_index, gaddr, duration), m_is_used_as_source_timer(false) {
         HC_LOG_TRACE("");
     }
 
@@ -207,32 +213,38 @@ private:
     bool m_is_used_as_source_timer;
 };
 
-struct source_timer : public timer_msg {
-    source_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(SOURCE_TIMER_MSG, if_index, gaddr, duration) {
+struct source_timer_msg : public timer_msg {
+    source_timer_msg(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(SOURCE_TIMER_MSG, if_index, gaddr, duration) {
         HC_LOG_TRACE("");
     }
 };
 
-struct retransmit_group_timer : public timer_msg {
-    retransmit_group_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(RET_GROUP_TIMER_MSG, if_index, gaddr, duration) {
+struct retransmit_group_timer_msg : public timer_msg {
+    retransmit_group_timer_msg(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(RET_GROUP_TIMER_MSG, if_index, gaddr, duration) {
         HC_LOG_TRACE("");
     }
 };
 
-struct retransmit_source_timer : public timer_msg {
-    retransmit_source_timer(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(RET_SOURCE_TIMER_MSG, if_index, gaddr, duration) {
+struct retransmit_source_timer_msg : public timer_msg {
+    retransmit_source_timer_msg(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(RET_SOURCE_TIMER_MSG, if_index, gaddr, duration) {
         HC_LOG_TRACE("");
     }
 };
 
-struct general_query_timer : public timer_msg {
-    general_query_timer(unsigned int if_index, std::chrono::milliseconds duration): timer_msg(GENERAL_QUERY_MSG, if_index, addr_storage(), duration) {
+struct older_host_present_timer_msg : public timer_msg {
+    older_host_present_timer_msg(unsigned int if_index, const addr_storage& gaddr, std::chrono::milliseconds duration): timer_msg(OLDER_HOST_PRESENT_TIMER_MSG, if_index, gaddr, duration) {
         HC_LOG_TRACE("");
     }
 };
 
-struct new_source_timer : public timer_msg {
-    new_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr, std::chrono::milliseconds duration)
+struct general_query_timer_msg : public timer_msg {
+    general_query_timer_msg(unsigned int if_index, std::chrono::milliseconds duration): timer_msg(GENERAL_QUERY_TIMER_MSG, if_index, addr_storage(), duration) {
+        HC_LOG_TRACE("");
+    }
+};
+
+struct new_source_timer_msg : public timer_msg {
+    new_source_timer_msg(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr, std::chrono::milliseconds duration)
         : timer_msg(NEW_SOURCE_TIMER_MSG, if_index, gaddr, duration)
         , m_saddr(saddr)  {
         HC_LOG_TRACE("");
@@ -304,7 +316,7 @@ struct source {
 
 struct group_record_msg : public proxy_msg {
     //group_record_msg()
-        //: group_record_msg(0, MODE_IS_INCLUDE, addr_storage(), source_list<source>(), IGMPv3) {}
+    //: group_record_msg(0, MODE_IS_INCLUDE, addr_storage(), source_list<source>(), IGMPv3) {}
 
     group_record_msg(unsigned int if_index, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& slist, group_mem_protocol report_version)
         : proxy_msg(GROUP_RECORD_MSG, LOSEABLE)
@@ -443,9 +455,9 @@ struct config_msg : public proxy_msg {
         return m_tv;
     }
 
-    const std::shared_ptr<rule_binding>& get_rule_binding(){
-        return m_rule_binding; 
-    } 
+    const std::shared_ptr<rule_binding>& get_rule_binding() {
+        return m_rule_binding;
+    }
 
 private:
     config_instruction m_instruction;

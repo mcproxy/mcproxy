@@ -183,7 +183,7 @@ void proxy_instance::worker_thread()
         case proxy_msg::SOURCE_TIMER_MSG:
         case proxy_msg::RET_GROUP_TIMER_MSG:
         case proxy_msg::RET_SOURCE_TIMER_MSG:
-        case proxy_msg::GENERAL_QUERY_MSG: {
+        case proxy_msg::GENERAL_QUERY_TIMER_MSG: {
             auto it = m_downstreams.find(std::static_pointer_cast<timer_msg>(msg)->get_if_index());
             if (it != std::end(m_downstreams)) {
                 it->second.m_querier->timer_triggerd(msg);

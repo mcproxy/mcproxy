@@ -313,12 +313,12 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
 {
     HC_LOG_TRACE("");
 
-    std::shared_ptr<new_source_timer> tm;
+    std::shared_ptr<new_source_timer_msg> tm;
 
     if (!msg.unique()) {
         switch (msg->get_type()) {
         case proxy_msg::NEW_SOURCE_TIMER_MSG: {
-            tm = std::static_pointer_cast<new_source_timer>(msg);
+            tm = std::static_pointer_cast<new_source_timer_msg>(msg);
 
             auto cmp_source_lst = m_data.get_available_sources(tm->get_gaddr());
             auto cmp_source_it = cmp_source_lst.find(tm->get_saddr());
@@ -540,10 +540,10 @@ void simple_mc_proxy_routing::del_route(unsigned int if_index, const addr_storag
     m_p->m_routing->del_route(m_p->m_interfaces->get_virtual_if_index(if_index), gaddr, saddr);
 }
 
-std::shared_ptr<new_source_timer> simple_mc_proxy_routing::set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
+std::shared_ptr<new_source_timer_msg> simple_mc_proxy_routing::set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
 {
     HC_LOG_TRACE("");
-    auto nst = std::make_shared<new_source_timer>(if_index, gaddr, saddr, get_source_life_time());
+    auto nst = std::make_shared<new_source_timer_msg>(if_index, gaddr, saddr, get_source_life_time());
     m_p->m_timing->add_time(get_source_life_time(), m_p, nst);
 
     return nst;

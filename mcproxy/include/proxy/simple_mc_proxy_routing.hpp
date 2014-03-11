@@ -33,7 +33,7 @@
 
 struct timer_msg;
 struct source;
-struct new_source_timer;
+struct new_source_timer_msg;
 
 struct source_state{
     source_state();
@@ -79,7 +79,7 @@ private:
 
     void send_records(unsigned int upstream_if_index, const addr_storage& gaddr, const source_state& sstate) const;
 
-    std::shared_ptr<new_source_timer> set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
+    std::shared_ptr<new_source_timer_msg> set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
 
     bool check_interface(rb_interface_type interface_type, rb_interface_direction interface_direction, unsigned int checking_if_index, unsigned int input_if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
 
