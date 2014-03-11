@@ -87,6 +87,7 @@ private:
     void timer_triggerd_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_ret_group_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_ret_source_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
+    void timer_triggerd_older_host_present_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg);
     void timer_triggerd_general_query_timer(const std::shared_ptr<timer_msg>& msg);
 
     //call the callback function querier_state_change

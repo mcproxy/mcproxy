@@ -38,6 +38,9 @@ std::string get_mc_filter_name(mc_filter mf);
 enum group_mem_protocol {IGMPv1 = 0x1, IGMPv2 = 0x2, IGMPv3 = 0x4, MLDv1 = 0x8, MLDv2 = 0x10};
 bool is_IPv4(group_mem_protocol gmp);
 bool is_IPv6(group_mem_protocol gmp);
+bool is_older_or_equal_version(group_mem_protocol older, group_mem_protocol comp_to);
+bool is_newest_version(group_mem_protocol gmp);
+group_mem_protocol get_next_newer_version(group_mem_protocol gmp);
 int get_addr_family(group_mem_protocol gmp);
 std::string get_group_mem_protocol_name(group_mem_protocol gmp);
 

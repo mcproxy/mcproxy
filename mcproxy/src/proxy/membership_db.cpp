@@ -84,6 +84,7 @@ gaddr_info::gaddr_info(group_mem_protocol compatibility_mode_variable)
     : filter_mode(INCLUDE_MODE)
     , shared_filter_timer(nullptr)
     , compatibility_mode_variable(compatibility_mode_variable)
+    , older_host_present_timer(nullptr)  
     , group_retransmission_timer(nullptr)
     , group_retransmission_count(-1) //not in a retransmission state
     , source_retransmission_timer(nullptr)

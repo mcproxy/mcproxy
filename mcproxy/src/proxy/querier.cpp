@@ -96,7 +96,7 @@ bool querier::send_general_query()
 {
     HC_LOG_TRACE("");
     if (m_db.general_query_timer.get() == nullptr) {
-        m_db.startup_query_count = m_timers_values.get_startup_query_count() -1;
+        m_db.startup_query_count = m_timers_values.get_startup_query_count() - 1;
     }
 
     std::chrono::seconds t;
@@ -133,9 +133,17 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
         db_info_it = m_db.group_info.insert(gaddr_pair(gr->get_gaddr(), gaddr_info(m_db.querier_version_mode))).first;
     }
 
+    //backwards compatibility coordination
+    if (!is_newest_version(gr->get_grp_mem_proto()) && is_older_or_equal_version(gr->get_grp_mem_proto(), m_db.querier_version_mode) ) {
+        db_info_it->second.compatibility_mode_variable = gr->get_grp_mem_proto(); 
+        auto ohpt = std::make_shared<older_host_present_timer_msg>(m_if_index, db_info_it->first, m_timers_values.get_older_host_present_interval());
+        db_info_it->second.older_host_present_timer = ohpt;
+        m_timing->add_time(m_timers_values.get_older_host_present_interval(), m_msg_worker, ohpt);
+    }
+
     switch (db_info_it->second.filter_mode) {
     case  INCLUDE_MODE:
-        receive_record_in_include_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_report_version(), db_info_it->second);
+        receive_record_in_include_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_grp_mem_proto(), db_info_it->second);
 
         //if the new created group is not used delete it
         if (db_info_it->second.filter_mode == INCLUDE_MODE && db_info_it->second.include_requested_list.empty()) {
@@ -144,7 +152,7 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
 
         break;
     case EXLCUDE_MODE:
-        receive_record_in_exclude_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_report_version(), db_info_it->second);
+        receive_record_in_exclude_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_grp_mem_proto(), db_info_it->second);
         break;
     default :
         HC_LOG_ERROR("wrong filter mode: " << db_info_it->second.filter_mode);
@@ -420,6 +428,9 @@ void querier::timer_triggerd(const std::shared_ptr<proxy_msg>& msg)
     case proxy_msg::GENERAL_QUERY_TIMER_MSG:
         timer_triggerd_general_query_timer(tm);
         break;
+    case proxy_msg::OLDER_HOST_PRESENT_TIMER_MSG:
+        timer_triggerd_older_host_present_timer(db_info_it, tm);
+        break;
     default:
         HC_LOG_ERROR("unknown timer message format");
         return;
@@ -583,6 +594,36 @@ void querier::timer_triggerd_general_query_timer(const std::shared_ptr<timer_msg
         send_general_query();
     } else {
         HC_LOG_ERROR("general query timer not found");
+    }
+}
+
+void querier::timer_triggerd_older_host_present_timer(gaddr_map::iterator db_info_it, const std::shared_ptr<timer_msg>& msg)
+{
+    HC_LOG_TRACE("");
+
+    gaddr_info& ginfo = db_info_it->second;
+
+    if (ginfo.older_host_present_timer.get() == msg.get()) {
+        if (is_newest_version(ginfo.compatibility_mode_variable)) {
+            ginfo.older_host_present_timer = nullptr;
+        } else {
+            ginfo.compatibility_mode_variable = get_next_newer_version(ginfo.compatibility_mode_variable);
+
+            std::chrono::milliseconds delay;
+            if (is_newest_version(ginfo.compatibility_mode_variable)) {
+                //RFC 3810 8.3.2. In the Presence of MLDv1 Multicast Address Listeners:
+                //Source-specific information will be learned during the next General Query,
+                //but sources that should be blocked will not be blocked until [Multicast Address Listening Interval]
+                //after that.
+                delay = m_timers_values.get_multicast_address_listening_interval();
+            } else {
+                delay = m_timers_values.get_older_host_present_interval();
+            }
+
+            auto ohpt = std::make_shared<older_host_present_timer_msg>(m_if_index, db_info_it->first, delay);
+            ginfo.older_host_present_timer = ohpt;
+            m_timing->add_time(delay, m_msg_worker, ohpt);
+        }
     }
 }
 

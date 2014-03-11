@@ -34,13 +34,37 @@ bool is_IPv6(group_mem_protocol gmp)
     return (MLDv1 | MLDv2) & gmp;
 }
 
-int get_addr_family(group_mem_protocol gmp){
-    if (is_IPv4(gmp)){
-        return AF_INET; 
-    } else if (is_IPv6(gmp)){
+bool is_older_or_equal_version(group_mem_protocol older, group_mem_protocol comp_to)
+{
+    return older <= comp_to;
+}
+
+bool is_newest_version(group_mem_protocol gmp)
+{
+    if (gmp == IGMPv3 || gmp == MLDv2) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+int get_addr_family(group_mem_protocol gmp)
+{
+    if (is_IPv4(gmp)) {
+        return AF_INET;
+    } else if (is_IPv6(gmp)) {
         return  AF_INET6;
     } else {
         return AF_UNSPEC;
+    }
+}
+
+group_mem_protocol get_next_newer_version(group_mem_protocol gmp)
+{
+    if (is_newest_version(gmp)) {
+        return gmp;
+    } else {
+        return static_cast<group_mem_protocol>(gmp * 2);
     }
 }
 

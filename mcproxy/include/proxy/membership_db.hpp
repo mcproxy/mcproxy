@@ -39,13 +39,17 @@ struct gaddr_info {
     gaddr_info(const gaddr_info&) = default;
     gaddr_info& operator=(const gaddr_info&) = default;
     gaddr_info(gaddr_info&&) = default;
-    gaddr_info& operator=(gaddr_info&&) = default;
+    gaddr_info& operator=(gaddr_info && ) = default;
 
     mc_filter filter_mode;
     std::shared_ptr<filter_timer_msg> shared_filter_timer;
 
     group_mem_protocol compatibility_mode_variable; //RFC3810 - 8.3.2. In the Presence of MLDv1 Multicast Address Listeners
-
+   
+    //if comp_node_var is the highest version and older_host_present_timer is a nullptr the compatibility mode is disabled 
+    //if comp_mode_var is the highest version and older_hostpresent_timer is not a nullptr, sources will not be blocked. 
+    //if comp_mode var is not the highest version the compability mode is activated
+    std::shared_ptr<older_host_present_timer_msg> older_host_present_timer; 
 
     std::shared_ptr<retransmit_group_timer_msg> group_retransmission_timer;
     int group_retransmission_count;
@@ -70,7 +74,7 @@ struct membership_db {
     membership_db(const membership_db&) = default;
     membership_db& operator=(const membership_db&) = default;
     membership_db(membership_db&&) = default;
-    membership_db& operator=(membership_db&&) = default;
+    membership_db& operator=(membership_db && ) = default;
 
     std::shared_ptr<general_query_timer_msg> general_query_timer;
     int startup_query_count;
