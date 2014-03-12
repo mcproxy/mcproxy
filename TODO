@@ -33,6 +33,7 @@ every kernel tabel useses there own vif number range
 
 
 General stuff
+ -- check priority queue, it looks like the priorities are inverted
  -- create an how to for the configuration script
  -- implement compatibility stuff
  -- implement dynamic interface state updating
