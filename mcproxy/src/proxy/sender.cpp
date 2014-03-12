@@ -64,7 +64,7 @@ bool sender::send_record(unsigned int if_index, mc_filter filter_mode, const add
     return true;
 }
 
-bool sender::send_general_query(unsigned int if_index, const timers_values& tv, group_mem_protocol gmp) const
+bool sender::send_general_query(unsigned int if_index, const timers_values& tv) const
 {
     using namespace std;
     HC_LOG_TRACE("");
@@ -73,12 +73,11 @@ bool sender::send_general_query(unsigned int if_index, const timers_values& tv, 
     cout << "max response time: " << time_to_string(tv.get_query_response_interval()) << endl;
     cout << "qrv: " << tv.get_robustness_variable() << endl;
     cout << "qqi: " << time_to_string(tv.get_query_interval()) << endl;
-    cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
     cout << endl;
     return true;
 }
 
-bool sender::send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const
+bool sender::send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag) const
 {
     using namespace std;
     HC_LOG_TRACE("");
@@ -90,12 +89,11 @@ bool sender::send_mc_addr_specific_query(unsigned int if_index, const timers_val
     cout << "s-flag: " << (s_flag ? "true" : "false") << endl;
     cout << "qrv: " << tv.get_robustness_variable() << endl;
     cout << "qqi: " << time_to_string(tv.get_query_interval())  << endl;
-    cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
     cout << endl;
     return true;
 }
 
-bool sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const
+bool sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist) const
 {
     using namespace std;
     HC_LOG_TRACE("");
@@ -129,7 +127,6 @@ bool sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const ti
         cout << "group address: " << gaddr << endl;
         cout << "qrv: " << tv.get_robustness_variable() << endl;
         cout << "qqi: " << time_to_string(tv.get_query_interval()) << endl;
-        cout << "protocol: " << get_group_mem_protocol_name(gmp) << endl;
         cout << "source list with without S-flag: " << list_lower << endl;
         cout << "source list with with S-flag: " << list_higher << endl;
         cout << endl;

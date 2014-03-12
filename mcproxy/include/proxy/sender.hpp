@@ -55,11 +55,11 @@ public:
 
     virtual bool send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const;
 
-    virtual bool send_general_query(unsigned int if_index, const timers_values& tv, group_mem_protocol gmp) const;
+    virtual bool send_general_query(unsigned int if_index, const timers_values& tv) const;
 
-    virtual bool send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const;
+    virtual bool send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag) const;
 
-    virtual bool send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const;
+    virtual bool send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist) const;
 
     virtual ~sender();
 };

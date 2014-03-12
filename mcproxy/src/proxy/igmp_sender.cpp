@@ -67,95 +67,56 @@ bool igmp_sender::send_record(unsigned int if_index, mc_filter filter_mode, cons
     }
 }
 
-bool igmp_sender::send_general_query(unsigned int if_index, const timers_values& tv, group_mem_protocol gmp) const
+bool igmp_sender::send_general_query(unsigned int if_index, const timers_values& tv) const
 {
     HC_LOG_TRACE("");
 
-    switch (gmp) {
-    case IGMPv1:
-        HC_LOG_ERROR("igmpv1 not supported");
-        return false;
-    case IGMPv2:
-        HC_LOG_ERROR("igmpv2 not supported");
-        return false;
-    case IGMPv3: {
-        return send_igmpv3_query(if_index, tv, addr_storage(AF_INET), false, source_list<source>());
-    }
-    default:
-        HC_LOG_ERROR("unknown group membership protocol");
-        return false;
-    }
+    return send_igmpv3_query(if_index, tv, addr_storage(AF_INET), false, source_list<source>());
 }
 
-bool igmp_sender::send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const
+bool igmp_sender::send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag) const
 {
     HC_LOG_TRACE("");
 
-    switch (gmp) {
-    case IGMPv1:
-        HC_LOG_ERROR("igmpv1 not supported");
-        return false;
-    case IGMPv2:
-        HC_LOG_ERROR("igmpv2 not supported");
-        return false;
-    case IGMPv3: {
-        return send_igmpv3_query(if_index, tv, gaddr, s_flag, source_list<source>());
-    }
-    default:
-        HC_LOG_ERROR("unknown group membership protocol");
-        return false;
-    }
+    return send_igmpv3_query(if_index, tv, gaddr, s_flag, source_list<source>());
 }
 
-bool igmp_sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const
+bool igmp_sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist) const
 {
     HC_LOG_TRACE("");
 
-    switch (gmp) {
-    case IGMPv1:
-        HC_LOG_ERROR("igmpv1 not supported");
-        return false;
-    case IGMPv2:
-        HC_LOG_ERROR("igmpv2 not supported");
-        return false;
-    case IGMPv3: {
-        source_list<source> slist_lower;
-        source_list<source> slist_higher;
-        bool rc = false;
-        for (auto & e : slist) {
-            if (e.retransmission_count > 0) {
-                e.retransmission_count--;
+    source_list<source> slist_lower;
+    source_list<source> slist_higher;
+    bool rc = false;
+    for (auto & e : slist) {
+        if (e.retransmission_count > 0) {
+            e.retransmission_count--;
 
-                if (e.retransmission_count > 0 ) {
-                    rc = true;
-                }
+            if (e.retransmission_count > 0 ) {
+                rc = true;
+            }
 
-                if (e.shared_source_timer.get() != nullptr) {
-                    if (e.shared_source_timer->is_remaining_time_greater_than(tv.get_last_listener_query_time())) {
-                        slist_higher.insert(e);
-                    } else {
-                        slist_lower.insert(e);
-                    }
+            if (e.shared_source_timer.get() != nullptr) {
+                if (e.shared_source_timer->is_remaining_time_greater_than(tv.get_last_listener_query_time())) {
+                    slist_higher.insert(e);
                 } else {
-                    HC_LOG_ERROR("the shared source timer shouldnt be null");
+                    slist_lower.insert(e);
                 }
+            } else {
+                HC_LOG_ERROR("the shared source timer shouldnt be null");
             }
         }
-
-        if (!slist_higher.empty()) {
-            send_igmpv3_query(if_index, tv, gaddr, true, slist_higher);
-        }
-
-        if (!slist_lower.empty()) {
-            send_igmpv3_query(if_index, tv, gaddr, false, slist_lower);
-        }
-
-        return rc;
     }
-    default:
-        HC_LOG_ERROR("unknown group membership protocol");
-        return false;
+
+    if (!slist_higher.empty()) {
+        send_igmpv3_query(if_index, tv, gaddr, true, slist_higher);
     }
+
+    if (!slist_lower.empty()) {
+        send_igmpv3_query(if_index, tv, gaddr, false, slist_lower);
+    }
+
+    return rc;
 }
 
 bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, const source_list<source>& slist) const
@@ -188,24 +149,24 @@ bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& 
     ip_hdr->ip_v = 4;
     ip_hdr->ip_hl = (sizeof(ip) + sizeof(router_alert_option)) / 4;
     ip_hdr->ip_tos = 0;
-    ip_hdr->ip_len = htons(size); 
+    ip_hdr->ip_len = htons(size);
     ip_hdr->ip_id = 0;
     ip_hdr->ip_off = htons(0 | IP_DF); //dont fragment flag
     ip_hdr->ip_ttl = 1;
-    ip_hdr->ip_p = IPPROTO_IGMP; 
+    ip_hdr->ip_p = IPPROTO_IGMP;
     ip_hdr->ip_sum = 0;
     ip_hdr->ip_src = m_interfaces->get_saddr(interfaces::get_if_name(if_index)).get_in_addr();
     ip_hdr->ip_dst = dst_addr.get_in_addr();
 
     //-------------------------------------------------------------------
-    //fill router_alert_option header 
+    //fill router_alert_option header
     router_alert_option* ra_hdr = reinterpret_cast<router_alert_option*>(reinterpret_cast<unsigned char*>(ip_hdr) + sizeof(ip));
     *ra_hdr = router_alert_option();
 
     ip_hdr->ip_sum = m_sock.calc_checksum(reinterpret_cast<unsigned char*>(ip_hdr), sizeof(ip) + sizeof(router_alert_option));
 
     //-------------------------------------------------------------------
-    //fill igmpv3 query 
+    //fill igmpv3 query
     igmpv3_query* query = reinterpret_cast<igmpv3_query*>(reinterpret_cast<unsigned char*>(ra_hdr) + sizeof(router_alert_option));
 
     query->igmp_type = IGMP_MEMBERSHIP_QUERY;

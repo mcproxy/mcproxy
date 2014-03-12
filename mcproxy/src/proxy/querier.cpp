@@ -111,7 +111,7 @@ bool querier::send_general_query()
     m_db.general_query_timer = gqt;
 
     m_timing->add_time(t, m_msg_worker, gqt);
-    return m_sender->send_general_query(m_if_index, m_timers_values, m_db.querier_version_mode);
+    return m_sender->send_general_query(m_if_index, m_timers_values);
 }
 
 void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
@@ -725,7 +725,7 @@ void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo)
             m_timing->add_time(llqi, m_msg_worker, rtimer);
         }
 
-        m_sender->send_mc_addr_specific_query(m_if_index, m_timers_values, gaddr, ginfo.shared_filter_timer->is_remaining_time_greater_than(m_timers_values.get_last_listener_query_time()), ginfo.compatibility_mode_variable);
+        m_sender->send_mc_addr_specific_query(m_if_index, m_timers_values, gaddr, ginfo.shared_filter_timer->is_remaining_time_greater_than(m_timers_values.get_last_listener_query_time()));
 
     } else { //reset itself
         ginfo.group_retransmission_timer = nullptr;
@@ -760,7 +760,7 @@ void querier::send_Q(const addr_storage& gaddr, gaddr_info& ginfo, source_list<s
     }
 
     if (is_used  || in_retransmission_state) {
-        if (m_sender->send_mc_addr_and_src_specific_query(m_if_index, m_timers_values, gaddr, slist, ginfo.compatibility_mode_variable)) {
+        if (m_sender->send_mc_addr_and_src_specific_query(m_if_index, m_timers_values, gaddr, slist)) {
             auto llqi = m_timers_values.get_last_listener_query_interval();
             auto rst = std::make_shared<retransmit_source_timer_msg>(m_if_index, gaddr, llqi);
             ginfo.source_retransmission_timer = rst;

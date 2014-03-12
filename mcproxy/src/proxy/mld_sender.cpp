@@ -69,86 +69,56 @@ bool mld_sender::send_record(unsigned int if_index, mc_filter filter_mode, const
     }
 }
 
-bool mld_sender::send_general_query(unsigned int if_index, const timers_values& tv, group_mem_protocol gmp) const
+bool mld_sender::send_general_query(unsigned int if_index, const timers_values& tv) const
 {
     HC_LOG_TRACE("");
 
-    switch (gmp) {
-    case MLDv1:
-        HC_LOG_ERROR("mldv1 not supported");
-        return false;
-    case MLDv2: {
-        return send_mldv2_query(if_index, tv, addr_storage(AF_INET6), false, source_list<source>());
-    }
-    default:
-        HC_LOG_ERROR("unknown group membership protocol");
-        return false;
-    }
+    return send_mldv2_query(if_index, tv, addr_storage(AF_INET6), false, source_list<source>());
 }
 
-bool mld_sender::send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, group_mem_protocol gmp) const
+bool mld_sender::send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag) const
 {
     HC_LOG_TRACE("");
 
-    switch (gmp) {
-    case MLDv1:
-        HC_LOG_ERROR("mldv1 not supported");
-        return false;
-    case MLDv2: {
-        return send_mldv2_query(if_index, tv, gaddr, s_flag, source_list<source>());
-    }
-    default:
-        HC_LOG_ERROR("unknown group membership protocol");
-        return false;
-    }
+    return send_mldv2_query(if_index, tv, gaddr, s_flag, source_list<source>());
 }
 
-bool mld_sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol gmp) const
+bool mld_sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist) const
 {
     HC_LOG_TRACE("");
 
-    switch (gmp) {
-    case MLDv1:
-        HC_LOG_ERROR("MLDv1 not supported");
-        return false;
-    case MLDv2: {
-        source_list<source> slist_lower;
-        source_list<source> slist_higher;
-        bool rc = false;
-        for (auto & e : slist) {
-            if (e.retransmission_count > 0) {
-                e.retransmission_count--;
+    source_list<source> slist_lower;
+    source_list<source> slist_higher;
+    bool rc = false;
+    for (auto & e : slist) {
+        if (e.retransmission_count > 0) {
+            e.retransmission_count--;
 
-                if (e.retransmission_count > 0 ) {
-                    rc = true;
-                }
+            if (e.retransmission_count > 0 ) {
+                rc = true;
+            }
 
-                if (e.shared_source_timer.get() != nullptr) {
-                    if (e.shared_source_timer->is_remaining_time_greater_than(tv.get_last_listener_query_time())) {
-                        slist_higher.insert(e);
-                    } else {
-                        slist_lower.insert(e);
-                    }
+            if (e.shared_source_timer.get() != nullptr) {
+                if (e.shared_source_timer->is_remaining_time_greater_than(tv.get_last_listener_query_time())) {
+                    slist_higher.insert(e);
                 } else {
-                    HC_LOG_ERROR("the shared source timer shouldnt be null");
+                    slist_lower.insert(e);
                 }
+            } else {
+                HC_LOG_ERROR("the shared source timer shouldnt be null");
             }
         }
-
-        if (!slist_higher.empty()) {
-            send_mldv2_query(if_index, tv, gaddr, true, slist_higher);
-        }
-
-        if (!slist_lower.empty()) {
-            send_mldv2_query(if_index, tv, gaddr, false, slist_lower);
-        }
-
-        return rc;
     }
-    default:
-        HC_LOG_ERROR("unknown group membership protocol");
-        return false;
+
+    if (!slist_higher.empty()) {
+        send_mldv2_query(if_index, tv, gaddr, true, slist_higher);
     }
+
+    if (!slist_lower.empty()) {
+        send_mldv2_query(if_index, tv, gaddr, false, slist_lower);
+    }
+
+    return rc;
 }
 
 bool mld_sender::send_mldv2_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, const source_list<source>& slist) const
