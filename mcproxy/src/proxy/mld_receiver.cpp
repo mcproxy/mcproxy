@@ -105,7 +105,9 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
         default:
             HC_LOG_WARN("unknown kernel message");
         }
-    } else if (hdr->mld_type == MLD_LISTENER_REPORT || hdr->mld_type == MLD_LISTENER_REDUCTION) { //join
+    } else if (hdr->mld_type == MLD_LISTENER_REPORT || hdr->mld_type == MLD_LISTENER_REDUCTION) {
+        HC_LOG_DEBUG("MLD_LISTENER_REPORT or MLD_LISTENER_REDUCTION received");
+
         struct in6_pktinfo* packet_info = nullptr;
 
         for (struct cmsghdr* cmsgptr = CMSG_FIRSTHDR(msg); cmsgptr != nullptr; cmsgptr = CMSG_NXTHDR(msg, cmsgptr)) {
@@ -117,23 +119,27 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
             return;
         }
 
-        //if ((pr_i = this->get_proxy_instance(packet_info->ipi6_ifindex)) == nullptr) {
-        //return;    //?is ifindex registratet
-        //}
+        HC_LOG_DEBUG("\tsaddr: " << addr_storage(packet_info->ipi6_addr));
+        if_index = packet_info->ipi6_ifindex;
+        HC_LOG_DEBUG("\treceived on interface:" << interfaces::get_if_name(if_index));
+
+        if (!is_if_index_relevant(if_index)) {
+            HC_LOG_DEBUG("interface is not relevant");
+            return;
+        }
+
         gaddr = hdr->mld_addr;
+        HC_LOG_DEBUG("\tgroup: " << gaddr);
 
-        //proxy_msg m;
-        //m.type = proxy_msg::RECEIVER_MSG;
-
-        //if (hdr->mld_type == MLD_LISTENER_REPORT) {
-        //m.msg = new struct receiver_msg(receiver_msg::JOIN, packet_info->ipi6_ifindex, g_addr);
-        //} else if (hdr->mld_type == MLD_LISTENER_REDUCTION) {
-        //m.msg = new struct receiver_msg(receiver_msg::LEAVE, packet_info->ipi6_ifindex, g_addr);
-        //} else {
-        //HC_LOG_ERROR("wrong mld type");
-        //}
-
-        //pr_i->add_msg(m);
+        if (hdr->mld_type == MLD_LISTENER_REPORT) {
+            HC_LOG_DEBUG("\treport received");
+            m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, MODE_IS_EXCLUDE, gaddr, source_list<source>(), MLDv1));
+        } else if (hdr->mld_type == MLD_LISTENER_REDUCTION) {
+            HC_LOG_DEBUG("\tlistener reduction received");
+            m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, CHANGE_TO_INCLUDE_MODE, gaddr, source_list<source>(), MLDv1));
+        } else {
+            HC_LOG_ERROR("unkown mld type: " << hdr->mld_type);
+        }
     } else if (hdr->mld_type == MLD_V2_LISTENER_REPORT) {
         HC_LOG_DEBUG("MLD_V2_LISTENER_REPORT received");
 
@@ -185,6 +191,9 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
 
             rec = reinterpret_cast<mldv2_mc_record*>(reinterpret_cast<unsigned char*>(rec) + sizeof(mldv2_mc_record) + nos * sizeof(in6_addr) + aux_size);
         }
+    } else if (hdr->mld_type == MLD_LISTENER_QUERY) {
+        HC_LOG_DEBUG("MLD_LISTENER_QUERY received");
+        HC_LOG_WARN("querier election is not implemented");
     } else {
         HC_LOG_DEBUG("unknown MLD-packet: " << (int)(hdr->mld_type));
     }

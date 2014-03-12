@@ -124,7 +124,8 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             }
             HC_LOG_DEBUG("\tif_index: " << if_index);
 
-            if (!is_if_index_relevant(if_index)) { 
+            if (!is_if_index_relevant(if_index)) {
+                HC_LOG_DEBUG("interface is not relevant");
                 return;
             }
 
@@ -134,39 +135,36 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
         default:
             HC_LOG_WARN("unknown kernel message");
         }
-    } else if (ip_hdr->ip_p == IPPROTO_IGMP && ntohs(ip_hdr->ip_len) <= get_iov_min_size()) { //???????
-        //test_output::printPaket_IPv4_IgmpInfos(buf);
-        
-        if (igmp_hdr->igmp_type == IGMP_V2_MEMBERSHIP_REPORT) {
-            HC_LOG_DEBUG("IGMP_V2_MEMBERSHIP_REPORT received");
+    } else if (ip_hdr->ip_p == IPPROTO_IGMP && ntohs(ip_hdr->ip_len) <= get_iov_min_size()) {
+        if (igmp_hdr->igmp_type == IGMP_V2_MEMBERSHIP_REPORT || igmp_hdr->igmp_type == IGMP_V2_LEAVE_GROUP) {
+            HC_LOG_DEBUG("IGMP_V2_MEMBERSHIP_REPORT or IGMP_V2_LEAVE_GROUP received");
 
             saddr = ip_hdr->ip_src;
             HC_LOG_DEBUG("\tsrc: " << saddr);
-
-            gaddr = igmp_hdr->igmp_group;
-            HC_LOG_DEBUG("\tgroup: " << gaddr);
 
             if ((if_index = m_interfaces->get_if_index(saddr)) == 0) {
                 return;
             }
+
             HC_LOG_DEBUG("\treceived on interface:" << interfaces::get_if_name(if_index));
 
-            m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, MODE_IS_EXCLUDE, gaddr, source_list<source>(), IGMPv2));
-        } else if (igmp_hdr->igmp_type == IGMP_V2_LEAVE_GROUP) {
-            HC_LOG_DEBUG("IGMP_V2_LEAVE_GROUP received");
-
-            saddr = ip_hdr->ip_src;
-            HC_LOG_DEBUG("\tsrc: " << saddr);
+            if (!is_if_index_relevant(if_index)) {
+                HC_LOG_DEBUG("interface is not relevant");
+                return;
+            }
 
             gaddr = igmp_hdr->igmp_group;
             HC_LOG_DEBUG("\tgroup: " << gaddr);
 
-            if ((if_index = m_interfaces->get_if_index(saddr)) == 0) {
-                return ;
+            if (igmp_hdr->igmp_type == IGMP_V2_MEMBERSHIP_REPORT) {
+                HC_LOG_DEBUG("\treport received");
+                m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, MODE_IS_EXCLUDE, gaddr, source_list<source>(), IGMPv2));
+            } else if (igmp_hdr->igmp_type == IGMP_V2_LEAVE_GROUP) {
+                HC_LOG_DEBUG("\tleave group received");
+                m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, CHANGE_TO_INCLUDE_MODE, gaddr, source_list<source>(), IGMPv2));
+            } else {
+                HC_LOG_ERROR("unkown igmp type: " << igmp_hdr->igmp_type); 
             }
-            HC_LOG_DEBUG("\tif_index: " << if_index);
-
-            m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, CHANGE_TO_INCLUDE_MODE, gaddr, source_list<source>(), IGMPv2));
         } else if (igmp_hdr->igmp_type == IGMP_V3_MEMBERSHIP_REPORT) {
             HC_LOG_DEBUG("IGMP_V3_MEMBERSHIP_REPORT received");
 
@@ -185,7 +183,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             }
             HC_LOG_DEBUG("\treceived on interface:" << interfaces::get_if_name(if_index));
 
-            if (!is_if_index_relevant(if_index)) { 
+            if (!is_if_index_relevant(if_index)) {
                 HC_LOG_DEBUG("interface is not relevant");
                 return;
             }
