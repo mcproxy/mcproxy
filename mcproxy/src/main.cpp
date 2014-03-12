@@ -47,13 +47,13 @@ void test_test();
 int main(int arg_count, char* args[])
 {
 #ifndef TESTER
-    try {
-        proxy p(arg_count, args);
-    } catch (const char* e) {
-        std::cout << e << std::endl;
-    }
+    //try {
+        //proxy p(arg_count, args);
+    //} catch (const char* e) {
+        //std::cout << e << std::endl;
+    //}
 
-    //test_test();
+    test_test();
 #else
     try {
         tester(arg_count, args);

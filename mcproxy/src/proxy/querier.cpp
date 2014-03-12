@@ -141,6 +141,15 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
         m_timing->add_time(m_timers_values.get_older_host_present_interval(), m_msg_worker, ohpt);
     }
 
+    //section 8.3.2. In the Presence of MLDv1 Multicast Address Listeners
+    //MLDv2 BLOCK messages are ignored, as are source-lists in TO_EX()
+    //messages (i.e., any TO_EX() message is treated as TO_EX( {} )).
+    if (db_info_it->second.is_in_backward_compatibility_mode()) {
+        if (gr->get_record_type() == MODE_IS_EXCLUDE || gr->get_record_type() == CHANGE_TO_EXCLUDE_MODE || gr->get_record_type() == BLOCK_OLD_SOURCES) {
+            gr->get_slist() = {};
+        }
+    }
+
     switch (db_info_it->second.filter_mode) {
     case  INCLUDE_MODE:
         receive_record_in_include_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_grp_mem_proto(), db_info_it->second);
@@ -778,6 +787,7 @@ timers_values& querier::get_timers_values()
     return m_timers_values;
 }
 
+//interface_filter_fun is very useless, please overwork ???????????????
 void querier::suggest_to_forward_traffic(const addr_storage& gaddr, std::list<std::pair<source, std::list<unsigned int>>>& rt_slist, std::function<bool(const addr_storage&)> interface_filter_fun) const
 {
     HC_LOG_TRACE("");
@@ -785,26 +795,39 @@ void querier::suggest_to_forward_traffic(const addr_storage& gaddr, std::list<st
     if (m_db.is_querier == true) {
         auto db_info_it = m_db.group_info.find(gaddr);
         if (db_info_it != std::end(m_db.group_info)) {
-            if (db_info_it->second.filter_mode == INCLUDE_MODE) {
+            if (db_info_it->second.is_under_bakcward_compatibility_effects()) {
+
+                //accept all sources
                 for (auto & e : rt_slist) {
-                    auto irl_it = db_info_it->second.include_requested_list.find(e.first);
-                    if (irl_it != std::end(db_info_it->second.include_requested_list) ) {
-                        if (interface_filter_fun(e.first.saddr)) {
-                            e.second.push_back(m_if_index);
-                        }
+                    if (interface_filter_fun(e.first.saddr)) {
+                        e.second.push_back(m_if_index);
                     }
                 }
-            } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
-                for (auto & e : rt_slist) {
-                    auto el_it = db_info_it->second.exclude_list.find(e.first);
-                    if (el_it == std::end(db_info_it->second.exclude_list) ) {
-                        if (interface_filter_fun(e.first.saddr)) {
-                            e.second.push_back(m_if_index);
-                        }
-                    }
-                }
+
             } else {
-                HC_LOG_ERROR("unknown filter mode");
+
+                if (db_info_it->second.filter_mode == INCLUDE_MODE) {
+                    for (auto & e : rt_slist) {
+                        auto irl_it = db_info_it->second.include_requested_list.find(e.first);
+                        if (irl_it != std::end(db_info_it->second.include_requested_list) ) {
+                            if (interface_filter_fun(e.first.saddr)) {
+                                e.second.push_back(m_if_index);
+                            }
+                        }
+                    }
+                } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
+                    for (auto & e : rt_slist) {
+                        auto el_it = db_info_it->second.exclude_list.find(e.first);
+                        if (el_it == std::end(db_info_it->second.exclude_list) ) {
+                            if (interface_filter_fun(e.first.saddr)) {
+                                e.second.push_back(m_if_index);
+                            }
+                        }
+                    }
+                } else {
+                    HC_LOG_ERROR("unknown filter mode");
+                }
+
             }
         }
     }
@@ -820,11 +843,20 @@ std::pair<mc_filter, source_list<source>> querier::get_group_membership_infos(co
 
     auto db_info_it = m_db.group_info.find(gaddr);
     if (db_info_it != std::end(m_db.group_info)) {
-        rt_pair.first = db_info_it->second.filter_mode;
-        if (db_info_it->second.filter_mode == INCLUDE_MODE) {
-            rt_pair.second = db_info_it->second.include_requested_list;
-        } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
-            rt_pair.second = db_info_it->second.exclude_list;
+        if (db_info_it->second.is_under_bakcward_compatibility_effects()) {
+
+            rt_pair.first = EXLCUDE_MODE;
+            rt_pair.second = {};
+
+        } else {
+
+            rt_pair.first = db_info_it->second.filter_mode;
+            if (db_info_it->second.filter_mode == INCLUDE_MODE) {
+                rt_pair.second = db_info_it->second.include_requested_list;
+            } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
+                rt_pair.second = db_info_it->second.exclude_list;
+            }
+
         }
     }
 

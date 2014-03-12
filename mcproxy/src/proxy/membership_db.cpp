@@ -92,6 +92,15 @@ gaddr_info::gaddr_info(group_mem_protocol compatibility_mode_variable)
     HC_LOG_TRACE("");
 }
 
+
+bool gaddr_info::is_in_backward_compatibility_mode() const{
+    return !is_newest_version(compatibility_mode_variable);
+}
+
+bool gaddr_info::is_under_bakcward_compatibility_effects() const{
+    return older_host_present_timer.get() == nullptr;        
+}
+
 std::ostream& operator<<(std::ostream& stream, const gaddr_info& g)
 {
     return stream << g.to_string();

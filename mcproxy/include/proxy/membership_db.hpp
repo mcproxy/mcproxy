@@ -59,6 +59,8 @@ struct gaddr_info {
     source_list<source> include_requested_list;
     source_list<source> exclude_list;
 
+    bool is_in_backward_compatibility_mode() const;
+    bool is_under_bakcward_compatibility_effects() const; 
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const gaddr_info& g);
 };

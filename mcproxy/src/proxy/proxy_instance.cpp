@@ -446,7 +446,7 @@ void proxy_instance::test_querier(std::string if_name)
     test_a(send_record, print_proxy_instance);
     test_b(send_record, print_proxy_instance);
     test_c(send_record, print_proxy_instance);
-    //test_d(send_record, print_proxy_instance);
+    test_d(send_record, print_proxy_instance);
     //test_backward_compatibility(send_record, print_proxy_instance);
     //test_backward_compatibility(send_record, print_proxy_instance);
 }
