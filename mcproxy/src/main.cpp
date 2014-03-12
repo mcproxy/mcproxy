@@ -88,7 +88,7 @@ void test_test()
     //timers_values::test_timers_values_copy();
     //timing::test_timing();
     //worker::test_worker();
-    proxy_instance::test_querier("dummy0");
+    proxy_instance::test_querier("lo");
     //simple_routing_data::test_simple_routing_data();
     //igmp_sender::test_igmp_sender();
     //mroute_socket::quick_test();

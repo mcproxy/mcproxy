@@ -77,7 +77,7 @@ private:
 
     void del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
 
-    void send_records(unsigned int upstream_if_index, const addr_storage& gaddr, const source_state& sstate) const;
+    void send_record(unsigned int upstream_if_index, const addr_storage& gaddr, const source_state& sstate) const;
 
     std::shared_ptr<new_source_timer_msg> set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
 

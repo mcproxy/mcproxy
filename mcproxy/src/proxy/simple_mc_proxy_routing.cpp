@@ -457,12 +457,12 @@ void simple_mc_proxy_routing::process_membership_aggregation(rb_rule_matching_ty
     if (rule_matching_type == RMT_FIRST) {
         interface_memberships im(RMT_FIRST , gaddr, m_p, m_data);
         for (auto & e : m_p->m_upstreams) {
-            send_records(e.m_if_index, gaddr, im.get_group_memberships(e.m_if_index));
+            send_record(e.m_if_index, gaddr, im.get_group_memberships(e.m_if_index));
         }
     } else if (rule_matching_type == RMT_MUTEX) {
         interface_memberships im(RMT_MUTEX , gaddr, m_p, m_data);
         for (auto & e : m_p->m_upstreams) {
-            send_records(e.m_if_index, gaddr, im.get_group_memberships(e.m_if_index));
+            send_record(e.m_if_index, gaddr, im.get_group_memberships(e.m_if_index));
         }
     } else {
         HC_LOG_ERROR("unkown rule matching type in this context");
@@ -528,10 +528,10 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
     }
 }
 
-void simple_mc_proxy_routing::send_records(unsigned int upstream_if_index, const addr_storage& gaddr, const source_state& sstate) const
+void simple_mc_proxy_routing::send_record(unsigned int upstream_if_index, const addr_storage& gaddr, const source_state& sstate) const
 {
     HC_LOG_TRACE("");
-    m_p->m_sender->send_report(upstream_if_index, sstate.m_mc_filter, gaddr, sstate.m_source_list);
+    m_p->m_sender->send_record(upstream_if_index, sstate.m_mc_filter, gaddr, sstate.m_source_list);
 }
 
 void simple_mc_proxy_routing::del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const

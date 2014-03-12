@@ -51,7 +51,7 @@ sender::sender(const std::shared_ptr<const interfaces>& interfaces, group_mem_pr
     }
 }
 
-bool sender::send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const
+bool sender::send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const
 {
     using namespace std;
     HC_LOG_TRACE("");

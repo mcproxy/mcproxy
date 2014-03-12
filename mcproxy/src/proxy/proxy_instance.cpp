@@ -442,11 +442,11 @@ void proxy_instance::test_querier(std::string if_name)
 
     //-----------------------------------------------------------------
     //quick_test(send_record, print_proxy_instance);
-    //rand_test(send_record, print_proxy_instance);
-    test_a(send_record, print_proxy_instance);
-    test_b(send_record, print_proxy_instance);
-    test_c(send_record, print_proxy_instance);
-    test_d(send_record, print_proxy_instance);
+    rand_test(send_record, print_proxy_instance);
+    //test_a(send_record, print_proxy_instance);
+    //test_b(send_record, print_proxy_instance);
+    //test_c(send_record, print_proxy_instance);
+    //test_d(send_record, print_proxy_instance);
     //test_backward_compatibility(send_record, print_proxy_instance);
     //test_backward_compatibility(send_record, print_proxy_instance);
 }
@@ -726,6 +726,16 @@ void proxy_instance::rand_test(std::function < void(mcast_addr_record_type, sour
         time = d_src(re);
         cout << "!!--wait: " << time << "sec" << endl;
         cout << endl;
+
+        if (i == 10 || i == 20 || i == 40 ) {
+            sleep(2);
+            send_record(MODE_IS_EXCLUDE, {}, IGMPv2); 
+        }
+
+        if (i == 11 || i == 25 || i == 40 ) {
+            sleep(2);
+            send_record(CHANGE_TO_EXCLUDE_MODE, {}, IGMPv2); 
+        }
 
         sleep(time);
         send_record(r_type[d_r_type(re)], get_src_list(), IGMPv3);

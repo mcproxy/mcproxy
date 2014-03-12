@@ -48,7 +48,7 @@ mld_sender::mld_sender(const std::shared_ptr<const interfaces>& interfaces): sen
     }
 }
 
-bool mld_sender::send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const
+bool mld_sender::send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const
 {
     HC_LOG_TRACE("");
 

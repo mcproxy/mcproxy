@@ -46,7 +46,7 @@ igmp_sender::igmp_sender(const std::shared_ptr<const interfaces>& interfaces): s
     }
 }
 
-bool igmp_sender::send_report(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const
+bool igmp_sender::send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const
 {
     HC_LOG_TRACE("");
 
