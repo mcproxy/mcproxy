@@ -136,8 +136,9 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
         }
     } else if (ip_hdr->ip_p == IPPROTO_IGMP && ntohs(ip_hdr->ip_len) <= get_iov_min_size()) { //???????
         //test_output::printPaket_IPv4_IgmpInfos(buf);
+        
         if (igmp_hdr->igmp_type == IGMP_V2_MEMBERSHIP_REPORT) {
-            HC_LOG_DEBUG("\tjoin");
+            HC_LOG_DEBUG("IGMP_V2_MEMBERSHIP_REPORT received");
 
             saddr = ip_hdr->ip_src;
             HC_LOG_DEBUG("\tsrc: " << saddr);
@@ -150,17 +151,9 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             }
             HC_LOG_DEBUG("\treceived on interface:" << interfaces::get_if_name(if_index));
 
-            //if ((pr_i = this->get_proxy_instance(if_index)) == nullptr) {
-            //return;
-            //}
-
-            //proxy_msg m;
-            //m.type = proxy_msg::RECEIVER_MSG;
-            //m.msg = new struct receiver_msg(receiver_msg::JOIN, if_index, g_addr);
-            //pr_i->add_msg(m);
-            HC_LOG_ERROR("protocoll not supported igmpv2 mem report");
+            m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, MODE_IS_EXCLUDE, gaddr, source_list<source>(), IGMPv2));
         } else if (igmp_hdr->igmp_type == IGMP_V2_LEAVE_GROUP) {
-            HC_LOG_DEBUG("\tleave");
+            HC_LOG_DEBUG("IGMP_V2_LEAVE_GROUP received");
 
             saddr = ip_hdr->ip_src;
             HC_LOG_DEBUG("\tsrc: " << saddr);
@@ -173,16 +166,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
             }
             HC_LOG_DEBUG("\tif_index: " << if_index);
 
-            //if ((pr_i = this->get_proxy_instance(if_index)) == nullptr) {
-            //return;
-            //}
-
-            //proxy_msg m;
-            //m.type = proxy_msg::RECEIVER_MSG;
-            //m.msg = new struct receiver_msg(receiver_msg::LEAVE, if_index, g_addr);
-            //pr_i->add_msg(m);
-
-            HC_LOG_ERROR("protocoll not supported igmpv2 leave group");
+            m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, CHANGE_TO_INCLUDE_MODE, gaddr, source_list<source>(), IGMPv2));
         } else if (igmp_hdr->igmp_type == IGMP_V3_MEMBERSHIP_REPORT) {
             HC_LOG_DEBUG("IGMP_V3_MEMBERSHIP_REPORT received");
 
@@ -229,9 +213,16 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
 
                 rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(rec) + sizeof(igmpv3_mc_record) + nos * sizeof(in_addr) + aux_size);
             }
+
+        } else if (igmp_hdr->igmp_type == IGMP_V1_MEMBERSHIP_REPORT) {
+            HC_LOG_DEBUG("IGMP_V1_MEMBERSHIP_REPORT received");
+            HC_LOG_WARN("protocol not supported");
+        } else if (igmp_hdr->igmp_type == IGMP_MEMBERSHIP_QUERY) {
+            HC_LOG_DEBUG("IGMP_MEMBERSHIP_QUERY received");
+            HC_LOG_WARN("querier election is not implemented");
         } else {
-            HC_LOG_DEBUG("unknown IGMP-packet");
-            HC_LOG_DEBUG("type: " << igmp_hdr->igmp_type);
+            HC_LOG_WARN("unknown IGMP-packet");
+            HC_LOG_WARN("type: " << igmp_hdr->igmp_type);
         }
     } else {
         HC_LOG_DEBUG("unknown IP-packet: " << ip_hdr->ip_p);
