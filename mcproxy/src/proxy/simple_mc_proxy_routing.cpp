@@ -50,6 +50,12 @@ source_state::source_state(std::pair<mc_filter, source_list<source>> sstate)
     HC_LOG_TRACE("");
 }
 
+std::string source_state::to_string() const
+{
+    std::ostringstream s;
+    s << get_mc_filter_name(m_mc_filter) << "{" << m_source_list << "}";
+    return s.str();
+}
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 interface_memberships::interface_memberships(rb_rule_matching_type upstream_in_rule_matching_type, const addr_storage& gaddr, const proxy_instance* pi, const simple_routing_data& routing_data)
@@ -247,6 +253,18 @@ source_state interface_memberships::get_group_memberships(unsigned int upstream_
 
     m_data.pop_front();
     return result;
+}
+
+std::string interface_memberships::to_string() const
+{
+    std::ostringstream s;
+    for (auto & e : m_data) {
+        s << interfaces::get_if_name(e.first) <<  ":";
+        for (auto & f: e.second) {
+           s << std::endl << indention(f.to_string()); 
+        }
+    }
+    return s.str();
 }
 
 //-------------------------------------------------------------------------------

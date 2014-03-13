@@ -40,6 +40,7 @@ struct source_state{
     source_state(std::pair<mc_filter, source_list<source>> sstate);
     mc_filter m_mc_filter;
     source_list<source> m_source_list;
+    std::string to_string() const;
 };
 
 class interface_memberships
@@ -57,6 +58,8 @@ public:
     interface_memberships(rb_rule_matching_type upstream_in_rule_matching_type, const addr_storage& gaddr, const proxy_instance* pi, const simple_routing_data& routing_data);
     
     source_state get_group_memberships(unsigned int upstream_if_index);
+
+    std::string to_string() const;
 };
 
 /**
