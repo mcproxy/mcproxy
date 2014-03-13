@@ -619,6 +619,7 @@ void querier::timer_triggerd_older_host_present_timer(gaddr_map::iterator db_inf
     if (ginfo.older_host_present_timer.get() == msg.get()) {
         if (is_newest_version(ginfo.compatibility_mode_variable)) {
             ginfo.older_host_present_timer = nullptr;
+            state_change_notification(db_info_it->first);
         } else {
             ginfo.compatibility_mode_variable = get_next_newer_version(ginfo.compatibility_mode_variable);
 
