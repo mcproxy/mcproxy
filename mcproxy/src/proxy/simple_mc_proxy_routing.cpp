@@ -260,8 +260,8 @@ std::string interface_memberships::to_string() const
     std::ostringstream s;
     for (auto & e : m_data) {
         s << interfaces::get_if_name(e.first) <<  ":";
-        for (auto & f: e.second) {
-           s << std::endl << indention(f.to_string()); 
+        for (auto & f : e.second) {
+            s << std::endl << indention(f.to_string());
         }
     }
     return s.str();

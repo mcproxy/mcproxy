@@ -53,7 +53,7 @@ bool igmp_sender::send_record(unsigned int if_index, mc_filter filter_mode, cons
     if (filter_mode == INCLUDE_MODE && slist.empty() ) {
         m_sock.leave_group(gaddr, if_index);
         return true;
-    } else if (filter_mode == EXLCUDE_MODE) {
+    } else if (filter_mode == EXLCUDE_MODE || filter_mode == INCLUDE_MODE) {
         m_sock.join_group(gaddr, if_index);
         std::list<addr_storage> src_list;
         for (auto & e : slist) {
