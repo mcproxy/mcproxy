@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import random
 from time import sleep
 from mininet.topo import Topo
 from mininet.net import Mininet
@@ -53,26 +52,23 @@ def killall(host):
     host.cmd('killall mcproxy')    
     host.cmd('killall tester')
 
-def get_random_delay_value(delay_from, delay_to):
-    return str(random.randint(delay_from, delay_to)) + 'ms'
-
-def set_random_interface_delays(action, lma, mag1, mag2, host1, host2):
+def set_interface_delays(lma, mag1, mag2, host1, host2):
     #action = 'add' or 'change'
 
     lma_mag_delay =  '20ms 5ms' #delay, jitter
     mag_host_delay =  '30ms 10ms' #delay, jitter
 
-    set_interface_delay(action, lma, 'lma-eth0', lma_mag_delay)
-    set_interface_delay(action, lma, 'lma-eth1', lma_mag_delay)
+    set_interface_delay('add', lma, 'lma-eth0', lma_mag_delay)
+    set_interface_delay('add', lma, 'lma-eth1', lma_mag_delay)
 
-    set_interface_delay(action, mag1, 'mag1-eth0', lma_mag_delay)
-    set_interface_delay(action, mag1, 'mag1-eth1', mag_host_delay)
+    set_interface_delay('add', mag1, 'mag1-eth0', lma_mag_delay)
+    set_interface_delay('add', mag1, 'mag1-eth1', mag_host_delay)
 
-    set_interface_delay(action, mag2, 'mag2-eth0', lma_mag_delay)
-    set_interface_delay(action, mag2, 'mag2-eth1', mag_host_delay)
+    set_interface_delay('add', mag2, 'mag2-eth0', lma_mag_delay)
+    set_interface_delay('add', mag2, 'mag2-eth1', mag_host_delay)
 
-    set_interface_delay(action, host1, 'host1-eth0', mag_host_delay)
-    set_interface_delay(action, host2, 'host2-eth0', mag_host_delay)
+    set_interface_delay('add', host1, 'host1-eth0', mag_host_delay)
+    set_interface_delay('add', host2, 'host2-eth0', mag_host_delay)
 
 def TopoTest():
     topo=Example()	
@@ -115,7 +111,7 @@ def TopoTest():
     reset_rp_filter(host2, ['all', 'host2-eth0'])
 
     #delays
-    set_random_interface_delays('add', lma, mag1, mag2, host1, host2)
+    set_interface_delays(lma, mag1, mag2, host1, host2)
 
     #run programms
     ##################################################
