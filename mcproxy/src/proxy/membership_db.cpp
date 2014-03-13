@@ -98,7 +98,7 @@ bool gaddr_info::is_in_backward_compatibility_mode() const{
 }
 
 bool gaddr_info::is_under_bakcward_compatibility_effects() const{
-    return older_host_present_timer.get() == nullptr;        
+    return older_host_present_timer.get() != nullptr;        
 }
 
 std::ostream& operator<<(std::ostream& stream, const gaddr_info& g)

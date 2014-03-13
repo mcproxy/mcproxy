@@ -154,7 +154,7 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
 
     switch (db_info_it->second.filter_mode) {
     case  INCLUDE_MODE:
-        receive_record_in_include_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_grp_mem_proto(), db_info_it->second);
+        receive_record_in_include_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), db_info_it->second);
 
         //if the new created group is not used delete it
         if (db_info_it->second.filter_mode == INCLUDE_MODE && db_info_it->second.include_requested_list.empty()) {
@@ -163,7 +163,7 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
 
         break;
     case EXLCUDE_MODE:
-        receive_record_in_exclude_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), gr->get_grp_mem_proto(), db_info_it->second);
+        receive_record_in_exclude_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), db_info_it->second);
         break;
     default :
         HC_LOG_ERROR("wrong filter mode: " << db_info_it->second.filter_mode);
@@ -172,7 +172,7 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
 
 }
 
-void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol report_version, gaddr_info& ginfo)
+void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, gaddr_info& ginfo)
 {
     HC_LOG_TRACE("record type: " << record_type);
     //7.4.1.  Reception of Current State Records
@@ -269,7 +269,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
 
 }
 
-void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, group_mem_protocol report_version, gaddr_info& ginfo)
+void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, gaddr_info& ginfo)
 {
     HC_LOG_TRACE("record type: " << record_type);
     //7.4.1.  Reception of Current State Records

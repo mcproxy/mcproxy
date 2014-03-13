@@ -49,14 +49,14 @@ def ping(host, subnet):
 
 def start_mcproxy(host, config_file):
     mcproxy='../../../mcproxy/mcproxy'
-    host.cmd('xterm -e "' + mcproxy + ' -sdvv -f ' + config_file + '; sleep 20"&')
+    print host.cmd('xterm -e "' + mcproxy + ' -sdvv -f ' + config_file + '; sleep 100"&')
 
 def set_interface_delay(action, host, interface, delay): #action: add/change/delete
     print host.cmd('tc qdisc ' + action + ' dev ' + interface + ' root handle 1: netem delay ' + delay)
 
 def killall(host):
-    host.cmd('killall mcproxy')    
-    host.cmd('killall tester')
+    print host.cmd('killall mcproxy')    
+    print host.cmd('killall tester')
 
 def set_interface_delays(proxy, host1, host2, host3, host4):
     #action = 'add' or 'change'
@@ -74,7 +74,7 @@ def set_interface_delays(proxy, host1, host2, host3, host4):
 
 def start_tester(host, action):
     tester='../../../mcproxy/tester'
-    host.cmd('xterm -e "' + tester + ' ' + action + ' ; sleep 2"&')
+    print host.cmd('xterm -e "' + tester + ' ' + action + ' ; sleep 100"&')
 
 def force_multicast_proto_version(host, hostnumber, version):
     print host.cmd('echo ' + str(version) + ' > /proc/sys/net/ipv4/conf/host' + str(hostnumber) + '-eth0/force_igmp_version')
@@ -84,12 +84,12 @@ def get_multicast_proto_version(host, hostnumber):
 
 def help_msg():
     print "-- possible commands --"
-    print "[start|stop] mcproxy"
-    print "[start|stop] host"
+    print "(start|stop) mcproxy"
+    print "(start|stop) host"
     print "\th1_send"
     print "\th2_recv"
     print "\th3_recv"
-    print "[get|set] igmp"
+    print "(get|set) igmp"
     print "help"
     print "exit"
 
@@ -139,29 +139,45 @@ def TopoTest():
             print "hostnumber unknown (uses host4)"
             return host4
 
-
     help_msg()
     running = True
     while running: 
-        str_input = raw_input(">")
+        str_input = raw_input("> ").strip()
 
         if str_input == "start mcproxy":
             start_mcproxy(proxy, 'proxy.conf')
         elif str_input == "stop mcproxy":
-            killall(proxy)    
+            print get_host(hostnumber).cmd('killall mcproxy')
         elif str_input == "start host":
-            hostnumber = int(raw_input("host number?"))
-            action = raw_input("host action?")
+            try:
+                hostnumber = int(raw_input("host number? ").strip())
+            except:
+                print "wrong input"
+                continue 
+            action = raw_input("host action? ")
             start_tester(get_host(hostnumber), action)
         elif str_input == "stop host":
-            hostnumber = int(raw_input("host number?"))
-            killall(get_host(hostnumber))    
+            try:
+                hostnumber = int(raw_input("host number? ").strip())
+            except:
+                print "wrong input"
+                continue 
+            
+            print get_host(hostnumber).cmd('killall tester')
         elif str_input == "set igmp":
-            hostnumber = int(raw_input("host number?"))
-            igmpversion= int(raw_input("verison?"))
+            try:
+                hostnumber = int(raw_input("host number? ").strip())
+                igmpversion= int(raw_input("verison? ").strip())
+            except:
+                print "wrong input"
+                continue 
             force_multicast_proto_version(get_host(hostnumber), hostnumber, igmpversion)
         elif str_input == "get igmp":
-            hostnumber = int(raw_input("host number?"))
+            try:
+                hostnumber = int(raw_input("host number? ").strip())
+            except:
+                print "wrong input"
+                continue 
             get_multicast_proto_version(get_host(hostnumber), hostnumber)
         elif str_input == "exit":
             running = False
