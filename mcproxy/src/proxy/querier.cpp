@@ -145,8 +145,10 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
     //MLDv2 BLOCK messages are ignored, as are source-lists in TO_EX()
     //messages (i.e., any TO_EX() message is treated as TO_EX( {} )).
     if (db_info_it->second.is_in_backward_compatibility_mode()) {
-        if (gr->get_record_type() == MODE_IS_EXCLUDE || gr->get_record_type() == CHANGE_TO_EXCLUDE_MODE || gr->get_record_type() == BLOCK_OLD_SOURCES) {
+        if (gr->get_record_type() == CHANGE_TO_EXCLUDE_MODE) {
             gr->get_slist() = {};
+        } else if (gr->get_record_type() == BLOCK_OLD_SOURCES){
+            return;     
         }
     }
 
