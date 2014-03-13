@@ -472,13 +472,8 @@ void simple_mc_proxy_routing::process_membership_aggregation(rb_rule_matching_ty
 {
     HC_LOG_TRACE("");
 
-    if (rule_matching_type == RMT_FIRST) {
-        interface_memberships im(RMT_FIRST , gaddr, m_p, m_data);
-        for (auto & e : m_p->m_upstreams) {
-            send_record(e.m_if_index, gaddr, im.get_group_memberships(e.m_if_index));
-        }
-    } else if (rule_matching_type == RMT_MUTEX) {
-        interface_memberships im(RMT_MUTEX , gaddr, m_p, m_data);
+    if (rule_matching_type == RMT_FIRST || rule_matching_type == RMT_MUTEX) {
+        interface_memberships im(rule_matching_type , gaddr, m_p, m_data);
         for (auto & e : m_p->m_upstreams) {
             send_record(e.m_if_index, gaddr, im.get_group_memberships(e.m_if_index));
         }
