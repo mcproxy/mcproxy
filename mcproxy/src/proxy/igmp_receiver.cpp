@@ -32,6 +32,7 @@
 #include <netinet/ip.h>
 
 #ifdef TESTER
+extern "C" {
 void print_buf(const unsigned char * buf, unsigned int size)
 {
 
@@ -69,6 +70,7 @@ void print_buf(const unsigned char * buf, unsigned int size)
         printf("\n");
     }
     printf("\n");
+}
 }
 #endif /* TESTER */
 
