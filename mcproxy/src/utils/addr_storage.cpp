@@ -466,6 +466,7 @@ void addr_storage::set_invalid()
     clean();
 }
 
+#ifdef TESTER
 void addr_storage::test_addr_storage_a()
 {
     HC_LOG_TRACE("");
@@ -977,3 +978,4 @@ void addr_storage::test_addr_storage_b()
         cout << "FAILED!" << endl;
     }
 }
+#endif /* TESTER */

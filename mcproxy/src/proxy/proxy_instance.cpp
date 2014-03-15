@@ -409,6 +409,7 @@ bool proxy_instance::is_downstream(unsigned int if_index) const
     return m_downstreams.find(if_index) != m_downstreams.end();
 }
 
+#ifdef TESTER
 void proxy_instance::test_querier(std::string if_name)
 {
     using namespace std;
@@ -744,3 +745,4 @@ void proxy_instance::rand_test(std::function < void(mcast_addr_record_type, sour
     sleep(1);
     cout << "##-- querier end --##" << endl;
 }
+#endif /* TESTER */
