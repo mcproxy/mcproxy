@@ -32,7 +32,7 @@
 #include <chrono>
 
 //------------------------------------------------------------------------
-enum mc_filter {INCLUDE_MODE = MCAST_INCLUDE, EXLCUDE_MODE = MCAST_EXCLUDE};
+enum mc_filter {INCLUDE_MODE = MCAST_INCLUDE, EXCLUDE_MODE = MCAST_EXCLUDE};
 std::string get_mc_filter_name(mc_filter mf);
 
 enum group_mem_protocol {IGMPv1 = 0x1, IGMPv2 = 0x2, IGMPv3 = 0x4, MLDv1 = 0x8, MLDv2 = 0x10};

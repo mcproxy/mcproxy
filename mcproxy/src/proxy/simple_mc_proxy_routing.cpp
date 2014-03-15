@@ -76,16 +76,16 @@ void interface_memberships::merge_membership_infos(source_state& merge_to, const
     if (merge_to.m_mc_filter == INCLUDE_MODE) {
         if (merge_from.m_mc_filter == INCLUDE_MODE) {
             merge_to.m_source_list += merge_from.m_source_list;
-        } else if (merge_from.m_mc_filter == EXLCUDE_MODE) {
-            merge_to.m_mc_filter = EXLCUDE_MODE;
+        } else if (merge_from.m_mc_filter == EXCLUDE_MODE) {
+            merge_to.m_mc_filter = EXCLUDE_MODE;
             merge_to.m_source_list = merge_from.m_source_list - merge_to.m_source_list;
         } else {
             HC_LOG_ERROR("unknown filter mode in parameter merge_from");
         }
-    } else if (merge_to.m_mc_filter == EXLCUDE_MODE) {
+    } else if (merge_to.m_mc_filter == EXCLUDE_MODE) {
         if (merge_from.m_mc_filter == INCLUDE_MODE) {
             merge_to.m_source_list -= merge_from.m_source_list;
-        } else if (merge_from.m_mc_filter == EXLCUDE_MODE) {
+        } else if (merge_from.m_mc_filter == EXCLUDE_MODE) {
             merge_to.m_source_list *= merge_from.m_source_list;
         } else {
             HC_LOG_ERROR("unknown filter mode in parameter merge_from");

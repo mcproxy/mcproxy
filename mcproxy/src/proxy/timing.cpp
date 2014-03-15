@@ -135,6 +135,7 @@ void timing::join() const
     }
 }
 
+#ifdef TESTER
 void timing::test_timing()
 {
     using namespace std;
@@ -156,6 +157,6 @@ void timing::test_timing()
     sleep(10);
     cout << "finished" << endl;
 }
-
+#endif /* TESTER */
 
 

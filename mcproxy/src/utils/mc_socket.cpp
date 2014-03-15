@@ -696,6 +696,7 @@ void mc_socket::print_source_filter(uint32_t if_index, const addr_storage& gaddr
     cout << endl;
 }
 
+#ifdef TESTER
 void mc_socket::test_mc_group_functions(std::string ipversion, std::string msg, std::string interface, std::string gaddr, in_port_t port)
 {
     using namespace std;
@@ -942,6 +943,7 @@ void mc_socket::test_all()
     test_mc_source_advanced_api("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4.to_string(), saddr_v4a.to_string());
     //test_mc_source_advanced_api("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6.to_string(), saddr_v6a.to_string());
 }
+#endif /* TESTER */
 
 void mc_socket::close_socket() const{
     HC_LOG_TRACE("");

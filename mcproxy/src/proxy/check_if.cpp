@@ -129,6 +129,7 @@ std::vector<int> check_if::swap_to_down()
     return m_swap_to_down;
 }
 
+#ifdef TESTER
 void check_if::test_check_if()
 {
     using namespace std;
@@ -185,3 +186,4 @@ void check_if::test_check_if()
 
 
 }
+#endif /* TESTER */
