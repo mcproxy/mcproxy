@@ -72,7 +72,7 @@ std::string get_mc_filter_name(mc_filter mf)
 {
     std::map<mc_filter, std::string> name_map = {
         {INCLUDE_MODE, "INCLUDE_MODE"},
-        {EXLCUDE_MODE, "EXLCUDE_MODE"}
+        {EXCLUDE_MODE, "EXCLUDE_MODE"}
     };
     return name_map[mf];
 }

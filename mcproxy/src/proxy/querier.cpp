@@ -73,7 +73,7 @@ bool querier::router_groups_function(bool subscribe) const
     mc_filter mf;
 
     if (subscribe) {
-        mf = EXLCUDE_MODE;
+        mf = EXCLUDE_MODE;
     } else {
         mf = INCLUDE_MODE;
     }
@@ -162,7 +162,7 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
         }
 
         break;
-    case EXLCUDE_MODE:
+    case EXCLUDE_MODE:
         receive_record_in_exclude_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), db_info_it->second);
         break;
     default :
@@ -210,7 +210,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
     //                                                    Send Q(MA,A*B)
     //                                                    Filter Timer=MALI
     case CHANGE_TO_EXCLUDE_MODE: {//TO_EX(x)
-        ginfo.filter_mode = EXLCUDE_MODE;
+        ginfo.filter_mode = EXCLUDE_MODE;
         ginfo.include_requested_list *= B;
         ginfo.exclude_list = B - A;
 
@@ -240,7 +240,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
     //                                                    Delete (A-B)
     //                                                    Filter Timer=MALI
     case  MODE_IS_EXCLUDE: {//IS_EX(x)
-        ginfo.filter_mode = EXLCUDE_MODE;
+        ginfo.filter_mode = EXCLUDE_MODE;
         ginfo.include_requested_list *= B;
         ginfo.exclude_list = B - A;
 
@@ -490,7 +490,7 @@ void querier::timer_triggerd_filter_timer(gaddr_map::iterator db_info_it, const 
     //                                        List, and the Exclude
     //                                        List is deleted.
 
-    if (ginfo.filter_mode == EXLCUDE_MODE) {
+    if (ginfo.filter_mode == EXCLUDE_MODE) {
         if (ginfo.include_requested_list.empty()) {
             addr_storage notify_gaddr = db_info_it->first;
 
@@ -551,7 +551,7 @@ void querier::timer_triggerd_source_timer(gaddr_map::iterator db_info_it, const 
     //If the timer
     //of a source from the Requested List expires, the source is moved to
     //the Exclude List.
-    case EXLCUDE_MODE: {
+    case EXCLUDE_MODE: {
         addr_storage notify_gaddr = db_info_it->first;
 
         for (auto it = std::begin(ginfo.include_requested_list); it != std::end(ginfo.include_requested_list);) {
@@ -818,7 +818,7 @@ void querier::suggest_to_forward_traffic(const addr_storage& gaddr, std::list<st
                             }
                         }
                     }
-                } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
+                } else if (db_info_it->second.filter_mode == EXCLUDE_MODE) {
                     for (auto & e : rt_slist) {
                         auto el_it = db_info_it->second.exclude_list.find(e.first);
                         if (el_it == std::end(db_info_it->second.exclude_list) ) {
@@ -848,7 +848,7 @@ std::pair<mc_filter, source_list<source>> querier::get_group_membership_infos(co
     if (db_info_it != std::end(m_db.group_info)) {
         if (db_info_it->second.is_under_bakcward_compatibility_effects()) {
 
-            rt_pair.first = EXLCUDE_MODE;
+            rt_pair.first = EXCLUDE_MODE;
             rt_pair.second = {};
 
         } else {
@@ -856,7 +856,7 @@ std::pair<mc_filter, source_list<source>> querier::get_group_membership_infos(co
             rt_pair.first = db_info_it->second.filter_mode;
             if (db_info_it->second.filter_mode == INCLUDE_MODE) {
                 rt_pair.second = db_info_it->second.include_requested_list;
-            } else if (db_info_it->second.filter_mode == EXLCUDE_MODE) {
+            } else if (db_info_it->second.filter_mode == EXCLUDE_MODE) {
                 rt_pair.second = db_info_it->second.exclude_list;
             }
 

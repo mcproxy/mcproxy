@@ -220,7 +220,7 @@ mc_filter tester::get_mc_filter(const std::string& to_do)
         if (str_mf.compare("include") == 0) {
             mf = mc_filter::INCLUDE_MODE;
         } else if (str_mf.compare("exclude") == 0) {
-            mf = mc_filter::EXLCUDE_MODE;
+            mf = mc_filter::EXCLUDE_MODE;
         } else {
             std::cout << str_mf << " is not filter_mode" << std::endl;
             exit(0);
