@@ -31,7 +31,7 @@
 #include <netinet/igmp.h>
 #include <netinet/ip.h>
 
-#ifdef TESTER
+#ifdef DEBUG_MODE
 extern "C" {
 void print_buf(const unsigned char * buf, unsigned int size)
 {
@@ -72,7 +72,7 @@ void print_buf(const unsigned char * buf, unsigned int size)
     printf("\n");
 }
 }
-#endif /* TESTER */
+#endif /* DEBUG_MODE */
 
 igmp_receiver::igmp_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode): receiver(pr_i, AF_INET, mrt_sock, interfaces, in_debug_testing_mode)
 {

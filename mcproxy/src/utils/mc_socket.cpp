@@ -696,7 +696,7 @@ void mc_socket::print_source_filter(uint32_t if_index, const addr_storage& gaddr
     cout << endl;
 }
 
-#ifdef TESTER
+#ifdef DEBUG_MODE
 void mc_socket::test_mc_group_functions(std::string ipversion, std::string msg, std::string interface, std::string gaddr, in_port_t port)
 {
     using namespace std;

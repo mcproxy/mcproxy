@@ -896,7 +896,7 @@ void mroute_socket::print_struct_mf6cctl(struct mf6cctl* mc)
     cout << endl;
 }
 
-#ifdef TESTER
+#ifdef DEBUG_MODE
 void mroute_socket::test_mcrouter_mrt_flag()
 {
     HC_LOG_TRACE("");
@@ -1276,7 +1276,7 @@ void mroute_socket::quick_test()
     //sleep(2);
     //}
 }
-#endif /* TESTER */
+#endif /* DEBUG_MODE */
 
 mroute_socket::~mroute_socket()
 {

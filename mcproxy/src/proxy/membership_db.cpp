@@ -29,7 +29,7 @@
 #include <vector>
 #include <set>
 
-#ifdef TESTER
+#ifdef DEBUG_MODE
 void membership_db::test_arithmetic()
 {
     using namespace std;
@@ -80,7 +80,7 @@ void membership_db::test_arithmetic()
     cout << source_list<int> {1, 5, 2} - source_list<int> {2} - source_list<int> {5, 2}  << endl;
 
 }
-#endif /* TESTER */
+#endif /* DEBUG_MODE */
 
 gaddr_info::gaddr_info(group_mem_protocol compatibility_mode_variable)
     : filter_mode(INCLUDE_MODE)

@@ -65,7 +65,7 @@ int main(int arg_count, char* args[])
     return 0;
 }
 
-#ifdef TESTER
+#ifdef DEBUG_MODE
 void test_log()
 {
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
@@ -95,4 +95,4 @@ void test_test()
     //mroute_socket::quick_test();
     //configuration::test_configuration();
 }
-#endif /* TESTER */
+#endif /* DEBUG_MODE */

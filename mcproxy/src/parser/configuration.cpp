@@ -205,7 +205,7 @@ void configuration::initalize_interfaces()
     }
 }
 
-#ifdef TESTER
+#ifdef DEBUG_MODE
 void configuration::test_configuration()
 {
     using namespace std;
@@ -242,7 +242,7 @@ void configuration::test_configuration()
 
     cout << "end of programm" << endl;
 }
-#endif /* TESTER */
+#endif /* DEBUG_MODE */
 
 const std::shared_ptr<const interfaces> configuration::get_interfaces_for_pinstance(const std::string& instance_name) const{
     HC_LOG_TRACE("");

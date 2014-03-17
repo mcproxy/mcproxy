@@ -93,7 +93,7 @@ void worker::join() const
     }
 }
 
-#ifdef TESTER
+#ifdef DEBUG_MODE
 void worker::test_worker()
 {
     std::cout << "##-- test worker --##" << std::endl;
@@ -151,4 +151,4 @@ void worker::test_worker()
     std::cout << "##-- end of test worker --##" << std::endl;
     sleep(4);
 }
-#endif /* TESTER */
+#endif /* DEBUG_MODE */

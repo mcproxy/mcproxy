@@ -233,7 +233,7 @@ if_prop::~if_prop()
     }
 }
 
-#ifdef TESTER
+#ifdef DEBUG_MODE
 void if_prop::test_if_prop()
 {
     using namespace std;
@@ -254,4 +254,4 @@ void if_prop::test_if_prop()
     }
     p.print_if_info();
 }
-#endif /* TESTER */
+#endif /* DEBUG_MODE */
