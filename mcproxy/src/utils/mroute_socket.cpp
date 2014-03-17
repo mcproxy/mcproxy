@@ -234,7 +234,7 @@ bool mroute_socket::set_ipv4_receive_packets_with_router_alert_header(bool enabl
     }
 
     if (m_addrFamily == AF_INET) {
-        int one = enable? 1: 0;
+        int one = enable ? 1 : 0;
         int rc = setsockopt(m_sock, IPPROTO_IP, IP_ROUTER_ALERT, &one, sizeof(one));
 
         if (rc == -1) {
@@ -809,7 +809,8 @@ bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr
     return false;
 }
 
-void mroute_socket::print_vif_stats(int vif_index) const
+#ifdef DEBUG_MODE
+void mroute_socket::print_vif_stats(mroute_socket* m, int vif_index)
 {
     using namespace std;
     HC_LOG_TRACE("");
@@ -817,18 +818,18 @@ void mroute_socket::print_vif_stats(int vif_index) const
     cout << "##-- vif stats --##" << endl;
     cout << " -vif_index:" << vif_index << endl;
 
-    if (m_addrFamily == AF_INET) {
+    if (m->get_addr_family() == AF_INET) {
         sioc_vif_req req;
-        if (!get_vif_stats(vif_index, &req, nullptr)) {
+        if (!m->get_vif_stats(vif_index, &req, nullptr)) {
             cout << "failed to get vif stats" << endl;
             return;
         }
 
         cout << " -In packets[" << req.ibytes << " bytes]:" << req.icount << endl;
         cout << " -Out packets[" << req.obytes << " bytes]:" << req.ocount << endl;
-    } else if (m_addrFamily == AF_INET6) {
+    } else if (m->get_addr_family() == AF_INET6) {
         struct sioc_mif_req6 req;
-        if (!get_vif_stats(vif_index, nullptr, &req)) {
+        if (!m->get_vif_stats(vif_index, nullptr, &req)) {
             cout << "failed to get vif stats" << endl;
             return;
         }
@@ -841,7 +842,7 @@ void mroute_socket::print_vif_stats(int vif_index) const
     }
 }
 
-void mroute_socket::print_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr) const
+void mroute_socket::print_mroute_stats(mroute_socket* m, const addr_storage& source_addr, const addr_storage& group_addr)
 {
     using namespace std;
     HC_LOG_TRACE("");
@@ -849,18 +850,18 @@ void mroute_socket::print_mroute_stats(const addr_storage& source_addr, const ad
     cout << "##-- mroute states --##" << endl;
     cout << " -src: " << source_addr << " to grp: " << group_addr << endl;
 
-    if (m_addrFamily == AF_INET) {
+    if (m->get_addr_family() == AF_INET) {
         struct sioc_sg_req req;
-        if (!get_mroute_stats(source_addr, group_addr, &req, nullptr)) {
+        if (!m->get_mroute_stats(source_addr, group_addr, &req, nullptr)) {
             cout << "failed to get mroute stats" << endl;
             return;
         }
 
         cout << " -packets[" << req.bytecnt << " bytes]:" << req.pktcnt << endl;
         cout << " -wrong packets:" << req.wrong_if << endl;
-    } else if (m_addrFamily == AF_INET6) {
+    } else if (m->get_addr_family() == AF_INET6) {
         struct sioc_sg_req6 req;
-        if (!get_mroute_stats(source_addr, group_addr, nullptr, &req)) {
+        if (!m->get_mroute_stats(source_addr, group_addr, nullptr, &req)) {
             cout << "failed to get mroute stats" << endl;
             return;
         }
@@ -896,7 +897,6 @@ void mroute_socket::print_struct_mf6cctl(struct mf6cctl* mc)
     cout << endl;
 }
 
-#ifdef DEBUG_MODE
 void mroute_socket::test_mcrouter_mrt_flag()
 {
     HC_LOG_TRACE("");
@@ -1246,8 +1246,8 @@ void mroute_socket::quick_test()
     std::cout << "eth4(t1,v1) ==> eth0(t1,v2) ==> eth0(t2,v2) ==> dummy1(t2,v1)" << std::endl;
 
     while (true) {
-        mb.print_mroute_stats(addr_storage("fd00::38"), addr_storage("ff05::99:99"));
-        mb.print_mroute_stats(addr_storage("fd00::38"), addr_storage("ff05::99:99"));
+        print_mroute_stats(&ma, addr_storage("fd00::38"), addr_storage("ff05::99:99"));
+        print_mroute_stats(&mb, addr_storage("fd00::38"), addr_storage("ff05::99:99"));
         sleep(2);
     }
 

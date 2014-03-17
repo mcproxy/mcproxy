@@ -242,8 +242,8 @@ public:
 #define  MROUTE_SOCKET_IF_STR_TWO "wlan0"
 #define  MROUTE_SOCKET_IF_STR_THREE "tun0"
 
-    void print_vif_stats(int vif_index) const;
-    void print_mroute_stats(const addr_storage& source_addr, const addr_storage& group_addr) const;
+    static void print_vif_stats(mroute_socket* m, int vif_index);
+    static void print_mroute_stats(mroute_socket* m, const addr_storage& source_addr, const addr_storage& group_addr);
 
     static void print_struct_mf6cctl(struct mf6cctl* mc);
     static void test_mcrouter_mrt_flag();

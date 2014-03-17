@@ -81,17 +81,6 @@ public:
     const std::list<const struct ifaddrs* >* get_ip6_if(const std::string& if_name) const;
 
     /**
-     * @brief Print all available network interface information.
-     */
-    void print_if_info() const;
-
-    /**
-     * @brief Print interface information for a specific interface.
-     * @param if_p interface properties for a specific inerface.
-     */
-    void print_if_addr(const struct ifaddrs* if_p) const;
-
-    /**
      * @brief Release all allocated resources.
      */
     virtual ~if_prop();
@@ -102,6 +91,17 @@ public:
     bool is_getaddrs_valid() const {
         return m_if_addrs != 0;
     }
+
+    /**
+     * @brief Print all available network interface information.
+     */
+    static void print_if_info(if_prop* p);
+
+    /**
+     * @brief Print interface information for a specific interface.
+     * @param if_p interface properties for a specific inerface.
+     */
+    static void print_if_addr(const struct ifaddrs* if_p);
 
     /**
      * @brief Test the class if_prop.
