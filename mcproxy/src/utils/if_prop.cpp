@@ -193,7 +193,7 @@ void if_prop::print_if_info(if_prop* p)
 void if_prop::print_if_addr(const struct ifaddrs* if_p)
 {
     using namespace std;
-    cout << "\tif name: " << if_p->ifa_name << endl;
+    cout << "\tif name(#" << if_nametoindex(if_p->ifa_name) << "): " << if_p->ifa_name << endl;
     cout << "\t- addr: " << addr_storage(*if_p->ifa_addr) << endl;
     cout << "\t- netmask: " << addr_storage(*if_p->ifa_netmask) << endl;
 

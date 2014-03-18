@@ -90,6 +90,7 @@ def help_msg():
     print "\th2_recv"
     print "\th3_recv"
     print "(get|set) igmp"
+    print "cmd"
     print "help"
     print "exit"
 
@@ -129,12 +130,14 @@ def TopoTest():
     ##################################################
  
     def get_host(hostnumber):
-        if hostnumber == 1:
+        if str(hostnumber) == "1":
             return host1 
-        elif hostnumber == 2:
+        elif str(hostnumber) == "2":
             return host2
-        elif hostnumber == 3:
+        elif str(hostnumber) == "3":
             return host3 
+        elif str(hostnumber) == "p":
+            return proxy
         else:
             print "hostnumber unknown (uses host4)"
             return host4
@@ -169,6 +172,15 @@ def TopoTest():
                 print "wrong input"
                 continue 
             get_multicast_proto_version(get_host(hostnumber), hostnumber)
+        elif str_input == "cmd":
+            try:
+                hostnumber = raw_input("host number or p for proxy? ").strip()
+                cmd= raw_input("cmd? ").strip()
+                 
+            except:
+                print "wrong input"
+                continue 
+            print get_host(hostnumber).cmd(cmd)
         elif str_input == "exit":
             running = False
         elif str_input == "help":
