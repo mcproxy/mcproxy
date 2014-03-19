@@ -165,24 +165,18 @@ addr_storage& addr_storage::operator=(const in6_addr& s)
 
 addr_storage& addr_storage::operator=(const sockaddr& s)
 {
-    clean();
-
     memcpy(&m_addr, &s, get_addr_len(s.sa_family));
     return *this;
 }
 
 addr_storage& addr_storage::operator=(const sockaddr_in& s)
 {
-    clean();
-
     *this = *reinterpret_cast<const sockaddr*>(&s);
     return *this;
 }
 
 addr_storage& addr_storage::operator=(const sockaddr_in6& s)
 {
-    clean();
-
     *this = *reinterpret_cast<const sockaddr_in*>(&s);
     return *this;
 }
