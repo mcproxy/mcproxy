@@ -37,7 +37,8 @@ QMAKE_CXXFLAGS += -std=c++11
 
 QMAKE_CXXFLAGS_DEBUG -= -g 
 QMAKE_CXXFLAGS_DEBUG += -ggdb 
-QMAKE_CXXFLAGS_DEBUG += -pedantic 
+QMAKE_CXXFLAGS_DEBUG += -Wpedantic 
+#QMAKE_CXXFLAGS_DEBUG += -Weverything #clang only
 
 
 target.path = /usr/local/bin
