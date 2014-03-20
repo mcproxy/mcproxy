@@ -175,6 +175,7 @@ std::ostream& operator<<(std::ostream& stream, const simple_routing_data& rm)
     return stream << rm.to_string();
 }
 
+#ifdef DEBUG_MODE
 void simple_routing_data::test_simple_routing_data()
 {
     using namespace std;
@@ -195,3 +196,4 @@ void simple_routing_data::test_simple_routing_data()
     //srd.del_source(0, addr_storage("10.1.1.1"), addr_storage("1.1.1.2"));
     //cout << srd << endl;
 }
+#endif /* DEBUG_MODE */

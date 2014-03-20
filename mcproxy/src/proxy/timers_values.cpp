@@ -365,6 +365,7 @@ std::ostream& operator<<(std::ostream& stream, const timers_values& tv)
     return stream << tv.to_string();
 }
 
+#ifdef DEBUG_MODE
 void timers_values::test_timers_values()
 {
     HC_LOG_TRACE("");
@@ -483,3 +484,4 @@ void timers_values::test_timers_values_copy()
 
 
 }
+#endif /* DEBUG_MODE */

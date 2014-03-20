@@ -655,7 +655,8 @@ bool mc_socket::get_source_filter(uint32_t if_index, const addr_storage& gaddr, 
     }
 }
 
-void mc_socket::print_source_filter(uint32_t if_index, const addr_storage& gaddr) const
+#ifdef DEBUG_MODE
+void mc_socket::print_source_filter(mc_socket *m, uint32_t if_index, const addr_storage& gaddr)
 {
     using namespace std;
     HC_LOG_TRACE("");
@@ -669,7 +670,7 @@ void mc_socket::print_source_filter(uint32_t if_index, const addr_storage& gaddr
     cout << " -if_index: " << if_index << endl;
     cout << " -gaddr: " << gaddr << endl;
 
-    if (!this->get_source_filter(if_index, gaddr, filter_mode, src_list)) {
+    if (!m->get_source_filter(if_index, gaddr, filter_mode, src_list)) {
         cout << "failed to get source filter list" << endl;
         return;
     }
@@ -881,7 +882,7 @@ void mc_socket::test_mc_source_advanced_api(std::string ipversion, std::string i
     sleep(sleepTime);
 
     cout << "--<" << count++ << "> Print source filter list --" << endl;
-    m.print_source_filter(if_nametoindex(interface.c_str()), addr_storage(gaddr));
+    m.print_source_filter(&m, if_nametoindex(interface.c_str()), addr_storage(gaddr));
     sleep(sleepTime);
 
     //---------------------------------------------------------------------------------------
@@ -895,7 +896,7 @@ void mc_socket::test_mc_source_advanced_api(std::string ipversion, std::string i
     sleep(sleepTime);
 
     cout << "--<" << count++ << "> Print source filter list --" << endl;
-    m.print_source_filter(if_nametoindex(interface.c_str()), addr_storage(gaddr));
+    m.print_source_filter(&m, if_nametoindex(interface.c_str()), addr_storage(gaddr));
     sleep(sleepTime);
 
     //---------------------------------------------------------------------------------------
@@ -909,7 +910,7 @@ void mc_socket::test_mc_source_advanced_api(std::string ipversion, std::string i
     sleep(sleepTime);
 
     cout << "--<" << count++ << "> Print source filter list --" << endl;
-    m.print_source_filter(if_nametoindex(interface.c_str()), addr_storage(gaddr));
+    m.print_source_filter(&m, if_nametoindex(interface.c_str()), addr_storage(gaddr));
     sleep(sleepTime);
     //---------------------------------------------------------------------------------------
 
@@ -942,6 +943,7 @@ void mc_socket::test_all()
     test_mc_source_advanced_api("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4.to_string(), saddr_v4a.to_string());
     //test_mc_source_advanced_api("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6.to_string(), saddr_v6a.to_string());
 }
+#endif /* TESTER */
 
 void mc_socket::close_socket() const{
     HC_LOG_TRACE("");

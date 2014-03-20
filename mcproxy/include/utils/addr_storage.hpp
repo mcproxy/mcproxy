@@ -29,21 +29,24 @@
 #include <string>
 
 /**
- * @brief Wrapper for ip an IP address storage.
+ * @brief Wrapper for IPv4 and IPv6 addresses.
  */
 class addr_storage
 {
 private:
     sockaddr_storage m_addr;
+
     inline void clean();
     inline socklen_t get_addr_len(int addr_family) const;
-
+    inline void set_addr_family(int addr_family);
+    inline in_addr& get_in_addr_mutable();
+    inline in6_addr& get_in6_addr_mutable();
 public:
     addr_storage(addr_storage&&) = default;
-    addr_storage& operator=(addr_storage && ) = default;
+    addr_storage& operator=(addr_storage &&) = default;
 
-    addr_storage(const addr_storage& addr) = default;
-    addr_storage& operator=(const addr_storage& s) = default;
+    addr_storage(const addr_storage&) = default;
+    addr_storage& operator=(const addr_storage&) = default;
 
     /**
      * @brief Create an empty and invalid addr_storage.
@@ -161,9 +164,9 @@ public:
     /**
      * @brief mask an addr with a netmask
      */
-    addr_storage& mask_ipv4(const addr_storage& s);
-    addr_storage& mask(unsigned int prefix);
-    addr_storage& broadcast_addr(unsigned int prefix);
+    addr_storage& mask_ipv4(const addr_storage& subnet_mask);
+    addr_storage& mask(unsigned int suffix);
+    addr_storage& broadcast_addr(unsigned int suffix);
 
     //-----------------------------------------------------------
 

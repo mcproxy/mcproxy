@@ -290,8 +290,6 @@ public:
         return m_sock > 0;
     }
 
-    void print_source_filter(uint32_t if_index, const addr_storage& gaddr) const;
-
     /**
      * @brief Test a part of the class mc_socket.
      * @param ipverion "AF_INET" or "AF_INET6"
@@ -300,6 +298,8 @@ public:
      * @param gaddr multicast address for example "239.99.99.99" or "FF02:0:0:0:99:99:99:99"
      * @param port define a port
      */
+    static void print_source_filter(mc_socket *m, uint32_t if_index, const addr_storage& gaddr);
+
     static void test_mc_group_functions(std::string ipversion, std::string msg, std::string interface, std::string gaddr, in_port_t port);
 
     static void test_mc_source_delta_based_api(std::string ipversion, std::string interface, std::string gaddr, std::string saddr);

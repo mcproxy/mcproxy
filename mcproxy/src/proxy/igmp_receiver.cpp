@@ -31,6 +31,8 @@
 #include <netinet/igmp.h>
 #include <netinet/ip.h>
 
+#ifdef DEBUG_MODE
+extern "C" {
 void print_buf(const unsigned char * buf, unsigned int size)
 {
 
@@ -69,6 +71,8 @@ void print_buf(const unsigned char * buf, unsigned int size)
     }
     printf("\n");
 }
+}
+#endif /* DEBUG_MODE */
 
 igmp_receiver::igmp_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode): receiver(pr_i, AF_INET, mrt_sock, interfaces, in_debug_testing_mode)
 {
@@ -206,7 +210,6 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 HC_LOG_DEBUG("\tgaddr: " << gaddr);
                 HC_LOG_DEBUG("\tnumber of sources: " << slist.size());
                 HC_LOG_DEBUG("\tsource_list: " << slist);
-                HC_LOG_DEBUG("\tsend record to proxy_instance");
                 m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, move(slist), IGMPv3));
 
                 rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(rec) + sizeof(igmpv3_mc_record) + nos * sizeof(in_addr) + aux_size);

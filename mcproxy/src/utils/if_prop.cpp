@@ -135,10 +135,65 @@ const std::list<const struct ifaddrs*>* if_prop::get_ip6_if(const std::string& i
     return &(if_prop_iter->second.ip6_addr);
 }
 
-void if_prop::print_if_addr(const struct ifaddrs* if_p) const
+if_prop::~if_prop()
+{
+    HC_LOG_TRACE("");
+
+    if (is_getaddrs_valid()) {
+        freeifaddrs(m_if_addrs);
+    }
+}
+
+#ifdef DEBUG_MODE
+void if_prop::print_if_info(if_prop* p)
 {
     using namespace std;
-    cout << "\tif name: " << if_p->ifa_name << endl;
+    HC_LOG_TRACE("");
+
+    if (!p->is_getaddrs_valid()) {
+        HC_LOG_ERROR("data invalid");
+        return;
+    }
+
+    const if_prop_map* prop = p->get_if_props();
+    if (prop == nullptr) {
+        HC_LOG_ERROR("data struct not found");
+        return;
+    }
+
+    const struct ifaddrs* if_p;
+    const list<const struct ifaddrs*>* if_p_list;
+
+    cout << "##-- IPv4 [count:" << prop->size() << "]--##" << endl;
+    for (if_prop_map::const_iterator iter = prop->begin(); iter != prop->end(); iter++) {
+        if_p = p->get_ip4_if(iter->first);
+        if (if_p == nullptr) {
+            HC_LOG_ERROR("interface name not found: " << iter->first);
+            continue;
+        }
+
+        print_if_addr(if_p);
+    }
+
+    cout << "##-- IPv6 [count:" << prop->size() << "]--##" << endl;
+    for (if_prop_map::const_iterator iter = prop->begin(); iter != prop->end(); iter++) {
+        if_p_list = p->get_ip6_if(iter->first);
+
+        if (if_p_list == nullptr) {
+            HC_LOG_ERROR("interface name not found: " << iter->first);
+            continue;
+        }
+
+        for (list<const struct ifaddrs*>::const_iterator itera = if_p_list->begin(); itera != if_p_list->end(); itera++) {
+            print_if_addr(*itera);
+        }
+    }
+}
+
+void if_prop::print_if_addr(const struct ifaddrs* if_p)
+{
+    using namespace std;
+    cout << "\tif name(#" << if_nametoindex(if_p->ifa_name) << "): " << if_p->ifa_name << endl;
     cout << "\t- addr: " << addr_storage(*if_p->ifa_addr) << endl;
     cout << "\t- netmask: " << addr_storage(*if_p->ifa_netmask) << endl;
 
@@ -179,60 +234,6 @@ void if_prop::print_if_addr(const struct ifaddrs* if_p) const
     }
 }
 
-void if_prop::print_if_info() const
-{
-    using namespace std;
-    HC_LOG_TRACE("");
-
-    if (!is_getaddrs_valid()) {
-        HC_LOG_ERROR("data invalid");
-        return;
-    }
-
-    const if_prop_map* prop = get_if_props();
-    if (prop == nullptr) {
-        HC_LOG_ERROR("data struct not found");
-        return;
-    }
-
-    const struct ifaddrs* if_p;
-    const list<const struct ifaddrs*>* if_p_list;
-
-    cout << "##-- IPv4 [count:" << prop->size() << "]--##" << endl;
-    for (if_prop_map::const_iterator iter = prop->begin(); iter != prop->end(); iter++) {
-        if_p = get_ip4_if(iter->first);
-        if (if_p == nullptr) {
-            HC_LOG_ERROR("interface name not found: " << iter->first);
-            continue;
-        }
-
-        print_if_addr(if_p);
-    }
-
-    cout << "##-- IPv6 [count:" << prop->size() << "]--##" << endl;
-    for (if_prop_map::const_iterator iter = prop->begin(); iter != prop->end(); iter++) {
-        if_p_list = get_ip6_if(iter->first);
-
-        if (if_p_list == nullptr) {
-            HC_LOG_ERROR("interface name not found: " << iter->first);
-            continue;
-        }
-
-        for (list<const struct ifaddrs*>::const_iterator itera = if_p_list->begin(); itera != if_p_list->end(); itera++) {
-            print_if_addr(*itera);
-        }
-    }
-}
-
-if_prop::~if_prop()
-{
-    HC_LOG_TRACE("");
-
-    if (is_getaddrs_valid()) {
-        freeifaddrs(m_if_addrs);
-    }
-}
-
 void if_prop::test_if_prop()
 {
     using namespace std;
@@ -244,12 +245,13 @@ void if_prop::test_if_prop()
         cout << "refresh faild" << endl;
         return;
     }
-    p.print_if_info();
+    print_if_info(&p);
     cout << "##-- refresh --##" << endl;
     sleep(1);
     if (!p.refresh_network_interfaces()) {
         cout << "refresh faild" << endl;
         return;
     }
-    p.print_if_info();
+    print_if_info(&p);
 }
+#endif /* DEBUG_MODE */

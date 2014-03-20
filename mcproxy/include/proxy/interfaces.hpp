@@ -80,7 +80,7 @@ public:
     unsigned int get_if_index(int virtual_if_index) const;
 
     //ipv4 only
-    unsigned int get_if_index(const addr_storage& addr) const;
+    unsigned int get_if_index(const addr_storage& saddr) const;
 
     std::string to_string() const;
     friend std::ostream& operator<<(std::ostream& stream, const interfaces& i);

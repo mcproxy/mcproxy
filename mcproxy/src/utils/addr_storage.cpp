@@ -32,26 +32,38 @@
 
 void addr_storage::clean()
 {
-    //memset(&m_addr,0, sizeof(m_addr));
-    (( sockaddr_in6*)&m_addr)->sin6_family = AF_UNSPEC;
-    (( sockaddr_in6*)&m_addr)->sin6_port = 0;
-    (( sockaddr_in6*)&m_addr)->sin6_flowinfo = 0;
-    (( sockaddr_in6*)&m_addr)->sin6_scope_id = 0;
+    reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_family = AF_UNSPEC;
+    reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_port = 0;
+    reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_flowinfo = 0;
+    reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_scope_id = 0;
 }
 
 socklen_t addr_storage::get_addr_len(int addr_family) const
 {
-    HC_LOG_TRACE("");
-
     switch (addr_family) {
     case AF_INET:
-        return sizeof( sockaddr_in);
+        return sizeof(sockaddr_in);
     case AF_INET6:
-        return sizeof( sockaddr_in6);
+        return sizeof(sockaddr_in6);
     default:
         HC_LOG_ERROR("Unknown address family");
         return 0;
     }
+}
+
+void addr_storage::set_addr_family(int addr_family)
+{
+    m_addr.ss_family = addr_family;
+}
+
+in_addr& addr_storage::get_in_addr_mutable()
+{
+    return reinterpret_cast<sockaddr_in*>(&m_addr)->sin_addr;
+}
+
+in6_addr& addr_storage::get_in6_addr_mutable()
+{
+    return reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr;
 }
 
 addr_storage::addr_storage()
@@ -62,7 +74,7 @@ addr_storage::addr_storage()
 addr_storage::addr_storage(int addr_family)
 {
     memset(&m_addr, 0, sizeof(m_addr));
-    m_addr.ss_family = addr_family;
+    set_addr_family(addr_family);
 }
 
 addr_storage::addr_storage(const std::string& addr)
@@ -117,14 +129,14 @@ addr_storage& addr_storage::operator=(const std::string& s)
     clean();
 
     if (s.find_first_of(':') == std::string::npos) { //==> IPv4
-        m_addr.ss_family = AF_INET;
-        if (inet_pton(m_addr.ss_family, s.c_str(), (void*) & ((( sockaddr_in*)(&m_addr))->sin_addr)) < 1) {
+        set_addr_family(AF_INET);
+        if (inet_pton(get_addr_family(), s.c_str(), reinterpret_cast<void*>(&get_in_addr_mutable())) < 1) {
             HC_LOG_ERROR("failed to convert string to sockaddr_storage:" << s);
             set_invalid();
         }
     } else { //==> IPv6
-        m_addr.ss_family = AF_INET6;
-        if (inet_pton(m_addr.ss_family, s.c_str(), (void*) & ((( sockaddr_in6*)(&m_addr))->sin6_addr)) < 1) {
+        set_addr_family(AF_INET6);
+        if (inet_pton(get_addr_family(), s.c_str(), reinterpret_cast<void*>(&get_in6_addr_mutable())) < 1) {
             HC_LOG_ERROR("failed to convert string to sockaddr_storage:" << s);
             set_invalid();
         }
@@ -137,8 +149,8 @@ addr_storage& addr_storage::operator=(const in_addr& s)
 {
     clean();
 
-    m_addr.ss_family = AF_INET;
-    ((sockaddr_in*)(&m_addr))->sin_addr = s;
+    set_addr_family(AF_INET);
+    get_in_addr_mutable() = s;
     return *this;
 }
 
@@ -146,45 +158,35 @@ addr_storage& addr_storage::operator=(const in6_addr& s)
 {
     clean();
 
-    m_addr.ss_family = AF_INET6;
-    ((sockaddr_in6*)(&m_addr))->sin6_addr = s;
+    set_addr_family(AF_INET6);
+    get_in6_addr_mutable() =  s;
     return *this;
 }
 
 addr_storage& addr_storage::operator=(const sockaddr& s)
 {
-    clean();
     memcpy(&m_addr, &s, get_addr_len(s.sa_family));
-
     return *this;
 }
 
 addr_storage& addr_storage::operator=(const sockaddr_in& s)
 {
-    clean();
-
-    *this = *(const  sockaddr*)&s;
+    *this = *reinterpret_cast<const sockaddr*>(&s);
     return *this;
 }
 
 addr_storage& addr_storage::operator=(const sockaddr_in6& s)
 {
-    clean();
-
-    *this = *(const  sockaddr_in*)&s;
+    *this = *reinterpret_cast<const sockaddr_in*>(&s);
     return *this;
 }
 
 bool addr_storage::operator==(const addr_storage& addr) const
 {
-    std::string a, b;
-    a = this->to_string();
-    b = addr.to_string();
-
-    if (a.empty()) {
-        return false;
-    } else if (a.compare(b) == 0) {
-        return true;
+    if (this->get_addr_family() == AF_INET && addr.get_addr_family() == AF_INET) {
+        return this->get_in_addr().s_addr  == addr.get_in_addr().s_addr;
+    } else if (this->get_addr_family() == AF_INET6 && addr.get_addr_family() == AF_INET6) {
+        return IN6_ARE_ADDR_EQUAL(&this->get_in6_addr(), &addr.get_in6_addr());
     } else {
         return false;
     }
@@ -197,13 +199,13 @@ bool addr_storage::operator!=(const addr_storage& addr) const
 
 bool operator<(const addr_storage& addr1, const addr_storage& addr2)
 {
-    if (addr1.m_addr.ss_family == AF_INET && addr2.m_addr.ss_family == AF_INET) {
-        return  ntohl(((sockaddr_in*)(&addr1))->sin_addr.s_addr) < ntohl(((sockaddr_in*)(&addr2))->sin_addr.s_addr);
-    } else if (addr1.m_addr.ss_family == AF_INET6 && addr2.m_addr.ss_family == AF_INET6) {
-        const uint8_t* a1 = ((const sockaddr_in6*)&addr1.m_addr)->sin6_addr.s6_addr;
-        const uint8_t* a2 = ((const sockaddr_in6*)&addr2.m_addr)->sin6_addr.s6_addr;
+    if (addr1.get_addr_family() == AF_INET && addr2.get_addr_family() == AF_INET) {
+        return  ntohl(addr1.get_in_addr().s_addr) < ntohl(addr2.get_in_addr().s_addr);
+    } else if (addr1.get_addr_family() == AF_INET6 && addr2.get_addr_family() == AF_INET6) {
+        const uint8_t* a1 = addr1.get_in6_addr().s6_addr;
+        const uint8_t* a2 = addr2.get_in6_addr().s6_addr;
 
-        for (unsigned int i = 0; i < sizeof( in6_addr) / sizeof(uint8_t); i++) {
+        for (unsigned int i = 0; i < sizeof(in6_addr) / sizeof(uint8_t); ++i) {
             if (a1[i] > a2[i]) {
                 return false;
             } else if (a1[i] < a2[i]) {
@@ -234,13 +236,11 @@ bool operator>=(const addr_storage& addr1, const addr_storage& addr2)
 
 addr_storage& addr_storage::operator++() //prefix ++
 {
-    HC_LOG_TRACE("");
     if (get_addr_family() == AF_INET) {
-        uint32_t& tmp = reinterpret_cast<sockaddr_in*>(&m_addr)->sin_addr.s_addr;
-        tmp = htonl(ntohl(tmp) + 1);
+        get_in_addr_mutable().s_addr = htonl(ntohl(get_in_addr().s_addr) + 1);
     } else if (get_addr_family() == AF_INET6) {
         for (int i = 3; i >= 0; --i) {
-            uint32_t& tmp = reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr.s6_addr32[i];
+            uint32_t& tmp = get_in6_addr_mutable().s6_addr32[i];
             tmp = htonl(ntohl(tmp) + 1);
             if (tmp != 0) {
                 break;
@@ -254,20 +254,16 @@ addr_storage& addr_storage::operator++() //prefix ++
 
 addr_storage addr_storage::operator++(int) //postfix
 {
-    HC_LOG_TRACE("");
     return ++(*this);
 }
 
 addr_storage& addr_storage::operator--() //prefix --
 {
-    HC_LOG_TRACE("");
-
     if (get_addr_family() == AF_INET) {
-        uint32_t& tmp = reinterpret_cast<sockaddr_in*>(&m_addr)->sin_addr.s_addr;
-        tmp = htonl(ntohl(tmp) - 1);
+        get_in_addr_mutable().s_addr = htonl(ntohl(get_in_addr().s_addr) - 1);
     } else if (get_addr_family() == AF_INET6) {
         for (int i = 3; i >= 0; --i) {
-            uint32_t& tmp = reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr.s6_addr32[i];
+            uint32_t& tmp = get_in6_addr_mutable().s6_addr32[i];
             tmp = htonl(ntohl(tmp) - 1);
             if (tmp != static_cast<uint32_t>(-1)) {
                 break;
@@ -281,106 +277,80 @@ addr_storage& addr_storage::operator--() //prefix --
 
 addr_storage addr_storage::operator--(int) //postfix --
 {
-    HC_LOG_TRACE("");
     return ++(*this);
 }
 
 int addr_storage::get_addr_family() const
 {
-    HC_LOG_TRACE("");
-
     return this->m_addr.ss_family;
 }
 
 in_port_t addr_storage::get_port() const
 {
-    HC_LOG_TRACE("");
-
-    return ntohs(((sockaddr_in*)&m_addr)->sin_port);
+    return ntohs(reinterpret_cast<const sockaddr_in*>(&m_addr)->sin_port);
 }
 
 addr_storage& addr_storage::set_port(uint16_t port)
 {
-    HC_LOG_TRACE("");
-
-    ((sockaddr_in*)&m_addr)->sin_port = htons(port);
+    reinterpret_cast<sockaddr_in*>(&m_addr)->sin_port = htons(port);
     return *this;
 }
 
 addr_storage& addr_storage::set_port(const std::string& port)
 {
-    HC_LOG_TRACE("");
-
     set_port(std::stoi(port.c_str()));
     return *this;
 }
 
 socklen_t addr_storage::get_addr_len() const
 {
-    HC_LOG_TRACE("");
-
     return get_addr_len(get_addr_family());
 }
 
 const sockaddr_storage& addr_storage::get_sockaddr_storage() const
 {
-    HC_LOG_TRACE("");
-
     return m_addr;
 }
 
 const in_addr& addr_storage::get_in_addr() const
 {
-    HC_LOG_TRACE("");
-
-    return ((const  sockaddr_in*)(&m_addr))->sin_addr;
+    return reinterpret_cast<const sockaddr_in*>(&m_addr)->sin_addr;
 }
 
 const in6_addr& addr_storage::get_in6_addr() const
 {
-    HC_LOG_TRACE("");
-
-    return ((const  sockaddr_in6*)(&m_addr))->sin6_addr;
+    return reinterpret_cast<const sockaddr_in6*>(&m_addr)->sin6_addr;
 }
 
 const sockaddr& addr_storage::get_sockaddr() const
 {
-    HC_LOG_TRACE("");
-
-    return *((const  sockaddr*)&m_addr);
+    return *reinterpret_cast<const sockaddr*>(&m_addr);
 }
 
 const sockaddr_in& addr_storage::get_sockaddr_in() const
 {
-    HC_LOG_TRACE("");
-
-    return *((const  sockaddr_in*)(&m_addr));
+    return *reinterpret_cast<const sockaddr_in*>(&m_addr);
 }
 
 const sockaddr_in6& addr_storage::get_sockaddr_in6() const
 {
-    HC_LOG_TRACE("");
-
-    return *((const  sockaddr_in6*)(&m_addr));
+    return *reinterpret_cast<const sockaddr_in6*>(&m_addr);
 }
 
 std::string addr_storage::to_string() const
 {
-    int af = m_addr.ss_family;
-    if (af == AF_INET) {
+    if (get_addr_family() == AF_INET) {
         char addressBuffer[INET_ADDRSTRLEN];
 
-        if (inet_ntop(af, (const void*) & (((const  sockaddr_in*)(&m_addr))->sin_addr), addressBuffer,
-                      sizeof(addressBuffer)) == nullptr) {
+        if (inet_ntop(get_addr_family(), reinterpret_cast<const void*>(&get_in_addr()), addressBuffer, sizeof(addressBuffer)) == nullptr) {
             HC_LOG_ERROR("failed to convert sockaddr_storage");
             return std::string();
         } else {
             return std::string(addressBuffer);
         }
-    } else if (af == AF_INET6) {
+    } else if (get_addr_family() == AF_INET6) {
         char addressBuffer[INET6_ADDRSTRLEN];
-        if (inet_ntop(af, (const void*) & (((const  sockaddr_in6*)(&m_addr))->sin6_addr), addressBuffer,
-                      sizeof(addressBuffer)) == nullptr) {
+        if (inet_ntop(get_addr_family(), reinterpret_cast<const void*>(&get_in6_addr()), addressBuffer, sizeof(addressBuffer)) == nullptr) {
             HC_LOG_ERROR("failed to convert sockaddr_storage");
             return std::string();
         } else {
@@ -392,12 +362,10 @@ std::string addr_storage::to_string() const
     }
 }
 
-addr_storage& addr_storage::mask_ipv4(const addr_storage& s)
+addr_storage& addr_storage::mask_ipv4(const addr_storage& subnet_mask)
 {
-    HC_LOG_TRACE("");
-
-    if (this->m_addr.ss_family == AF_INET && s.m_addr.ss_family == AF_INET) {
-        ((sockaddr_in*)(&m_addr))->sin_addr.s_addr &= ((sockaddr_in*)(&s))->sin_addr.s_addr;
+    if (this->get_addr_family() == AF_INET && subnet_mask.get_addr_family() == AF_INET) {
+        get_in_addr_mutable().s_addr &= subnet_mask.get_in_addr().s_addr;
         return *this;
     } else {
         HC_LOG_ERROR("incompatible ip versions");
@@ -406,20 +374,19 @@ addr_storage& addr_storage::mask_ipv4(const addr_storage& s)
     return *this;
 }
 
-addr_storage& addr_storage::mask(unsigned int prefix)
+addr_storage& addr_storage::mask(unsigned int suffix)
 {
-    HC_LOG_TRACE("");
     if (get_addr_family() == AF_INET) {
-        reinterpret_cast<sockaddr_in*>(&m_addr)->sin_addr.s_addr &= htonl(~(static_cast<unsigned int>(-1) >> prefix));
+        get_in_addr_mutable().s_addr &= htonl(~(static_cast<unsigned int>(-1) >> suffix));
     } else if (get_addr_family() == AF_INET6) {
         for (int i = 3; i >= 0; --i) {
-            uint32_t& tmp_addr = reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr.s6_addr32[i];
-            int tmp_prefix = prefix - (i * 32 /*Bit*/) ;
-            if (tmp_prefix <= 0) {
+            uint32_t& tmp_addr = get_in6_addr_mutable().s6_addr32[i];
+            int tmp_suffix = suffix - (i * 32 /*Bit*/) ;
+            if (tmp_suffix <= 0) {
                 tmp_addr = 0;
-            } else if (tmp_prefix < 32) {
-                tmp_addr &= htonl(~(static_cast<unsigned int>(-1) >> prefix));
-            } else if (tmp_prefix >= 32) {
+            } else if (tmp_suffix < 32) {
+                tmp_addr &= htonl(~(static_cast<unsigned int>(-1) >> suffix));
+            } else if (tmp_suffix >= 32) {
                 break;
             }
         }
@@ -429,20 +396,19 @@ addr_storage& addr_storage::mask(unsigned int prefix)
     return *this;
 }
 
-addr_storage& addr_storage::broadcast_addr(unsigned int prefix)
+addr_storage& addr_storage::broadcast_addr(unsigned int suffix)
 {
-    HC_LOG_TRACE("");
     if (get_addr_family() == AF_INET) {
-        reinterpret_cast<sockaddr_in*>(&m_addr)->sin_addr.s_addr |= htonl(static_cast<unsigned int>(-1) >> prefix);
+        get_in_addr_mutable().s_addr |= htonl(static_cast<unsigned int>(-1) >> suffix);
     } else if (get_addr_family() == AF_INET6) {
         for (int i = 3; i >= 0; --i) {
-            uint32_t& tmp_addr = reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr.s6_addr32[i];
-            int tmp_prefix = prefix - (i * 32 /*Bit*/) ;
-            if (tmp_prefix <= 0) {
+            uint32_t& tmp_addr = get_in6_addr_mutable().s6_addr32[i];
+            int tmp_suffix = suffix - (i * 32 /*Bit*/) ;
+            if (tmp_suffix <= 0) {
                 tmp_addr = static_cast<unsigned int>(-1);
-            } else if (tmp_prefix < 32) {
-                tmp_addr |= htonl(static_cast<unsigned int>(-1) >> prefix);
-            } else if (tmp_prefix >= 32) {
+            } else if (tmp_suffix < 32) {
+                tmp_addr |= htonl(static_cast<unsigned int>(-1) >> suffix);
+            } else if (tmp_suffix >= 32) {
                 break;
             }
         }
@@ -454,22 +420,17 @@ addr_storage& addr_storage::broadcast_addr(unsigned int prefix)
 
 bool addr_storage::is_valid() const
 {
-    HC_LOG_TRACE("");
-
     return get_addr_family() != AF_UNSPEC;
 }
 
 void addr_storage::set_invalid()
 {
-    HC_LOG_TRACE("");
-
     clean();
 }
 
+#ifdef DEBUG_MODE
 void addr_storage::test_addr_storage_a()
 {
-    HC_LOG_TRACE("");
-
     using namespace std;
     std::string addr4 = "251.0.0.224";
     std::string addr6 = "ff02:231:abc::1";
@@ -565,7 +526,6 @@ void addr_storage::test_addr_storage_a()
 
 void addr_storage::test_addr_storage_b()
 {
-    HC_LOG_TRACE("");
     using namespace std;
     const string s4("1.2.3.4");
     const string s6("1:2:3::4");
@@ -977,3 +937,4 @@ void addr_storage::test_addr_storage_b()
         cout << "FAILED!" << endl;
     }
 }
+#endif /* DEBUG_MODE */

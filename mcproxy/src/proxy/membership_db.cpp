@@ -29,6 +29,7 @@
 #include <vector>
 #include <set>
 
+#ifdef DEBUG_MODE
 void membership_db::test_arithmetic()
 {
     using namespace std;
@@ -79,6 +80,7 @@ void membership_db::test_arithmetic()
     cout << source_list<int> {1, 5, 2} - source_list<int> {2} - source_list<int> {5, 2}  << endl;
 
 }
+#endif /* DEBUG_MODE */
 
 gaddr_info::gaddr_info(group_mem_protocol compatibility_mode_variable)
     : filter_mode(INCLUDE_MODE)
@@ -116,9 +118,9 @@ std::string gaddr_info::to_string() const
     }
 
     s << ", " << get_mc_filter_name(filter_mode);
-    if ((filter_mode == EXLCUDE_MODE) && (group_retransmission_timer.get() != nullptr)) {
+    if ((filter_mode == EXCLUDE_MODE) && (group_retransmission_timer.get() != nullptr)) {
         s << "(" << shared_filter_timer->get_remaining_time() << "," << group_retransmission_timer->get_remaining_time() << "," << group_retransmission_count << "x)" << endl;
-    } else if (filter_mode == EXLCUDE_MODE) {
+    } else if (filter_mode == EXCLUDE_MODE) {
         s << "(" << shared_filter_timer->get_remaining_time() << ")" << endl;
     }else{
         s << endl; 
@@ -127,7 +129,7 @@ std::string gaddr_info::to_string() const
     if (source_retransmission_timer.get() != nullptr) {
         if (filter_mode == INCLUDE_MODE) {
             s << "included list(" << source_retransmission_timer->get_remaining_time() << ", #" << include_requested_list.size() << "): " << include_requested_list << endl;
-        } else if (filter_mode == EXLCUDE_MODE) {
+        } else if (filter_mode == EXCLUDE_MODE) {
             s << "requested list(" << source_retransmission_timer->get_remaining_time() << ", #" << include_requested_list.size() << "): " << include_requested_list << endl;
             s << "exclude_list(" << source_retransmission_timer->get_remaining_time() << ", #" << exclude_list.size() << "): " << exclude_list;
         } else {
@@ -136,7 +138,7 @@ std::string gaddr_info::to_string() const
     } else {
         if (filter_mode == INCLUDE_MODE) {
             s << "included list(#" << include_requested_list.size() << "): " << include_requested_list << endl;
-        } else if (filter_mode == EXLCUDE_MODE) {
+        } else if (filter_mode == EXCLUDE_MODE) {
             s << "requested list(#" << include_requested_list.size() << "): " << include_requested_list << endl;
             s << "exclude_list(#" << exclude_list.size() << "): " << exclude_list;
         } else {

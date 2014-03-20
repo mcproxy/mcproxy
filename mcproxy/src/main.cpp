@@ -46,7 +46,13 @@ void test_test();
 
 int main(int arg_count, char* args[])
 {
-#ifndef TESTER
+#ifdef TESTER
+    try {
+        tester(arg_count, args);
+    } catch (const char* e) {
+        std::cout << e << std::endl;
+    }
+#else
     try {
         proxy p(arg_count, args);
     } catch (const char* e) {
@@ -54,17 +60,12 @@ int main(int arg_count, char* args[])
     }
 
     //test_test();
-#else
-    try {
-        tester(arg_count, args);
-    } catch (const char* e) {
-        std::cout << e << std::endl;
-    }
 #endif
 
     return 0;
 }
 
+#ifdef DEBUG_MODE
 void test_log()
 {
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
@@ -88,9 +89,11 @@ void test_test()
     //timers_values::test_timers_values_copy();
     //timing::test_timing();
     //worker::test_worker();
-    proxy_instance::test_querier("lo");
+    //proxy_instance::test_querier("lo");
     //simple_routing_data::test_simple_routing_data();
     //igmp_sender::test_igmp_sender();
     //mroute_socket::quick_test();
     //configuration::test_configuration();
+    //if_prop::test_if_prop();
 }
+#endif /* DEBUG_MODE */

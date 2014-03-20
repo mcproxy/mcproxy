@@ -51,6 +51,7 @@ sender::sender(const std::shared_ptr<const interfaces>& interfaces, group_mem_pr
     }
 }
 
+#ifdef DEBUG_MODE
 bool sender::send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const
 {
     using namespace std;
@@ -134,6 +135,28 @@ bool sender::send_mc_addr_and_src_specific_query(unsigned int if_index, const ti
 
     return rc;
 }
+#else
+
+bool sender::send_record(unsigned int, mc_filter, const addr_storage&, const source_list<source>&) const
+{
+    return false;
+}
+
+bool sender::send_general_query(unsigned int, const timers_values&) const
+{
+    return false;
+}
+
+bool sender::send_mc_addr_specific_query(unsigned int, const timers_values&, const addr_storage&, bool) const
+{
+    return false;
+}
+
+bool sender::send_mc_addr_and_src_specific_query(unsigned int, const timers_values&, const addr_storage&, source_list<source>&) const{
+    return false;    
+}
+
+#endif /* DEBUG_MODE */
 
 sender::~sender()
 {
