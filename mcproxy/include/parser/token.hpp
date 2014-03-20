@@ -50,6 +50,7 @@ enum token_type {
     TT_ALL,
     TT_FIRST,
     TT_MUTEX,
+    TT_DISABLE,
     //TT_MILLISECONDS, //@milliseconds@
     //TT_TABLE_NAME, //@table_name@
     //TT_PATH, //@path@

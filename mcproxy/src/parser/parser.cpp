@@ -36,7 +36,6 @@ parser::parser(unsigned int current_line, const std::string& cmd)
 
 parser_type parser::get_parser_type()
 {
-
     if (m_current_token.get_type() == TT_PROTOCOL) {
         return PT_PROTOCOL;
     } else if (m_current_token.get_type() == TT_TABLE) {
@@ -51,6 +50,8 @@ parser_type parser::get_parser_type()
             HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(cmp_token.get_type()) << " with value " << cmp_token.get_string() << ", expected \":\" or \"upstream\" or \"downstream\"");
             throw "failed to parse config file";
         }
+    } else if(m_current_token.get_type() == TT_DISABLE) {
+        throw "mcproxy is disabled";
     } else {
         HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string());
         throw "failed to parse config file";
