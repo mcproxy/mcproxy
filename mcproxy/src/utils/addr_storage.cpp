@@ -237,11 +237,10 @@ bool operator>=(const addr_storage& addr1, const addr_storage& addr2)
 addr_storage& addr_storage::operator++() //prefix ++
 {
     if (get_addr_family() == AF_INET) {
-        uint32_t& tmp = reinterpret_cast<sockaddr_in*>(&m_addr)->sin_addr.s_addr;
-        tmp = htonl(ntohl(tmp) + 1);
+        get_in_addr_mutable().s_addr = htonl(ntohl(get_in_addr().s_addr) + 1);
     } else if (get_addr_family() == AF_INET6) {
         for (int i = 3; i >= 0; --i) {
-            uint32_t& tmp = reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr.s6_addr32[i];
+            uint32_t& tmp = get_in6_addr_mutable().s6_addr32[i];
             tmp = htonl(ntohl(tmp) + 1);
             if (tmp != 0) {
                 break;
@@ -261,11 +260,10 @@ addr_storage addr_storage::operator++(int) //postfix
 addr_storage& addr_storage::operator--() //prefix --
 {
     if (get_addr_family() == AF_INET) {
-        uint32_t& tmp = reinterpret_cast<sockaddr_in*>(&m_addr)->sin_addr.s_addr;
-        tmp = htonl(ntohl(tmp) - 1);
+        get_in_addr_mutable().s_addr = htonl(ntohl(get_in_addr().s_addr) - 1);
     } else if (get_addr_family() == AF_INET6) {
         for (int i = 3; i >= 0; --i) {
-            uint32_t& tmp = reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr.s6_addr32[i];
+            uint32_t& tmp = get_in6_addr_mutable().s6_addr32[i];
             tmp = htonl(ntohl(tmp) - 1);
             if (tmp != static_cast<uint32_t>(-1)) {
                 break;
@@ -404,7 +402,6 @@ addr_storage& addr_storage::broadcast_addr(unsigned int suffix)
         get_in_addr_mutable().s_addr |= htonl(static_cast<unsigned int>(-1) >> suffix);
     } else if (get_addr_family() == AF_INET6) {
         for (int i = 3; i >= 0; --i) {
-            //uint32_t& tmp_addr = reinterpret_cast<sockaddr_in6*>(&m_addr)->sin6_addr.s6_addr32[i];
             uint32_t& tmp_addr = get_in6_addr_mutable().s6_addr32[i];
             int tmp_suffix = suffix - (i * 32 /*Bit*/) ;
             if (tmp_suffix <= 0) {
