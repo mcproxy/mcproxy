@@ -3,6 +3,8 @@
 #Interface Test Config File
 #==========================
 #Comment
+disable; #the mcorxy will quit if it sees this command. 
+
 
 #choose a protocol
 protocol IGMPv3; #MLDv1 | MLDv2 | IGMPv1 | IGMPv2 | IGMPv3

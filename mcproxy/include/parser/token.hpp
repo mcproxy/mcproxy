@@ -34,10 +34,8 @@ enum token_type {
     TT_IGMPV2,
     TT_IGMPV3,
     TT_PINSTANCE,
-    //TT_INSTANCE_NAME,//@tt_instance_name@
     TT_DOUBLE_DOT, //":"
     TT_DOT, // "."
-    //TT_IF_NAME, //@tt_if_name@
     TT_ARROW, //"==>"
     TT_UPSTREAM,
     TT_DOWNSTREAM,
@@ -51,8 +49,6 @@ enum token_type {
     TT_FIRST,
     TT_MUTEX,
     TT_DISABLE,
-    //TT_MILLISECONDS, //@milliseconds@
-    //TT_TABLE_NAME, //@table_name@
     //TT_PATH, //@path@
     TT_LEFT_BRACE, //"{"
     TT_RIGHT_BRACE, //"}"
@@ -62,8 +58,6 @@ enum token_type {
     TT_SLASH, //"/"
     TT_STAR, //"*"
     TT_PIPE, //"|"
-    //TT_IPV4_ADDRESS, //@TT_IPV4_ADDRESS@
-    //TT_IPV6_ADDRESS, //TT_IPV6_ADDRESS
     TT_STRING,
     TT_NIL
 };
