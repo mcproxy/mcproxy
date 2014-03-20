@@ -194,30 +194,31 @@ std::string interfaces::get_if_name(unsigned int if_index)
 
 }
 
-unsigned int interfaces::get_if_index(const addr_storage& addr) const
+unsigned int interfaces::get_if_index(const addr_storage& saddr) const
 {
     HC_LOG_TRACE("");
 
-    addr_storage tmp_mask;
-    addr_storage own_addr;
+    addr_storage recv_subnet;
+    addr_storage src_subnet;
 
     const if_prop_map* prop_map;
 
-    if (addr.get_addr_family() == AF_INET) {
+    if (saddr.get_addr_family() == AF_INET) {
         prop_map = m_if_prop.get_if_props();
         for (auto & e : *prop_map) {
             if (e.second.ip4_addr != nullptr && e.second.ip4_addr->ifa_netmask != nullptr && e.second.ip4_addr->ifa_addr != nullptr) {
-                tmp_mask = *e.second.ip4_addr->ifa_netmask;
-                own_addr = *e.second.ip4_addr->ifa_addr;
-                own_addr.mask_ipv4(tmp_mask);
-                if (own_addr == tmp_mask.mask_ipv4(addr)) {
+                recv_subnet = *e.second.ip4_addr->ifa_netmask;
+                src_subnet = *e.second.ip4_addr->ifa_addr;
+                src_subnet.mask_ipv4(recv_subnet);
+                if (src_subnet == recv_subnet.mask_ipv4(saddr)) {
                     return get_if_index(e.second.ip4_addr->ifa_name);
                 }
             }
         }
+    }else{
+        HC_LOG_WARN("cannot map IPv6 addr to interface index:" << saddr);
     }
 
-    HC_LOG_WARN("cannot map IPv6 addr to interface index:" << addr);
     return INTERFACES_UNKOWN_IF_INDEX;
 }
 

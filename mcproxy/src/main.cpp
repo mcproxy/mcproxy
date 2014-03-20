@@ -53,13 +53,13 @@ int main(int arg_count, char* args[])
         std::cout << e << std::endl;
     }
 #else
-    //try {
-        //proxy p(arg_count, args);
-    //} catch (const char* e) {
-        //std::cout << e << std::endl;
-    //}
+    try {
+        proxy p(arg_count, args);
+    } catch (const char* e) {
+        std::cout << e << std::endl;
+    }
 
-    test_test();
+    //test_test();
 #endif
 
     return 0;
@@ -82,8 +82,8 @@ void test_test()
 {
     hc_set_default_log_fun(HC_LOG_TRACE_LVL);
     //mc_socket::test_all();
-    addr_storage::test_addr_storage_a();
-    addr_storage::test_addr_storage_b();
+    //addr_storage::test_addr_storage_a();
+    //addr_storage::test_addr_storage_b();
     //membership_db::test_arithmetic();
     //timers_values::test_timers_values();
     //timers_values::test_timers_values_copy();
