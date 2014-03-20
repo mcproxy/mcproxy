@@ -188,6 +188,8 @@ token scanner::read_next_token()
                 return TT_FIRST;
             } else if (cmp_str.compare("mutex") == 0) {
                 return TT_MUTEX;
+            } else if (cmp_str.compare("disable") == 0) {
+                return TT_DISABLE;
             } else {
                 return token(TT_STRING, s.str());
             }
