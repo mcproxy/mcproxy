@@ -418,6 +418,20 @@ addr_storage& addr_storage::broadcast_addr(unsigned int suffix)
     return *this;
 }
 
+bool addr_storage::is_multicast_addr() const
+{
+
+    if (get_addr_family() == AF_INET) {
+        return IN_MULTICAST(ntohl(get_in_addr().s_addr));
+    } else if (get_addr_family() == AF_INET6) {
+        return IN6_IS_ADDR_MULTICAST(&get_in6_addr());
+    } else {
+        HC_LOG_ERROR("wrong address family");
+        return false;
+    }
+
+}
+
 bool addr_storage::is_valid() const
 {
     return get_addr_family() != AF_UNSPEC;
@@ -932,6 +946,35 @@ void addr_storage::test_addr_storage_b()
 
     cout << "addr_storage(8000::).broadcast_addr(1) == addr_storage(FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF) ==> ";
     if (addr_storage("8000::").broadcast_addr(1) == addr_storage("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF")) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "-------------------------------" << endl;
+    cout << "addr_storage(239.99.99.99).is_multicast_addr() ==> ";
+    if (addr_storage("239.99.99.99").is_multicast_addr()) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "!addr_storage(192.168.1.2).is_multicast_addr() ==> ";
+    if (!addr_storage("192.168.1.2").is_multicast_addr()) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "addr_storage(FF05::99).is_multicast_addr() ==> ";
+    if (addr_storage("FF05::99").is_multicast_addr()) {
+        cout << "OK!" << endl;
+    } else {
+        cout << "FAILED!" << endl;
+    }
+
+    cout << "!addr_storage(2001::99).is_multicast_addr() ==> ";
+    if (!addr_storage("2001::99").is_multicast_addr()) {
         cout << "OK!" << endl;
     } else {
         cout << "FAILED!" << endl;

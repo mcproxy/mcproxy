@@ -156,7 +156,7 @@ addr_storage tester::get_gaddr(const std::string& to_do)
 
     std::string tmp_gaddr = m_config_map.get(to_do, "group");
     if (tmp_gaddr.empty()) {
-        std::cout << "no group found" << std::endl;
+        std::cout << "no group found, in unicast mode: need to select IP version" << std::endl;
         exit(0);
     }
     addr_storage gaddr(tmp_gaddr);
@@ -374,13 +374,13 @@ std::chrono::milliseconds tester::get_lifetime(const std::string& to_do)
     return std::chrono::milliseconds(lifetime);
 }
 
-bool tester::get_print_status_msg(const std::string& to_do)
+bool tester::get_boolean(const std::string& to_do, std::string&& compare, bool default_return)
 {
     HC_LOG_TRACE("");
 
-    std::string result = m_config_map.get(to_do, "print_status_msg");
+    std::string result = m_config_map.get(to_do, compare);
     if (result.empty()) {
-        return false;
+        return default_return;
     }
 
     if (result.compare("true") == 0) {
@@ -388,64 +388,7 @@ bool tester::get_print_status_msg(const std::string& to_do)
     } else if (result.compare("false") == 0) {
         return false;
     } else {
-        std::cout << "failed to parse print_status_msg" << std::endl;
-        exit(0);
-    }
-}
-
-bool tester::get_save_to_file(const std::string& to_do)
-{
-    HC_LOG_TRACE("");
-
-    std::string result = m_config_map.get(to_do, "save_to_file");
-    if (result.empty()) {
-        return false;
-    }
-
-    if (result.compare("true") == 0) {
-        return true;
-    } else if (result.compare("false") == 0) {
-        return false;
-    } else {
-        std::cout << "failed to parse save_to_file" << std::endl;
-        exit(0);
-    }
-}
-
-bool tester::get_include_file_header(const std::string& to_do)
-{
-    HC_LOG_TRACE("");
-
-    std::string result = m_config_map.get(to_do, "include_file_header");
-    if (result.empty()) {
-        return true;
-    }
-
-    if (result.compare("true") == 0) {
-        return true;
-    } else if (result.compare("false") == 0) {
-        return false;
-    } else {
-        std::cout << "failed to parse save_to_file" << std::endl;
-        exit(0);
-    }
-}
-
-bool tester::get_ignore_duplicated_packets(const std::string& to_do)
-{
-    HC_LOG_TRACE("");
-
-    std::string result = m_config_map.get(to_do, "ignore_duplicated_packets");
-    if (result.empty()) {
-        return false;
-    }
-
-    if (result.compare("true") == 0) {
-        return true;
-    } else if (result.compare("false") == 0) {
-        return false;
-    } else {
-        std::cout << "failed to parse ignore_duplicated_packets" << std::endl;
+        std::cout << "failed to parse" << compare << std::endl;
         exit(0);
     }
 }
@@ -500,7 +443,7 @@ std::string tester::get_to_do_next(const std::string& to_do)
     return to_do_next;
 }
 
-void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, bool ignore_duplicated_packets, packet_manager& pmanager, const std::string& file_operation_mode)
+void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool parse_time_stamp, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, bool include_data, bool include_summary, bool ignore_duplicated_packets, packet_manager& pmanager, const std::string& file_operation_mode)
 {
     HC_LOG_TRACE("");
 
@@ -521,7 +464,11 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
             exit(0);
         } else {
             if (include_file_header) {
-                file << "packet_number(#) time_stamp_sender(ms) time_stamp_receiver(ms) delay(ms) message(str)" << std::endl;
+                if (parse_time_stamp) {
+                    file << "packet_number(#) time_stamp_sender(ms) time_stamp_receiver(ms) delay(ms) message(str)" << std::endl;
+                } else {
+                    file << "packet_number(#)" << std::endl;
+                }
             }
         }
     }
@@ -542,58 +489,94 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     }
 
     if (print_status_msg) {
-        std::cout << "packet number: 0; last delay: 0ms; last msg: ";
-        std::flush(std::cout);
+        if (parse_time_stamp) {
+            std::cout << "packet number: 0; packet count: 0; total data size: 0byte; last delay: 0ms; last msg: ";
+            std::flush(std::cout);
+        } else {
+            std::cout << "packet number: 0; packet count: 0; total data size: 0byte; last msg: ";
+            std::flush(std::cout);
+        }
     }
 
-    unsigned long count = 0;
+    unsigned long packet_count = 0;
+    long long data_total_size = 0; /*in byte*/
+    long long receive_start_time_stamp = 0;
 
-    while (m_running && (max_count == 0 || count < max_count)) {
+    while (m_running && (max_count == 0 || packet_count < max_count)) {
         if (!ms->receive_packet(reinterpret_cast<unsigned char*>(buf.data()), size - 1, info_size)) {
             std::this_thread::sleep_for(std::chrono::microseconds(100));
             //this could be an error but it could be also an interrupt (SIGINIT)
         }
 
         if (info_size != 0 && m_running) { //no timeout
+            data_total_size += info_size;
+
+            if (packet_count == 0) {
+                receive_start_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+            }
+
             std::istringstream iss(std::string(buf.data()));
             std::ostringstream oss;
 
             long long send_time_stamp = 0;
-            long long receive_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-            long long delay = 0;
             long packet_number = 0;
+            long long delay = 0;
+            long long receive_time_stamp = 0;
 
-            iss >> packet_number >> send_time_stamp;
-            oss << iss.rdbuf();
-            delay = receive_time_stamp - send_time_stamp;
+            if (parse_time_stamp) {
+                receive_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+                iss >> packet_number >> send_time_stamp;
+                oss << iss.rdbuf();
+                delay = receive_time_stamp - send_time_stamp;
+            } else if (include_data || print_status_msg) {
+                iss >> packet_number;
+            }
 
             if (ignore_duplicated_packets && !pmanager.is_packet_new(packet_number)) {
                 continue;
             }
 
             if (print_status_msg) {
-                std::cout << "\rpacket number: " << packet_number << "; last delay: " << delay <<  "ms; last msg:" << oss.str();
+                if (parse_time_stamp) {
+                    std::cout << "\rpacket number: " << packet_number << "; packet count: " << packet_count << "; total data size: " << data_total_size << "byte; last delay: " << delay <<  "ms; last msg:" << oss.str();
+                } else {
+                    std::cout << "\rpacket number: " << packet_number << "; packet count: " << packet_count << "; total data size: " << data_total_size << "byte; last msg:" << oss.str();
+                }
                 std::flush(std::cout);
             }
 
-            if (save_to_file) {
-                file <<  packet_number << " " << send_time_stamp << " " << receive_time_stamp << " " << delay << oss.str() << std::endl;
+            if (save_to_file && include_data) {
+                if (parse_time_stamp) {
+                    file <<  packet_number << " " << send_time_stamp << " " << receive_time_stamp << " " << delay << oss.str() << std::endl;
+                } else {
+                    file <<  packet_number << std::endl;
+                }
             }
 
-            ++count;
+            ++packet_count;
         }
     }
 
+
+    //calculate summary
+    long long receive_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - receive_start_time_stamp;
+    std::ostringstream oss_summary;
+    oss_summary << "--- summary==> packet_count(#): " << packet_count << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << ";" << std::endl;
+
     if (print_status_msg) {
-        std::cout << std::endl;
+        std::cout << "\r";
+        std::cout << oss_summary.str();
     }
 
     if (save_to_file) {
+        if (include_summary) {
+            file << oss_summary.str(); 
+        }
         file.close();
     }
 }
 
-void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, unsigned int& current_packet_number,  const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg)
+void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, unsigned int& current_packet_number, bool include_time_stamp, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg)
 {
     HC_LOG_TRACE("");
 
@@ -609,16 +592,21 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
 
     for (unsigned long i = 0; (i < max_count || max_count == 0 ) && (m_running) ; ++i) {
         std::ostringstream oss;
-        long long send_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         current_packet_number = start_packet_number + i + 1;
-        oss << current_packet_number << " " << send_time_stamp << " " << msg;
+
+        if (include_time_stamp) {
+            long long send_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+            oss << current_packet_number << " " << send_time_stamp << " " << msg;
+        } else {
+            oss << current_packet_number << " " << msg;
+        }
 
         if (print_status_msg) {
             std::cout << "\rsend: " << i + 1 << "/" << max_count;
             std::flush(std::cout);
         }
 
-        if (!ms->send_packet(gaddr.set_port(port), oss.str() )) {
+        if (!ms->send_packet(gaddr.set_port(port), oss.str())) {
             std::cout << "failed to send packet" << std::endl;
             exit(0);
         }
@@ -670,20 +658,32 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
     std::chrono::milliseconds interval = get_send_interval(to_do);
     HC_LOG_DEBUG("interval: " << interval.count() << "milliseconds");
 
-    bool print_status_msg = get_print_status_msg(to_do);
+    bool print_status_msg = get_boolean(to_do, "print_status_msg", false);
     HC_LOG_DEBUG("print_status_msg: " << print_status_msg);
 
-    bool save_to_file = get_save_to_file(to_do);
+    bool save_to_file = get_boolean(to_do, "save_to_file", false);
     HC_LOG_DEBUG("save_to_file: " << save_to_file);
 
     std::string file_name = get_file_name(to_do, output_file);
     HC_LOG_DEBUG("file_name: " << file_name);
 
-    bool include_file_header = get_include_file_header(to_do);
+    bool include_file_header = get_boolean(to_do, "include_file_header", true);
     HC_LOG_DEBUG("include_file_header: " << include_file_header);
 
-    bool ignore_duplicated_packets = get_ignore_duplicated_packets(to_do);
+    bool include_data = get_boolean(to_do, "include_data", true);
+    HC_LOG_DEBUG("include_data: " << include_file_header);
+
+    bool include_summary = get_boolean(to_do, "include_summary", true);
+    HC_LOG_DEBUG("include_summary: " << include_file_header);
+
+    bool ignore_duplicated_packets = get_boolean(to_do, "ignore_duplicated_packets", false);
     HC_LOG_DEBUG("ignore_duplicated_packets: " << ignore_duplicated_packets);
+
+    bool parse_time_stamp = get_boolean(to_do, "parse_time_stamp", true);
+    HC_LOG_DEBUG("parse_time_stamp: " << parse_time_stamp);
+
+    bool include_time_stamp = get_boolean(to_do, "include_time_stamp", true);
+    HC_LOG_DEBUG("include_time_stamp: " << include_time_stamp);
 
     std::string file_operation_mode = get_file_operation_mode(to_do);
     HC_LOG_DEBUG("file_operation_mode: " << file_operation_mode);
@@ -693,7 +693,6 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
 
     std::string to_do_next = get_to_do_next(to_do);
     HC_LOG_DEBUG("to_do_next: " << to_do_next);
-
 
     if (lifetime.count() > 0) {
         std::thread t([&]() {
@@ -705,13 +704,15 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
     }
 
     if (action.compare("receive") == 0) {
-        std::cout << "join group " << gaddr << " on interface " << if_name << std::endl;
-        if (!ms->join_group(gaddr, interfaces::get_if_index(if_name))) {
-            std::cout << "failed to join group " << gaddr << std::endl;
-            exit(0);
+        if (gaddr.is_multicast_addr()) {
+            std::cout << "join group " << gaddr << " on interface " << if_name << std::endl;
+            if (!ms->join_group(gaddr, interfaces::get_if_index(if_name))) {
+                std::cout << "failed to join group " << gaddr << std::endl;
+                exit(0);
+            }
         }
 
-        if (!slist.empty()) {
+        if (gaddr.is_multicast_addr() && !slist.empty()) {
             std::cout << "set source filter " << get_mc_filter_name(mfilter) << " with source address: " << source_list_to_string(slist) << std::endl;
             if (!ms->set_source_filter(interfaces::get_if_index(if_name), gaddr, mfilter, slist)) {
                 std::cout << "failed to set source filter" << std::endl;
@@ -719,7 +720,7 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
             }
         }
 
-        receive_data(ms, port, max_count, print_status_msg, save_to_file, file_name, include_file_header, ignore_duplicated_packets, pmanager, file_operation_mode);
+        receive_data(ms, port, max_count, parse_time_stamp, print_status_msg, save_to_file, file_name, include_file_header, include_data, include_summary, ignore_duplicated_packets, pmanager, file_operation_mode);
         ms->close_socket();
         if (to_do_next.compare("null") != 0) {
             run(to_do_next, output_file, current_packet_number, pmanager);
@@ -733,7 +734,7 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
             exit(0);
         }
 
-        send_data(ms, gaddr, port, ttl, max_count, current_packet_number, interval, msg, print_status_msg);
+        send_data(ms, gaddr, port, ttl, max_count, current_packet_number, include_time_stamp, interval, msg, print_status_msg);
         ms->close_socket();
         if (to_do_next.compare("null") != 0) {
             run(to_do_next, output_file, current_packet_number, pmanager);

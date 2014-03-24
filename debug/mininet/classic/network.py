@@ -151,7 +151,7 @@ def TopoTest():
             start_mcproxy(proxy, 'proxy.conf')
         elif str_input == "start host":
             try:
-                hostnumber = int(raw_input("host number? ").strip())
+                hostnumber = raw_input("host number? ").strip()
             except:
                 print "wrong input"
                 continue 

@@ -239,6 +239,8 @@ public:
 
     //-----------------------------------------------------------
 
+    bool is_multicast_addr() const;
+
     bool is_valid() const;
 
     void set_invalid();
