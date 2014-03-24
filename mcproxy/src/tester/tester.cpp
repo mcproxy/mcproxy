@@ -592,6 +592,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
 
     for (unsigned long i = 0; (i < max_count || max_count == 0 ) && (m_running) ; ++i) {
         std::ostringstream oss;
+        oss.width(10);
         current_packet_number = start_packet_number + i + 1;
 
         if (include_time_stamp) {
