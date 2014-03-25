@@ -75,7 +75,7 @@ tester::tester(int arg_count, char* args[])
 
     int c;
     optind = 2;
-    while ( (c = getopt(arg_count, args, "i:o:")) != -1) {
+    while ( (c = getopt(arg_count, args, "i:o:m:")) != -1) {
         switch (c) {
         case 'i':
             config_file = optarg;
@@ -149,7 +149,7 @@ void tester::help()
     cout << "\t\tSet the log file name of the receiver (higher priority)" << endl;
 
     cout << "\t-m" << endl;
-    cout << "\t\tSet the message to send (don't includes the" << endl;
+    cout << "\t\tSet the message to be send (this doesn't include the" << endl;
     cout << "\t\tpacket number (9 chars) plus one escape char add the end of the string)" << endl;
 
     cout << endl;
