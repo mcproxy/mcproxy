@@ -71,6 +71,7 @@ tester::tester(int arg_count, char* args[])
     std::string config_file;
     std::string output_file;
     std::string to_do;
+    std::string msg;
 
     int c;
     optind = 2;
@@ -81,6 +82,9 @@ tester::tester(int arg_count, char* args[])
             break;
         case 'o':
             output_file = optarg;
+            break;
+        case 'm':
+            msg = optarg;
             break;
         default:
             std::cout << "Unknown argument" << std::endl;
@@ -107,6 +111,7 @@ tester::tester(int arg_count, char* args[])
     std::cout << "to do: " << to_do << std::endl;
     std::cout << "config file: " << config_file << std::endl;
     std::cout << "output file: " << output_file << std::endl;
+    std::cout << "msg: msg" << std::endl;
 
     if (config_file.empty()) {
         m_config_map.read_ini(TESTER_DEFAULT_CONIG_PATH);
@@ -115,7 +120,7 @@ tester::tester(int arg_count, char* args[])
     }
 
     packet_manager pmanager(1000);
-    run(to_do, output_file, 0, pmanager);
+    run(to_do, output_file, 0, pmanager, msg);
 }
 
 void tester::help()
@@ -142,6 +147,10 @@ void tester::help()
 
     cout << "\t-o" << endl;
     cout << "\t\tSet the log file name of the receiver (higher priority)" << endl;
+
+    cout << "\t-m" << endl;
+    cout << "\t\tSet the message to send (don't includes the" << endl;
+    cout << "\t\tpacket number (9 chars) plus one escape char add the end of the string)" << endl;
 
     cout << endl;
     cout << "\tfor example:" << endl;
@@ -325,15 +334,18 @@ int tester::get_port(const std::string& to_do)
     return port;
 }
 
-std::string tester::get_msg(const std::string& to_do)
+std::string tester::get_msg(const std::string& to_do, const std::string& proposal)
 {
     HC_LOG_TRACE("");
-
-    std::string msg = m_config_map.get(to_do, "msg");
-    if (msg.empty()) {
-        msg = "this is a test message";
+    if (!proposal.empty()) {
+        return proposal;
+    } else {
+        std::string msg = m_config_map.get(to_do, "msg");
+        if (msg.empty()) {
+            msg = "this is a test message";
+        }
+        return msg;
     }
-    return msg;
 }
 
 std::chrono::milliseconds tester::get_send_interval(const std::string& to_do)
@@ -570,7 +582,7 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
 
     if (save_to_file) {
         if (include_summary) {
-            file << oss_summary.str(); 
+            file << oss_summary.str();
         }
         file.close();
     }
@@ -592,7 +604,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
 
     for (unsigned long i = 0; (i < max_count || max_count == 0 ) && (m_running) ; ++i) {
         std::ostringstream oss;
-        oss.width(10);
+        oss.width(9);
         current_packet_number = start_packet_number + i + 1;
 
         if (include_time_stamp) {
@@ -620,7 +632,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
     }
 }
 
-void tester::run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number, packet_manager& pmanager)
+void tester::run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number, packet_manager& pmanager, const std::string& send_msg)
 {
     HC_LOG_TRACE("to_do: " << to_do);
     if (!m_config_map.has_group(to_do)) {
@@ -653,7 +665,7 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
     int port = get_port(to_do);
     HC_LOG_DEBUG("port: " << port);
 
-    std::string msg = get_msg(to_do);
+    std::string msg = get_msg(to_do, send_msg);
     HC_LOG_DEBUG("msg: " << msg);
 
     std::chrono::milliseconds interval = get_send_interval(to_do);
@@ -724,7 +736,7 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
         receive_data(ms, port, max_count, parse_time_stamp, print_status_msg, save_to_file, file_name, include_file_header, include_data, include_summary, ignore_duplicated_packets, pmanager, file_operation_mode);
         ms->close_socket();
         if (to_do_next.compare("null") != 0) {
-            run(to_do_next, output_file, current_packet_number, pmanager);
+            run(to_do_next, output_file, current_packet_number, pmanager, send_msg);
         }
 
         return;
@@ -738,7 +750,7 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
         send_data(ms, gaddr, port, ttl, max_count, current_packet_number, include_time_stamp, interval, msg, print_status_msg);
         ms->close_socket();
         if (to_do_next.compare("null") != 0) {
-            run(to_do_next, output_file, current_packet_number, pmanager);
+            run(to_do_next, output_file, current_packet_number, pmanager, send_msg);
         }
 
         return;

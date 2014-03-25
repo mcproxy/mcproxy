@@ -50,7 +50,7 @@ private:
     config_map m_config_map;
     static bool m_running;
     void help();
-    void run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number, packet_manager& pmanager);
+    void run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number, packet_manager& pmanager, const std::string& send_msg);
 
     addr_storage get_gaddr(const std::string& to_do);
     std::unique_ptr<const mc_socket> get_mc_socket(int addr_family);
@@ -62,7 +62,7 @@ private:
     std::string source_list_to_string(const std::list<addr_storage>& slist);
     int get_ttl(const std::string& to_do);
     int get_port(const std::string& to_do);
-    std::string get_msg(const std::string& to_do);
+    std::string get_msg(const std::string& to_do, const std::string& proposal);
     std::chrono::milliseconds get_send_interval(const std::string& to_do);
     std::chrono::milliseconds get_lifetime(const std::string& to_do);
 
