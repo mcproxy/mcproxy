@@ -624,7 +624,9 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
             exit(0);
         }
 
-        std::this_thread::sleep_for(interval);
+        if (interval.count() != 0) {
+            std::this_thread::sleep_for(interval);
+        }
     }
 
     if (print_status_msg) {
