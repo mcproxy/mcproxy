@@ -459,7 +459,7 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
 {
     HC_LOG_TRACE("");
 
-    const unsigned int size = 201;
+    const unsigned int size = 1472;
     std::vector<char> buf(size, 0);
 
     int info_size = 0;
