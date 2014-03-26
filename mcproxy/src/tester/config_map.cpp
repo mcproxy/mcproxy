@@ -132,7 +132,7 @@ void config_map::read_ini(const string& filename)
         else if (!matches(rx_handler, line, m_data, section))
         {
             cerr << "Could not parse line " << line_count
-                 << " of middleware.ini (skipped)" << endl;
+                 << " of configuration file (skipped)" << endl;
         }
     }
 }

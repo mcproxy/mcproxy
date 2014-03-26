@@ -510,9 +510,16 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
         }
     }
 
+
     unsigned long packet_count = 0;
     long long data_total_size = 0; /*in byte*/
     long long receive_start_time_stamp = 0;
+
+    long long send_time_stamp = 0;
+    long packet_number = 0;
+    long long delay = 0;
+    long long receive_time_stamp = 0;
+    std::string msg;
 
     while (m_running && (max_count == 0 || packet_count < max_count)) {
         if (!ms->receive_packet(reinterpret_cast<unsigned char*>(buf.data()), size - 1, info_size)) {
@@ -527,21 +534,15 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
                 receive_start_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
             }
 
-            std::istringstream iss(std::string(buf.data()));
-            std::ostringstream oss;
 
-            long long send_time_stamp = 0;
-            long packet_number = 0;
-            long long delay = 0;
-            long long receive_time_stamp = 0;
-
-            if (parse_time_stamp) {
+            if (parse_time_stamp && (include_data || print_status_msg)) {
+                std::ostringstream oss;
+                std::istringstream iss(std::string(buf.data()));
                 receive_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
                 iss >> packet_number >> send_time_stamp;
                 oss << iss.rdbuf();
+                msg = oss.str();
                 delay = receive_time_stamp - send_time_stamp;
-            } else if (include_data || print_status_msg) {
-                iss >> packet_number;
             }
 
             if (ignore_duplicated_packets && !pmanager.is_packet_new(packet_number)) {
@@ -550,25 +551,20 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
 
             if (print_status_msg) {
                 if (parse_time_stamp) {
-                    std::cout << "\rpacket number: " << packet_number << "; packet count: " << packet_count << "; total data size: " << data_total_size << "byte; last delay: " << delay <<  "ms; last msg:" << oss.str();
+                    std::cout << "\rpacket number: " << packet_number << "; packet count: " << packet_count << "; total data size: " << data_total_size << "byte; last delay: " << delay <<  "ms; last msg:" << msg;
                 } else {
-                    std::cout << "\rpacket number: " << packet_number << "; packet count: " << packet_count << "; total data size: " << data_total_size << "byte; last msg:" << oss.str();
+                    std::cout << "\rpacket count: " << packet_count << "; total data size: " << data_total_size << "byte; last msg:" << msg;
                 }
                 std::flush(std::cout);
             }
 
-            if (save_to_file && include_data) {
-                if (parse_time_stamp) {
-                    file <<  packet_number << " " << send_time_stamp << " " << receive_time_stamp << " " << delay << oss.str() << std::endl;
-                } else {
-                    file <<  packet_number << std::endl;
-                }
+            if (save_to_file && include_data && parse_time_stamp) {
+                file <<  packet_number << " " << send_time_stamp << " " << receive_time_stamp << " " << delay << msg << std::endl;
             }
 
             ++packet_count;
         }
     }
-
 
     //calculate summary
     long long receive_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - receive_start_time_stamp;
@@ -601,17 +597,17 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
     }
 
     std::cout << "send message: " << msg << " to port " << port << std::endl;
+    std::string send_msg = msg;
 
     for (unsigned long i = 0; (i < max_count || max_count == 0 ) && (m_running) ; ++i) {
-        std::ostringstream oss;
-        oss.width(9);
         current_packet_number = start_packet_number + i + 1;
 
         if (include_time_stamp) {
+            std::ostringstream oss;
+            oss.width(9);
             long long send_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
             oss << current_packet_number << " " << send_time_stamp << " " << msg;
-        } else {
-            oss << current_packet_number << " " << msg;
+            send_msg = oss.str();
         }
 
         if (print_status_msg) {
@@ -619,7 +615,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
             std::flush(std::cout);
         }
 
-        if (!ms->send_packet(gaddr.set_port(port), oss.str())) {
+        if (!ms->send_packet(gaddr.set_port(port), send_msg)) {
             std::cout << "failed to send packet" << std::endl;
             exit(0);
         }
