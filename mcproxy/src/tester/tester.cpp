@@ -567,7 +567,11 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     }
 
     //calculate summary
-    long long receive_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - receive_start_time_stamp;
+    long long receive_duration = 0;
+    if (receive_start_time_stamp != 0) {
+        receive_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - receive_start_time_stamp;
+    }
+
     std::ostringstream oss_summary;
     oss_summary << "--- summary==> packet_count(#): " << packet_count << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << ";" << std::endl;
 
