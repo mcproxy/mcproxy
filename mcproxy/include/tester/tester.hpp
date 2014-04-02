@@ -60,18 +60,17 @@ private:
     unsigned long get_max_count(const std::string& to_do);
     std::string get_action(const std::string& to_do);
     std::string source_list_to_string(const std::list<addr_storage>& slist);
-    int get_ttl(const std::string& to_do);
-    int get_port(const std::string& to_do);
     std::string get_msg(const std::string& to_do, const std::string& proposal);
     std::chrono::milliseconds get_send_interval(const std::string& to_do);
     std::chrono::milliseconds get_lifetime(const std::string& to_do);
 
+    int get_int(const std::string& to_do, std::string&& compare, int default_return);
     bool get_boolean(const std::string& to_do, std::string&& compare, bool default_return);    
     std::string get_file_name(const std::string& to_do, const std::string& proposal);
     std::string get_file_operation_mode(const std::string& to_do);
     std::string get_to_do_next(const std::string& to_do);
 
-    void send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, unsigned int& current_packet_number, bool include_time_stamp, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg);
+    void send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, unsigned int& current_packet_number, bool include_time_stamp, const std::chrono::milliseconds& interval, int busy_waiting_counter,  const std::string& msg, bool print_status_msg);
     void receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool parse_time_stamp, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, bool include_data, bool include_summary, bool ignore_duplicated_packets, packet_manager& pmanager, const std::string& file_operation_mode);
     static void signal_handler(int sig);
 

@@ -36,8 +36,44 @@
 #include <iostream>
 
 #include <unistd.h> //for getopt
+#include<sys/time.h>
 
 bool tester::m_running = true;
+volatile int busy_waiting;
+
+unsigned long long int get_clock()
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (unsigned long long int)tv.tv_usec + 1000000 * tv.tv_sec;
+}
+
+int high_pres_usleep(unsigned long long int delay) //minimum delay about 7usec
+{
+    //The basic idea is to divide the delay into sleep and busy wait parts.
+    unsigned long long int start;
+    unsigned long long int end;
+
+    start = get_clock();
+    end = start + delay;
+
+    //if it is a very big delay wait until the delay is about 2 seconds
+    if (delay > 2000000) {
+        int sleep_delay =  static_cast<int>((delay - 2000000) / 1000000);
+        sleep(sleep_delay);
+        delay = end - get_clock();
+    }
+
+    //wait until the delay is about 20 milliseconds
+    if (delay > 20000) {
+        int sleep_delay =  static_cast<int>(delay - 20000);
+        usleep(sleep_delay);
+    }
+
+    while (get_clock() < end) {}
+
+    return 0;
+}
 
 packet_manager::packet_manager(unsigned int max_count)
     : m_max_count(max_count)
@@ -296,44 +332,6 @@ std::string tester::source_list_to_string(const std::list<addr_storage>& slist)
     return oss.str();
 }
 
-int tester::get_ttl(const std::string& to_do)
-{
-    HC_LOG_TRACE("");
-
-    std::string str_ttl = m_config_map.get(to_do, "ttl");
-    int ttl;
-    if (str_ttl.empty()) {
-        ttl = 10;
-    } else {
-        try {
-            ttl = std::stoi(str_ttl);
-        } catch (std::logic_error e) {
-            std::cout << "failed to parse ttl" << std::endl;
-            exit(0);
-        }
-    }
-    return ttl;
-}
-
-int tester::get_port(const std::string& to_do)
-{
-    HC_LOG_TRACE("");
-
-    std::string str_port = m_config_map.get(to_do, "port");
-    int port;
-    if (str_port.empty()) {
-        port = 1234;
-    } else {
-        try {
-            port = std::stoi(str_port);
-        } catch (std::logic_error e) {
-            std::cout << "failed to parse port" << std::endl;
-            exit(0);
-        }
-    }
-    return port;
-}
-
 std::string tester::get_msg(const std::string& to_do, const std::string& proposal)
 {
     HC_LOG_TRACE("");
@@ -386,6 +384,23 @@ std::chrono::milliseconds tester::get_lifetime(const std::string& to_do)
     return std::chrono::milliseconds(lifetime);
 }
 
+int tester::get_int(const std::string& to_do, std::string&& compare, int default_return)
+{
+    HC_LOG_TRACE("");
+
+    std::string result = m_config_map.get(to_do, compare);
+    if (result.empty()) {
+        return default_return;
+    } else {
+        try {
+            return std::stoi(result);
+        } catch (std::logic_error e) {
+            std::cout << "failed to parse "<< compare << std::endl;
+            exit(0);
+        }
+    }
+}
+
 bool tester::get_boolean(const std::string& to_do, std::string&& compare, bool default_return)
 {
     HC_LOG_TRACE("");
@@ -400,7 +415,7 @@ bool tester::get_boolean(const std::string& to_do, std::string&& compare, bool d
     } else if (result.compare("false") == 0) {
         return false;
     } else {
-        std::cout << "failed to parse" << compare << std::endl;
+        std::cout << "failed to parse " << compare << std::endl;
         exit(0);
     }
 }
@@ -573,7 +588,7 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     }
 
     std::ostringstream oss_summary;
-    oss_summary << "--- summary==> packet_count(#): " << packet_count << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << ";" << std::endl;
+    oss_summary << "--- summary==> packet_count(#): " << packet_count << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << "; goodput(MByte/s): " << (data_total_size / 1024 / 1024) / (receive_duration / 1000.0) << std::endl;
 
     if (print_status_msg) {
         std::cout << "\r";
@@ -588,11 +603,12 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     }
 }
 
-void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, unsigned int& current_packet_number, bool include_time_stamp, const std::chrono::milliseconds& interval, const std::string& msg, bool print_status_msg)
+void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage& gaddr, int port, int ttl, unsigned long max_count, unsigned int& current_packet_number, bool include_time_stamp, const std::chrono::milliseconds& interval, int busy_waiting_counter,  const std::string& msg, bool print_status_msg)
 {
     HC_LOG_TRACE("");
 
     unsigned int start_packet_number = current_packet_number;
+    long long data_total_size = 0; /*in byte*/
 
     std::cout << "set ttl to " << ttl << std::endl;
     if (!ms->set_ttl(ttl)) {
@@ -602,6 +618,8 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
 
     std::cout << "send message: " << msg << " to port " << port << std::endl;
     std::string send_msg = msg;
+
+    long long receive_start_time_stamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 
     for (unsigned long i = 0; (i < max_count || max_count == 0 ) && (m_running) ; ++i) {
         current_packet_number = start_packet_number + i + 1;
@@ -624,14 +642,30 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
             exit(0);
         }
 
+        data_total_size += send_msg.size();
+
         if (interval.count() != 0) {
             std::this_thread::sleep_for(interval);
+            //high_pres_usleep(6);
         }
+
+        busy_waiting = 0;
+        while (busy_waiting < busy_waiting_counter) {
+            ++busy_waiting;
+        }
+
+    }
+
+    long long receive_duration = 0;
+    if (receive_start_time_stamp != 0) {
+        receive_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - receive_start_time_stamp;
     }
 
     if (print_status_msg) {
         std::cout << std::endl;
     }
+
+    std::cout << "summary==> packet_count(#): " << current_packet_number - start_packet_number << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << "; goodput(MByte/s): " << (data_total_size / 1024 / 1024) / (receive_duration / 1000.0) << std::endl;
 }
 
 void tester::run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number, packet_manager& pmanager, const std::string& send_msg)
@@ -661,11 +695,14 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
     mc_filter mfilter = get_mc_filter(to_do);
     HC_LOG_DEBUG("filter mode: " << get_mc_filter_name(mfilter));
 
-    int ttl = get_ttl(to_do);
+    int ttl = get_int(to_do, "ttl", 10);
     HC_LOG_DEBUG("ttl: " << ttl);
 
-    int port = get_port(to_do);
+    int port = get_int(to_do, "port", 1234);
     HC_LOG_DEBUG("port: " << port);
+
+    int busy_waiting_counter = get_int(to_do, "busy_waiting_counter", 0);
+    HC_LOG_DEBUG("busy_waiting_counter: " << busy_waiting_counter);
 
     std::string msg = get_msg(to_do, send_msg);
     HC_LOG_DEBUG("msg: " << msg);
@@ -749,7 +786,7 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
             exit(0);
         }
 
-        send_data(ms, gaddr, port, ttl, max_count, current_packet_number, include_time_stamp, interval, msg, print_status_msg);
+        send_data(ms, gaddr, port, ttl, max_count, current_packet_number, include_time_stamp, interval, busy_waiting_counter, msg, print_status_msg);
         ms->close_socket();
         if (to_do_next.compare("null") != 0) {
             run(to_do_next, output_file, current_packet_number, pmanager, send_msg);
