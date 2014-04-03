@@ -588,7 +588,7 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
     }
 
     std::ostringstream oss_summary;
-    oss_summary << "--- summary==> packet_count(#): " << packet_count << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << "; goodput(MByte/s): " << (data_total_size / 1024 / 1024) / (receive_duration / 1000.0) << std::endl;
+    oss_summary << "--- summary==> packet_count(#): " << packet_count << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << "; packets per sec: " << (packet_count/receive_duration)*1000.0 << "; goodput(MByte/s): " << (data_total_size / 1024 / 1024) / (receive_duration / 1000.0) << std::endl;
 
     if (print_status_msg) {
         std::cout << "\r";
@@ -666,7 +666,7 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
         std::cout << std::endl;
     }
 
-    std::cout << "summary==> packet_count(#): " << current_packet_number - start_packet_number << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << "; goodput(MByte/s): " << (data_total_size / 1024 / 1024) / (receive_duration / 1000.0) << std::endl;
+    std::cout << "summary==> packet_count(#): " << current_packet_number - start_packet_number << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << "; packets per sec: " << ((current_packet_number - start_packet_number)/receive_duration)*1000.0 << "; goodput(MByte/s): " << (data_total_size / 1024 / 1024) / (receive_duration / 1000.0) << std::endl;
 }
 
 void tester::run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number, packet_manager& pmanager, const std::string& send_msg)
