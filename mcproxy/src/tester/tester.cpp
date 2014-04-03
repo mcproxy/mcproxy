@@ -395,7 +395,7 @@ int tester::get_int(const std::string& to_do, std::string&& compare, int default
         try {
             return std::stoi(result);
         } catch (std::logic_error e) {
-            std::cout << "failed to parse "<< compare << std::endl;
+            std::cout << "failed to parse " << compare << std::endl;
             exit(0);
         }
     }
@@ -592,8 +592,9 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
 
     if (print_status_msg) {
         std::cout << "\r";
-        std::cout << oss_summary.str();
     }
+
+    std::cout << oss_summary.str();
 
     if (save_to_file) {
         if (include_summary) {
