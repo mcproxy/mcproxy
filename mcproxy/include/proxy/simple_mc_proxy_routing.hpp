@@ -46,7 +46,9 @@ struct source_state{
 class interface_memberships
 {
 private:
-    //upstream interface index, group memberhisps (of a specific group) of all downstreams
+    using state_pair =std::pair<source_state, const std::shared_ptr<const interface>&>;
+    using state_list = std::list<state_pair>;
+
     std::list<std::pair<unsigned int, std::list<source_state>>> m_data;
 
     void merge_membership_infos(source_state& merge_to, const source_state& merge_from) const;
