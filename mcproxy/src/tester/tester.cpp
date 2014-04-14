@@ -583,12 +583,16 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
 
     //calculate summary
     long long receive_duration = 0;
+    float goodput = 0;
+    int packets_per_sec = 0;
     if (receive_start_time_stamp != 0) {
         receive_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - receive_start_time_stamp;
+        goodput = (data_total_size / 1024 / 1024) / (receive_duration / 1000.0);
+        packets_per_sec = (packet_count / receive_duration) * 1000.0;
     }
 
     std::ostringstream oss_summary;
-    oss_summary << "--- summary==> packet_count(#): " << packet_count << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << "; packets per sec: " << (packet_count/receive_duration)*1000.0 << "; goodput(MByte/s): " << (data_total_size / 1024 / 1024) / (receive_duration / 1000.0) << std::endl;
+    oss_summary << "--- summary==> packet_count(#): " << packet_count << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << "; packets per sec: " << packets_per_sec << "; goodput(MByte/s): " << goodput << std::endl;
 
     if (print_status_msg) {
         std::cout << "\r";
@@ -658,15 +662,19 @@ void tester::send_data(const std::unique_ptr<const mc_socket>& ms, addr_storage&
     }
 
     long long receive_duration = 0;
+    float goodput = 0;
+    int packets_per_sec = 0;
     if (receive_start_time_stamp != 0) {
         receive_duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - receive_start_time_stamp;
+        goodput = (data_total_size / 1024 / 1024) / (receive_duration / 1000.0);
+        packets_per_sec = ((current_packet_number - start_packet_number) / receive_duration) * 1000.0;
     }
 
     if (print_status_msg) {
         std::cout << std::endl;
     }
 
-    std::cout << "summary==> packet_count(#): " << current_packet_number - start_packet_number << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << "; packets per sec: " << ((current_packet_number - start_packet_number)/receive_duration)*1000.0 << "; goodput(MByte/s): " << (data_total_size / 1024 / 1024) / (receive_duration / 1000.0) << std::endl;
+    std::cout << "summary==> packet_count(#): " << current_packet_number - start_packet_number << "; total data size(byte): " << data_total_size << "; receive duration(ms): " << receive_duration << "; packets per sec: " << packets_per_sec << "; goodput(MByte/s): " <<  goodput << std::endl;
 }
 
 void tester::run(const std::string& to_do, const std::string& output_file, unsigned int current_packet_number, packet_manager& pmanager, const std::string& send_msg)
