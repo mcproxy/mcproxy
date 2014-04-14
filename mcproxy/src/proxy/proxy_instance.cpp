@@ -46,19 +46,19 @@
 #include <net/if.h>
 
 proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, const std::string& instance_name, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode)
-    : m_group_mem_protocol(group_mem_protocol)
-    , m_instance_name(instance_name)
-    , m_table_number(table_number)
-    , m_in_debug_testing_mode(in_debug_testing_mode)
-    , m_interfaces(interfaces)
-    , m_timing(shared_timing)
-    , m_mrt_sock(nullptr)
-    , m_sender(nullptr)
-    , m_receiver(nullptr)
-    , m_routing(nullptr)
-    , m_proxy_start_time(std::chrono::steady_clock::now())
-    , m_upstream_input_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_IN, RMT_FIRST, std::chrono::milliseconds(0)))
-    , m_upstream_output_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_OUT, RMT_ALL, std::chrono::milliseconds(0)))
+: m_group_mem_protocol(group_mem_protocol)
+, m_instance_name(instance_name)
+, m_table_number(table_number)
+, m_in_debug_testing_mode(in_debug_testing_mode)
+, m_interfaces(interfaces)
+, m_timing(shared_timing)
+, m_mrt_sock(nullptr)
+, m_sender(nullptr)
+, m_receiver(nullptr)
+, m_routing(nullptr)
+, m_proxy_start_time(std::chrono::steady_clock::now())
+, m_upstream_input_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_IN, RMT_FIRST, std::chrono::milliseconds(0)))
+, m_upstream_output_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_OUT, RMT_ALL, std::chrono::milliseconds(0)))
 {
 
     //rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, const std::chrono::milliseconds& timeout);

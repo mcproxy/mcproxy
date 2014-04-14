@@ -98,7 +98,7 @@ pinstance split downstream tunD2 out whitelist table {tunU2(* | *)};
 #                  |                 | like a reverse path filter corresponding multicast data will be received only at this interface
 #                  |                 |
 #                  | mutex <timeout> | subscribe merged groups at all upstreams with an appropriate rule, if the mcproxy receives this data
-#                  |                 | from one if this interfaces or from a downstream all other upstream interfaces unsubscribe this group.
+#                  |                 | from one interfaces all other upstream interfaces unsubscribes this group.
 #                  |                 | After a timeout of X milliseconds the checks if data sill arrive at this interface if not the mcproxy
 #                  |                 | subscribes this group at all upstream again 
 #                  

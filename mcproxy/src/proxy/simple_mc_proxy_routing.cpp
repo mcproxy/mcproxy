@@ -345,7 +345,6 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
                     auto saddr_it = m_data.refresh_source_or_del_it_if_unused(tm->get_gaddr(), tm->get_saddr());
                     if (!saddr_it.second) {
 
-                        //std::cout << "####################call from function TIMER_TRIGGERD_MAINTAIN_ROUTING_TABLE for interface" << interfaces::get_if_name(tm->get_if_index()) << std::endl;
                         del_route(tm->get_if_index(), tm->get_gaddr(), tm->get_saddr());
 
                         if (is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_MUTEX)) {
@@ -556,7 +555,14 @@ void simple_mc_proxy_routing::del_route(unsigned int if_index, const addr_storag
 std::shared_ptr<new_source_timer_msg> simple_mc_proxy_routing::set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
 {
     HC_LOG_TRACE("");
-    auto nst = std::make_shared<new_source_timer_msg>(if_index, gaddr, saddr, get_source_life_time());
+    std::chrono::milliseconds source_life_time;
+    if (m_p->is_upstream(if_index) && is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_MUTEX)) {
+        source_life_time = m_p->m_upstream_input_rule->get_timeout();
+    } else {
+        source_life_time = get_source_life_time();
+    }
+
+    auto nst = std::make_shared<new_source_timer_msg>(if_index, gaddr, saddr, source_life_time);
     m_p->m_timing->add_time(get_source_life_time(), m_p, nst);
 
     return nst;
