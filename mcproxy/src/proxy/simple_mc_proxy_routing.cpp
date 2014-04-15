@@ -99,15 +99,15 @@ void interface_memberships::process_upstream_in_first(const addr_storage& gaddr,
 {
     HC_LOG_TRACE("");
 
-    std::list<std::pair<source_state, const std::shared_ptr<const interface>&>> init_sstate_list;
+    state_list init_sstate_list;
     for (auto & downs_e : pi->m_downstreams) {
-        init_sstate_list.push_back(std::pair<source_state, const std::shared_ptr<const interface>>(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
+        init_sstate_list.push_back(state_pair(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
     }
 
     //init and fill database
     for (auto & upstr_e : pi->m_upstreams) {
 
-        std::list<std::pair<source_state, const std::shared_ptr<const interface>&>> tmp_sstate_list;
+        state_list tmp_sstate_list;
 
         for (auto & cs : init_sstate_list) {
 
@@ -134,7 +134,7 @@ void interface_memberships::process_upstream_in_first(const addr_storage& gaddr,
             }
 
             if (!tmp_sstate.m_source_list.empty()) {
-                tmp_sstate_list.push_back(std::pair<source_state, const std::shared_ptr<const interface>&>(tmp_sstate, cs.second));
+                tmp_sstate_list.push_back(state_pair(tmp_sstate, cs.second));
             }
 
         }
@@ -153,10 +153,10 @@ void interface_memberships::process_upstream_in_mutex(const addr_storage& gaddr,
 {
     HC_LOG_TRACE("");
 
-    std::list<std::pair<source_state, const std::shared_ptr<const interface>>> ref_sstate_list;
+    state_list ref_sstate_list;
 
     for (auto & downs_e : pi->m_downstreams) {
-        ref_sstate_list.push_back(std::pair<source_state, const std::shared_ptr<const interface>&>(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
+        ref_sstate_list.push_back(state_pair(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
     }
 
     //init and fill database
