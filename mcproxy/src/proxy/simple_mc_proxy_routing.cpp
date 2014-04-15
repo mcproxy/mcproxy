@@ -317,6 +317,8 @@ void simple_mc_proxy_routing::event_querier_state_change(unsigned int /*if_index
     //route calculation
     set_routes(gaddr, collect_interested_interfaces(gaddr, m_data.get_available_sources(gaddr)));
 
+    std::cout << "event_querier_state_change for process_mem_aggr" << std::endl;
+
     //membership agregation
     if (is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_FIRST)) {
         process_membership_aggregation(RMT_FIRST, gaddr);
@@ -325,6 +327,8 @@ void simple_mc_proxy_routing::event_querier_state_change(unsigned int /*if_index
     } else {
         HC_LOG_ERROR("unkown rule matching type in this context");
     }
+
+    std::cout << "event_querier_state_change after process_mem_aggr" << std::endl;
 }
 
 void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg)
@@ -472,9 +476,13 @@ void simple_mc_proxy_routing::process_membership_aggregation(rb_rule_matching_ty
     HC_LOG_TRACE("");
 
     if (rule_matching_type == RMT_FIRST || rule_matching_type == RMT_MUTEX) {
+        std::cout << "before interface_memberships" << std::endl;
         interface_memberships im(rule_matching_type , gaddr, m_p, m_data);
+        std::cout << "after interface_memberships" << std::endl;
         for (auto & e : m_p->m_upstreams) {
+            std::cout << "send_record interface_memberships" << std::endl;
             send_record(e.m_if_index, gaddr, im.get_group_memberships(e.m_if_index));
+            std::cout << "send_record interface_memberships" << std::endl;
         }
     } else {
         HC_LOG_ERROR("unkown rule matching type in this context");
