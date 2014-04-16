@@ -36,7 +36,7 @@
 #include "include/parser/interface.hpp"
 
 #include <memory>
-#include <vector>
+#include <set>
 #include <functional>
 
 class timing;
@@ -59,17 +59,25 @@ private:
         downstream_infos(std::unique_ptr<querier> querier, const std::shared_ptr<interface>& interf)
             : m_querier(std::move(querier))
             , m_interface(interf) {}
+
         std::unique_ptr<querier> m_querier;
         std::shared_ptr<interface> m_interface;
     };
 
     struct upstream_infos {
-        upstream_infos(unsigned int if_index, const std::shared_ptr<interface>& interf)
+        upstream_infos(unsigned int if_index, const std::shared_ptr<interface>& interf, unsigned int priority)
             : m_if_index(if_index)
-            , m_interface(interf) {}
+            , m_interface(interf) 
+            , m_priority(priority) {}
 
         unsigned int m_if_index;
         std::shared_ptr<interface> m_interface;
+        unsigned int m_priority;
+            
+        friend bool operator < (const upstream_infos& l, const upstream_infos& r) {
+            HC_LOG_TRACE("");
+            return l.m_priority < r.m_priority;
+        }
     };
 
     //IGMPv1, IGMPv2, IGMPv3, MLDv1, MLDv2
@@ -93,9 +101,7 @@ private:
     //to match the proxy debug output with the wireshark time stamp
     const std::chrono::time_point<std::chrono::steady_clock> m_proxy_start_time;
 
-    //interface index
-    //unsigned int m_upstream;
-    std::vector<upstream_infos> m_upstreams;
+    std::set<upstream_infos> m_upstreams;
 
     //if_indexes of the downstreams, querier
     //std::map<unsigned int, std::unique_ptr<querier>> m_querier;

@@ -68,6 +68,7 @@ private:
 
     void start();
 
+    unsigned int get_default_priority_interval();
 public:
     /**
      * @brief Set default values of the class members and add signal handlers for the signal SIGINT and SIGTERM.

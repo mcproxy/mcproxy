@@ -169,7 +169,6 @@ proxy_instance::~proxy_instance()
 void proxy_instance::worker_thread()
 {
     HC_LOG_TRACE("");
-
     while (m_running) {
         auto msg = m_job_queue.dequeue();
         switch (msg->get_type()) {
@@ -314,7 +313,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     break;
     case config_msg::ADD_UPSTREAM: {
         //register interface
-
+        
         if (std::find_if(m_upstreams.begin(), m_upstreams.end(), [&](const upstream_infos & ui) {
         return ui.m_if_index == msg->get_if_index();
         } ) == m_upstreams.end()) {
@@ -327,15 +326,12 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
                 HC_LOG_DEBUG("interface also used as downstream");
             }
 
-            if (m_upstreams.size() >= msg->get_position()) {
-                m_upstreams.push_back(upstream_infos(msg->get_if_index(), msg->get_interface()));
-            } else {
-                m_upstreams.insert(m_upstreams.begin() + msg->get_position(), upstream_infos(msg->get_if_index(), msg->get_interface()));
-            }
-
+            HC_LOG_DEBUG("registerd upstreams: " << m_upstreams.size());
+            HC_LOG_DEBUG("upstream priority: " << msg->get_upstream_priority());
+            m_upstreams.insert(upstream_infos(msg->get_if_index(), msg->get_interface(), msg->get_upstream_priority()));
         }
         else {
-            HC_LOG_WARN("downstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " already exists");
+            HC_LOG_WARN("upstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " already exists");
         }
     }
     break;

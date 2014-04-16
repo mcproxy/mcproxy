@@ -158,13 +158,15 @@ void interface_memberships::process_upstream_in_mutex(const addr_storage& gaddr,
     for (auto & downs_e : pi->m_downstreams) {
         ref_sstate_list.push_back(state_pair(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
     }
+    //print(ref_sstate_list);
 
     //init and fill database
     for (auto & upstr_e : pi->m_upstreams) {
 
         std::list<source_state> tmp_sstate_list;
 
-        for (auto cs_it = ref_sstate_list.begin(); cs_it != ref_sstate_list.end();) { //for every downstream interface
+        //for every downstream interface
+        for (auto cs_it = ref_sstate_list.begin(); cs_it != ref_sstate_list.end();) {
 
             source_state tmp_sstate;
             tmp_sstate.m_mc_filter = cs_it->first.m_mc_filter;
@@ -173,13 +175,13 @@ void interface_memberships::process_upstream_in_mutex(const addr_storage& gaddr,
             for (auto source_it = cs_it->first.m_source_list.begin(); source_it != cs_it->first.m_source_list.end();) {
 
                 //downstream out
-                if (cs_it->second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                if (!cs_it->second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
                     ++source_it;
                     continue;
                 }
 
                 //upstream in
-                if (upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
                     ++source_it;
                     continue;
                 }
@@ -267,6 +269,19 @@ std::string interface_memberships::to_string() const
     return s.str();
 }
 
+#ifdef DEBUG_MODE
+void interface_memberships::print(const state_list& sl)
+{
+    std::cout << "-- print state_list --" << std::endl;
+    for (auto & e : sl) {
+        std::cout << "source state(first): " << e.first.to_string() << std::endl;
+        std::cout << "interface name(second): " << e.second->to_string_interface();
+        std::cout << "interface rule binding(second): " << e.second->to_string_rule_binding();
+    }
+
+}
+#endif /* DEBUG_MODE */
+
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 simple_mc_proxy_routing::simple_mc_proxy_routing(const proxy_instance* p)
@@ -317,8 +332,6 @@ void simple_mc_proxy_routing::event_querier_state_change(unsigned int /*if_index
     //route calculation
     set_routes(gaddr, collect_interested_interfaces(gaddr, m_data.get_available_sources(gaddr)));
 
-    std::cout << "event_querier_state_change for process_mem_aggr" << std::endl;
-
     //membership agregation
     if (is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_FIRST)) {
         process_membership_aggregation(RMT_FIRST, gaddr);
@@ -327,8 +340,6 @@ void simple_mc_proxy_routing::event_querier_state_change(unsigned int /*if_index
     } else {
         HC_LOG_ERROR("unkown rule matching type in this context");
     }
-
-    std::cout << "event_querier_state_change after process_mem_aggr" << std::endl;
 }
 
 void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg)
@@ -476,13 +487,9 @@ void simple_mc_proxy_routing::process_membership_aggregation(rb_rule_matching_ty
     HC_LOG_TRACE("");
 
     if (rule_matching_type == RMT_FIRST || rule_matching_type == RMT_MUTEX) {
-        std::cout << "before interface_memberships" << std::endl;
         interface_memberships im(rule_matching_type , gaddr, m_p, m_data);
-        std::cout << "after interface_memberships" << std::endl;
         for (auto & e : m_p->m_upstreams) {
-            std::cout << "send_record interface_memberships" << std::endl;
             send_record(e.m_if_index, gaddr, im.get_group_memberships(e.m_if_index));
-            std::cout << "send_record interface_memberships" << std::endl;
         }
     } else {
         HC_LOG_ERROR("unkown rule matching type in this context");
@@ -541,7 +548,6 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
                 continue;
             }
 
-            //std::cout << "##########ACTION: set route" << std::endl;
             m_p->m_routing->add_route(m_p->m_interfaces->get_virtual_if_index(input_if_index), gaddr, e.first.saddr, vif_out);
         }
 

@@ -64,7 +64,8 @@ void worker::add_msg(const std::shared_ptr<proxy_msg>& msg) const
 {
     HC_LOG_TRACE("");
 
-    HC_LOG_DEBUG("message type:" << proxy_msg::get_message_type_name(msg->get_type()));
+    HC_LOG_DEBUG("message type: " << proxy_msg::get_message_type_name(msg->get_type()));
+    HC_LOG_DEBUG("message priority: " << proxy_msg::get_message_priority_name(msg->get_priority()));
     if (msg->get_priority() == proxy_msg::LOSEABLE) {
         m_job_queue.enqueue_loseable(msg);
     } else {
@@ -123,8 +124,8 @@ void worker::test_worker()
                     stop();
                     break;
                 default:
-                    HC_LOG_DEBUG("dequeued a an other message");
-                    std::cout << "an ohter unknown message" << std::endl;
+                    HC_LOG_DEBUG("dequeued an other message");
+                    std::cout << "an other unknown message" << std::endl;
                     break;
                 }
             }
