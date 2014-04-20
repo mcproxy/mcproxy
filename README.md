@@ -19,6 +19,7 @@ functionalities.  The multicast proxy can be instantiated multiple times, is
 dynamically configurable at runtime, supports multiple upstreams and
 peering-interfaces for a non hierarchical interconnection of multicast proxies.
 
+If you use Mcproxy in a scientific context, please use the following [citation](http://inet.cpt.haw-hamburg.de/publications/sww-pmpps-14.html).
 
 Requirements
 ============
