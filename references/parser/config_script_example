@@ -3,7 +3,7 @@
 #Interface Test Config File
 #==========================
 #Comment
-disable; #the mcporxy will quit if it sees this command. 
+disable; #the mcporxy quits if it sees this command. 
 
 
 #choose a protocol
