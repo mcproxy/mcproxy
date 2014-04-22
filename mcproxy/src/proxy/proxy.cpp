@@ -189,6 +189,10 @@ void proxy::prozess_commandline_args(int arg_count, char* args[])
     }
 }
 
+unsigned int proxy::get_default_priority_interval(){
+    return 100;    
+}
+
 void proxy::start_proxy_instances()
 {
     HC_LOG_TRACE("");
@@ -216,7 +220,6 @@ void proxy::start_proxy_instances()
 
         std::unique_ptr<proxy_instance> pr_i(new proxy_instance(m_configuration->get_group_mem_protocol(), instance_name, table_number, interfaces, m_timing));
 
-
         //global rule bindung      
         auto& global_settings = pinstance->get_global_settings();
         for (auto & r : global_settings) {
@@ -224,15 +227,15 @@ void proxy::start_proxy_instances()
         }
 
         //add upstream
-        unsigned int position = 0;
+        unsigned int upstream_priority = 0;
         for (auto & u : upstreams) {
             unsigned int if_index = interfaces::get_if_index(u->get_if_name());
             if (if_index == 0) {
                 HC_LOG_ERROR("failed to map upstream interface " << u->get_if_name() << " interface index");
                 throw "interface not found";
             }
-            pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_UPSTREAM, if_index, position, u));
-            position++;
+            pr_i->add_msg(std::make_shared<config_msg>(config_msg::ADD_UPSTREAM, if_index, upstream_priority, u));
+            upstream_priority+=get_default_priority_interval();
         }
 
         //add downstream
@@ -254,7 +257,10 @@ void proxy::start_proxy_instances()
         }
 
         m_proxy_instances.insert(std::pair<int, std::unique_ptr<proxy_instance>>(table_number, std::move(pr_i)));
+
     }
+
+
 }
 
 void proxy::start()
@@ -262,12 +268,13 @@ void proxy::start()
     using namespace std;
     HC_LOG_TRACE("");
 
+    m_running = true;
+
     if (m_print_proxy_status) {
         cout << *this << endl;
         cout << endl;
     }
 
-    m_running = true;
     while (m_running) {
 
         if (m_print_proxy_status) {

@@ -158,13 +158,15 @@ void interface_memberships::process_upstream_in_mutex(const addr_storage& gaddr,
     for (auto & downs_e : pi->m_downstreams) {
         ref_sstate_list.push_back(state_pair(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
     }
+    //print(ref_sstate_list);
 
     //init and fill database
     for (auto & upstr_e : pi->m_upstreams) {
 
         std::list<source_state> tmp_sstate_list;
 
-        for (auto cs_it = ref_sstate_list.begin(); cs_it != ref_sstate_list.end();) { //for every downstream interface
+        //for every downstream interface
+        for (auto cs_it = ref_sstate_list.begin(); cs_it != ref_sstate_list.end();) {
 
             source_state tmp_sstate;
             tmp_sstate.m_mc_filter = cs_it->first.m_mc_filter;
@@ -173,13 +175,13 @@ void interface_memberships::process_upstream_in_mutex(const addr_storage& gaddr,
             for (auto source_it = cs_it->first.m_source_list.begin(); source_it != cs_it->first.m_source_list.end();) {
 
                 //downstream out
-                if (cs_it->second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                if (!cs_it->second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
                     ++source_it;
                     continue;
                 }
 
                 //upstream in
-                if (upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
                     ++source_it;
                     continue;
                 }
@@ -267,6 +269,19 @@ std::string interface_memberships::to_string() const
     return s.str();
 }
 
+#ifdef DEBUG_MODE
+void interface_memberships::print(const state_list& sl)
+{
+    std::cout << "-- print state_list --" << std::endl;
+    for (auto & e : sl) {
+        std::cout << "source state(first): " << e.first.to_string() << std::endl;
+        std::cout << "interface name(second): " << e.second->to_string_interface();
+        std::cout << "interface rule binding(second): " << e.second->to_string_rule_binding();
+    }
+
+}
+#endif /* DEBUG_MODE */
+
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 simple_mc_proxy_routing::simple_mc_proxy_routing(const proxy_instance* p)
@@ -345,7 +360,6 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
                     auto saddr_it = m_data.refresh_source_or_del_it_if_unused(tm->get_gaddr(), tm->get_saddr());
                     if (!saddr_it.second) {
 
-                        //std::cout << "####################call from function TIMER_TRIGGERD_MAINTAIN_ROUTING_TABLE for interface" << interfaces::get_if_name(tm->get_if_index()) << std::endl;
                         del_route(tm->get_if_index(), tm->get_gaddr(), tm->get_saddr());
 
                         if (is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_MUTEX)) {
@@ -534,7 +548,6 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
                 continue;
             }
 
-            //std::cout << "##########ACTION: set route" << std::endl;
             m_p->m_routing->add_route(m_p->m_interfaces->get_virtual_if_index(input_if_index), gaddr, e.first.saddr, vif_out);
         }
 
@@ -556,7 +569,14 @@ void simple_mc_proxy_routing::del_route(unsigned int if_index, const addr_storag
 std::shared_ptr<new_source_timer_msg> simple_mc_proxy_routing::set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr)
 {
     HC_LOG_TRACE("");
-    auto nst = std::make_shared<new_source_timer_msg>(if_index, gaddr, saddr, get_source_life_time());
+    std::chrono::milliseconds source_life_time;
+    if (m_p->is_upstream(if_index) && is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_MUTEX)) {
+        source_life_time = m_p->m_upstream_input_rule->get_timeout();
+    } else {
+        source_life_time = get_source_life_time();
+    }
+
+    auto nst = std::make_shared<new_source_timer_msg>(if_index, gaddr, saddr, source_life_time);
     m_p->m_timing->add_time(get_source_life_time(), m_p, nst);
 
     return nst;

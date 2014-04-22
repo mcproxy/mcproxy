@@ -30,7 +30,6 @@ struct mfcctl {
 
 
 General stuff
- -- check priority queue, it looks like the priorities are inverted
  -- create an how to for the configuration script
  -- implement dynamic interface state updating, what happens if the network cable is interrupted for a short time. 
  -- clean class routing 

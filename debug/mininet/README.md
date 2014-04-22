@@ -49,7 +49,8 @@ figure:
 <img src="figures/multi_upstream.png" alt="multi upstream topologie example" height="300"> 
 
    
-Example - Classic Proxy
+Example - Interactive Proxy
 ==============================
 
-<img src="figures/classic.png" alt="multi upstream topologie example" height="300"> 
+<img src="figures/interactive.png" alt="interactive proxy topologie example" height="300"> 
+

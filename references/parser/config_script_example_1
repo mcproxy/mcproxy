@@ -57,7 +57,11 @@ pinstance A downstream b2 out whitelist table {b1(*|*)};
 
 pinstance A: a1 b1 ==> a2 b2;
 
-pinstance A upstream * in rulematching mutex 10; #define the behaviour  #pinstance A upstream * out rulematching all; #default pinstance A upstream a1 out whitelist table {a2(*|*)}; pinstance A downstream a2 out whitelist table {a1(*|*)}; 
+pinstance A upstream * in rulematching mutex 10; #define the behaviour  
+#pinstance A upstream * out rulematching all; #default 
+
+pinstance A upstream a1 out whitelist table {a2(*|*)}; 
+pinstance A downstream a2 out whitelist table {a1(*|*)}; 
 
 #Explanation 
 #   I removed the last to rules (pinstance A upstream b1 ... and pinstance A downstream b2 ...) of example A, and now if Host_b subscribe the data of 

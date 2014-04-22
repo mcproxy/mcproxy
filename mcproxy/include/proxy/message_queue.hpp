@@ -40,7 +40,7 @@
 /**
  * @brief Fixed sized synchronised priority job queue.
  */
-template< typename T, typename Compare  = std::less<T> >
+template<typename T, typename Compare = std::less<T>>
 class message_queue
 {
 private:
@@ -73,7 +73,7 @@ public:
     int max_size() const;
 
     /**
-     * @brief Add an element on tail or delete the element if the queue is full. 
+     * @brief Add an element on tail or delete the element if the queue is full.
      */
     bool enqueue_loseable(const T& t);
 
@@ -88,15 +88,15 @@ public:
     T dequeue(void);
 };
 
-template< typename T, typename Compare>
-message_queue<T,Compare>::message_queue(int size, Compare compare)
+template<typename T, typename Compare>
+message_queue<T, Compare>::message_queue(int size, Compare compare)
     : m_q(compare)
     , m_size(size)
 {
     HC_LOG_TRACE("");
 }
 
-template< typename T, typename Compare>
+template<typename T, typename Compare>
 bool message_queue<T, Compare>::is_empty() const
 {
     HC_LOG_TRACE("");
@@ -106,7 +106,7 @@ bool message_queue<T, Compare>::is_empty() const
     return m_q.empty();
 }
 
-template< typename T, typename Compare>
+template<typename T, typename Compare>
 unsigned int message_queue<T, Compare>::size() const
 {
     HC_LOG_TRACE("");
@@ -116,7 +116,7 @@ unsigned int message_queue<T, Compare>::size() const
     return m_q.size();
 }
 
-template< typename T, typename Compare>
+template<typename T, typename Compare>
 int message_queue<T, Compare>::max_size() const
 {
     HC_LOG_TRACE("");
@@ -124,7 +124,7 @@ int message_queue<T, Compare>::max_size() const
     return m_size;
 }
 
-template< typename T, typename Compare>
+template<typename T, typename Compare>
 bool message_queue<T, Compare>::enqueue_loseable(const T& t)
 {
     HC_LOG_TRACE("");
@@ -142,8 +142,8 @@ bool message_queue<T, Compare>::enqueue_loseable(const T& t)
     return true;
 }
 
-template< typename T, typename Compare>
-void message_queue<T,Compare>::enqueue(const T& t)
+template<typename T, typename Compare>
+void message_queue<T, Compare>::enqueue(const T& t)
 {
     HC_LOG_TRACE("");
 
@@ -152,10 +152,11 @@ void message_queue<T,Compare>::enqueue(const T& t)
         m_q.push(t);
     }
     cond_empty.notify_one();
+    HC_LOG_DEBUG("!!!!!test2");
 }
 
-template< typename T, typename Compare>
-T message_queue<T,Compare>::dequeue(void)
+template<typename T, typename Compare>
+T message_queue<T, Compare>::dequeue(void)
 {
     HC_LOG_TRACE("");
 

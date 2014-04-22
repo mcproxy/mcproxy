@@ -1,0 +1,76 @@
+##-- Membership aggregation with upstream in rulematching first and mutex --##
+
+#                          
+#     \           /                  
+#      \         /                   
+#       \       /                    
+#      +---------+         
+#      | U1   U2 |         
+#      |    D    |         
+#      +---------+         
+#           |    
+#           |    
+#           |    
+#
+
+#Naming
+D = Downstream Interface
+U1, U2 = Upstreams Interface
+IN = INCLUDE (group membership mode) 
+EX = EXCLUDE (group membership mode) 
+WL = WHITELIST (interface filter mode) 
+BL = BLACKLIST (interface filter mode)
+Dall = merged group membership with interface filter 
+Sx = multicast source (x could be 1 or 2 or ...)
+R = Remainder
+
+#operations
++ = unit
+* = intersection 
+- = without
+
+#Merge Group memberships
+#A(group membership) and B(group membership) = Result(visible membership), Remainder ==> howto calculate
+IN(S1,S2) and IN(S1,S3) = IN(S1,S2,S3) ==> IN(A + B)
+IN(S1,S2) and EX(S1,S3) = EX(S3) ==> EX(B - A)
+EX(S1,S2) and IN(S1,S3) = EX(S2) ==> EX(A - B)
+EX(S1,S2) and EX(S1,S3) = EX(S1) ==> EX(A * B)
+
+#ASM
+Join: EX({})
+Leave: IN({})
+
+#Merge group membership with interface filter
+#A(group membership) and B(interface filter) = Result(visible membership), Remainder ==> howto calculate
+IN(S1,S2) and WL(S1,S3) = IN(S1), R(IN(S2)) ==> IN(A * B), R(IN(A - Result))
+IN(S1,S2) and BL(S1,S3) = IN(S2), R(IN(S1)) ==> IN(A - B), R(IN(A - Result))
+EX(S1,S2) and WL(S1,S3) = IN(S3), R(EX(S1,S2,S3) ==> IN(B - A), R(EX(A + Result))
+EX(S1,S2) and BL(S1,S3) = EX(S1,S2,S3), R(IN(S3)) ==> EX(A + B), R(IN(Result - A))  
+
+IN(S1,S2) and BL({}) = IN(S1,S2), R(IN({}))
+
+#processing tool chain -- upstream in rulematching first
+1. merge D group membership with D interface filter ==> Dall 
+2. merge Dall with U1 interface filter ==> U1 membership aggregation, R 
+3. merge R with U2 interface filter ==> U2 membership aggregation
+
+#processing tool chain -- upstream in rulematching mutex 
+#Examples -- upstream in rulematching first
+1. merge D group membership with D interface filter ==> Dall 
+2. calculate the Mutex Blacklist for every upstream (all received sources form all interfaces (D, U1, U2) without the sources of the own interface)  ==> M_BL_U1, M_BL_U2
+3. merge Dall with U1 interface filter and with M_BL_U1 ==> U1 membership aggregation 
+4. merge Dall with U2 interface filter and with M_BL_U2 ==> U2 membership aggregation 
+
+
+HINT: Dall has to be calculated for every Downstream and merged after the processing tool chain
+
+#Example -- upstream in rulematching first
+#Downstream status | Upstream status ==> Membership Aggregation
+Dall: IN(S1,S2) | U1: WL(S1), U2: WL(S2) ==> U1: IN(S1), U2: IN(S2)
+Dall: IN(S1,S2) | U1: BL(S1), U2: BL(S2) ==> U1: IN(S2), U2: IN(S1)
+...
+
+#Example -- upstream in rulematching mutex 
+#Downstream status | Upstream status ==> Membership Aggregation
+
+

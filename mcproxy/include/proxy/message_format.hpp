@@ -103,6 +103,11 @@ struct proxy_msg {
 
     friend bool operator< (const proxy_msg& l, const proxy_msg& r) {
         HC_LOG_TRACE("");
+        return l.m_prio < r.m_prio;
+    }
+
+    friend bool operator> (const proxy_msg& l, const proxy_msg& r) {
+        HC_LOG_TRACE("");
         return l.m_prio > r.m_prio;
     }
 
@@ -130,7 +135,7 @@ protected:
 
 struct comp_proxy_msg {
     bool operator()(const std::shared_ptr<proxy_msg>& l, const std::shared_ptr<proxy_msg>& r) const {
-        return *l < *r;
+        return *l > *r;
     }
 };
 
@@ -146,6 +151,8 @@ struct test_msg : public proxy_msg {
 
     virtual void operator()() override {
         HC_LOG_TRACE("");
+        HC_LOG_DEBUG("Test Message value: " << m_value);
+        HC_LOG_DEBUG("Test Message prio: " << get_priority());
         std::cout << "Test Message value: "  << m_value << " prio: " << proxy_msg::get_message_priority_name(get_priority()) << std::endl;
     }
 
@@ -405,11 +412,11 @@ struct config_msg : public proxy_msg {
         SET_GLOBAL_RULE_BINDING
     };
 
-    config_msg(config_instruction instruction, unsigned int if_index, unsigned int position, const std::shared_ptr<interface>& interf)
+    config_msg(config_instruction instruction, unsigned int if_index, unsigned int upstream_priority, const std::shared_ptr<interface>& interf)
         : proxy_msg(CONFIG_MSG, SYSTEMIC)
         , m_instruction(instruction)
         , m_if_index(if_index)
-        , m_position(position)
+        , m_upstream_priority(upstream_priority)
         , m_interface(interf)
         , m_tv(timers_values()) {
         if (instruction != DEL_DOWNSTREAM && instruction != ADD_UPSTREAM && instruction != DEL_UPSTREAM) {
@@ -446,8 +453,8 @@ struct config_msg : public proxy_msg {
         return m_if_index;
     }
 
-    unsigned int get_position() {
-        return m_position;
+    unsigned int get_upstream_priority() {
+        return m_upstream_priority;
     }
 
     const timers_values& get_timers_values() {
@@ -461,7 +468,7 @@ struct config_msg : public proxy_msg {
 private:
     config_instruction m_instruction;
     unsigned int m_if_index;
-    unsigned int m_position;
+    unsigned int m_upstream_priority;
     std::shared_ptr<interface> m_interface;
     timers_values m_tv;
     std::shared_ptr<rule_binding> m_rule_binding;

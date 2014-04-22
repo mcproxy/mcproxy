@@ -35,7 +35,7 @@ struct timer_msg;
 struct source;
 struct new_source_timer_msg;
 
-struct source_state{
+struct source_state {
     source_state();
     source_state(std::pair<mc_filter, source_list<source>> sstate);
     mc_filter m_mc_filter;
@@ -46,7 +46,7 @@ struct source_state{
 class interface_memberships
 {
 private:
-    using state_pair =std::pair<source_state, const std::shared_ptr<const interface>&>;
+    using state_pair = std::pair<source_state, const std::shared_ptr<const interface>>;
     using state_list = std::list<state_pair>;
 
     std::list<std::pair<unsigned int, std::list<source_state>>> m_data;
@@ -58,10 +58,12 @@ private:
 
 public:
     interface_memberships(rb_rule_matching_type upstream_in_rule_matching_type, const addr_storage& gaddr, const proxy_instance* pi, const simple_routing_data& routing_data);
-    
+
     source_state get_group_memberships(unsigned int upstream_if_index);
 
     std::string to_string() const;
+
+    static void print(const state_list& sl);
 };
 
 /**
