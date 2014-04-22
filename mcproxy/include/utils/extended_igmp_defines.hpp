@@ -40,9 +40,13 @@
 
 //RFC 2113
 struct router_alert_option {
-    uint8_t type = 0x94; //Ccopied flag: 1, Option class: 0, Option number: 20
-    uint8_t length = 0x4;
-    uint16_t value = 0;
+    uint8_t type; //Ccopied flag: 1, Option class: 0, Option number: 20
+    uint8_t length;
+    uint16_t value;
+    router_alert_option()
+        : type(0x94)
+        , length(0x4)
+        , value(0) {};
 };
 
 struct igmpv3_query: igmp {

@@ -1,0 +1,608 @@
+From: asd@asdf
+Subject: xxx
+
+diff --git a/mcproxy/include/parser/interface.hpp b/mcproxy/include/parser/interface.hpp
+index 78f0238..d59db90 100644
+--- a/mcproxy/include/parser/interface.hpp
++++ b/mcproxy/include/parser/interface.hpp
+@@ -46,8 +46,8 @@ class single_addr: public addr_match
+     addr_storage m_addr;
+ public:
+     single_addr(const addr_storage& addr);
+-    bool match(const addr_storage& addr) const override;
+-    std::string to_string() const override;
++    bool match(const addr_storage& addr) const;
++    std::string to_string() const;
+ };
+ 
+ class addr_range : public addr_match
+@@ -58,8 +58,8 @@ public:
+     addr_range(const addr_storage& from, const addr_storage& to);
+ 
+     //uncluding from and to
+-    bool match(const addr_storage& addr) const override;
+-    std::string to_string() const override;
++    bool match(const addr_storage& addr) const;
++    std::string to_string() const;
+ };
+ 
+ class rule_addr : public rule_box
+@@ -69,8 +69,8 @@ class rule_addr : public rule_box
+     std::unique_ptr<addr_match> m_source;
+ public:
+     rule_addr(const std::string& if_name, std::unique_ptr<addr_match> group, std::unique_ptr<addr_match> source);
+-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
+-    std::string to_string() const override;
++    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const;
++    std::string to_string() const;
+ };
+ 
+ class table : public rule_box
+@@ -81,8 +81,8 @@ public:
+     table(const std::string& name);
+     table(const std::string& name, std::list<std::unique_ptr<rule_box>>&& rule_box_list);
+     const std::string& get_name() const;
+-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
+-    std::string to_string() const override;
++    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const;
++    std::string to_string() const;
+     friend bool operator<(const table& t1, const table& t2);
+ };
+ 
+@@ -97,8 +97,8 @@ class rule_table : public rule_box
+     std::unique_ptr<table> m_table;
+ public:
+     rule_table(std::unique_ptr<table> t);
+-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
+-    std::string to_string() const override;
++    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const;
++    std::string to_string() const;
+ };
+ 
+ class global_table_set
+@@ -117,8 +117,8 @@ class rule_table_ref : public rule_box
+     const std::shared_ptr<const global_table_set> m_global_table_set;
+ public:
+     rule_table_ref(const std::string& table_name, const std::shared_ptr<const global_table_set>& global_table_set);
+-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
+-    std::string to_string() const override;
++    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const;
++    std::string to_string() const;
+ };
+ 
+ enum rb_type {
+@@ -238,8 +238,8 @@ struct comp_instance_definition_pointer {
+ class inst_def_set
+ {
+ private:
+-    using instance_definition_set = std::set<std::shared_ptr<instance_definition>, comp_instance_definition_pointer>;
+-    using const_iterator = instance_definition_set::const_iterator;
++    typedef std::set<std::shared_ptr<instance_definition>, comp_instance_definition_pointer> instance_definition_set;
++    typedef instance_definition_set::const_iterator const_iterator;
+ 
+     instance_definition_set m_instance_def_set;
+ 
+diff --git a/mcproxy/include/proxy/def.hpp b/mcproxy/include/proxy/def.hpp
+index 75edb64..ebdbeae 100644
+--- a/mcproxy/include/proxy/def.hpp
++++ b/mcproxy/include/proxy/def.hpp
+@@ -54,7 +54,7 @@ std::string time_to_string(const std::chrono::milliseconds& msec);
+ //------------------------------------------------------------------------
+ std::string indention(std::string str);
+ //------------------------------------------------------------------------
+-template<typename T> using source_list = std::set<T>;
++#define source_list std::set
+ 
+ //A+B means the union of set A and B
+ template<typename T>
+diff --git a/mcproxy/include/proxy/igmp_receiver.hpp b/mcproxy/include/proxy/igmp_receiver.hpp
+index 5ca5b84..f7b4ce6 100644
+--- a/mcproxy/include/proxy/igmp_receiver.hpp
++++ b/mcproxy/include/proxy/igmp_receiver.hpp
+@@ -47,9 +47,9 @@ class igmp_receiver : public receiver
+ {
+ private:
+ 
+-    int get_ctrl_min_size() override;
+-    int get_iov_min_size() override;
+-    void analyse_packet(struct msghdr* msg, int info_size) override;
++    int get_ctrl_min_size();
++    int get_iov_min_size();
++    void analyse_packet(struct msghdr* msg, int info_size);
+ 
+ public:
+     /**
+diff --git a/mcproxy/include/proxy/igmp_sender.hpp b/mcproxy/include/proxy/igmp_sender.hpp
+index 3e917ea..020eee1 100644
+--- a/mcproxy/include/proxy/igmp_sender.hpp
++++ b/mcproxy/include/proxy/igmp_sender.hpp
+@@ -41,13 +41,13 @@ private:
+ public:
+     igmp_sender(const std::shared_ptr<const interfaces>& interfaces);
+ 
+-    bool send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const override;
++    bool send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const;
+ 
+-    virtual bool send_general_query(unsigned int if_index, const timers_values& tv) const override;
++    virtual bool send_general_query(unsigned int if_index, const timers_values& tv) const;
+ 
+-    bool send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag) const override;
++    bool send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag) const;
+ 
+-    bool send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist) const override;
++    bool send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist) const;
+ 
+ };
+ 
+diff --git a/mcproxy/include/proxy/membership_db.hpp b/mcproxy/include/proxy/membership_db.hpp
+index 1d6d203..1584a01 100644
+--- a/mcproxy/include/proxy/membership_db.hpp
++++ b/mcproxy/include/proxy/membership_db.hpp
+@@ -65,8 +65,8 @@ struct gaddr_info {
+     friend std::ostream& operator<<(std::ostream& stream, const gaddr_info& g);
+ };
+ 
+-using gaddr_map = std::map<addr_storage, gaddr_info>;
+-using gaddr_pair = std::pair<addr_storage, gaddr_info>;
++#define gaddr_map std::map<addr_storage, gaddr_info>
++#define gaddr_pair std::pair<addr_storage, gaddr_info>
+ 
+ /**
+  * @brief The Membership Database maintaines the membership records for one specific interface (RFC 4605)
+diff --git a/mcproxy/include/proxy/message_format.hpp b/mcproxy/include/proxy/message_format.hpp
+index 371a6fc..7e575db 100644
+--- a/mcproxy/include/proxy/message_format.hpp
++++ b/mcproxy/include/proxy/message_format.hpp
+@@ -144,7 +144,7 @@ struct test_msg : public proxy_msg {
+         HC_LOG_TRACE("");
+     }
+ 
+-    virtual void operator()() override {
++    virtual void operator()() {
+         HC_LOG_TRACE("");
+         std::cout << "Test Message value: "  << m_value << " prio: " << proxy_msg::get_message_priority_name(get_priority()) << std::endl;
+     }
+@@ -159,7 +159,7 @@ struct timer_msg : public proxy_msg {
+         : proxy_msg(type, SYSTEMIC)
+         , m_if_index(if_index)
+         , m_gaddr(gaddr)
+-        , m_end_time(std::chrono::steady_clock::now() + duration) {
++        , m_end_time(std::chrono::monotonic_clock::now() + duration) {
+         HC_LOG_TRACE("");
+     }
+ 
+@@ -172,15 +172,15 @@ struct timer_msg : public proxy_msg {
+     }
+ 
+     bool is_remaining_time_greater_than(std::chrono::milliseconds comp_time) {
+-        return (std::chrono::steady_clock::now() + comp_time) <= m_end_time;
++        return (std::chrono::monotonic_clock::now() + comp_time) <= m_end_time;
+     }
+ 
+     std::string get_remaining_time() {
+         using namespace std::chrono;
+         std::ostringstream s;
+-        auto current_time = steady_clock::now();
++        auto current_time = monotonic_clock::now();
+         auto time_span = m_end_time - current_time;
+-        double seconds = time_span.count()  * steady_clock::period::num / steady_clock::period::den;
++        double seconds = time_span.count()  * monotonic_clock::period::num / monotonic_clock::period::den;
+         if (seconds >= 0) {
+             s << seconds << "sec";
+         } else {
+@@ -192,7 +192,7 @@ struct timer_msg : public proxy_msg {
+ private:
+     unsigned int m_if_index;
+     addr_storage m_gaddr;
+-    std::chrono::time_point<std::chrono::steady_clock> m_end_time;
++    std::chrono::time_point<std::chrono::monotonic_clock> m_end_time;
+ };
+ 
+ struct filter_timer_msg : public timer_msg {
+diff --git a/mcproxy/include/proxy/mld_receiver.hpp b/mcproxy/include/proxy/mld_receiver.hpp
+index 4eadce4..75a1d17 100644
+--- a/mcproxy/include/proxy/mld_receiver.hpp
++++ b/mcproxy/include/proxy/mld_receiver.hpp
+@@ -41,9 +41,9 @@
+ class mld_receiver : public receiver
+ {
+ private:
+-    int get_ctrl_min_size() override; //size in byte
+-    int get_iov_min_size() override; //size in byte
+-    void analyse_packet(struct msghdr* msg, int info_size) override;
++    int get_ctrl_min_size(); //size in byte
++    int get_iov_min_size(); //size in byte
++    void analyse_packet(struct msghdr* msg, int info_size);
+ 
+ public:
+     mld_receiver(proxy_instance* pr_i, std::shared_ptr<const mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode);
+diff --git a/mcproxy/include/proxy/mld_sender.hpp b/mcproxy/include/proxy/mld_sender.hpp
+index 9720f0d..74d6a9f 100644
+--- a/mcproxy/include/proxy/mld_sender.hpp
++++ b/mcproxy/include/proxy/mld_sender.hpp
+@@ -58,13 +58,13 @@ private:
+ public:
+     mld_sender(const std::shared_ptr<const interfaces>& interfaces);
+ 
+-    bool send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const override;
++    bool send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const;
+ 
+-    virtual bool send_general_query(unsigned int if_index, const timers_values& tv) const override;
++    virtual bool send_general_query(unsigned int if_index, const timers_values& tv) const;
+ 
+-    bool send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag) const override;
++    bool send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag) const;
+ 
+-    bool send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist) const override;
++    bool send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist) const;
+ 
+     static void test_igmp_sender();
+ };
+diff --git a/mcproxy/include/proxy/proxy_instance.hpp b/mcproxy/include/proxy/proxy_instance.hpp
+index 5ccd2c3..ca514d5 100644
+--- a/mcproxy/include/proxy/proxy_instance.hpp
++++ b/mcproxy/include/proxy/proxy_instance.hpp
+@@ -91,7 +91,7 @@ private:
+     std::unique_ptr<routing_management> m_routing_management;
+ 
+     //to match the proxy debug output with the wireshark time stamp
+-    const std::chrono::time_point<std::chrono::steady_clock> m_proxy_start_time;
++    const std::chrono::time_point<std::chrono::monotonic_clock> m_proxy_start_time;
+ 
+     //interface index
+     //unsigned int m_upstream;
+@@ -149,9 +149,9 @@ public:
+     static void quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
+     static void rand_test(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
+ 
+-    friend routing_management;
+-    friend simple_mc_proxy_routing;
+-    friend interface_memberships;
++    friend class routing_management;
++    friend class simple_mc_proxy_routing;
++    friend class interface_memberships;
+ };
+ 
+ #endif // PROXY_INSTANCE_HPP
+diff --git a/mcproxy/include/proxy/querier.hpp b/mcproxy/include/proxy/querier.hpp
+index 48d05e3..a5ce548 100644
+--- a/mcproxy/include/proxy/querier.hpp
++++ b/mcproxy/include/proxy/querier.hpp
+@@ -39,7 +39,7 @@ class worker;
+  * @brief Callback function to publish querier state change informations.
+  * The callback function informs about the involved interface index, group address and the involved multicast sources.
+  */
+-using callback_querier_state_change = std::function<void(unsigned int, const addr_storage&)>;
++typedef std::function<void(unsigned int, const addr_storage&)> callback_querier_state_change;
+ 
+ /**
+  * @brief Defines the behaviour of a multicast querier for a specific interface.
+diff --git a/mcproxy/include/proxy/simple_mc_proxy_routing.hpp b/mcproxy/include/proxy/simple_mc_proxy_routing.hpp
+index 386f969..495e845 100644
+--- a/mcproxy/include/proxy/simple_mc_proxy_routing.hpp
++++ b/mcproxy/include/proxy/simple_mc_proxy_routing.hpp
+@@ -91,13 +91,13 @@ private:
+ public:
+     simple_mc_proxy_routing(const proxy_instance* p);
+ 
+-    void event_new_source(const std::shared_ptr<proxy_msg>& msg) override;
++    void event_new_source(const std::shared_ptr<proxy_msg>& msg);
+ 
+-    void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr) override;
++    void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr);
+ 
+-    void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg) override;
++    void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg);
+ 
+-    std::string to_string() const override;
++    std::string to_string() const;
+ };
+ 
+ #endif // SIMPLE_MC_PROXY_ROUTING_HPP
+diff --git a/mcproxy/include/proxy/simple_routing_data.hpp b/mcproxy/include/proxy/simple_routing_data.hpp
+index 0c4d35d..459af61 100644
+--- a/mcproxy/include/proxy/simple_routing_data.hpp
++++ b/mcproxy/include/proxy/simple_routing_data.hpp
+@@ -45,8 +45,8 @@ struct sr_data_value {
+     std::map<addr_storage, unsigned int> m_if_map;
+ };
+ 
+-using s_routing_data = std::map<addr_storage, sr_data_value>;
+-using s_routing_data_pair = std::pair<addr_storage,sr_data_value>;
++typedef std::map<addr_storage, sr_data_value> s_routing_data;
++typedef std::pair<addr_storage,sr_data_value> s_routing_data_pair;
+ 
+ /**
+  * @brief a small database for saving and maintaining multicast sources 
+diff --git a/mcproxy/include/proxy/timers_values.hpp b/mcproxy/include/proxy/timers_values.hpp
+index 03ba313..c28853c 100644
+--- a/mcproxy/include/proxy/timers_values.hpp
++++ b/mcproxy/include/proxy/timers_values.hpp
+@@ -28,14 +28,23 @@
+ #include <chrono>
+ 
+ struct timers_values_tank {
+-    unsigned int robustness_variable = 2;
+-    std::chrono::seconds query_interval = std::chrono::seconds(125);
+-    std::chrono::milliseconds query_response_interval = std::chrono::milliseconds(10000); //Max Response Time/Delay
+-    std::chrono::seconds startup_query_interval = query_interval / 4;
+-    unsigned int startup_query_count = robustness_variable;
+-    std::chrono::milliseconds last_listener_query_interval = std::chrono::milliseconds(1000);
+-    unsigned int last_listener_query_count = robustness_variable;
+-    std::chrono::milliseconds unsolicited_report_interval = std::chrono::milliseconds(1000);
++    unsigned int robustness_variable;
++    std::chrono::seconds query_interval;
++    std::chrono::milliseconds query_response_interval; //Max Response Time/Delay
++    std::chrono::seconds startup_query_interval;
++    unsigned int startup_query_count;
++    std::chrono::milliseconds last_listener_query_interval;
++    unsigned int last_listener_query_count;
++    std::chrono::milliseconds unsolicited_report_interval;
++    timers_values_tank()
++        : robustness_variable(2)
++        , query_interval(std::chrono::seconds(125))
++        , query_response_interval(std::chrono::milliseconds(10000))
++        , startup_query_interval(query_interval/4)
++        , startup_query_count(robustness_variable)
++        , last_listener_query_interval(std::chrono::milliseconds(1000))
++        , last_listener_query_count(robustness_variable)
++        , unsolicited_report_interval(std::chrono::milliseconds(1000)) {};
+ };
+ 
+ static timers_values_tank default_timers_values_tank = timers_values_tank();
+@@ -43,13 +52,15 @@ static timers_values_tank default_timers_values_tank = timers_values_tank();
+ class timers_values
+ {
+ private:
+-    bool is_default_timers_values_tank = true;
+-    timers_values_tank* tank = &default_timers_values_tank;
++    bool is_default_timers_values_tank;
++    timers_values_tank* tank;
+ 
+     void set_new_tank();
+ 
+ public:
+-    timers_values() = default;
++    timers_values()
++        : is_default_timers_values_tank(true)
++        , tank(&default_timers_values_tank){};
+     timers_values(const timers_values& tv);
+     timers_values& operator=(const timers_values& tv);
+     timers_values(timers_values&&) = default;
+diff --git a/mcproxy/include/proxy/timing.hpp b/mcproxy/include/proxy/timing.hpp
+index d9d5ad2..ceef60e 100644
+--- a/mcproxy/include/proxy/timing.hpp
++++ b/mcproxy/include/proxy/timing.hpp
+@@ -44,10 +44,10 @@
+ 
+ class worker;
+ 
+-using timing_db_value = std::tuple<const worker*, std::shared_ptr<proxy_msg>>;
+-using timing_db_key = std::chrono::time_point<std::chrono::steady_clock>;
+-using timing_db = std::map<timing_db_key, timing_db_value>; 
+-using timing_db_pair = std::pair<timing_db_key, timing_db_value>;
++typedef std::tuple<const worker*, std::shared_ptr<proxy_msg>> timing_db_value;
++typedef std::chrono::time_point<std::chrono::monotonic_clock> timing_db_key;
++typedef std::map<timing_db_key, timing_db_value> timing_db;
++typedef std::pair<timing_db_key, timing_db_value> timing_db_pair;
+ 
+ /**
+  * @brief Organizes timer events.
+diff --git a/mcproxy/include/utils/extended_igmp_defines.hpp b/mcproxy/include/utils/extended_igmp_defines.hpp
+index fc97734..810602f 100644
+--- a/mcproxy/include/utils/extended_igmp_defines.hpp
++++ b/mcproxy/include/utils/extended_igmp_defines.hpp
+@@ -40,9 +40,13 @@
+ 
+ //RFC 2113
+ struct router_alert_option {
+-    uint8_t type = 0x94; //Ccopied flag: 1, Option class: 0, Option number: 20
+-    uint8_t length = 0x4;
+-    uint16_t value = 0;
++    uint8_t type; //Ccopied flag: 1, Option class: 0, Option number: 20
++    uint8_t length;
++    uint16_t value;
++    router_alert_option()
++        : type(0x94)
++        , length(0x4)
++        , value(0) {};
+ };
+ 
+ struct igmpv3_query: igmp {
+diff --git a/mcproxy/src/parser/parser.cpp b/mcproxy/src/parser/parser.cpp
+index c196be9..cc7d819 100644
+--- a/mcproxy/src/parser/parser.cpp
++++ b/mcproxy/src/parser/parser.cpp
+@@ -125,7 +125,7 @@ void parser::parse_instance_definition(inst_def_set& ids)
+                 get_next_token();
+                 if (m_current_token.get_type() == TT_STRING) {
+                     try {
+-                        table_number = std::stoi(m_current_token.get_string());
++                        table_number = atoi(m_current_token.get_string().c_str());
+                         user_selected_table_number = true;
+                     } catch (std::logic_error e) {
+                         HC_LOG_ERROR("failed to parse line " << m_current_line << " table number: " << table_number << " is not a number");
+@@ -298,7 +298,7 @@ std::unique_ptr<addr_match> parser::parse_rule_part(group_mem_protocol gmp)
+             get_next_token();
+             if (m_current_token.get_type() == TT_STRING) {
+                 try {
+-                    unsigned int prefix = std::stoi(m_current_token.get_string());
++                    unsigned int prefix = atoi(m_current_token.get_string().c_str());
+                     if (prefix > 128) {
+                         throw;
+                     }
+@@ -560,7 +560,7 @@ void parser::parse_interface_rule_match_binding(
+             get_next_token();
+             if (m_current_token.get_type() == TT_STRING) {
+                 try {
+-                    int tmp_timeout = std::stoi(m_current_token.get_string());
++                    int tmp_timeout = atoi(m_current_token.get_string().c_str());
+                     timeout = std::chrono::milliseconds(tmp_timeout);
+                 } catch (...) {
+                     error_notification();
+diff --git a/mcproxy/src/proxy/igmp_receiver.cpp b/mcproxy/src/proxy/igmp_receiver.cpp
+index fea2b05..afd8b62 100644
+--- a/mcproxy/src/proxy/igmp_receiver.cpp
++++ b/mcproxy/src/proxy/igmp_receiver.cpp
+@@ -30,6 +30,7 @@
+ #include <linux/mroute.h>
+ #include <netinet/igmp.h>
+ #include <netinet/ip.h>
++#include <stdio.h>
+ 
+ void print_buf(const unsigned char * buf, unsigned int size)
+ {
+diff --git a/mcproxy/src/proxy/proxy_instance.cpp b/mcproxy/src/proxy/proxy_instance.cpp
+index 77f4281..ac8eb24 100644
+--- a/mcproxy/src/proxy/proxy_instance.cpp
++++ b/mcproxy/src/proxy/proxy_instance.cpp
+@@ -56,7 +56,7 @@ proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, const std:
+     , m_sender(nullptr)
+     , m_receiver(nullptr)
+     , m_routing(nullptr)
+-    , m_proxy_start_time(std::chrono::steady_clock::now())
++    , m_proxy_start_time(std::chrono::monotonic_clock::now())
+     , m_upstream_input_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_IN, RMT_FIRST, std::chrono::milliseconds(0)))
+     , m_upstream_output_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_OUT, RMT_ALL, std::chrono::milliseconds(0)))
+ {
+@@ -238,9 +238,9 @@ std::string proxy_instance::to_string() const
+     HC_LOG_TRACE("");
+     std::ostringstream s;
+ 
+-    auto current_time = std::chrono::steady_clock::now();
++    auto current_time = std::chrono::monotonic_clock::now();
+     auto time_span = current_time - m_proxy_start_time;
+-    double seconds = time_span.count()  * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
++    double seconds = time_span.count()  * std::chrono::monotonic_clock::period::num / std::chrono::monotonic_clock::period::den;
+ 
+     s << "@@##-- proxy instance " << m_instance_name << " (table:" << m_table_number << ",lifetime:" << seconds << "sec)" << " --##@@" << std::endl;;
+     s << m_upstream_input_rule->to_string() << std::endl;
+diff --git a/mcproxy/src/proxy/timers_values.cpp b/mcproxy/src/proxy/timers_values.cpp
+index fbdc599..3d907f3 100644
+--- a/mcproxy/src/proxy/timers_values.cpp
++++ b/mcproxy/src/proxy/timers_values.cpp
+@@ -37,6 +37,8 @@ std::string to_hex_string(T n)
+ }
+ 
+ timers_values::timers_values(const timers_values& tv)
++    : is_default_timers_values_tank(true)
++    , tank(&default_timers_values_tank)
+ {
+     HC_LOG_TRACE("");
+     *this = tv;
+diff --git a/mcproxy/src/proxy/timing.cpp b/mcproxy/src/proxy/timing.cpp
+index 2f13c25..77e6d79 100644
+--- a/mcproxy/src/proxy/timing.cpp
++++ b/mcproxy/src/proxy/timing.cpp
+@@ -58,7 +58,7 @@ void timing::worker_thread()
+ 
+         std::lock_guard<std::mutex> lock(m_global_lock);
+ 
+-        timing_db_key now = std::chrono::steady_clock::now();
++        timing_db_key now = std::chrono::monotonic_clock::now();
+ 
+         for (auto it = begin(m_db); it != end(m_db);) {
+             if (it->first <= now) {
+@@ -83,7 +83,7 @@ void timing::worker_thread()
+ void timing::add_time(std::chrono::milliseconds delay, const worker* msg_worker, const std::shared_ptr<proxy_msg>& pr_msg)
+ {
+     HC_LOG_TRACE("");
+-    timing_db_key until = std::chrono::steady_clock::now() + delay;
++    timing_db_key until = std::chrono::monotonic_clock::now() + delay;
+ 
+     std::lock_guard<std::mutex> lock(m_global_lock);
+ 
+diff --git a/mcproxy/src/proxy/worker.cpp b/mcproxy/src/proxy/worker.cpp
+index b10fb37..c0f33d5 100644
+--- a/mcproxy/src/proxy/worker.cpp
++++ b/mcproxy/src/proxy/worker.cpp
+@@ -27,7 +27,9 @@
+ #include "unistd.h"
+ 
+ worker::worker()
+-    : worker(WORKER_MESSAGE_QUEUE_DEFAULT_SIZE)
++    : m_thread(nullptr)
++    , m_running(false)
++    , m_job_queue(WORKER_MESSAGE_QUEUE_DEFAULT_SIZE)
+ {
+     HC_LOG_TRACE("");
+ }
+@@ -105,7 +107,7 @@ void worker::test_worker()
+             start();
+         }
+     private:
+-        void worker_thread() override {
++        void worker_thread() {
+             HC_LOG_TRACE("");
+             sleep(1);
+             while (m_running) {
+diff --git a/mcproxy/src/tester/tester.cpp b/mcproxy/src/tester/tester.cpp
+index d82b982..aecf5dd 100644
+--- a/mcproxy/src/tester/tester.cpp
++++ b/mcproxy/src/tester/tester.cpp
+@@ -36,6 +36,7 @@
+ #include <iostream>
+ 
+ #include <unistd.h> //for getopt
++#include <stdlib.h>
+ 
+ bool tester::m_running = true;
+ 
+@@ -239,7 +240,7 @@ unsigned long tester::get_max_count(const std::string& to_do)
+         max_count = 0; //infinity
+     } else {
+         try {
+-            max_count = std::stol(str_max_count);
++            max_count = atol(str_max_count.c_str());
+         } catch (std::logic_error e) {
+             std::cout << "failed to parse max_count" << std::endl;
+             exit(0);
+@@ -297,7 +298,7 @@ int tester::get_ttl(const std::string& to_do)
+         ttl = 10;
+     } else {
+         try {
+-            ttl = std::stoi(str_ttl);
++            ttl = atoi(str_ttl.c_str());
+         } catch (std::logic_error e) {
+             std::cout << "failed to parse ttl" << std::endl;
+             exit(0);
+@@ -316,7 +317,7 @@ int tester::get_port(const std::string& to_do)
+         port = 1234;
+     } else {
+         try {
+-            port = std::stoi(str_port);
++            port = atoi(str_port.c_str());
+         } catch (std::logic_error e) {
+             std::cout << "failed to parse port" << std::endl;
+             exit(0);
+@@ -346,7 +347,7 @@ std::chrono::milliseconds tester::get_send_interval(const std::string& to_do)
+         interval = 1000; //milliseconds
+     } else {
+         try {
+-            interval = std::stoi(str_interval);
++            interval = atoi(str_interval.c_str());
+         } catch (std::logic_error e) {
+             std::cout << "failed to parse interval" << std::endl;
+             exit(0);
+@@ -365,7 +366,7 @@ std::chrono::milliseconds tester::get_lifetime(const std::string& to_do)
+         lifetime = 0; //endless
+     } else {
+         try {
+-            lifetime = std::stoi(str_lifetime);
++            lifetime = atoi(str_lifetime.c_str());
+         } catch (std::logic_error e) {
+             std::cout << "failed to parse lifetime" << std::endl;
+             exit(0);
+diff --git a/mcproxy/src/utils/addr_storage.cpp b/mcproxy/src/utils/addr_storage.cpp
+index 4032c38..17c6bef 100644
+--- a/mcproxy/src/utils/addr_storage.cpp
++++ b/mcproxy/src/utils/addr_storage.cpp
+@@ -311,7 +311,7 @@ addr_storage& addr_storage::set_port(const std::string& port)
+ {
+     HC_LOG_TRACE("");
+ 
+-    set_port(std::stoi(port.c_str()));
++    set_port(atoi(port.c_str()));
+     return *this;
+ }
+ 

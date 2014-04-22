@@ -28,14 +28,23 @@
 #include <chrono>
 
 struct timers_values_tank {
-    unsigned int robustness_variable = 2;
-    std::chrono::seconds query_interval = std::chrono::seconds(125);
-    std::chrono::milliseconds query_response_interval = std::chrono::milliseconds(10000); //Max Response Time/Delay
-    std::chrono::seconds startup_query_interval = query_interval / 4;
-    unsigned int startup_query_count = robustness_variable;
-    std::chrono::milliseconds last_listener_query_interval = std::chrono::milliseconds(1000);
-    unsigned int last_listener_query_count = robustness_variable;
-    std::chrono::milliseconds unsolicited_report_interval = std::chrono::milliseconds(1000);
+    unsigned int robustness_variable;
+    std::chrono::seconds query_interval;
+    std::chrono::milliseconds query_response_interval; //Max Response Time/Delay
+    std::chrono::seconds startup_query_interval;
+    unsigned int startup_query_count;
+    std::chrono::milliseconds last_listener_query_interval;
+    unsigned int last_listener_query_count;
+    std::chrono::milliseconds unsolicited_report_interval;
+    timers_values_tank()
+        : robustness_variable(2)
+        , query_interval(std::chrono::seconds(125))
+        , query_response_interval(std::chrono::milliseconds(10000))
+        , startup_query_interval(query_interval/4)
+        , startup_query_count(robustness_variable)
+        , last_listener_query_interval(std::chrono::milliseconds(1000))
+        , last_listener_query_count(robustness_variable)
+        , unsolicited_report_interval(std::chrono::milliseconds(1000)) {};
 };
 
 static timers_values_tank default_timers_values_tank = timers_values_tank();
@@ -43,13 +52,15 @@ static timers_values_tank default_timers_values_tank = timers_values_tank();
 class timers_values
 {
 private:
-    bool is_default_timers_values_tank = true;
-    timers_values_tank* tank = &default_timers_values_tank;
+    bool is_default_timers_values_tank;
+    timers_values_tank* tank;
 
     void set_new_tank();
 
 public:
-    timers_values() = default;
+    timers_values()
+        : is_default_timers_values_tank(true)
+        , tank(&default_timers_values_tank){};
     timers_values(const timers_values& tv);
     timers_values& operator=(const timers_values& tv);
     timers_values(timers_values&&) = default;

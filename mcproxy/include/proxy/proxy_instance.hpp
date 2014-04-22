@@ -99,7 +99,7 @@ private:
     std::unique_ptr<routing_management> m_routing_management;
 
     //to match the proxy debug output with the wireshark time stamp
-    const std::chrono::time_point<std::chrono::steady_clock> m_proxy_start_time;
+    const std::chrono::time_point<std::chrono::monotonic_clock> m_proxy_start_time;
 
     std::set<upstream_infos> m_upstreams;
 
@@ -155,9 +155,9 @@ public:
     static void quick_test(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
     static void rand_test(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
 
-    friend routing_management;
-    friend simple_mc_proxy_routing;
-    friend interface_memberships;
+    friend class routing_management;
+    friend class simple_mc_proxy_routing;
+    friend class interface_memberships;
 };
 
 #endif // PROXY_INSTANCE_HPP

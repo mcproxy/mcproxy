@@ -37,6 +37,8 @@ std::string to_hex_string(T n)
 }
 
 timers_values::timers_values(const timers_values& tv)
+    : is_default_timers_values_tank(true)
+    , tank(&default_timers_values_tank)
 {
     HC_LOG_TRACE("");
     *this = tv;

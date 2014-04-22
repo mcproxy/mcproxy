@@ -58,7 +58,7 @@ void timing::worker_thread()
 
         std::lock_guard<std::mutex> lock(m_global_lock);
 
-        timing_db_key now = std::chrono::steady_clock::now();
+        timing_db_key now = std::chrono::monotonic_clock::now();
 
         for (auto it = begin(m_db); it != end(m_db);) {
             if (it->first <= now) {
@@ -83,7 +83,7 @@ void timing::worker_thread()
 void timing::add_time(std::chrono::milliseconds delay, const worker* msg_worker, const std::shared_ptr<proxy_msg>& pr_msg)
 {
     HC_LOG_TRACE("");
-    timing_db_key until = std::chrono::steady_clock::now() + delay;
+    timing_db_key until = std::chrono::monotonic_clock::now() + delay;
 
     std::lock_guard<std::mutex> lock(m_global_lock);
 

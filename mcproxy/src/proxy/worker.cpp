@@ -27,7 +27,9 @@
 #include "unistd.h"
 
 worker::worker()
-    : worker(WORKER_MESSAGE_QUEUE_DEFAULT_SIZE)
+    : m_thread(nullptr)
+    , m_running(false)
+    , m_job_queue(WORKER_MESSAGE_QUEUE_DEFAULT_SIZE)
 {
     HC_LOG_TRACE("");
 }
@@ -107,7 +109,7 @@ void worker::test_worker()
             start();
         }
     private:
-        void worker_thread() override {
+        void worker_thread() {
             HC_LOG_TRACE("");
             sleep(1);
             while (m_running) {

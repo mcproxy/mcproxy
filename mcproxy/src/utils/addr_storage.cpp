@@ -298,7 +298,7 @@ addr_storage& addr_storage::set_port(uint16_t port)
 
 addr_storage& addr_storage::set_port(const std::string& port)
 {
-    set_port(std::stoi(port.c_str()));
+    set_port(atoi(port.c_str()));
     return *this;
 }
 

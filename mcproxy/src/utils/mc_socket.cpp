@@ -37,6 +37,21 @@
 #include <numeric>
 #include <unistd.h>
 
+/*glibc-2.9/inet/netinet/in.h*/
+/* Get source filter.  */
+extern "C" int getsourcefilter (int __s, uint32_t __interface_addr,
+                            __const struct sockaddr *__group,
+                            socklen_t __grouplen, uint32_t *__fmode,
+                            uint32_t *__numsrc,
+                            struct sockaddr_storage *__slist) __THROW;
+
+/* Set source filter.  */
+extern "C" int setsourcefilter (int __s, uint32_t __interface_addr,
+                            __const struct sockaddr *__group,
+                            socklen_t __grouplen, uint32_t __fmode,
+                            uint32_t __numsrc,
+                            __const struct sockaddr_storage *__slist) __THROW;
+
 std::string ipAddrResolver(std::string ipAddr)
 {
     std::string str[][2] = {

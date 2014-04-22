@@ -44,10 +44,10 @@
 
 class worker;
 
-using timing_db_value = std::tuple<const worker*, std::shared_ptr<proxy_msg>>;
-using timing_db_key = std::chrono::time_point<std::chrono::steady_clock>;
-using timing_db = std::map<timing_db_key, timing_db_value>; 
-using timing_db_pair = std::pair<timing_db_key, timing_db_value>;
+typedef std::tuple<const worker*, std::shared_ptr<proxy_msg>> timing_db_value;
+typedef std::chrono::time_point<std::chrono::monotonic_clock> timing_db_key;
+typedef std::map<timing_db_key, timing_db_value> timing_db;
+typedef std::pair<timing_db_key, timing_db_value> timing_db_pair;
 
 /**
  * @brief Organizes timer events.

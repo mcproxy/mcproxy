@@ -58,13 +58,13 @@ private:
 public:
     mld_sender(const std::shared_ptr<const interfaces>& interfaces);
 
-    bool send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const override;
+    bool send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const;
 
-    virtual bool send_general_query(unsigned int if_index, const timers_values& tv) const override;
+    virtual bool send_general_query(unsigned int if_index, const timers_values& tv) const;
 
-    bool send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag) const override;
+    bool send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag) const;
 
-    bool send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist) const override;
+    bool send_mc_addr_and_src_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, source_list<source>& slist) const;
 
     static void test_igmp_sender();
 };

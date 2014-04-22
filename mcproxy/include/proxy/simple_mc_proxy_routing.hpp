@@ -46,8 +46,8 @@ struct source_state {
 class interface_memberships
 {
 private:
-    using state_pair = std::pair<source_state, const std::shared_ptr<const interface>>;
-    using state_list = std::list<state_pair>;
+    typedef std::pair<source_state, const std::shared_ptr<const interface>> state_pair;
+    typedef std::list<state_pair> state_list;
 
     std::list<std::pair<unsigned int, std::list<source_state>>> m_data;
 
@@ -95,13 +95,13 @@ private:
 public:
     simple_mc_proxy_routing(const proxy_instance* p);
 
-    void event_new_source(const std::shared_ptr<proxy_msg>& msg) override;
+    void event_new_source(const std::shared_ptr<proxy_msg>& msg);
 
-    void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr) override;
+    void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr);
 
-    void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg) override;
+    void timer_triggerd_maintain_routing_table(const std::shared_ptr<proxy_msg>& msg);
 
-    std::string to_string() const override;
+    std::string to_string() const;
 };
 
 #endif // SIMPLE_MC_PROXY_ROUTING_HPP

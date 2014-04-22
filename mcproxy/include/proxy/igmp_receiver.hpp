@@ -47,9 +47,9 @@ class igmp_receiver : public receiver
 {
 private:
 
-    int get_ctrl_min_size() override;
-    int get_iov_min_size() override;
-    void analyse_packet(struct msghdr* msg, int info_size) override;
+    int get_ctrl_min_size();
+    int get_iov_min_size();
+    void analyse_packet(struct msghdr* msg, int info_size);
 
 public:
     /**

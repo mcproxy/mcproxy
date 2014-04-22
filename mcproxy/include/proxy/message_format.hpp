@@ -149,7 +149,7 @@ struct test_msg : public proxy_msg {
         HC_LOG_TRACE("");
     }
 
-    virtual void operator()() override {
+    virtual void operator()() {
         HC_LOG_TRACE("");
         HC_LOG_DEBUG("Test Message value: " << m_value);
         HC_LOG_DEBUG("Test Message prio: " << get_priority());
@@ -166,7 +166,7 @@ struct timer_msg : public proxy_msg {
         : proxy_msg(type, SYSTEMIC)
         , m_if_index(if_index)
         , m_gaddr(gaddr)
-        , m_end_time(std::chrono::steady_clock::now() + duration) {
+        , m_end_time(std::chrono::monotonic_clock::now() + duration) {
         HC_LOG_TRACE("");
     }
 
@@ -179,15 +179,15 @@ struct timer_msg : public proxy_msg {
     }
 
     bool is_remaining_time_greater_than(std::chrono::milliseconds comp_time) {
-        return (std::chrono::steady_clock::now() + comp_time) <= m_end_time;
+        return (std::chrono::monotonic_clock::now() + comp_time) <= m_end_time;
     }
 
     std::string get_remaining_time() {
         using namespace std::chrono;
         std::ostringstream s;
-        auto current_time = steady_clock::now();
+        auto current_time = monotonic_clock::now();
         auto time_span = m_end_time - current_time;
-        double seconds = time_span.count()  * steady_clock::period::num / steady_clock::period::den;
+        double seconds = time_span.count()  * monotonic_clock::period::num / monotonic_clock::period::den;
         if (seconds >= 0) {
             s << seconds << "sec";
         } else {
@@ -199,7 +199,7 @@ struct timer_msg : public proxy_msg {
 private:
     unsigned int m_if_index;
     addr_storage m_gaddr;
-    std::chrono::time_point<std::chrono::steady_clock> m_end_time;
+    std::chrono::time_point<std::chrono::monotonic_clock> m_end_time;
 };
 
 struct filter_timer_msg : public timer_msg {

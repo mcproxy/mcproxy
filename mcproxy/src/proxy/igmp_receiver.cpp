@@ -30,6 +30,7 @@
 #include <linux/mroute.h>
 #include <netinet/igmp.h>
 #include <netinet/ip.h>
+#include <stdio.h>
 
 #ifdef DEBUG_MODE
 extern "C" {

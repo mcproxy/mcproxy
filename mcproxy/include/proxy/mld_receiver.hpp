@@ -41,9 +41,9 @@
 class mld_receiver : public receiver
 {
 private:
-    int get_ctrl_min_size() override; //size in byte
-    int get_iov_min_size() override; //size in byte
-    void analyse_packet(struct msghdr* msg, int info_size) override;
+    int get_ctrl_min_size(); //size in byte
+    int get_iov_min_size(); //size in byte
+    void analyse_packet(struct msghdr* msg, int info_size);
 
 public:
     mld_receiver(proxy_instance* pr_i, std::shared_ptr<const mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode);

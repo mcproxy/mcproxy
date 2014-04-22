@@ -65,8 +65,8 @@ struct gaddr_info {
     friend std::ostream& operator<<(std::ostream& stream, const gaddr_info& g);
 };
 
-using gaddr_map = std::map<addr_storage, gaddr_info>;
-using gaddr_pair = std::pair<addr_storage, gaddr_info>;
+#define gaddr_map std::map<addr_storage, gaddr_info>
+#define gaddr_pair std::pair<addr_storage, gaddr_info>
 
 /**
  * @brief The Membership Database maintaines the membership records for one specific interface (RFC 4605)

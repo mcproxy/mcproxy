@@ -56,7 +56,7 @@ proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, const std:
 , m_sender(nullptr)
 , m_receiver(nullptr)
 , m_routing(nullptr)
-, m_proxy_start_time(std::chrono::steady_clock::now())
+, m_proxy_start_time(std::chrono::monotonic_clock::now())
 , m_upstream_input_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_IN, RMT_FIRST, std::chrono::milliseconds(0)))
 , m_upstream_output_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_OUT, RMT_ALL, std::chrono::milliseconds(0)))
 {
@@ -237,9 +237,9 @@ std::string proxy_instance::to_string() const
     HC_LOG_TRACE("");
     std::ostringstream s;
 
-    auto current_time = std::chrono::steady_clock::now();
+    auto current_time = std::chrono::monotonic_clock::now();
     auto time_span = current_time - m_proxy_start_time;
-    double seconds = time_span.count()  * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
+    double seconds = time_span.count()  * std::chrono::monotonic_clock::period::num / std::chrono::monotonic_clock::period::den;
 
     s << "@@##-- proxy instance " << m_instance_name << " (table:" << m_table_number << ",lifetime:" << seconds << "sec)" << " --##@@" << std::endl;;
     s << m_upstream_input_rule->to_string() << std::endl;

@@ -45,8 +45,8 @@ struct sr_data_value {
     std::map<addr_storage, unsigned int> m_if_map;
 };
 
-using s_routing_data = std::map<addr_storage, sr_data_value>;
-using s_routing_data_pair = std::pair<addr_storage,sr_data_value>;
+typedef std::map<addr_storage, sr_data_value> s_routing_data;
+typedef std::pair<addr_storage,sr_data_value> s_routing_data_pair;
 
 /**
  * @brief a small database for saving and maintaining multicast sources 

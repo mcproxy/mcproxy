@@ -54,7 +54,7 @@ std::string time_to_string(const std::chrono::milliseconds& msec);
 //------------------------------------------------------------------------
 std::string indention(std::string str);
 //------------------------------------------------------------------------
-template<typename T> using source_list = std::set<T>;
+#define source_list std::set
 
 //A+B means the union of set A and B
 template<typename T>

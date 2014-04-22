@@ -46,8 +46,8 @@ class single_addr: public addr_match
     addr_storage m_addr;
 public:
     single_addr(const addr_storage& addr);
-    bool match(const addr_storage& addr) const override;
-    std::string to_string() const override;
+    bool match(const addr_storage& addr) const;
+    std::string to_string() const;
 };
 
 class addr_range : public addr_match
@@ -58,8 +58,8 @@ public:
     addr_range(const addr_storage& from, const addr_storage& to);
 
     //uncluding from and to
-    bool match(const addr_storage& addr) const override;
-    std::string to_string() const override;
+    bool match(const addr_storage& addr) const;
+    std::string to_string() const;
 };
 
 class rule_addr : public rule_box
@@ -69,8 +69,8 @@ class rule_addr : public rule_box
     std::unique_ptr<addr_match> m_source;
 public:
     rule_addr(const std::string& if_name, std::unique_ptr<addr_match> group, std::unique_ptr<addr_match> source);
-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
-    std::string to_string() const override;
+    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const;
+    std::string to_string() const;
 };
 
 class table : public rule_box
@@ -81,8 +81,8 @@ public:
     table(const std::string& name);
     table(const std::string& name, std::list<std::unique_ptr<rule_box>>&& rule_box_list);
     const std::string& get_name() const;
-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
-    std::string to_string() const override;
+    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const;
+    std::string to_string() const;
     friend bool operator<(const table& t1, const table& t2);
 };
 
@@ -97,8 +97,8 @@ class rule_table : public rule_box
     std::unique_ptr<table> m_table;
 public:
     rule_table(std::unique_ptr<table> t);
-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
-    std::string to_string() const override;
+    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const;
+    std::string to_string() const;
 };
 
 class global_table_set
@@ -117,8 +117,8 @@ class rule_table_ref : public rule_box
     const std::shared_ptr<const global_table_set> m_global_table_set;
 public:
     rule_table_ref(const std::string& table_name, const std::shared_ptr<const global_table_set>& global_table_set);
-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
-    std::string to_string() const override;
+    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const;
+    std::string to_string() const;
 };
 
 enum rb_type {
@@ -238,8 +238,8 @@ struct comp_instance_definition_pointer {
 class inst_def_set
 {
 private:
-    using instance_definition_set = std::set<std::shared_ptr<instance_definition>, comp_instance_definition_pointer>;
-    using const_iterator = instance_definition_set::const_iterator;
+    typedef std::set<std::shared_ptr<instance_definition>, comp_instance_definition_pointer> instance_definition_set;
+    typedef instance_definition_set::const_iterator const_iterator;
 
     instance_definition_set m_instance_def_set;
 
