@@ -116,3 +116,12 @@ Contact
 Project page: http://mcproxy.realmv6.org/
 
 Mailing list: multicast-proxy@googlegroups.com
+
+
+Acknowledgement
+===============
+Álvaro Fernández Rojas, 
+Florian Ecard,
+Hai Shalom,
+Zhi Chen
+
