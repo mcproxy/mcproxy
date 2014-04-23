@@ -4,8 +4,8 @@
 if [ "$1" = "-h" ] || [ "$1" = "help" ]; then
 
     echo "##-- $0 creates dummy network devices --##"
-    echo "Usage: auto_tap.sh [-h | help]"
-    echo "Usage: auto_tap.sh [delete | change | create <quantity>] [-ssm | +ssm]"
+    echo "Usage: $0 [-h | help]"
+    echo "Usage: $0 [delete | change | create <quantity>] [-ssm | +ssm]"
 
 elif [ "$1" = "create" ] && [ "$2" ] && [ "$2" -lt 255 ]; then 
 
