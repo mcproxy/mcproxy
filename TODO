@@ -42,7 +42,24 @@ General stuff
  -- check peering interface (ASM/SSM behaviour, timout)
  -- change receive polling / forward a signal to this thread
 
- 
+send bugreports to linux kernel guys
+ -- In the opposite of IPv4, the IPv6 multicast stack of a current linux kernel doesn't have any group limits. This is very bad because the linux kernel will kill itself if it try to handle to much multicast groups.
+ -- We tried to testing IGMPv3 proxy with CDRouter, most of the test cases failed. The causes of failure are similar, the CDRouter can't receive expected IGMPv3 message.  I listed the steps one of the failure cases here.
+        1. CDRouter sends a IGMPv3 report from LAN side, with a Group record ALLOW_NEW_SOURCES{x.x.x.x}
+        2. CDRouter waits IGMPv3 message on WAN side, it expects to receive the same Group record with ALLOW_NEW_SOURCES{x.x.x.x}
+
+        But our linux kernel always sends the Group record with CHANGE_TO_INCLUDE_MODE{x.x.x.x}, that doesn't meet the test criterion of CDRouter. So those cases failed.
+        I have contacted the CDRouter support team, they said the default filter mode should be INCLUDE mode, and they gave the proof:
+
+        The default filter-mode state is specified in Section 5.1 of the RFC: 5.1. Action on Change of Interface State 
+
+        If no interface state existed for that multicast address before the change (i.e., the change consisted of creating a new per-interface record), or if no state exists after the change (i.e., the change consisted of 
+        deleting a per-interface record), then the "non-existent" state is considered to have a filter mode of INCLUDE and an empty source list. 
+
+        I debugged this issue in linux kernel, and found the default filter mode is EXCLUDE, it's strange when linux did so. So it always sends CHANGE_TO_INCLUDE_MODE{x.x.x.x} when a Group  joining at first time.
+
+        If the upstream interface sends a TO_IN-record instead of a ALLOW-record at the startup, I think the biggest problem is that the querier of the corresponding network could be forced to send unnecessary 
+        'Group Specific Queries' and/or 'Group and Source Specific Queries' depends on the current state of the querier. This does not lead to misbehavior but increases a little bit the overhead.
 
 Email
  -- How much will the implementation protect against killing SSM by
@@ -55,7 +72,7 @@ will it send out on the upstream interface ?
 
 future work
  -- matrace2
- -- jmrinfo 
+ -- mrinfo 
  -- porting mcproxy to openwrt
 
 release
