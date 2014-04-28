@@ -14,7 +14,7 @@ index 7f9f745..4d94ae4 100644
 +        }
 +
 +        return true;
-+    } else if (filter_mode == EXLCUDE_MODE) {
++    } else if (filter_mode == EXCLUDE_MODE) {
          m_sock.join_group(gaddr, if_index);
          std::list<addr_storage> src_list;
          for (auto & e : slist) {
