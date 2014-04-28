@@ -11,6 +11,7 @@
 ####### Compiler, tools and options
 override CFLAGS        += -pipe -O2 -Wall -W -I.
 override CXXFLAGS      += $(CFLAGS) -std=c++0x
+#CC		      = g++-4.6
 LFLAGS        = -Wl,-O1
 LIBS          = -lstdc++ -lpthread
 DEL_FILE      = rm -f
