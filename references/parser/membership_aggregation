@@ -13,23 +13,29 @@
 #           |    
 #
 
-#Naming
-D = Downstream Interface
-U1, U2 = Upstreams Interface
-IN = INCLUDE (group membership mode) 
-EX = EXCLUDE (group membership mode) 
-WL = WHITELIST (interface filter mode) 
-BL = BLACKLIST (interface filter mode)
-Dall = merged group membership with interface filter 
-Sx = multicast source (x could be 1 or 2 or ...)
-R = Remainder
+#Naming and definitions
+sX:          is a specific multicast source (where X could be 1 or 2 or ...)
+S:           is a list of multicast sources (sX) 
+Sg:          is a multicast source list with the group membership mode INCLUDE or EXCLUDE 
+Sf:          is a multicast source list with with the inteface filter mode WHITELIST or BLACKLIST 
+IN(S):       is a source list Sg in group membership mode INCLUDE
+EX(S):       is a source list Sg in group membership mode EXCLUDE
+WL(S):       is a source list Sf in in interface filter mode WHITELIST
+BL(S):       is a source list Sf in interface filter mode BLACKLIST 
+P:           is the position UPSTREAM or DOWNSTREAM of an interface 
+I(P,Sg,Sf):  is an interfaces with a Position and and two source lists. One with a specific group membership mode and one an interface filter mode. 
+D(Sg,Sf):    is an interface with a DOWNSTREAM Position 
+U(Sg,Sf):    is an interface with an UPSTREAM Position
+Dm(Sg):      is a DOWNSTREAM interface with merged list Sg and Sf              
+Dmall(Sg):   represent all result amerged group membership with interface filter 
+R(Sg):       is the remainder of a merge operation
 
-#operations
-+ = unit
-* = intersection 
-- = without
+#Operations
++:  unit        ({s1,s2} + {s2,s3} = {s1,s2,s3} remainder{})
+*: intersection ({s1,s2} * {s2,s3} = {s2} remainder{s1,s3})
+-: without      ({s1,s2} - {s2,s3} = {s1} remainder{s2,s3})
 
-#Merge Group memberships
+#Merge group memberships Sg + Sg ==> Sg
 #A(group membership) and B(group membership) = Result(visible membership), Remainder ==> howto calculate
 IN(S1,S2) and IN(S1,S3) = IN(S1,S2,S3) ==> IN(A + B)
 IN(S1,S2) and EX(S1,S3) = EX(S3) ==> EX(B - A)
