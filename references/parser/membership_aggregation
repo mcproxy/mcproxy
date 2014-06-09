@@ -27,33 +27,45 @@ I(P,Sg,Sf):  is an interfaces with a Position and and two source lists. One with
 D(Sg,Sf):    is an interface with a DOWNSTREAM Position 
 U(Sg,Sf):    is an interface with an UPSTREAM Position
 Dm(Sg):      is a DOWNSTREAM interface with merged list Sg and Sf              
-Dmall(Sg):   represent all result amerged group membership with interface filter 
+Dmall(Sg):   represents all merged DOWNSTREAM interfaces Dm(Sg) 
 R(Sg):       is the remainder of a merge operation
 
 #Operations
-+:  unit        ({s1,s2} + {s2,s3} = {s1,s2,s3} remainder{})
-*: intersection ({s1,s2} * {s2,s3} = {s2} remainder{s1,s3})
--: without      ({s1,s2} - {s2,s3} = {s1} remainder{s2,s3})
++:  unit        ({s1,s2} + {s2,s3} = {s1,s2,s3})
+*: intersection ({s1,s2} * {s2,s3} = {s2})
+-: without      ({s1,s2} - {s2,s3} = {s1})
 
-#Merge group memberships Sg + Sg ==> Sg
-#A(group membership) and B(group membership) = Result(visible membership), Remainder ==> howto calculate
-IN(S1,S2) and IN(S1,S3) = IN(S1,S2,S3) ==> IN(A + B)
-IN(S1,S2) and EX(S1,S3) = EX(S3) ==> EX(B - A)
-EX(S1,S2) and IN(S1,S3) = EX(S2) ==> EX(A - B)
-EX(S1,S2) and EX(S1,S3) = EX(S1) ==> EX(A * B)
+#Merge group memberships SgA with SgB = Sg
+#A        merge with B         = Result              Calculation 
+IN{s1,s2} merge with IN{s1,s3} = IN{s1,s2,s3}        IN{A + B}
+IN{s1,s2} merge with EX{s1,s3} = EX{s3}              EX{B - A}
+EX{s1,s2} merge with IN{s1,s3} = EX{s2}              EX{A - B}
+EX{s1,s2} merge with EX{s1,s3} = EX{s1}              EX{A * B}
 
-#ASM
-Join: EX({})
-Leave: IN({})
+#ASM list operation
+Join all: EX({})
+Leave all: IN({})
 
-#Merge group membership with interface filter
-#A(group membership) and B(interface filter) = Result(visible membership), Remainder ==> howto calculate
-IN(S1,S2) and WL(S1,S3) = IN(S1), R(IN(S2)) ==> IN(A * B), R(IN(A - Result))
-IN(S1,S2) and BL(S1,S3) = IN(S2), R(IN(S1)) ==> IN(A - B), R(IN(A - Result))
-EX(S1,S2) and WL(S1,S3) = IN(S3), R(EX(S1,S2,S3) ==> IN(B - A), R(EX(A + Result))
-EX(S1,S2) and BL(S1,S3) = EX(S1,S2,S3), R(IN(S3)) ==> EX(A + B), R(IN(Result - A))  
+#Merge SgA with SfB 
+#A        merge with B         = Result, Remainder           Calculation
+IN{s1,s2} merge with WL{s1,s3} = IN{s1}, R(IN{s2})           IN{A * B}, R(IN{A - Result})
+IN{s1,s2} merge with BL{s1,s3} = IN{s2}, R(IN{s1})           IN{A - B}, R(IN{A - Result})
+EX{s1,s2} merge with WL{s1,s3} = IN{s3}, R(EX{s1,s2,s3})     IN{B - A}, R(EX{A + Result})
+EX{s1,s2} merge with BL{s1,s3} = EX{s1,s2,s3}, R(IN{s3})     EX{A + B}, R(IN{Result - A})  
 
-IN(S1,S2) and BL({}) = IN(S1,S2), R(IN({}))
+IN{s1,s2} merge with BL{} = IN{s1,s2}, R(IN{})
+
+
+WL{*} = BL{}
+BL{*} = results always in IN{}, R(SgA)
+
+WL{s2-s4,s6}
+BL{s2-s4,s6}
+
+IN{s1,s2} merge with WL{s2-s4,s6} = IN{s2}, R(IN{s1})                 IN{A * B}, R(IN{A - Result})
+IN{s1,s2} merge with BL{s2-s4,s6} = IN{s1}, R(IN{s2})                 IN{A - B}, R(IN{A - Result})
+EX{s1,s2} merge with WL{s2-s4,s6} = IN{s3,s4,s6}, R(EX{s1-s4,s6})     IN{B - A}, R(EX{A + Result})
+EX{s1,s2} merge with BL{s2-s4,s6} = EX{s1-s4,s6}, R(IN{s3,s4,s6})     EX{A + B}, R(IN{Result - A})  
 
 #processing tool chain -- upstream in rulematching first
 1. merge D group membership with D interface filter ==> Dall 
