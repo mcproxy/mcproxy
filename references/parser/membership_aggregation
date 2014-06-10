@@ -67,28 +67,4 @@ IN{s1,s2} merge with BL{s2-s4,s6} = IN{s1}, R(IN{s2})                 IN{A - B},
 EX{s1,s2} merge with WL{s2-s4,s6} = IN{s3,s4,s6}, R(EX{s1-s4,s6})     IN{B - A}, R(EX{A + Result})
 EX{s1,s2} merge with BL{s2-s4,s6} = EX{s1-s4,s6}, R(IN{s3,s4,s6})     EX{A + B}, R(IN{Result - A})  
 
-#processing tool chain -- upstream in rulematching first
-1. merge D group membership with D interface filter ==> Dall 
-2. merge Dall with U1 interface filter ==> U1 membership aggregation, R 
-3. merge R with U2 interface filter ==> U2 membership aggregation
-
-#processing tool chain -- upstream in rulematching mutex 
-#Examples -- upstream in rulematching first
-1. merge D group membership with D interface filter ==> Dall 
-2. calculate the Mutex Blacklist for every upstream (all received sources form all interfaces (D, U1, U2) without the sources of the own interface)  ==> M_BL_U1, M_BL_U2
-3. merge Dall with U1 interface filter and with M_BL_U1 ==> U1 membership aggregation 
-4. merge Dall with U2 interface filter and with M_BL_U2 ==> U2 membership aggregation 
-
-
-HINT: Dall has to be calculated for every Downstream and merged after the processing tool chain
-
-#Example -- upstream in rulematching first
-#Downstream status | Upstream status ==> Membership Aggregation
-Dall: IN(S1,S2) | U1: WL(S1), U2: WL(S2) ==> U1: IN(S1), U2: IN(S2)
-Dall: IN(S1,S2) | U1: BL(S1), U2: BL(S2) ==> U1: IN(S2), U2: IN(S1)
-...
-
-#Example -- upstream in rulematching mutex 
-#Downstream status | Upstream status ==> Membership Aggregation
-
 
