@@ -30,46 +30,47 @@
 
 #include "include/utils/addr_storage.hpp"
 
-struct addr_match {
-    bool is_wildcard(const addr_storage& addr, int addr_family) const;
-    virtual bool match(const addr_storage& addr) const = 0;
+struct addr_box {
+    virtual const std::set<addr_storage>& get_addr_set() const = 0;
+    virtual bool is_addr_contained(const addr_storage& addr) const = 0;
     virtual std::string to_string() const = 0;
 };
 
 struct rule_box {
-    virtual bool match(const std::string& if_name, const addr_storage& saddr, const addr_storage& gaddr) const = 0;
+    virtual const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr) const = 0;
     virtual std::string to_string() const = 0;
 };
 
-class single_addr: public addr_match
+class single_addr : public addr_box 
 {
-    addr_storage m_addr;
+    std::set<addr_storage> m_addr_set;
 public:
     single_addr(const addr_storage& addr);
-    bool match(const addr_storage& addr) const override;
+    bool is_addr_contained(const addr_storage& addr) const override;
+    const std::set<addr_storage>& get_addr_set() const override;
     std::string to_string() const override;
 };
 
-class addr_range : public addr_match
+class addr_range : public addr_box 
 {
-    addr_storage m_from;
-    addr_storage m_to;
+    std::set<addr_storage> m_addr_set;
 public:
     addr_range(const addr_storage& from, const addr_storage& to);
 
-    //uncluding from and to
-    bool match(const addr_storage& addr) const override;
+    //including from and to
+    bool is_addr_contained(const addr_storage& addr) const override;
+    const std::set<addr_storage>& get_addr_set() const override;
     std::string to_string() const override;
 };
 
 class rule_addr : public rule_box
 {
     std::string m_if_name;
-    std::unique_ptr<addr_match> m_group;
-    std::unique_ptr<addr_match> m_source;
+    std::unique_ptr<addr_box> m_group;
+    std::unique_ptr<addr_box> m_source;
 public:
-    rule_addr(const std::string& if_name, std::unique_ptr<addr_match> group, std::unique_ptr<addr_match> source);
-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
+    rule_addr(const std::string& if_name, std::unique_ptr<addr_box> group, std::unique_ptr<addr_box> source);
+    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr) const override;
     std::string to_string() const override;
 };
 

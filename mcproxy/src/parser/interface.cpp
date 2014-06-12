@@ -27,48 +27,57 @@
 
 #include <sstream>
 
-//-----------------------------------------------------
-bool addr_match::is_wildcard(const addr_storage& addr, int addr_family) const
-{
-    return addr == addr_storage(addr_family);
-}
-//-----------------------------------------------------
 single_addr::single_addr(const addr_storage& addr)
-    : m_addr(addr)
 {
     HC_LOG_TRACE("");
+    m_addr_set.insert(addr);
 }
 
-bool single_addr::match(const addr_storage& addr) const
+bool single_addr::is_addr_contained(const addr_storage& addr) const
 {
-    return addr == m_addr || is_wildcard(m_addr, addr.get_addr_family());
+    return *m_addr_set.cbegin() == addr;
+}
+
+const std::set<addr_storage>& single_addr::get_addr_set() const
+{
+    return m_addr_set;
 }
 
 std::string single_addr::to_string() const
 {
-    return m_addr.to_string();
+    return m_addr_set.cbegin()->to_string();
 }
 //-----------------------------------------------------
 addr_range::addr_range(const addr_storage& from, const addr_storage& to)
-    : m_from(from)
-    , m_to(to)
 {
     HC_LOG_TRACE("");
+
+    //exapand the range of ip addresses to a list of all included ip addresses, thats could be bad if the range is large?????????????
+    addr_storage tmp_addr = from;
+    while (tmp_addr <= to) {
+        m_addr_set.insert(tmp_addr);
+        tmp_addr++;
+    }
 }
 
-bool addr_range::match(const addr_storage& addr) const
+bool addr_range::is_addr_contained(const addr_storage& addr) const
 {
-    return (addr >= m_from || is_wildcard(m_from, addr.get_addr_family())) && (addr <= m_to || is_wildcard(m_to, addr.get_addr_family()) );
+    return m_addr_set.find(addr) != m_addr_set.end();
+}
+
+const std::set<addr_storage>& addr_range::get_addr_set() const
+{
+    return m_addr_set;
 }
 
 std::string addr_range::to_string() const
 {
     std::ostringstream s;
-    s << m_from << " - " << m_to;
+    s << *m_addr_set.cbegin() << " - " << *(m_addr_set.cend()--);
     return s.str();
 }
 //-----------------------------------------------------
-rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_match> group, std::unique_ptr<addr_match> source)
+rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_box> group, std::unique_ptr<addr_box> source)
     : m_if_name(if_name)
     , m_group(std::move(group))
     , m_source(std::move(source))
@@ -76,13 +85,17 @@ rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_match> gro
     HC_LOG_TRACE("");
 }
 
-bool rule_addr::match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const
+const std::set<addr_storage>& rule_addr::get_addr_set(const std::string& if_name, const addr_storage& gaddr) const
 {
-    if (m_if_name.empty()) {
-        return m_group->match(gaddr) &&  m_source->match(saddr);
-    } else {
-        return m_if_name.compare(if_name) == 0 && m_group->match(gaddr) &&  m_source->match(saddr);
+    //if_name is the recipient interface of the group data .
+    if (m_if_name.empty() || m_if_name.compare(if_name)) {
+        if (m_group->is_addr_contained(gaddr)) {
+            return m_source->get_addr_set();
+        }
     }
+
+    static std::set<addr_storage> empty_set;
+    return empty_set;
 }
 
 std::string rule_addr::to_string() const

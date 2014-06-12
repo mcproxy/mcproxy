@@ -31,7 +31,7 @@ Dmall(Sg):   represents all merged DOWNSTREAM interfaces Dm(Sg)
 R(Sg):       is the remainder of a merge operation
 
 #Operations
-+:  unit        ({s1,s2} + {s2,s3} = {s1,s2,s3})
++: unit         ({s1,s2} + {s2,s3} = {s1,s2,s3})
 *: intersection ({s1,s2} * {s2,s3} = {s2})
 -: without      ({s1,s2} - {s2,s3} = {s1})
 
