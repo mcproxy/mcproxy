@@ -154,7 +154,7 @@ void configuration::run_parser()
             auto t = p.parse_table(m_global_table_set, m_gmp);
             std::string table_name = t->get_name();
             if (!m_global_table_set->insert(std::move(t))) {
-                HC_LOG_ERROR("faild to parse configfile table " << table_name << " already exists   ");
+                HC_LOG_ERROR("faild to parse configfile table " << table_name << " already exists");
                 throw "failed to parse configfile";
             }
             break;

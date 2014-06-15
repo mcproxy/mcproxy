@@ -47,7 +47,7 @@ private:
     void get_next_token();
 
     std::unique_ptr<rule_box> parse_rule(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
-    std::unique_ptr<addr_match> parse_rule_part(group_mem_protocol gmp);
+    std::unique_ptr<addr_box> parse_rule_part(group_mem_protocol gmp);
     addr_storage get_addr(group_mem_protocol gmp);
 
     std::unique_ptr<table> parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, bool inside_rule_box);

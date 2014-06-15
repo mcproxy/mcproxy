@@ -250,8 +250,8 @@ std::unique_ptr<rule_box> parser::parse_rule(const std::shared_ptr<const global_
                 std::unique_ptr<rule_box> result(new rule_table(parse_table(gts, gmp, true)));
                 return result;
             } else {
-                std::unique_ptr<addr_match> group;
-                std::unique_ptr<addr_match> source;
+                std::unique_ptr<addr_box> group;
+                std::unique_ptr<addr_box> source;
                 group =  parse_rule_part(gmp);
 
                 if (m_current_token.get_type() == TT_PIPE) {
@@ -278,7 +278,7 @@ std::unique_ptr<table> parser::parse_table(const std::shared_ptr<const global_ta
     return parse_table(gts, gmp, false);
 }
 
-std::unique_ptr<addr_match> parser::parse_rule_part(group_mem_protocol gmp)
+std::unique_ptr<addr_box> parser::parse_rule_part(group_mem_protocol gmp)
 {
     HC_LOG_TRACE("");
     //TT_STAR
@@ -310,7 +310,7 @@ std::unique_ptr<addr_match> parser::parse_rule_part(group_mem_protocol gmp)
 
                     get_next_token();
                     if (m_current_token.get_type() == TT_RIGHT_BRACKET || m_current_token.get_type() == TT_PIPE) {
-                        std::unique_ptr<addr_match> result(new addr_range(addr_from, addr_to));
+                        std::unique_ptr<addr_box> result(new addr_range(addr_from, addr_to));
                         return result;
                     }
                 } catch (...) {
@@ -319,7 +319,7 @@ std::unique_ptr<addr_match> parser::parse_rule_part(group_mem_protocol gmp)
                 }
             }
         } else if (m_current_token.get_type() == TT_RIGHT_BRACKET || m_current_token.get_type() == TT_PIPE) {
-            std::unique_ptr<addr_match> result(new single_addr(addr_from));
+            std::unique_ptr<addr_box> result(new single_addr(addr_from));
             return result;
         } else if (m_current_token.get_type() == TT_RANGE) {
             get_next_token();
@@ -331,7 +331,7 @@ std::unique_ptr<addr_match> parser::parse_rule_part(group_mem_protocol gmp)
                 }
 
                 if (m_current_token.get_type() == TT_RIGHT_BRACKET || m_current_token.get_type() == TT_PIPE) {
-                    std::unique_ptr<addr_match> result(new addr_range(addr_from, addr_to));
+                    std::unique_ptr<addr_box> result(new addr_range(addr_from, addr_to));
                     return result;
                 }
             }

@@ -35,7 +35,7 @@ single_addr::single_addr(const addr_storage& addr)
 
 bool single_addr::is_addr_contained(const addr_storage& addr) const
 {
-    return *m_addr_set.cbegin() == addr;
+    return *m_addr_set.cbegin() == addr || addr_storage(addr.get_addr_family()) == *m_addr_set.cbegin()  ;
 }
 
 const std::set<addr_storage>& single_addr::get_addr_set() const
@@ -87,14 +87,13 @@ rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_box> group
 
 const std::set<addr_storage>& rule_addr::get_addr_set(const std::string& if_name, const addr_storage& gaddr) const
 {
-    //if_name is the recipient interface of the group data .
-    if (m_if_name.empty() || m_if_name.compare(if_name)) {
+    if (if_name.empty() || m_if_name.empty() || m_if_name.compare(if_name)) {
         if (m_group->is_addr_contained(gaddr)) {
             return m_source->get_addr_set();
         }
     }
 
-    static std::set<addr_storage> empty_set;
+    static const std::set<addr_storage> empty_set;
     return empty_set;
 }
 
@@ -123,15 +122,32 @@ const std::string& table::get_name() const
     return m_name;
 }
 
-bool table::match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const
+const std::set<addr_storage>& table::get_addr_set(const std::string& if_name, const addr_storage& gaddr) const
 {
-    for (auto & e : m_rule_box_list) {
-        if (e->match(if_name, gaddr, saddr)) {
-            return true;
-        }
-    }
 
-    return false;
+    static std::set<addr_storage> result_set;
+    static std::string last_if_name;
+    static addr_storage last_gaddr;
+
+    if (last_if_name.compare(if_name) == 0 && last_gaddr == gaddr) {
+        return result_set;
+    } else {
+        result_set.clear();
+        last_if_name = if_name;
+        last_gaddr = gaddr;
+
+        for (auto & e : m_rule_box_list) {
+            auto& tmp_set = e->get_addr_set(if_name, gaddr);
+
+            result_set.insert(tmp_set.begin(), tmp_set.end());
+
+            //a wildcard is ervrything we need, further sources are unimportant 
+            if(*tmp_set.begin() == addr_storage(gaddr.get_addr_family())){
+                return result_set; 
+            }
+        }
+        return result_set;
+    }
 }
 
 std::string table::to_string() const
@@ -195,9 +211,9 @@ rule_table::rule_table(std::unique_ptr<table> t)
     HC_LOG_TRACE("");
 }
 
-bool rule_table::match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const
+const std::set<addr_storage>& rule_table::get_addr_set(const std::string& if_name, const addr_storage& gaddr) const
 {
-    return m_table->match(if_name, gaddr, saddr);
+    return m_table->get_addr_set(if_name, gaddr);
 }
 
 std::string rule_table::to_string() const
@@ -212,13 +228,14 @@ rule_table_ref::rule_table_ref(const std::string& table_name, const std::shared_
     HC_LOG_TRACE("");
 }
 
-bool rule_table_ref::match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const
+const std::set<addr_storage>& rule_table_ref::get_addr_set(const std::string& if_name, const addr_storage& gaddr) const
 {
+    static const std::set<addr_storage> empty_set;
     auto t = m_global_table_set->get_table(m_table_name);
     if (t == nullptr) {
-        return false;
+        return empty_set;
     } else {
-        return t->match(if_name, gaddr, saddr);
+        return t->get_addr_set(if_name, gaddr);
     }
 }
 
@@ -309,20 +326,6 @@ std::chrono::milliseconds rule_binding::get_timeout() const
 {
     HC_LOG_TRACE("");
     return m_timeout;
-}
-
-bool rule_binding::match(const std::string& if_name, const addr_storage& saddr, const addr_storage& gaddr) const
-{
-    HC_LOG_TRACE("");
-    if (m_table != nullptr) {
-        if (m_filter_type == FT_BLACKLIST) {
-            return !m_table->match(if_name, saddr, gaddr);
-        } else if (m_filter_type == FT_WHITELIST) {
-            return m_table->match(if_name, saddr, gaddr);
-        }
-    }
-
-    return false;
 }
 
 std::string rule_binding::to_string() const
@@ -421,11 +424,6 @@ interface::interface(const std::string& if_name)
     , m_input_filter(nullptr)
 {
     HC_LOG_TRACE("");
-    //unsigned int if_index = interfaces::get_if_index(if_name);
-    //if (if_index <= 0) {
-    //HC_LOG_ERROR("interface " << if_name << " not found");
-    //throw "interface not found";
-
 }
 
 std::string interface::get_if_name() const
@@ -433,16 +431,48 @@ std::string interface::get_if_name() const
     return m_if_name;
 }
 
-bool interface::match_output_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr) const
-{
-    HC_LOG_TRACE("");
-    return match_filter(input_if_name, saddr, gaddr, m_output_filter);
+rb_filter_type interface::get_output_filter_type() const{
+    return get_filter_type(m_output_filter);
 }
 
-bool interface::match_input_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr) const
-{
-    HC_LOG_TRACE("");
-    return match_filter(input_if_name, saddr, gaddr, m_input_filter);
+rb_filter_type interface::get_input_filter_type() const{
+    return get_filter_type(m_input_filter);
+}
+
+rb_filter_type interface::get_filter_type(const std::unique_ptr<rule_binding>& filter) const{
+    if(filter.get() != nullptr){
+        if(filter->get_rule_binding_type() == RBT_FILTER){
+            return filter->get_filter_type(); 
+        }else{
+            HC_LOG_ERROR("rule_binding type is not an interface filter"); 
+            return FT_BLACKLIST;
+        }
+    }else{
+        return FT_BLACKLIST; //default value
+    }
+}
+     
+const std::set<addr_storage>& interface::get_output_addr_set(const std::string& if_name, const addr_storage& gaddr) const{
+    return get_addr_set(if_name, gaddr, m_output_filter);
+}
+
+const std::set<addr_storage>& interface::get_input_addr_set(const std::string& if_name, const addr_storage& gaddr) const{
+    return get_addr_set(if_name, gaddr, m_input_filter);
+}
+
+const std::set<addr_storage>& interface::get_addr_set(const std::string& if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const{
+    static const std::set<addr_storage> empty_set;
+
+    if(filter.get() != nullptr){
+        if(filter->get_rule_binding_type() == RBT_FILTER){
+            return filter->get_table().get_addr_set(if_name, gaddr); 
+        }else{
+            HC_LOG_ERROR("rule_binding type is not an interface filter"); 
+            return empty_set;
+        }
+    }else{
+        return empty_set; //default value
+    }
 }
 
 std::string interface::to_string_rule_binding() const
@@ -469,15 +499,6 @@ std::string interface::to_string_interface() const
 {
     HC_LOG_TRACE("");
     return m_if_name;
-}
-
-bool interface::match_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const
-{
-    if (filter != nullptr) {
-        return filter->match(input_if_name, saddr, gaddr);
-    } else {
-        return true; //default behaviour
-    }
 }
 
 bool operator<(const interface& i1, const interface& i2)

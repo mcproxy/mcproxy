@@ -82,7 +82,7 @@ public:
     table(const std::string& name);
     table(const std::string& name, std::list<std::unique_ptr<rule_box>>&& rule_box_list);
     const std::string& get_name() const;
-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
+    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr) const override;
     std::string to_string() const override;
     friend bool operator<(const table& t1, const table& t2);
 };
@@ -98,7 +98,7 @@ class rule_table : public rule_box
     std::unique_ptr<table> m_table;
 public:
     rule_table(std::unique_ptr<table> t);
-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
+    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr) const override;
     std::string to_string() const override;
 };
 
@@ -118,7 +118,7 @@ class rule_table_ref : public rule_box
     const std::shared_ptr<const global_table_set> m_global_table_set;
 public:
     rule_table_ref(const std::string& table_name, const std::shared_ptr<const global_table_set>& global_table_set);
-    bool match(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr) const override;
+    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr) const override;
     std::string to_string() const override;
 };
 
@@ -175,7 +175,6 @@ public:
     //RBT_FILTER
     rb_filter_type get_filter_type() const;
     const table& get_table() const;
-    bool match(const std::string& if_name, const addr_storage& saddr, const addr_storage& gaddr) const;
 
     //RBT_RULE_MATCHING
     rb_rule_matching_type get_rule_matching_type() const;
@@ -189,13 +188,18 @@ class interface
     std::string m_if_name;
     std::unique_ptr<rule_binding> m_output_filter;
     std::unique_ptr<rule_binding> m_input_filter;
-    bool match_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const;
+    rb_filter_type get_filter_type(const std::unique_ptr<rule_binding>& filter) const;
+    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const;
 
 public:
     interface(const std::string& if_name);
     std::string get_if_name() const;
-    bool match_output_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr) const;
-    bool match_input_filter(const std::string& input_if_name, const addr_storage& saddr, const addr_storage& gaddr) const;
+    
+    rb_filter_type get_output_filter_type() const;
+    rb_filter_type get_input_filter_type() const;
+     
+    const std::set<addr_storage>& get_output_addr_set(const std::string& if_name, const addr_storage& gaddr) const;
+    const std::set<addr_storage>& get_input_addr_set(const std::string& if_name, const addr_storage& gaddr) const;
 
     std::string to_string_rule_binding() const;
     std::string to_string_interface() const;
