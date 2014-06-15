@@ -452,15 +452,15 @@ rb_filter_type interface::get_filter_type(const std::unique_ptr<rule_binding>& f
     }
 }
      
-const std::set<addr_storage>& interface::get_output_addr_set(const std::string& if_name, const addr_storage& gaddr) const{
-    return get_addr_set(if_name, gaddr, m_output_filter);
+const std::set<addr_storage>& interface::get_output_saddr_set(const std::string& if_name, const addr_storage& gaddr) const{
+    return get_saddr_set(if_name, gaddr, m_output_filter);
 }
 
-const std::set<addr_storage>& interface::get_input_addr_set(const std::string& if_name, const addr_storage& gaddr) const{
-    return get_addr_set(if_name, gaddr, m_input_filter);
+const std::set<addr_storage>& interface::get_input_saddr_set(const std::string& if_name, const addr_storage& gaddr) const{
+    return get_saddr_set(if_name, gaddr, m_input_filter);
 }
 
-const std::set<addr_storage>& interface::get_addr_set(const std::string& if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const{
+const std::set<addr_storage>& interface::get_saddr_set(const std::string& if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const{
     static const std::set<addr_storage> empty_set;
 
     if(filter.get() != nullptr){

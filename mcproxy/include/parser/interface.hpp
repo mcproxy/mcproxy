@@ -189,7 +189,7 @@ class interface
     std::unique_ptr<rule_binding> m_output_filter;
     std::unique_ptr<rule_binding> m_input_filter;
     rb_filter_type get_filter_type(const std::unique_ptr<rule_binding>& filter) const;
-    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const;
+    const std::set<addr_storage>& get_saddr_set(const std::string& if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const;
 
 public:
     interface(const std::string& if_name);
@@ -198,8 +198,8 @@ public:
     rb_filter_type get_output_filter_type() const;
     rb_filter_type get_input_filter_type() const;
      
-    const std::set<addr_storage>& get_output_addr_set(const std::string& if_name, const addr_storage& gaddr) const;
-    const std::set<addr_storage>& get_input_addr_set(const std::string& if_name, const addr_storage& gaddr) const;
+    const std::set<addr_storage>& get_output_saddr_set(const std::string& if_name, const addr_storage& gaddr) const;
+    const std::set<addr_storage>& get_input_saddr_set(const std::string& if_name, const addr_storage& gaddr) const;
 
     std::string to_string_rule_binding() const;
     std::string to_string_interface() const;
