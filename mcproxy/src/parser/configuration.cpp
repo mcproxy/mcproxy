@@ -27,15 +27,19 @@
 #include <algorithm>
 #include <fstream>
 
-configuration::configuration(const std::string& path, bool reset_reverse_path_filter)
-    : m_reset_reverse_path_filter(reset_reverse_path_filter)
+configuration::configuration(const std::string& path, bool reset_reverse_path_filter, bool in_debug_testing_mode)
+    : m_in_debug_testing_mode(in_debug_testing_mode)
+    , m_reset_reverse_path_filter(reset_reverse_path_filter)
     , m_gmp(IGMPv3) //default setting
     , m_global_table_set(std::make_shared<global_table_set>())
 {
     HC_LOG_TRACE("");
     m_cmds = separate_commands(delete_comments(load_file(path)));
     run_parser();
-    initalize_interfaces();
+
+    if (!m_in_debug_testing_mode) {
+        initalize_interfaces();
+    }
 }
 
 // trim from start
@@ -211,13 +215,17 @@ void configuration::test_configuration()
     using namespace std;
     cout << "start programm" << endl;
 
-    //configuration conf("../references/parser/config_script_example", false);
-    //configuration conf("../references/parser/config_script_example_1");
-    //configuration conf("../references/parser/test_script_1");
-    configuration conf("../references/parser/test_script", false);
-
+    configuration conf("../references/parser/test_configs/test1.conf", false, true);
     cout << conf.to_string() << endl;
 
+    auto& inst_def_set = conf.get_inst_def_set();
+    for(auto & e : inst_def_set){
+        test_myProxy(e); 
+    }
+
+
+    //---------------------------------------------------------
+    //delete comments
     //cout << "1<" << s.delete_comments("#1234\n1234") << ">" << endl;
     //cout << "2<" << s.delete_comments("1234\n#1234") << ">" << endl;
     //cout << "3<" << s.delete_comments("#\n1234\n#1234") << ">" << endl;
@@ -242,15 +250,39 @@ void configuration::test_configuration()
 
     cout << "end of programm" << endl;
 }
+
+void configuration::test_myProxy(const std::shared_ptr<instance_definition>& id)
+{
+    using namespace std;
+    cout << "##-- Test: " << id->get_instance_name() << " --##" << endl;
+
+    const interface& interf = *(id->get_downstreams().begin()->get());
+    cout << " - if_name: " << interf.get_if_name() << endl; 
+
+    cout << " - in filter type: ";
+    if(interf.get_input_filter_type() == FT_BLACKLIST){
+        cout << "BLACKLIST" << endl;
+    }else if(interf.get_input_filter_type() == FT_WHITELIST){
+        cout << "WHITELIST" << endl;
+    }else{
+        cout << "failed to get filter type!!!" << endl;
+        return;
+    }
+     
+    cout << " - source list of(if: \"\", gaddr: 99): " << interf.get_input_saddr_set("",addr_storage("99.99.99.99")) << endl;    
+    cout << " - source list of(if: \"xx\", gaddr: 99): " << interf.get_input_saddr_set("xx",addr_storage("99.99.99.99")) << endl;    
+}
+
 #endif /* DEBUG_MODE */
 
-const std::shared_ptr<const interfaces> configuration::get_interfaces_for_pinstance(const std::string& instance_name) const{
+const std::shared_ptr<const interfaces> configuration::get_interfaces_for_pinstance(const std::string& instance_name) const
+{
     HC_LOG_TRACE("");
     auto it = m_interfaces_map.find(instance_name);
-    if(it == m_interfaces_map.end()){
-        return nullptr;   
-    }else{
-        return it->second; 
+    if (it == m_interfaces_map.end()) {
+        return nullptr;
+    } else {
+        return it->second;
     }
 }
 

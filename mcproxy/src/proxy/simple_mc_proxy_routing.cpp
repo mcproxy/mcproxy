@@ -117,18 +117,18 @@ void interface_memberships::process_upstream_in_first(const addr_storage& gaddr,
             //sort out all unwanted sources
             for (auto source_it = cs.first.m_source_list.begin(); source_it != cs.first.m_source_list.end();) {
 
-                //downstream out
-                if (!cs.second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
-                    source_it = cs.first.m_source_list.erase(source_it);
-                    continue;
-                }
+                //downstream out TODO: old code match
+                //if (!cs.second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                    //source_it = cs.first.m_source_list.erase(source_it);
+                    //continue;
+                //}
 
-                //upstream in
-                if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
-                    tmp_sstate.m_source_list.insert(*source_it);
-                    source_it = cs.first.m_source_list.erase(source_it);
-                    continue;
-                }
+                //upstream in TODO: old code match 
+                //if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                    //tmp_sstate.m_source_list.insert(*source_it);
+                    //source_it = cs.first.m_source_list.erase(source_it);
+                    //continue;
+                //}
 
                 ++source_it;
             }
@@ -174,17 +174,17 @@ void interface_memberships::process_upstream_in_mutex(const addr_storage& gaddr,
             //sort out all unwanted sources
             for (auto source_it = cs_it->first.m_source_list.begin(); source_it != cs_it->first.m_source_list.end();) {
 
-                //downstream out
-                if (!cs_it->second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
-                    ++source_it;
-                    continue;
-                }
+                //downstream out TODO: old code match
+                //if (!cs_it->second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                    //++source_it;
+                    //continue;
+                //}
 
-                //upstream in
-                if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
-                    ++source_it;
-                    continue;
-                }
+                //upstream in TODO: old code match
+                //if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                    //++source_it;
+                    //continue;
+                //}
 
                 const std::map<addr_storage, unsigned int>& available_sources = routing_data.get_interface_map(gaddr);
                 auto av_src_it = available_sources.find(source_it->saddr);
@@ -619,9 +619,11 @@ bool simple_mc_proxy_routing::check_interface(rb_interface_type interface_type, 
     std::string input_if_index_name = interfaces::get_if_name(input_if_index);
     if (!input_if_index_name.empty()) {
         if (interface_direction == ID_IN) {
-            return interf->match_input_filter(input_if_index_name, gaddr, saddr);
+            //TODO: old code match
+            //return interf->match_input_filter(input_if_index_name, gaddr, saddr);
         } else if (interface_direction == ID_OUT) {
-            return interf->match_output_filter(input_if_index_name, gaddr, saddr);
+            //TODO: old code match
+            //return interf->match_output_filter(input_if_index_name, gaddr, saddr);
         } else {
             HC_LOG_ERROR("unkown interface direction");
             return false;
@@ -630,6 +632,9 @@ bool simple_mc_proxy_routing::check_interface(rb_interface_type interface_type, 
         HC_LOG_ERROR("failed to map interface index " << input_if_index << " to interface name");
         return false;
     }
+
+    //TODO remove me
+    return false;
 }
 
 std::string simple_mc_proxy_routing::to_string() const

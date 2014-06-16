@@ -54,12 +54,12 @@ int main(int arg_count, char* args[])
     }
 #else
     try {
-        proxy p(arg_count, args);
+        //proxy p(arg_count, args);
+        test_test();
     } catch (const char* e) {
         std::cout << e << std::endl;
     }
 
-    //test_test();
 #endif
 
     return 0;
@@ -93,7 +93,7 @@ void test_test()
     //simple_routing_data::test_simple_routing_data();
     //igmp_sender::test_igmp_sender();
     //mroute_socket::quick_test();
-    //configuration::test_configuration();
+    configuration::test_configuration();
     //if_prop::test_if_prop();
 }
 #endif /* DEBUG_MODE */
