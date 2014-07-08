@@ -103,7 +103,7 @@ private:
 
     std::set<upstream_infos> m_upstreams;
 
-    //if_indexes of the downstreams, querier
+    //if_indexes of the downstreams, querie
     //std::map<unsigned int, std::unique_ptr<querier>> m_querier;
     std::map<unsigned int, downstream_infos> m_downstreams;
 

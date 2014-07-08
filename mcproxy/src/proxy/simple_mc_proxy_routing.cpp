@@ -428,16 +428,10 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
         auto input_if_it = input_if_index_map.find(s.saddr);
         if (input_if_it == input_if_index_map.end()) {
             HC_LOG_ERROR("input interface of multicast source " << s.saddr << " not found");
-            return rt_list;
+            continue; 
         }
 
         if (m_p->is_downstream(input_if_it->second)) {
-            auto input_if_it = input_if_index_map.find(s.saddr);
-            if (input_if_it == input_if_index_map.end()) {
-                HC_LOG_ERROR("input interface of multicast source " << s.saddr << " not found");
-                continue;
-            }
-
             std::list<unsigned int> up_if_list;
             for (auto ui : m_p->m_upstreams) {
                 if (check_interface(IT_UPSTREAM, ID_OUT, ui.m_if_index, input_if_it->second, gaddr, s.saddr)) {
