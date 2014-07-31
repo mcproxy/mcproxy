@@ -42,6 +42,7 @@ unsigned long simple_routing_data::get_current_packet_count(const addr_storage& 
         if (m_mrt_sock->get_mroute_stats(saddr, gaddr, &tmp_stat, nullptr)) {
             return tmp_stat.pktcnt;
         } else {
+            //return true really??????????????????
             return true;
         }
     } else if (is_IPv6(m_group_mem_protocol)) {
@@ -49,10 +50,12 @@ unsigned long simple_routing_data::get_current_packet_count(const addr_storage& 
         if (m_mrt_sock->get_mroute_stats(saddr, gaddr, nullptr, &tmp_stat)) {
             return tmp_stat.pktcnt;
         } else {
+            //return true really??????????????????
             return true;
         }
     } else {
         HC_LOG_ERROR("unknown IP version");
+        //return true really??????????????????
         return true;
     }
 }
@@ -63,7 +66,7 @@ void simple_routing_data::set_source(unsigned int if_index, const addr_storage& 
     auto gaddr_it = m_data.find(gaddr);
     if (gaddr_it != std::end(m_data)) {
         auto list_result = gaddr_it->second.m_source_list.insert(saddr);
-        if (!list_result.second) { //failed to inert
+        if (!list_result.second) { //failed to insert
             saddr.retransmission_count = get_current_packet_count(gaddr, saddr.saddr);
             gaddr_it->second.m_source_list.erase(list_result.first);
             gaddr_it->second.m_source_list.insert(saddr);
@@ -106,7 +109,7 @@ std::pair<source_list<source>::iterator, bool> simple_routing_data::refresh_sour
             auto cnt = get_current_packet_count(gaddr, saddr);
             if (static_cast<unsigned long>(saddr_it->retransmission_count) == cnt) {
                 gaddr_it->second.m_source_list.erase(saddr_it);
-                gaddr_it->second.m_if_map.erase(saddr);
+                gaddr_it->second.m_if_map.erase(saddr); //gaddr_it ???????????????
             } else {
                 saddr_it->retransmission_count = cnt;
                 return std::pair<source_list<source>::iterator, bool>(saddr_it, true);
@@ -114,6 +117,7 @@ std::pair<source_list<source>::iterator, bool> simple_routing_data::refresh_sour
 
         }
 
+        //code duplication see line above?????????????????
         gaddr_it->second.m_source_list.erase(saddr);
         gaddr_it->second.m_if_map.erase(saddr);
         if (gaddr_it->second.m_source_list.empty()) {
@@ -127,15 +131,15 @@ std::pair<source_list<source>::iterator, bool> simple_routing_data::refresh_sour
 const source_list<source>& simple_routing_data::get_available_sources(const addr_storage& gaddr) const
 {
     HC_LOG_TRACE("");
-    static source_list<source> rt;
 
     auto gaddr_it = m_data.find(gaddr);
     if (gaddr_it != std::end(m_data)) {
-        rt.clear();
         return gaddr_it->second.m_source_list;       
+    }else{
+        static source_list<source> result;
+        result.clear(); 
+        return result;;
     }
-
-    return rt;
 }
 
 std::string simple_routing_data::to_string() const

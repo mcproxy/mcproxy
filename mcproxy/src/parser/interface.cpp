@@ -94,7 +94,7 @@ rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_box> group
 const std::set<addr_storage>& rule_addr::get_addr_set(const std::string& if_name, const addr_storage& gaddr) const
 {
     HC_LOG_TRACE("");
-    if (if_name.empty() || m_if_name.empty() || m_if_name.compare(if_name)) {
+    if (if_name.empty() || m_if_name.empty() || m_if_name.compare(if_name) == 0) {
         if (m_group->is_addr_contained(gaddr)) {
             return m_source->get_addr_set();
         }
@@ -136,7 +136,7 @@ const std::set<addr_storage>& table::get_addr_set(const std::string& if_name, co
     HC_LOG_TRACE("");
     thread_local static std::set<addr_storage> result_set;
     result_set.clear();
-
+    //the result could be cached ???????????????
     for (auto & e : m_rule_box_list) {
         auto& tmp_set = e->get_addr_set(if_name, gaddr);
 

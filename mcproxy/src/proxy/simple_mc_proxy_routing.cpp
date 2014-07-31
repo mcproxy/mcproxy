@@ -372,6 +372,8 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
                 } else {
                     HC_LOG_DEBUG("filter_timer is outdate");
                 }
+            }else{
+                //debug message ???????????
             }
 
         }
@@ -419,6 +421,7 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
 {
     HC_LOG_TRACE("");
 
+    //            <source_addr, if_index>
     const std::map<addr_storage, unsigned int>& input_if_index_map = m_data.get_interface_map(gaddr);
 
     //add upstream interfaces
@@ -494,9 +497,11 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
 {
     HC_LOG_TRACE("");
 
+    //            <source_addr, if_index>
     const std::map<addr_storage, unsigned int>& input_if_index_map = m_data.get_interface_map(gaddr);
     unsigned int input_if_index;
 
+    //output_if_index is a bad name ????????
     for (auto & e : output_if_index) {
         if (e.second.empty()) {
 
@@ -514,6 +519,7 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
 
             for (auto outif : e.second) {
                 vif_out.push_back(m_p->m_interfaces->get_virtual_if_index(outif));
+                //missing error handling if outif is not existing ??????????
             }
 
             auto input_if_it = input_if_index_map.find(e.first.saddr);
