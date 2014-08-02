@@ -142,7 +142,8 @@ const std::set<addr_storage>& table::get_addr_set(const std::string& if_name, co
 
         result_set.insert(tmp_set.begin(), tmp_set.end());
 
-        //a wildcard is ervrything we need, further sources are unimportant
+        //a wildcard is everything we need, further sources are unimportant
+        //delete all other addresses ????????????????ß
         if (*tmp_set.begin() == addr_storage(gaddr.get_addr_family())) {
             return result_set;
         }
@@ -438,16 +439,17 @@ std::string interface::get_if_name() const
     return m_if_name;
 }
 
-rb_filter_type interface::get_output_filter_type() const
+rb_filter_type interface::get_filter_type(rb_interface_direction direction) const
 {
     HC_LOG_TRACE("");
-    return get_filter_type(m_output_filter);
-}
-
-rb_filter_type interface::get_input_filter_type() const
-{
-    HC_LOG_TRACE("");
-    return get_filter_type(m_input_filter);
+    if (direction == ID_IN) {
+        return get_filter_type(m_input_filter);
+    } else if (direction == ID_OUT) {
+        return get_filter_type(m_output_filter);
+    } else {
+        HC_LOG_ERROR("unkown interface direction");
+        return FT_UNDEFINED;
+    }
 }
 
 rb_filter_type interface::get_filter_type(const std::unique_ptr<rule_binding>& filter) const
@@ -465,32 +467,68 @@ rb_filter_type interface::get_filter_type(const std::unique_ptr<rule_binding>& f
     }
 }
 
-const std::set<addr_storage>& interface::get_output_saddr_set(const std::string& if_name, const addr_storage& gaddr) const
+const std::set<addr_storage>& interface::get_saddr_set(rb_interface_direction direction, const std::string& if_name, const addr_storage& gaddr) const
 {
+
     HC_LOG_TRACE("");
-    return get_saddr_set(if_name, gaddr, m_output_filter);
+    if (direction == ID_IN) {
+        return get_saddr_set(if_name, gaddr, m_input_filter);
+    } else if (direction == ID_OUT) {
+        return get_saddr_set(if_name, gaddr, m_output_filter);
+    } else {
+        HC_LOG_ERROR("unkown interface direction");
+        return get_saddr_set(if_name, gaddr, nullptr);
+    }
 }
 
-const std::set<addr_storage>& interface::get_input_saddr_set(const std::string& if_name, const addr_storage& gaddr) const
-{
-    HC_LOG_TRACE("");
-    return get_saddr_set(if_name, gaddr, m_input_filter);
-}
-
-const std::set<addr_storage>& interface::get_saddr_set(const std::string& if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const
+const std::set<addr_storage>& interface::get_saddr_set(const std::string& input_if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const
 {
     HC_LOG_TRACE("");
     static const std::set<addr_storage> empty_set;
 
     if (filter.get() != nullptr) {
         if (filter->get_rule_binding_type() == RBT_FILTER) {
-            return filter->get_table().get_addr_set(if_name, gaddr);
+            return filter->get_table().get_addr_set(input_if_name, gaddr);
         } else {
             HC_LOG_ERROR("rule_binding type is not an interface filter");
             return empty_set;
         }
     } else {
         return empty_set; //default value
+    }
+}
+
+bool interface::is_source_allowed(rb_interface_direction direction, const std::string& input_if_name, const addr_storage& gaddr, const addr_storage& saddr) const
+{
+    HC_LOG_TRACE("");
+    if (direction == ID_IN) {
+        return is_source_allowed(input_if_name, gaddr, saddr, m_input_filter);
+    } else if (direction == ID_OUT) {
+        return is_source_allowed(input_if_name, gaddr, saddr, m_output_filter);
+    } else {
+        HC_LOG_ERROR("unkown interface direction");
+        return is_source_allowed(input_if_name, gaddr, saddr, nullptr);
+    }
+}
+
+bool interface::is_source_allowed(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr, const std::unique_ptr<rule_binding>& filter) const
+{
+    HC_LOG_TRACE("");
+    if (filter != nullptr) {
+        auto& saddr_set = get_saddr_set(if_name, gaddr, filter);
+
+        // check for wildcard address
+        if (saddr_set.find(addr_storage(gaddr.get_addr_family())) != std::end(saddr_set)) {
+            return filter->get_filter_type() == FT_WHITELIST;
+        }
+
+        if (saddr_set.find(saddr) == std::end(saddr_set)) {
+            return filter->get_filter_type() == FT_BLACKLIST;
+        } else {
+            return filter->get_filter_type() == FT_WHITELIST;
+        }
+    } else {
+        return true; //default value
     }
 }
 

@@ -2,7 +2,7 @@
 
 Debugging and Testing the Mcproxy
 =================================
-Here you find tools and backround knowledge to debug and test the Mcproxy.
+Here you find tools and background knowledge to debug and test the Mcproxy.
 
 
 Dummy Interface
@@ -21,7 +21,7 @@ Delete all dummy interfaces:
 
 Mininet
 =======
-[Mininet](mininet.org) creates a realistic virtual network, running real
+[Mininet](http://mininet.org/) creates a realistic virtual network, running real
 kernel, switch and application code, on a single machine. This
 [REAMDE](mininet/README.md) explains how to use Mcproxy within Mininet.
 
@@ -122,7 +122,7 @@ Displays the subscribed groups per interface:
 
 
 Displays announced network interfaces for multicast routing (only for the default
-multicast talbe):
+multicast table):
 
     /proc/net/ip_mr_vif
     /proc/net/ip6_mr_vif
@@ -135,7 +135,7 @@ Displays the multicast forwarding rules (only for the default multicast table):
 
 
 Displays the status of the multicast routing flag (mrt). It can only be hold by
-one socket per multiast routing table at a time):
+one socket per multicast routing table at a time):
 
     /proc/sys/net/ipv4/conf/all/mc_forwarding
     /proc/sys/net/ipv6/conf/all/mc_forwarding

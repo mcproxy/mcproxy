@@ -38,7 +38,10 @@ struct new_source_timer_msg;
 struct source_state {
     source_state();
     source_state(std::pair<mc_filter, source_list<source>> sstate);
-    mc_filter m_mc_filter;
+    union {
+        mc_filter m_mc_filter;
+        rb_filter_type m_rb_filter;
+    };
     source_list<source> m_source_list;
     std::string to_string() const;
 };
@@ -48,10 +51,15 @@ class interface_memberships
 private:
     using state_pair = std::pair<source_state, const std::shared_ptr<const interface>>;
     using state_list = std::list<state_pair>;
+    const proxy_instance* const m_p;
 
     std::list<std::pair<unsigned int, std::list<source_state>>> m_data;
 
-    void merge_membership_infos(source_state& merge_to, const source_state& merge_from) const;
+    void merge_group_memberships(source_state& merge_to_mc_group, const source_state& merge_from_mc_group) const;
+    void merge_memberships_filter(source_state& merge_to_mc_group, const source_state& merge_from_rb_filter) const;
+    void merge_memberships_filter_reminder(const source_state& merge_to_mc_group, const source_state& merge_from_rb_filter, source_state& result) const;
+
+    void set_to_block_all(source_state& mc_groups) const;
 
     void process_upstream_in_first(const addr_storage& gaddr, const proxy_instance* pi);
     void process_upstream_in_mutex(const addr_storage& gaddr, const proxy_instance* pi, const simple_routing_data& routing_data);

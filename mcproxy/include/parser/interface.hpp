@@ -135,7 +135,8 @@ enum rb_interface_direction {
 };
 
 enum rb_filter_type {
-    FT_BLACKLIST, FT_WHITELIST, FT_UNDEFINED
+    //this values should be different form mc_filter
+    FT_BLACKLIST=100, FT_WHITELIST=101, FT_UNDEFINED=102
 };
 
 enum rb_rule_matching_type {
@@ -190,16 +191,18 @@ class interface
     std::unique_ptr<rule_binding> m_input_filter;
     rb_filter_type get_filter_type(const std::unique_ptr<rule_binding>& filter) const;
     const std::set<addr_storage>& get_saddr_set(const std::string& if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const;
+    bool is_source_allowed(const std::string& input_if_name, const addr_storage& gaddr, const addr_storage& saddr, const std::unique_ptr<rule_binding>& filter) const;
 
 public:
     interface(const std::string& if_name);
     std::string get_if_name() const;
     
-    rb_filter_type get_output_filter_type() const;
-    rb_filter_type get_input_filter_type() const;
+    rb_filter_type get_filter_type(rb_interface_direction direction) const;
      
-    const std::set<addr_storage>& get_output_saddr_set(const std::string& if_name, const addr_storage& gaddr) const;
-    const std::set<addr_storage>& get_input_saddr_set(const std::string& if_name, const addr_storage& gaddr) const;
+    const std::set<addr_storage>& get_saddr_set(rb_interface_direction direction, const std::string& if_name, const addr_storage& gaddr) const;
+    
+    bool is_source_allowed(rb_interface_direction direction, const std::string& input_if_name, const addr_storage& gaddr, const addr_storage& saddr) const;
+
 
     std::string to_string_rule_binding() const;
     std::string to_string_interface() const;

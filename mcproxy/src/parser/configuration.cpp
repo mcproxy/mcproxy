@@ -215,12 +215,12 @@ void configuration::test_configuration()
     using namespace std;
     cout << "start programm" << endl;
 
-    configuration conf("../references/parser/test_configs/test1.conf", false, true);
+    configuration conf("../references/parser/test_configs/test3.conf", false, true);
     cout << conf.to_string() << endl;
 
     auto& inst_def_set = conf.get_inst_def_set();
-    for(auto & e : inst_def_set){
-        test_myProxy(e); 
+    for (auto & e : inst_def_set) {
+        test_myProxy(e);
     }
 
 
@@ -257,20 +257,100 @@ void configuration::test_myProxy(const std::shared_ptr<instance_definition>& id)
     cout << "##-- Test: " << id->get_instance_name() << " --##" << endl;
 
     const interface& interf = *(id->get_downstreams().begin()->get());
-    cout << " - if_name: " << interf.get_if_name() << endl; 
+    cout << " - if_name: " << interf.get_if_name() << endl;
 
     cout << " - in filter type: ";
-    if(interf.get_input_filter_type() == FT_BLACKLIST){
+    if (interf.get_filter_type(ID_OUT) == FT_BLACKLIST) {
         cout << "BLACKLIST" << endl;
-    }else if(interf.get_input_filter_type() == FT_WHITELIST){
+    } else if (interf.get_filter_type(ID_IN) == FT_WHITELIST) {
         cout << "WHITELIST" << endl;
-    }else{
+    } else {
         cout << "failed to get filter type!!!" << endl;
         return;
     }
-     
-    cout << " - source list of(if: \"\", gaddr: 99): " << interf.get_input_saddr_set("",addr_storage("99.99.99.99")) << endl;    
-    cout << " - source list of(if: \"xx\", gaddr: 99): " << interf.get_input_saddr_set("xx",addr_storage("99.99.99.99")) << endl;    
+
+    cout << " - source list of(if: \"\", gaddr: 99): " << interf.get_saddr_set(ID_IN, "", addr_storage("99.99.99.99")) << endl;
+    cout << " - source list of(if: \"xx\", gaddr: 99): " << interf.get_saddr_set(ID_IN, "xx", addr_storage("99.99.99.99")) << endl;
+}
+
+void configuration::test_source_allowed()
+{
+    using namespace std;
+    cout << "start programm" << endl;
+
+    configuration conf("../references/parser/test_configs/test3.conf", false, true);
+    cout << conf.to_string() << endl;
+
+
+    for (auto & e : conf.get_inst_def_set()) {
+        const interface& interf = *(e->get_downstreams().begin()->get());
+        auto& inst_name = e->get_instance_name();
+        auto test_fun = [&inst_name](bool result, bool expected) {
+            cout << inst_name << " ";
+            if (result){
+                cout << "allowed ==> ";
+            }else{
+                cout << "not allowed ==> ";
+            }
+
+            if (result == expected) {
+                cout << "OK!" << endl;
+            } else {
+                cout << "FAILED!" << endl;
+            }
+        };
+
+        if (inst_name.compare("myProxy01") == 0) {
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, true);
+        } else if (inst_name.compare("myProxy02") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, false);
+        } else if (inst_name.compare("myProxy03") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, false);
+        } else if (inst_name.compare("myProxy04") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, true);
+        } else if (inst_name.compare("myProxy05") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, true);
+        } else if (inst_name.compare("myProxy06") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, false);
+        } else if (inst_name.compare("myProxy07") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, true);
+        } else if (inst_name.compare("myProxy08") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, true);
+        } else if (inst_name.compare("myProxy09") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, false);
+        } else if (inst_name.compare("myProxy10") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, true);
+        } else if (inst_name.compare("myProxy11") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, false);
+        } else if (inst_name.compare("myProxy12") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, true);
+        } else if (inst_name.compare("myProxy13") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, true);
+        } else if (inst_name.compare("myProxy14") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, false);
+        } else if (inst_name.compare("myProxy15") == 0){
+            bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
+            test_fun(result, false);
+        }else{
+            cout << "ERROR!! Unkown instance name!!" << endl; 
+        }
+
+    }
+    cout << "end of programm" << endl;
 }
 
 #endif /* DEBUG_MODE */

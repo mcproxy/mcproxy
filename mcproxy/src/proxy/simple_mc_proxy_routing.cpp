@@ -59,6 +59,8 @@ std::string source_state::to_string() const
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 interface_memberships::interface_memberships(rb_rule_matching_type upstream_in_rule_matching_type, const addr_storage& gaddr, const proxy_instance* pi, const simple_routing_data& routing_data)
+    : m_p(pi)
+
 {
     HC_LOG_TRACE("");
 
@@ -69,30 +71,92 @@ interface_memberships::interface_memberships(rb_rule_matching_type upstream_in_r
     }
 }
 
-void interface_memberships::merge_membership_infos(source_state& merge_to, const source_state& merge_from) const
+void interface_memberships::set_to_block_all(source_state& mc_groups) const{
+    mc_groups.m_source_list.clear();
+    mc_groups.m_mc_filter = INCLUDE_MODE;
+}
+
+void interface_memberships::merge_group_memberships(source_state& merge_to_mc_group, const source_state& merge_from_mc_group) const
 {
     HC_LOG_TRACE("");
 
-    if (merge_to.m_mc_filter == INCLUDE_MODE) {
-        if (merge_from.m_mc_filter == INCLUDE_MODE) {
-            merge_to.m_source_list += merge_from.m_source_list;
-        } else if (merge_from.m_mc_filter == EXCLUDE_MODE) {
-            merge_to.m_mc_filter = EXCLUDE_MODE;
-            merge_to.m_source_list = merge_from.m_source_list - merge_to.m_source_list;
+    if (merge_to_mc_group.m_mc_filter == INCLUDE_MODE) {
+        if (merge_from_mc_group.m_mc_filter == INCLUDE_MODE) {
+            merge_to_mc_group.m_source_list += merge_from_mc_group.m_source_list;
+        } else if (merge_from_mc_group.m_mc_filter == EXCLUDE_MODE) {
+            merge_to_mc_group.m_mc_filter = EXCLUDE_MODE;
+            merge_to_mc_group.m_source_list = merge_from_mc_group.m_source_list - merge_to_mc_group.m_source_list;
         } else {
-            HC_LOG_ERROR("unknown filter mode in parameter merge_from");
+            HC_LOG_ERROR("unknown mc filter mode in parameter merge_from_mc_group");
+            set_to_block_all(merge_to_mc_group);
         }
-    } else if (merge_to.m_mc_filter == EXCLUDE_MODE) {
-        if (merge_from.m_mc_filter == INCLUDE_MODE) {
-            merge_to.m_source_list -= merge_from.m_source_list;
-        } else if (merge_from.m_mc_filter == EXCLUDE_MODE) {
-            merge_to.m_source_list *= merge_from.m_source_list;
+    } else if (merge_to_mc_group.m_mc_filter == EXCLUDE_MODE) {
+        if (merge_from_mc_group.m_mc_filter == INCLUDE_MODE) {
+            merge_to_mc_group.m_source_list -= merge_from_mc_group.m_source_list;
+        } else if (merge_from_mc_group.m_mc_filter == EXCLUDE_MODE) {
+            merge_to_mc_group.m_source_list *= merge_from_mc_group.m_source_list;
         } else {
-            HC_LOG_ERROR("unknown filter mode in parameter merge_from");
+            HC_LOG_ERROR("unknown mc filter mode in parameter merge_from_mc_group");
+            set_to_block_all(merge_to_mc_group);
         }
     } else {
-        HC_LOG_ERROR("unknown filter mode in parameter merge_to");
+        HC_LOG_ERROR("unknown mc filter mode in parameter merge_to_mc_group");
+        set_to_block_all(merge_to_mc_group);
     }
+}
+
+void interface_memberships::merge_memberships_filter(source_state& merge_to_mc_group, const source_state& merge_from_rb_filter) const
+{
+    HC_LOG_TRACE("");
+    source_state empty_list;
+    rb_filter_type from_rb_filter;
+    const source_state* from;
+
+    //if contains wildcard address
+    if (merge_from_rb_filter.m_source_list.find(addr_storage(get_addr_family(m_p->m_group_mem_protocol))) != std::end(merge_to_mc_group.m_source_list)) {
+        from = &empty_list;
+        if (merge_from_rb_filter.m_rb_filter == FT_WHITELIST) { //WL{*} ==> BL{}
+            from_rb_filter = FT_BLACKLIST;
+        } else if (merge_from_rb_filter.m_rb_filter == FT_BLACKLIST) { //BL{*} ==> WL{}
+            from_rb_filter = FT_WHITELIST;
+        } else {
+            HC_LOG_ERROR("unknown rb filter mode in parameter merge_from_rb_filter");
+            set_to_block_all(merge_to_mc_group);
+            return;
+        }
+    } else {
+        from = &merge_from_rb_filter;
+        from_rb_filter = from->m_rb_filter;
+    }
+
+    if (merge_to_mc_group.m_mc_filter == INCLUDE_MODE) {
+        if (from_rb_filter == FT_WHITELIST) {
+            merge_to_mc_group.m_source_list *= from->m_source_list;
+        } else if (from_rb_filter == FT_BLACKLIST) {
+            merge_to_mc_group.m_source_list -= from->m_source_list;
+        } else {
+            HC_LOG_ERROR("unknown rb filter mode in parameter merge_from_rb_filter");
+            set_to_block_all(merge_to_mc_group);
+        }
+    } else if (merge_to_mc_group.m_mc_filter == EXCLUDE_MODE) {
+        if (from_rb_filter == FT_WHITELIST) {
+            merge_to_mc_group.m_mc_filter = INCLUDE_MODE;
+            merge_to_mc_group.m_source_list = from->m_source_list - merge_to_mc_group.m_source_list;
+        } else if (from_rb_filter == FT_BLACKLIST) {
+            merge_to_mc_group.m_source_list += from->m_source_list;
+        } else {
+            HC_LOG_ERROR("unknown rb filter mode in parameter merge_from_rb_filter");
+            set_to_block_all(merge_to_mc_group);
+        }
+    } else {
+        HC_LOG_ERROR("unknown mc filter mode in parameter merge_to_mc_group");
+        set_to_block_all(merge_to_mc_group);
+    }
+}
+
+void interface_memberships::merge_memberships_filter_reminder(const source_state& merge_to_mc_group, const source_state& merge_from_rb_filter, source_state& result) const{
+
+
 }
 
 void interface_memberships::process_upstream_in_first(const addr_storage& gaddr, const proxy_instance* pi)
@@ -119,15 +183,15 @@ void interface_memberships::process_upstream_in_first(const addr_storage& gaddr,
 
                 //downstream out TODO: old code match
                 //if (!cs.second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
-                    //source_it = cs.first.m_source_list.erase(source_it);
-                    //continue;
+                //source_it = cs.first.m_source_list.erase(source_it);
+                //continue;
                 //}
 
-                //upstream in TODO: old code match 
+                //upstream in TODO: old code match
                 //if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
-                    //tmp_sstate.m_source_list.insert(*source_it);
-                    //source_it = cs.first.m_source_list.erase(source_it);
-                    //continue;
+                //tmp_sstate.m_source_list.insert(*source_it);
+                //source_it = cs.first.m_source_list.erase(source_it);
+                //continue;
                 //}
 
                 ++source_it;
@@ -176,14 +240,14 @@ void interface_memberships::process_upstream_in_mutex(const addr_storage& gaddr,
 
                 //downstream out TODO: old code match
                 //if (!cs_it->second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
-                    //++source_it;
-                    //continue;
+                //++source_it;
+                //continue;
                 //}
 
                 //upstream in TODO: old code match
                 //if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
-                    //++source_it;
-                    //continue;
+                //++source_it;
+                //continue;
                 //}
 
                 const std::map<addr_storage, unsigned int>& available_sources = routing_data.get_interface_map(gaddr);
@@ -353,7 +417,7 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
         case proxy_msg::NEW_SOURCE_TIMER_MSG: {
             tm = std::static_pointer_cast<new_source_timer_msg>(msg);
 
-            auto cmp_source_lst = m_data.get_available_sources(tm->get_gaddr());
+            auto& cmp_source_lst = m_data.get_available_sources(tm->get_gaddr());
             auto cmp_source_it = cmp_source_lst.find(tm->get_saddr());
             if (cmp_source_it != cmp_source_lst.end()) {
                 if (tm.get() == cmp_source_it->shared_source_timer.get()) {
@@ -372,7 +436,7 @@ void simple_mc_proxy_routing::timer_triggerd_maintain_routing_table(const std::s
                 } else {
                     HC_LOG_DEBUG("filter_timer is outdate");
                 }
-            }else{
+            } else {
                 //debug message ???????????
             }
 
@@ -431,12 +495,12 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
         auto input_if_it = input_if_index_map.find(s.saddr);
         if (input_if_it == input_if_index_map.end()) {
             HC_LOG_ERROR("input interface of multicast source " << s.saddr << " not found");
-            continue; 
+            continue;
         }
 
         if (m_p->is_downstream(input_if_it->second)) {
             std::list<unsigned int> up_if_list;
-            for (auto ui : m_p->m_upstreams) {
+            for (auto & ui : m_p->m_upstreams) {
                 if (check_interface(IT_UPSTREAM, ID_OUT, ui.m_if_index, input_if_it->second, gaddr, s.saddr)) {
 
                     if (is_rule_matching_type(IT_UPSTREAM, ID_OUT, RMT_ALL)) {
@@ -616,25 +680,13 @@ bool simple_mc_proxy_routing::check_interface(rb_interface_type interface_type, 
         return false;
     }
 
-    std::string input_if_index_name = interfaces::get_if_name(input_if_index);
-    if (!input_if_index_name.empty()) {
-        if (interface_direction == ID_IN) {
-            //TODO: old code match
-            //return interf->match_input_filter(input_if_index_name, gaddr, saddr);
-        } else if (interface_direction == ID_OUT) {
-            //TODO: old code match
-            //return interf->match_output_filter(input_if_index_name, gaddr, saddr);
-        } else {
-            HC_LOG_ERROR("unkown interface direction");
-            return false;
-        }
+    std::string input_if_name = interfaces::get_if_name(input_if_index);
+    if (!input_if_name.empty()) {
+        return interf->is_source_allowed(interface_direction, input_if_name, gaddr, saddr);
     } else {
         HC_LOG_ERROR("failed to map interface index " << input_if_index << " to interface name");
         return false;
     }
-
-    //TODO remove me
-    return false;
 }
 
 std::string simple_mc_proxy_routing::to_string() const

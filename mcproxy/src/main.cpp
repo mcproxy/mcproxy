@@ -93,7 +93,8 @@ void test_test()
     //simple_routing_data::test_simple_routing_data();
     //igmp_sender::test_igmp_sender();
     //mroute_socket::quick_test();
-    configuration::test_configuration();
+    //configuration::test_configuration();
+    configuration::test_source_allowed();
     //if_prop::test_if_prop();
 }
 #endif /* DEBUG_MODE */

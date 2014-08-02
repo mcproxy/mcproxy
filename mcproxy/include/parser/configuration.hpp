@@ -67,6 +67,7 @@ public:
 
     static void test_configuration();
     static void test_myProxy(const std::shared_ptr<instance_definition>& id);
+    static void test_source_allowed();
 };
 
 #endif // CONFIGURATION_HPP

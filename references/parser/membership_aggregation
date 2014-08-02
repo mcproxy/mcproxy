@@ -28,6 +28,7 @@ D(Sg,Sf):    is an interface with a DOWNSTREAM Position
 U(Sg,Sf):    is an interface with an UPSTREAM Position
 Dm(Sg):      is a DOWNSTREAM interface with merged list Sg and Sf              
 Dmall(Sg):   represents all merged DOWNSTREAM interfaces Dm(Sg) 
+Um(Dmall)    is an UPSTREAM interface with with merged Dmall(Sg) and Sf
 R(Sg):       is the remainder of a merge operation
 
 #Operations
@@ -57,7 +58,7 @@ IN{s1,s2} merge with BL{} = IN{s1,s2}, R(IN{})
 
 
 WL{*} = BL{}
-BL{*} = results always in IN{}, R(SgA)
+BL{*} = WL{}
 
 WL{s2-s4,s6}
 BL{s2-s4,s6}
