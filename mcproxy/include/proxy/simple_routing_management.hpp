@@ -20,67 +20,45 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#ifndef SIMPLE_MC_PROXY_ROUTING_HPP
-#define SIMPLE_MC_PROXY_ROUTING_HPP
+#ifndef SIMPLE_ROUTING_MANAGEMENT_HPP
+#define SIMPLE_ROUTING_MANAGEMENT_HPP
 
 #include "include/proxy/routing_management.hpp"
 #include "include/proxy/simple_routing_data.hpp"
 #include "include/parser/interface.hpp"
 
 #include <list>
+#include <map>
+#include <set>
 #include <memory>
 #include <chrono>
 
 struct timer_msg;
-struct source;
 struct new_source_timer_msg;
-
-struct source_state {
-    source_state();
-    source_state(std::pair<mc_filter, source_list<source>> sstate);
-    union {
-        mc_filter m_mc_filter;
-        rb_filter_type m_rb_filter;
-    };
-    source_list<source> m_source_list;
-    std::string to_string() const;
-};
-
-class interface_memberships
-{
-private:
-    using state_pair = std::pair<source_state, const std::shared_ptr<const interface>>;
-    using state_list = std::list<state_pair>;
-    const proxy_instance* const m_p;
-
-    std::list<std::pair<unsigned int, std::list<source_state>>> m_data;
-
-    void merge_group_memberships(source_state& merge_to_mc_group, const source_state& merge_from_mc_group) const;
-    void merge_memberships_filter(source_state& merge_to_mc_group, const source_state& merge_from_rb_filter) const;
-    void merge_memberships_filter_reminder(const source_state& merge_to_mc_group, const source_state& merge_from_rb_filter, source_state& result) const;
-
-    void set_to_block_all(source_state& mc_groups) const;
-
-    void process_upstream_in_first(const addr_storage& gaddr, const proxy_instance* pi);
-    void process_upstream_in_mutex(const addr_storage& gaddr, const proxy_instance* pi, const simple_routing_data& routing_data);
-
-public:
-    interface_memberships(rb_rule_matching_type upstream_in_rule_matching_type, const addr_storage& gaddr, const proxy_instance* pi, const simple_routing_data& routing_data);
-
-    source_state get_group_memberships(unsigned int upstream_if_index);
-
-    std::string to_string() const;
-
-    static void print(const state_list& sl);
-};
+struct upstream_infos;
+struct interface_infos;
+struct downstream_infos;
+class routing;
+class sender;
+class timing;
+class interfaces;
+class worker;
 
 /**
  * @brief the simplest way of calculate forwarding rules.
  */
-class simple_mc_proxy_routing : public routing_management
+class simple_routing_management: public routing_management
 {
 private:
+    const worker* const m_msg_worker;
     simple_routing_data m_data;
+    group_mem_protocol m_group_mem_protocol;
+    const std::shared_ptr<mroute_socket>& m_mrt_sock;
+    const std::shared_ptr<sender>& m_sender;
+    const std::shared_ptr<routing>& m_routing;
+    const std::shared_ptr<timing>& m_timing;
+    const std::shared_ptr<interface_infos>& m_ii;
+    const std::shared_ptr<const interfaces> m_interfaces;
 
     std::chrono::seconds get_source_life_time();
 
@@ -92,7 +70,7 @@ private:
 
     void del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const;
 
-    void send_record(unsigned int upstream_if_index, const addr_storage& gaddr, const source_state& sstate) const;
+    void send_record(unsigned int upstream_if_index, const addr_storage& gaddr, std::pair<mc_filter, const source_list<source>&> sstate) const;
 
     std::shared_ptr<new_source_timer_msg> set_source_timer(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr);
 
@@ -101,7 +79,7 @@ private:
     void process_membership_aggregation(rb_rule_matching_type rule_matching_type, const addr_storage& gaddr);
 
 public:
-    simple_mc_proxy_routing(const proxy_instance* p);
+    simple_routing_management(const worker* msg_worker, group_mem_protocol group_mem_protocol, const std::shared_ptr<mroute_socket>& mrt_sock, const std::shared_ptr<sender>& sender, const std::shared_ptr<routing>& routing, const std::shared_ptr<timing>& timing, const std::shared_ptr<interface_infos>& interface_infos, const std::shared_ptr<const interfaces> interfaces);
 
     void event_new_source(const std::shared_ptr<proxy_msg>& msg) override;
 
@@ -112,4 +90,4 @@ public:
     std::string to_string() const override;
 };
 
-#endif // SIMPLE_MC_PROXY_ROUTING_HPP
+#endif // SIMPLE_ROUTING_MANAGEMENT_HPP

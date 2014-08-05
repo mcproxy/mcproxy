@@ -74,8 +74,9 @@ SOURCES += src/main.cpp \
            src/proxy/timers_values.cpp \
            src/proxy/interfaces.cpp \
            src/proxy/def.cpp \
-           src/proxy/simple_mc_proxy_routing.cpp \
+           src/proxy/simple_routing_management.cpp \
            src/proxy/simple_routing_data.cpp \
+           src/proxy/simple_membership_aggregation.cpp \
                #parser
            src/parser/scanner.cpp \
            src/parser/token.cpp \
@@ -114,8 +115,9 @@ HEADERS += include/hamcast_logging.h \
            include/proxy/timers_values.hpp \
            include/proxy/interfaces.hpp \
            include/proxy/routing_management.hpp \
-           include/proxy/simple_mc_proxy_routing.hpp \
+           include/proxy/simple_routing_management.hpp \
            include/proxy/simple_routing_data.hpp \
+           include/proxy/simple_membership_aggregation.hpp \
                #parser
            include/parser/scanner.hpp \
            include/parser/token.hpp \

@@ -32,7 +32,7 @@
 #include "include/proxy/querier.hpp"
 #include "include/proxy/timers_values.hpp"
 #include "include/proxy/proxy_instance.hpp"
-#include "include/proxy/simple_mc_proxy_routing.hpp"
+#include "include/proxy/simple_routing_management.hpp"
 #include "include/proxy/simple_routing_data.hpp"
 #include "include/proxy/igmp_sender.hpp"
 #include "include/parser/configuration.hpp"

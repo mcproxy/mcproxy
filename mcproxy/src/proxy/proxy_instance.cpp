@@ -35,7 +35,7 @@
 #include "include/proxy/interfaces.hpp"
 #include "include/proxy/timing.hpp"
 #include "include/proxy/routing_management.hpp"
-#include "include/proxy/simple_mc_proxy_routing.hpp"
+#include "include/proxy/simple_routing_management.hpp"
 
 #include <sstream>
 #include <iostream>
@@ -45,20 +45,45 @@
 #include <unistd.h>
 #include <net/if.h>
 
+interface_infos::interface_infos(const std::string& instance_name)
+    : m_upstream_input_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_IN, RMT_FIRST, std::chrono::milliseconds(0)))
+    , m_upstream_output_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_OUT, RMT_ALL, std::chrono::milliseconds(0)))
+{
+    HC_LOG_TRACE("");
+}
+
+bool interface_infos::is_upstream(unsigned int if_index) const
+{
+    HC_LOG_TRACE("");
+
+    for (auto & e : m_upstreams) {
+        if (e.m_if_index == if_index) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool interface_infos::is_downstream(unsigned int if_index) const
+{
+    HC_LOG_TRACE("");
+
+    return m_downstreams.find(if_index) != m_downstreams.end();
+}
+
 proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, const std::string& instance_name, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode)
-: m_group_mem_protocol(group_mem_protocol)
-, m_instance_name(instance_name)
-, m_table_number(table_number)
-, m_in_debug_testing_mode(in_debug_testing_mode)
-, m_interfaces(interfaces)
-, m_timing(shared_timing)
-, m_mrt_sock(nullptr)
-, m_sender(nullptr)
-, m_receiver(nullptr)
-, m_routing(nullptr)
-, m_proxy_start_time(std::chrono::steady_clock::now())
-, m_upstream_input_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_IN, RMT_FIRST, std::chrono::milliseconds(0)))
-, m_upstream_output_rule(std::make_shared<rule_binding>(instance_name, IT_UPSTREAM, "*", ID_OUT, RMT_ALL, std::chrono::milliseconds(0)))
+    : m_group_mem_protocol(group_mem_protocol)
+    , m_instance_name(instance_name)
+    , m_table_number(table_number)
+    , m_in_debug_testing_mode(in_debug_testing_mode)
+    , m_interfaces(interfaces)
+    , m_timing(shared_timing)
+    , m_mrt_sock(nullptr)
+    , m_sender(nullptr)
+    , m_routing(nullptr)
+    , m_receiver(nullptr)
+    , m_proxy_start_time(std::chrono::steady_clock::now())
 {
 
     //rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, const std::chrono::milliseconds& timeout);
@@ -156,7 +181,7 @@ bool proxy_instance::init_routing()
 bool proxy_instance::init_routing_management()
 {
     HC_LOG_TRACE("");
-    m_routing_management.reset(new simple_mc_proxy_routing(this));
+    m_routing_management.reset(new simple_routing_management(this, m_group_mem_protocol, m_mrt_sock, m_sender, m_routing, m_timing, m_ii, m_interfaces));
     return true;
 }
 
@@ -184,8 +209,8 @@ void proxy_instance::worker_thread()
         case proxy_msg::RET_SOURCE_TIMER_MSG:
         case proxy_msg::OLDER_HOST_PRESENT_TIMER_MSG:
         case proxy_msg::GENERAL_QUERY_TIMER_MSG: {
-            auto it = m_downstreams.find(std::static_pointer_cast<timer_msg>(msg)->get_if_index());
-            if (it != std::end(m_downstreams)) {
+            auto it = m_ii->m_downstreams.find(std::static_pointer_cast<timer_msg>(msg)->get_if_index());
+            if (it != std::end(m_ii->m_downstreams)) {
                 it->second.m_querier->timer_triggerd(msg);
             } else {
                 HC_LOG_DEBUG("failed to find querier of interface: " << interfaces::get_if_name(std::static_pointer_cast<timer_msg>(msg)->get_if_index()));
@@ -201,8 +226,8 @@ void proxy_instance::worker_thread()
                 std::cout << std::endl;
             }
 
-            auto it = m_downstreams.find(r->get_if_index());
-            if (it != std::end(m_downstreams)) {
+            auto it = m_ii->m_downstreams.find(r->get_if_index());
+            if (it != std::end(m_ii->m_downstreams)) {
                 it->second.m_querier->receive_record(msg);
             } else {
                 HC_LOG_DEBUG("failed to find querier of interface: " << interfaces::get_if_name(std::static_pointer_cast<timer_msg>(msg)->get_if_index()));
@@ -242,18 +267,18 @@ std::string proxy_instance::to_string() const
     double seconds = time_span.count()  * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
 
     s << "@@##-- proxy instance " << m_instance_name << " (table:" << m_table_number << ",lifetime:" << seconds << "sec)" << " --##@@" << std::endl;;
-    s << m_upstream_input_rule->to_string() << std::endl;
-    s << m_upstream_output_rule->to_string() << std::endl;
+    s << m_ii->m_upstream_input_rule->to_string() << std::endl;
+    s << m_ii->m_upstream_output_rule->to_string() << std::endl;
 
     s << *m_routing_management << std::endl;
 
     s << "##-- upstream interfaces --##" << std::endl;
-    for (auto & e : m_upstreams) {
+    for (auto & e : m_ii->m_upstreams) {
         s << interfaces::get_if_name(e.m_if_index) << "(index:" << e.m_if_index << ") ";
     }
     s << std::endl;
 
-    for (auto it = std::begin(m_downstreams); it != std::end(m_downstreams); ++it) {
+    for (auto it = std::begin(m_ii->m_downstreams); it != std::end(m_ii->m_downstreams); ++it) {
         s << std::endl << *it->second.m_querier;
     }
     return s.str();
@@ -271,11 +296,11 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     switch (msg->get_instruction()) {
     case config_msg::ADD_DOWNSTREAM: {
 
-        if (m_downstreams.find(msg->get_if_index()) == std::end(m_downstreams) ) {
+        if (m_ii->m_downstreams.find(msg->get_if_index()) == std::end(m_ii->m_downstreams) ) {
             HC_LOG_DEBUG("register downstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
 
             //register interface
-            if (!is_upstream(msg->get_if_index())) {
+            if (!m_ii->is_upstream(msg->get_if_index())) {
                 m_routing->add_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
                 m_receiver->registrate_interface(msg->get_if_index());
             } else {
@@ -285,19 +310,19 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
             //create a querier
             std::function<void(unsigned int, const addr_storage&)> cb_state_change = std::bind(&routing_management::event_querier_state_change, m_routing_management.get(), std::placeholders::_1, std::placeholders::_2);
             std::unique_ptr<querier> q(new querier(this, m_group_mem_protocol, msg->get_if_index(), m_sender, m_timing, msg->get_timers_values(), cb_state_change));
-            m_downstreams.insert(std::pair<unsigned int, downstream_infos>(msg->get_if_index(), downstream_infos(move(q), msg->get_interface())));
+            m_ii->m_downstreams.insert(std::pair<unsigned int, downstream_infos>(msg->get_if_index(), downstream_infos(move(q), msg->get_interface())));
         } else {
             HC_LOG_WARN("downstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " already exists");
         }
     }
     break;
     case config_msg::DEL_DOWNSTREAM: {
-        auto it = m_downstreams.find(msg->get_if_index());
-        if (it != std::end(m_downstreams)) {
+        auto it = m_ii->m_downstreams.find(msg->get_if_index());
+        if (it != std::end(m_ii->m_downstreams)) {
             HC_LOG_DEBUG("del downstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
 
             //unregister interface
-            if (!is_upstream(msg->get_if_index())) {
+            if (!m_ii->is_upstream(msg->get_if_index())) {
                 m_routing->del_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
                 m_receiver->del_interface(msg->get_if_index());
             } else {
@@ -305,7 +330,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
             }
 
             //delete querier
-            m_downstreams.erase(it);
+            m_ii->m_downstreams.erase(it);
         } else {
             HC_LOG_WARN("failed to delete downstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " interface not found");
         }
@@ -313,22 +338,22 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     break;
     case config_msg::ADD_UPSTREAM: {
         //register interface
-        
-        if (std::find_if(m_upstreams.begin(), m_upstreams.end(), [&](const upstream_infos & ui) {
+
+        if (std::find_if(m_ii->m_upstreams.begin(), m_ii->m_upstreams.end(), [&](const upstream_infos & ui) {
         return ui.m_if_index == msg->get_if_index();
-        } ) == m_upstreams.end()) {
+        } ) == m_ii->m_upstreams.end()) {
             HC_LOG_DEBUG("register upstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
 
-            if (!is_downstream(msg->get_if_index())) {
+            if (!m_ii->is_downstream(msg->get_if_index())) {
                 m_routing->add_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
                 m_receiver->registrate_interface(msg->get_if_index());
             } else {
                 HC_LOG_DEBUG("interface also used as downstream");
             }
 
-            HC_LOG_DEBUG("registerd upstreams: " << m_upstreams.size());
+            HC_LOG_DEBUG("registerd upstreams: " << m_ii->m_upstreams.size());
             HC_LOG_DEBUG("upstream priority: " << msg->get_upstream_priority());
-            m_upstreams.insert(upstream_infos(msg->get_if_index(), msg->get_interface(), msg->get_upstream_priority()));
+            m_ii->m_upstreams.insert(upstream_infos(msg->get_if_index(), msg->get_interface(), msg->get_upstream_priority()));
         }
         else {
             HC_LOG_WARN("upstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " already exists");
@@ -337,21 +362,21 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     break;
     case config_msg::DEL_UPSTREAM: {
         //unregister interface
-        auto it = std::find_if(m_upstreams.begin(), m_upstreams.end(), [&](const upstream_infos & ui) {
+        auto it = std::find_if(m_ii->m_upstreams.begin(), m_ii->m_upstreams.end(), [&](const upstream_infos & ui) {
             return ui.m_if_index == msg->get_if_index();
         } );
 
-        if (it != m_upstreams.end()) {
+        if (it != m_ii->m_upstreams.end()) {
             HC_LOG_DEBUG("del upstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " with virtual interface index: " << m_interfaces->get_virtual_if_index(msg->get_if_index()));
 
-            if (!is_downstream(msg->get_if_index())) {
+            if (!m_ii->is_downstream(msg->get_if_index())) {
                 m_routing->del_vif(msg->get_if_index(), m_interfaces->get_virtual_if_index(msg->get_if_index()));
                 m_receiver->del_interface(msg->get_if_index());
             } else {
                 HC_LOG_DEBUG("interface still used as downstream");
             }
 
-            m_upstreams.erase(it);
+            m_ii->m_upstreams.erase(it);
         } else {
             HC_LOG_WARN("failed to delete upstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " interface not found");
         }
@@ -363,9 +388,9 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
             if (rb->get_rule_binding_type() == RBT_RULE_MATCHING) {
                 if (rb->get_interface_type() == IT_UPSTREAM) {
                     if (rb->get_interface_direction() == ID_IN) {
-                        m_upstream_input_rule = rb;
+                        m_ii->m_upstream_input_rule = rb;
                     } else if (rb->get_interface_direction() == ID_OUT) {
-                        m_upstream_output_rule = rb;
+                        m_ii->m_upstream_output_rule = rb;
                     } else {
                         HC_LOG_ERROR("failed to set global rule binding, interface direction not defined");
                     }
@@ -385,25 +410,6 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
     }
 }
 
-bool proxy_instance::is_upstream(unsigned int if_index) const
-{
-    HC_LOG_TRACE("");
-
-    for (auto & e : m_upstreams) {
-        if (e.m_if_index == if_index) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool proxy_instance::is_downstream(unsigned int if_index) const
-{
-    HC_LOG_TRACE("");
-
-    return m_downstreams.find(if_index) != m_downstreams.end();
-}
 
 #ifdef DEBUG_MODE
 void proxy_instance::test_querier(std::string if_name)
@@ -726,12 +732,12 @@ void proxy_instance::rand_test(std::function < void(mcast_addr_record_type, sour
 
         if (i == 10 || i == 20 || i == 40 ) {
             sleep(2);
-            send_record(MODE_IS_EXCLUDE, {}, IGMPv2); 
+            send_record(MODE_IS_EXCLUDE, {}, IGMPv2);
         }
 
         if (i == 11 || i == 25 || i == 40 ) {
             sleep(2);
-            send_record(CHANGE_TO_EXCLUDE_MODE, {}, IGMPv2); 
+            send_record(CHANGE_TO_EXCLUDE_MODE, {}, IGMPv2);
         }
 
         sleep(time);

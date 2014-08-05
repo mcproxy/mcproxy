@@ -23,15 +23,11 @@
 #ifndef ROUTING_MANAGEMENT_HPP
 #define ROUTING_MANAGEMENT_HPP
 
-#include "include/proxy/def.hpp"
-
 #include <memory>
 #include <string>
 #include <sstream>
 
 struct proxy_msg;
-struct source;
-class proxy_instance;
 class addr_storage;
 
 /**
@@ -39,11 +35,7 @@ class addr_storage;
  */
 class routing_management
 {
-protected:
-    const proxy_instance* const m_p;
-
 public:
-    routing_management(const proxy_instance* p): m_p(p) {}
 
     virtual void event_new_source(const std::shared_ptr<proxy_msg>& msg) = 0;
     virtual void event_querier_state_change(unsigned int if_index, const addr_storage& gaddr) = 0;
