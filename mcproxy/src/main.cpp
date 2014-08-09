@@ -34,6 +34,7 @@
 #include "include/proxy/proxy_instance.hpp"
 #include "include/proxy/simple_routing_management.hpp"
 #include "include/proxy/simple_routing_data.hpp"
+#include "include/proxy/simple_membership_aggregation.hpp"
 #include "include/proxy/igmp_sender.hpp"
 #include "include/parser/configuration.hpp"
 #include "include/tester/tester.hpp"
@@ -94,7 +95,8 @@ void test_test()
     //igmp_sender::test_igmp_sender();
     //mroute_socket::quick_test();
     //configuration::test_configuration();
-    configuration::test_source_allowed();
+    //configuration::test_source_allowed();
+    simple_membership_aggregation::test_merge_functions();
     //if_prop::test_if_prop();
 }
 #endif /* DEBUG_MODE */

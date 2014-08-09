@@ -139,6 +139,8 @@ enum rb_filter_type {
     FT_BLACKLIST=100, FT_WHITELIST=101, FT_UNDEFINED=102
 };
 
+std::string get_rb_filter_type_name(rb_filter_type ft);
+
 enum rb_rule_matching_type {
     RMT_ALL, RMT_FIRST, RMT_MUTEX, RMT_UNDEFINED
 };

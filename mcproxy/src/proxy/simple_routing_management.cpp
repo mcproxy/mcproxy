@@ -35,10 +35,10 @@
 #include <algorithm>
 #include <memory>
 
-simple_routing_management::simple_routing_management(const worker* msg_worker, group_mem_protocol group_mem_protocol, const std::shared_ptr<mroute_socket>& mrt_sock, const std::shared_ptr<sender>& sender, const std::shared_ptr<routing>& routing, const std::shared_ptr<timing>& timing, const std::shared_ptr<interface_infos>& interface_infos, const std::shared_ptr<const interfaces> interfaces)
+simple_routing_management::simple_routing_management(const worker* msg_worker, group_mem_protocol group_mem_protocol, const std::shared_ptr<const mroute_socket>& mrt_sock, const std::shared_ptr<const sender>& sender, const std::shared_ptr<const routing>& routing, const std::shared_ptr<timing>& timing, const std::shared_ptr<const interface_infos>& interface_infos, const std::shared_ptr<const interfaces> interfaces)
     : m_msg_worker(msg_worker)
-    , m_data(group_mem_protocol, mrt_sock)
     , m_group_mem_protocol(group_mem_protocol)
+    , m_data(std::make_shared<simple_routing_data>(group_mem_protocol, mrt_sock))
     , m_mrt_sock(mrt_sock)
     , m_sender(sender)
     , m_routing(routing)
@@ -67,7 +67,7 @@ void simple_routing_management::event_new_source(const std::shared_ptr<proxy_msg
         s.shared_source_timer = set_source_timer(sm->get_if_index(), sm->get_gaddr(), sm->get_saddr());
 
         //route calculation
-        m_data.set_source(sm->get_if_index(), sm->get_gaddr(), s);
+        m_data->set_source(sm->get_if_index(), sm->get_gaddr(), s);
 
         set_routes(sm->get_gaddr(), collect_interested_interfaces(sm->get_gaddr(), {sm->get_saddr()}));
 
@@ -89,7 +89,7 @@ void simple_routing_management::event_querier_state_change(unsigned int /*if_ind
     HC_LOG_TRACE("");
 
     //route calculation
-    set_routes(gaddr, collect_interested_interfaces(gaddr, m_data.get_available_sources(gaddr)));
+    set_routes(gaddr, collect_interested_interfaces(gaddr, m_data->get_available_sources(gaddr)));
 
     //membership agregation
     if (is_rule_matching_type(IT_UPSTREAM, ID_IN, RMT_FIRST)) {
@@ -112,11 +112,11 @@ void simple_routing_management::timer_triggerd_maintain_routing_table(const std:
         case proxy_msg::NEW_SOURCE_TIMER_MSG: {
             tm = std::static_pointer_cast<new_source_timer_msg>(msg);
 
-            auto& cmp_source_lst = m_data.get_available_sources(tm->get_gaddr());
+            auto& cmp_source_lst = m_data->get_available_sources(tm->get_gaddr());
             auto cmp_source_it = cmp_source_lst.find(tm->get_saddr());
             if (cmp_source_it != cmp_source_lst.end()) {
                 if (tm.get() == cmp_source_it->shared_source_timer.get()) {
-                    auto saddr_it = m_data.refresh_source_or_del_it_if_unused(tm->get_gaddr(), tm->get_saddr());
+                    auto saddr_it = m_data->refresh_source_or_del_it_if_unused(tm->get_gaddr(), tm->get_saddr());
                     if (!saddr_it.second) {
 
                         del_route(tm->get_if_index(), tm->get_gaddr(), tm->get_saddr());
@@ -181,7 +181,7 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_routing_management:
     HC_LOG_TRACE("");
 
     //            <source_addr, if_index>
-    const std::map<addr_storage, unsigned int>& input_if_index_map = m_data.get_interface_map(gaddr);
+    const std::map<addr_storage, unsigned int>& input_if_index_map = m_data->get_interface_map(gaddr);
 
     //add upstream interfaces
     std::list<std::pair<source, std::list<unsigned int>>> rt_list;
@@ -257,7 +257,7 @@ void simple_routing_management::set_routes(const addr_storage& gaddr, const std:
     HC_LOG_TRACE("");
 
     //            <source_addr, if_index>
-    const std::map<addr_storage, unsigned int>& input_if_index_map = m_data.get_interface_map(gaddr);
+    const std::map<addr_storage, unsigned int>& input_if_index_map = m_data->get_interface_map(gaddr);
     unsigned int input_if_index;
 
     //output_if_index is a bad name ????????
@@ -387,6 +387,6 @@ bool simple_routing_management::check_interface(rb_interface_type interface_type
 std::string simple_routing_management::to_string() const
 {
     HC_LOG_TRACE("");
-    return m_data.to_string();
+    return m_data->to_string();
 }
 

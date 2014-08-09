@@ -51,13 +51,13 @@ class simple_routing_management: public routing_management
 {
 private:
     const worker* const m_msg_worker;
-    simple_routing_data m_data;
     group_mem_protocol m_group_mem_protocol;
-    const std::shared_ptr<mroute_socket>& m_mrt_sock;
-    const std::shared_ptr<sender>& m_sender;
-    const std::shared_ptr<routing>& m_routing;
-    const std::shared_ptr<timing>& m_timing;
-    const std::shared_ptr<interface_infos>& m_ii;
+    const std::shared_ptr<simple_routing_data> m_data;
+    const std::shared_ptr<const mroute_socket> m_mrt_sock;
+    const std::shared_ptr<const sender> m_sender;
+    const std::shared_ptr<const routing> m_routing;
+    const std::shared_ptr<timing> m_timing;
+    const std::shared_ptr<const interface_infos> m_ii;
     const std::shared_ptr<const interfaces> m_interfaces;
 
     std::chrono::seconds get_source_life_time();
@@ -79,7 +79,7 @@ private:
     void process_membership_aggregation(rb_rule_matching_type rule_matching_type, const addr_storage& gaddr);
 
 public:
-    simple_routing_management(const worker* msg_worker, group_mem_protocol group_mem_protocol, const std::shared_ptr<mroute_socket>& mrt_sock, const std::shared_ptr<sender>& sender, const std::shared_ptr<routing>& routing, const std::shared_ptr<timing>& timing, const std::shared_ptr<interface_infos>& interface_infos, const std::shared_ptr<const interfaces> interfaces);
+    simple_routing_management(const worker* msg_worker, group_mem_protocol group_mem_protocol, const std::shared_ptr<const mroute_socket>& mrt_sock, const std::shared_ptr<const sender>& sender, const std::shared_ptr<const routing>& routing, const std::shared_ptr<timing>& timing, const std::shared_ptr<const interface_infos>& interface_infos, const std::shared_ptr<const interfaces> interfaces);
 
     void event_new_source(const std::shared_ptr<proxy_msg>& msg) override;
 

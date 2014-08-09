@@ -253,6 +253,16 @@ std::string rule_table_ref::to_string() const
     return s.str();
 }
 //-----------------------------------------------------
+std::string get_rb_filter_type_name(rb_filter_type ft)
+{
+    std::map<rb_filter_type, std::string> name_map = {
+        {FT_BLACKLIST, "BLACKLIST"},
+        {FT_WHITELIST, "WHITELIST"},
+        {FT_UNDEFINED, "UNDEFINED"}
+    };
+    return name_map[ft];
+}
+
 rule_binding::rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table)
     : m_rule_binding_type(RBT_FILTER)
     , m_instance_name(instance_name)
