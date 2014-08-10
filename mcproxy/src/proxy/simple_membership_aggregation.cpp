@@ -222,168 +222,182 @@ source_state& simple_membership_aggregation::merge_memberships_filter_reminder(s
     return merge_to_mc_group;
 }
 
-void simple_membership_aggregation::process_upstream_in_first(const addr_storage& gaddr)
-{
-    HC_LOG_TRACE("");
+void simple_membership_aggregation::process_upstream_in_first(const addr_storage& gaddr){
+        
+}
 
-    state_list init_sstate_list;
-    for (auto & downs_e : m_ii->m_downstreams) {
-        init_sstate_list.push_back(state_pair(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
-    }
 
-    //init and fill database
-    for (auto & upstr_e : m_ii->m_upstreams) {
+void simple_membership_aggregation::process_upstream_in_mutex(const addr_storage& gaddr){
 
-        state_list tmp_sstate_list;
-
-        for (auto & cs : init_sstate_list) {
-
-            source_state tmp_sstate;
-            tmp_sstate.m_mc_filter = cs.first.m_mc_filter;
-
-            //sort out all unwanted sources
-            for (auto source_it = cs.first.m_source_list.begin(); source_it != cs.first.m_source_list.end();) {
-
-                //downstream out TODO: old code match
-                //if (!cs.second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
-                //source_it = cs.first.m_source_list.erase(source_it);
-                //continue;
-                //}
-
-                //upstream in TODO: old code match
-                //if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
-                //tmp_sstate.m_source_list.insert(*source_it);
-                //source_it = cs.first.m_source_list.erase(source_it);
-                //continue;
-                //}
-
-                ++source_it;
-            }
-
-            if (!tmp_sstate.m_source_list.empty()) {
-                tmp_sstate_list.push_back(state_pair(tmp_sstate, cs.second));
-            }
-
-        }
-
-        std::list<source_state> ret_source_list;
-        for (auto & e : init_sstate_list) {
-            ret_source_list.push_back(std::move(e.first));
-        }
-        m_data.push_back(std::pair<unsigned int, std::list<source_state>>(upstr_e.m_if_index, std::move(ret_source_list)));
-        init_sstate_list = std::move(tmp_sstate_list);
-    }
 
 }
 
-void simple_membership_aggregation::process_upstream_in_mutex(const addr_storage& gaddr)
-{
-    HC_LOG_TRACE("");
+std::pair<mc_filter, const source_list<source>&> simple_membership_aggregation::get_group_memberships(unsigned int upstream_if_index){
 
-    state_list ref_sstate_list;
+}
 
-    for (auto & downs_e : m_ii->m_downstreams) {
-        ref_sstate_list.push_back(state_pair(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
-    }
-    //print(ref_sstate_list);
+//void simple_membership_aggregation::process_upstream_in_first(const addr_storage& gaddr)
+//{
+    //HC_LOG_TRACE("");
 
-    //init and fill database
-    for (auto & upstr_e : m_ii->m_upstreams) {
+    //state_list init_sstate_list;
+    //for (auto & downs_e : m_ii->m_downstreams) {
+        //init_sstate_list.push_back(state_pair(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
+    //}
 
-        std::list<source_state> tmp_sstate_list;
+    ////init and fill database
+    //for (auto & upstr_e : m_ii->m_upstreams) {
 
-        //for every downstream interface
-        for (auto cs_it = ref_sstate_list.begin(); cs_it != ref_sstate_list.end();) {
+        //state_list tmp_sstate_list;
 
-            source_state tmp_sstate;
-            tmp_sstate.m_mc_filter = cs_it->first.m_mc_filter;
+        //for (auto & cs : init_sstate_list) {
 
-            //sort out all unwanted sources
-            for (auto source_it = cs_it->first.m_source_list.begin(); source_it != cs_it->first.m_source_list.end();) {
+            //source_state tmp_sstate;
+            //tmp_sstate.m_mc_filter = cs.first.m_mc_filter;
 
-                //downstream out TODO: old code match
-                //if (!cs_it->second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+            ////sort out all unwanted sources
+            //for (auto source_it = cs.first.m_source_list.begin(); source_it != cs.first.m_source_list.end();) {
+
+                ////downstream out TODO: old code match
+                ////if (!cs.second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                ////source_it = cs.first.m_source_list.erase(source_it);
+                ////continue;
+                ////}
+
+                ////upstream in TODO: old code match
+                ////if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                ////tmp_sstate.m_source_list.insert(*source_it);
+                ////source_it = cs.first.m_source_list.erase(source_it);
+                ////continue;
+                ////}
+
                 //++source_it;
-                //continue;
+            //}
+
+            //if (!tmp_sstate.m_source_list.empty()) {
+                //tmp_sstate_list.push_back(state_pair(tmp_sstate, cs.second));
+            //}
+
+        //}
+
+        //std::list<source_state> ret_source_list;
+        //for (auto & e : init_sstate_list) {
+            //ret_source_list.push_back(std::move(e.first));
+        //}
+        //m_data.push_back(std::pair<unsigned int, std::list<source_state>>(upstr_e.m_if_index, std::move(ret_source_list)));
+        //init_sstate_list = std::move(tmp_sstate_list);
+    //}
+
+//}
+
+//void simple_membership_aggregation::process_upstream_in_mutex(const addr_storage& gaddr)
+//{
+    //HC_LOG_TRACE("");
+
+    //state_list ref_sstate_list;
+
+    //for (auto & downs_e : m_ii->m_downstreams) {
+        //ref_sstate_list.push_back(state_pair(source_state(downs_e.second.m_querier->get_group_membership_infos(gaddr)), downs_e.second.m_interface));
+    //}
+    ////print(ref_sstate_list);
+
+    ////init and fill database
+    //for (auto & upstr_e : m_ii->m_upstreams) {
+
+        //std::list<source_state> tmp_sstate_list;
+
+        ////for every downstream interface
+        //for (auto cs_it = ref_sstate_list.begin(); cs_it != ref_sstate_list.end();) {
+
+            //source_state tmp_sstate;
+            //tmp_sstate.m_mc_filter = cs_it->first.m_mc_filter;
+
+            ////sort out all unwanted sources
+            //for (auto source_it = cs_it->first.m_source_list.begin(); source_it != cs_it->first.m_source_list.end();) {
+
+                ////downstream out TODO: old code match
+                ////if (!cs_it->second->match_output_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                ////++source_it;
+                ////continue;
+                ////}
+
+                ////upstream in TODO: old code match
+                ////if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
+                ////++source_it;
+                ////continue;
+                ////}
+
+                //const std::map<addr_storage, unsigned int>& available_sources = m_routing_data->get_interface_map(gaddr);
+                //auto av_src_it = available_sources.find(source_it->saddr);
+                //if (av_src_it != available_sources.end()) {
+
+                    //if (m_ii->is_upstream(av_src_it->second)) {
+                        //tmp_sstate.m_source_list.insert(*source_it);
+                    //}
+
+                    ////clean this->m_data
+                    //for (auto & data_e : m_data) {
+                        //for (auto sstate_it = data_e.second.begin(); sstate_it != data_e.second.end();) {
+
+                            //auto s_it = sstate_it->m_source_list.find(*source_it);
+                            //if (s_it != sstate_it->m_source_list.end()) {
+                                //sstate_it->m_source_list.erase(s_it);
+                            //}
+
+                            //if (sstate_it->m_source_list.empty()) {
+                                //sstate_it = data_e.second.erase(sstate_it);
+                                //continue;
+                            //}
+                            //++sstate_it;
+                        //}
+                    //}
+
+                    //source_it = cs_it->first.m_source_list.erase(source_it);
+                    //continue;
+
+                //} else {
+                    //tmp_sstate.m_source_list.insert(*source_it);
                 //}
 
-                //upstream in TODO: old code match
-                //if (!upstr_e.m_interface->match_input_filter(interfaces::get_if_name(upstr_e.m_if_index), gaddr, source_it->saddr)) {
                 //++source_it;
+            //}
+
+            //if (!tmp_sstate.m_source_list.empty()) {
+                //tmp_sstate_list.push_back(tmp_sstate);
+            //}
+
+            //if (cs_it->first.m_source_list.empty()) {
+                //cs_it = ref_sstate_list.erase(cs_it);
                 //continue;
-                //}
+            //}
 
-                const std::map<addr_storage, unsigned int>& available_sources = m_routing_data->get_interface_map(gaddr);
-                auto av_src_it = available_sources.find(source_it->saddr);
-                if (av_src_it != available_sources.end()) {
+            //++cs_it;
+        //}
 
-                    if (m_ii->is_upstream(av_src_it->second)) {
-                        tmp_sstate.m_source_list.insert(*source_it);
-                    }
+        //m_data.push_back(std::pair<unsigned int, std::list<source_state>>(upstr_e.m_if_index, std::move(tmp_sstate_list)));
+    //}
 
-                    //clean this->m_data
-                    for (auto & data_e : m_data) {
-                        for (auto sstate_it = data_e.second.begin(); sstate_it != data_e.second.end();) {
+//}
 
-                            auto s_it = sstate_it->m_source_list.find(*source_it);
-                            if (s_it != sstate_it->m_source_list.end()) {
-                                sstate_it->m_source_list.erase(s_it);
-                            }
+//std::pair<mc_filter, const source_list<source>&> simple_membership_aggregation::get_group_memberships(unsigned int upstream_if_index)
+//{
+    //HC_LOG_TRACE("");
 
-                            if (sstate_it->m_source_list.empty()) {
-                                sstate_it = data_e.second.erase(sstate_it);
-                                continue;
-                            }
-                            ++sstate_it;
-                        }
-                    }
+    //source_state result;
+    //auto data_it = m_data.begin();
+    //if (data_it != m_data.end() && data_it->first != upstream_if_index) {
+        //HC_LOG_ERROR("unexpected upstream interface " << interfaces::get_if_name(upstream_if_index));
+        //return result.get_mc_source_list();
+    //}
 
-                    source_it = cs_it->first.m_source_list.erase(source_it);
-                    continue;
+    //for (auto & e : data_it->second) {
+        ////TODO
+        ////merge_membership_infos(result, e);
+    //}
 
-                } else {
-                    tmp_sstate.m_source_list.insert(*source_it);
-                }
-
-                ++source_it;
-            }
-
-            if (!tmp_sstate.m_source_list.empty()) {
-                tmp_sstate_list.push_back(tmp_sstate);
-            }
-
-            if (cs_it->first.m_source_list.empty()) {
-                cs_it = ref_sstate_list.erase(cs_it);
-                continue;
-            }
-
-            ++cs_it;
-        }
-
-        m_data.push_back(std::pair<unsigned int, std::list<source_state>>(upstr_e.m_if_index, std::move(tmp_sstate_list)));
-    }
-
-}
-
-std::pair<mc_filter, const source_list<source>&> simple_membership_aggregation::get_group_memberships(unsigned int upstream_if_index)
-{
-    HC_LOG_TRACE("");
-
-    source_state result;
-    auto data_it = m_data.begin();
-    if (data_it != m_data.end() && data_it->first != upstream_if_index) {
-        HC_LOG_ERROR("unexpected upstream interface " << interfaces::get_if_name(upstream_if_index));
-        return result.get_mc_source_list();
-    }
-
-    for (auto & e : data_it->second) {
-        //TODO
-        //merge_membership_infos(result, e);
-    }
-
-    m_data.pop_front();
-    return result.get_mc_source_list();
-}
+    //m_data.pop_front();
+    //return result.get_mc_source_list();
+//}
 
 std::string simple_membership_aggregation::to_string() const
 {
@@ -398,16 +412,16 @@ std::string simple_membership_aggregation::to_string() const
 }
 
 #ifdef DEBUG_MODE
-void simple_membership_aggregation::print(const state_list& sl)
-{
-    //std::cout << "-- print state_list --" << std::endl;
-    //for (auto & e : sl) {
-        //std::cout << "source state(first): " << e.first.to_string_mc() << std::endl;
-        //std::cout << "interface name(second): " << e.second->to_string_interface();
-        //std::cout << "interface rule binding(second): " << e.second->to_string_rule_binding();
-    //}
+//void simple_membership_aggregation::print(const state_list& sl)
+//{
+    ////std::cout << "-- print state_list --" << std::endl;
+    ////for (auto & e : sl) {
+        ////std::cout << "source state(first): " << e.first.to_string_mc() << std::endl;
+        ////std::cout << "interface name(second): " << e.second->to_string_interface();
+        ////std::cout << "interface rule binding(second): " << e.second->to_string_rule_binding();
+    ////}
 
-}
+//}
 
 void simple_membership_aggregation::test_merge_functions()
 {

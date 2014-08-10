@@ -53,8 +53,8 @@ struct source_state {
 class simple_membership_aggregation
 {
 private:
-    using state_pair = std::pair<source_state, const std::shared_ptr<const interface>>;
-    using state_list = std::list<state_pair>;
+    //using state_pair = std::pair<source_state, const std::shared_ptr<const interface>>;
+    //using state_list = std::list<state_pair>;
 
     group_mem_protocol m_group_mem_protocol;
     const std::shared_ptr<const interface_infos> m_ii;
@@ -82,7 +82,7 @@ public:
 
     std::string to_string() const;
 
-    static void print(const state_list& sl);
+    //static void print(const state_list& sl);
     static void test_merge_functions();
 };
 
