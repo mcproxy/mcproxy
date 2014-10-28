@@ -163,3 +163,8 @@ Defines the maximum allowed source filter:
 
     /proc/sys/net/ipv4/igmp_max_msf
     /proc/sys/net/ipv6/igmp_max_msf
+
+Check and set the RP-Filter:
+
+    /proc/sys/net/ipv4/conf/all/rp_filter 
+    /proc/sys/net/ipv4/conf/<interface>/rp_filter
