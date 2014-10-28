@@ -192,7 +192,7 @@ void tester::help()
     cout << "\tfor example:" << endl;
     cout << "\t\t./tester send" << endl;
     cout << "\t\t./tester recv -i tester.ini" << endl;
-    cout << "\t\t./tester send_a_hallo -i tester.ini -o logfile" << endl;
+    cout << "\t\t./tester send_a_hello -i tester.ini -o logfile" << endl;
 }
 
 addr_storage tester::get_gaddr(const std::string& to_do)
