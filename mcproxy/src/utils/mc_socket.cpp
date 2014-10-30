@@ -152,7 +152,7 @@ int mc_socket::get_addr_family() const
     return m_addrFamily;
 }
 
-bool mc_socket::bind_udp_socket(in_port_t port) const
+bool mc_socket::bind_udp_socket(const addr_storage& addr, in_port_t port) const
 {
     HC_LOG_TRACE("");
 
@@ -170,7 +170,7 @@ bool mc_socket::bind_udp_socket(in_port_t port) const
 
     if (m_addrFamily == AF_INET) {
         m_addr_v4.sin_family = AF_INET;
-        m_addr_v4.sin_addr.s_addr = INADDR_ANY;
+        m_addr_v4.sin_addr = addr.get_in_addr(); //INADDR_ANY;
         m_addr_v4.sin_port = htons(port);
         m_addr = (sockaddr*) &m_addr_v4;
         size = sizeof(m_addr_v4);
@@ -178,7 +178,7 @@ bool mc_socket::bind_udp_socket(in_port_t port) const
         m_addr_v6.sin6_family = AF_INET6;
         m_addr_v6.sin6_flowinfo = 0;
         m_addr_v6.sin6_port =  htons(port);
-        m_addr_v6.sin6_addr = in6addr_any;
+        m_addr_v6.sin6_addr = addr.get_in6_addr(); //in6addr_any;
         m_addr = (sockaddr*) &m_addr_v6;
         size = sizeof(m_addr_v6);
     } else {

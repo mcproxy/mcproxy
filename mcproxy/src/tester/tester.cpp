@@ -470,7 +470,7 @@ std::string tester::get_to_do_next(const std::string& to_do)
     return to_do_next;
 }
 
-void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, unsigned long max_count, bool parse_time_stamp, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, bool include_data, bool include_summary, bool ignore_duplicated_packets, packet_manager& pmanager, const std::string& file_operation_mode)
+void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, const addr_storage& gaddr, unsigned long max_count, bool parse_time_stamp, bool print_status_msg, bool save_to_file, const std::string& file_name, bool include_file_header, bool include_data, bool include_summary, bool ignore_duplicated_packets, packet_manager& pmanager, const std::string& file_operation_mode)
 {
     HC_LOG_TRACE("");
 
@@ -505,8 +505,8 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
         exit(0);
     }
 
-    if (!ms->bind_udp_socket(port)) {
-        std::cout << "failed to bind port " << port << " to socket" << std::endl;
+    if (!ms->bind_udp_socket(gaddr, port)) {
+        std::cout << "failed to bind port " << port << " and address "<< gaddr << " to socket" << std::endl;
         exit(0);
     }
 
@@ -781,7 +781,7 @@ void tester::run(const std::string& to_do, const std::string& output_file, unsig
             }
         }
 
-        receive_data(ms, port, max_count, parse_time_stamp, print_status_msg, save_to_file, file_name, include_file_header, include_data, include_summary, ignore_duplicated_packets, pmanager, file_operation_mode);
+        receive_data(ms, port, gaddr, max_count, parse_time_stamp, print_status_msg, save_to_file, file_name, include_file_header, include_data, include_summary, ignore_duplicated_packets, pmanager, file_operation_mode);
         ms->close_socket();
         if (to_do_next.compare("null") != 0) {
             run(to_do_next, output_file, current_packet_number, pmanager, send_msg);

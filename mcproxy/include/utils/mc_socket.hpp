@@ -142,10 +142,10 @@ public:
     int get_addr_family() const;
 
     /**
-     * @brief Bind IPv4 or IPv6 socket to a specific port.
+     * @brief Bind IPv4 or IPv6 socket to a specific port and address.
      * @return Return true on success.
      */
-    bool bind_udp_socket(in_port_t port) const;
+    bool bind_udp_socket(const addr_storage& addr, in_port_t port) const;
 
     /**
      * @brief allow the reuse of binded ports 
