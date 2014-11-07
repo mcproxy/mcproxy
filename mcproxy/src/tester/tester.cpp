@@ -500,12 +500,17 @@ void tester::receive_data(const std::unique_ptr<const mc_socket>& ms, int port, 
         }
     }
 
-    if (!ms->set_reuse_port()) {
+    if (!ms->set_reuse_port(true)) {
         std::cout << "failed to set socket option reuse port" << std::endl;
         exit(0);
     }
 
-    if (!ms->bind_udp_socket(gaddr, port)) {
+    if (!ms->set_multicast_all(false)) {
+        std::cout << "failed to set socket option multicast all" << std::endl;
+        exit(0);
+    }
+
+    if (!ms->bind_udp_socket(addr_storage(gaddr.get_addr_family()), port)) { //bind to any address
         std::cout << "failed to bind port " << port << " and address "<< gaddr << " to socket" << std::endl;
         exit(0);
     }

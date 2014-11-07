@@ -151,7 +151,13 @@ public:
      * @brief allow the reuse of binded ports 
      * @return Return true on success.
      */
-    bool set_reuse_port() const;
+    bool set_reuse_port(bool enable) const;
+
+    /**
+     * @brief 
+     * @return Return true on success.
+     */
+    bool set_multicast_all(bool enable) const;
 
     /**
      * @brief Enable or disable multicast loopback.

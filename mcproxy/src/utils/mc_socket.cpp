@@ -196,7 +196,7 @@ bool mc_socket::bind_udp_socket(const addr_storage& addr, in_port_t port) const
     }
 }
 
-bool mc_socket::set_reuse_port() const
+bool mc_socket::set_multicast_all(bool enable) const
 {
     HC_LOG_TRACE("");
 
@@ -206,7 +206,45 @@ bool mc_socket::set_reuse_port() const
     }
 
     int rc;
-    int option = 1;
+    int mall_arg;
+    int level;
+
+    int option = enable;
+
+    if (m_addrFamily == AF_INET) {
+        level = IPPROTO_IP;
+        mall_arg = IP_MULTICAST_ALL;
+    } else if (m_addrFamily == AF_INET6) {
+        level = IPPROTO_IPV6;
+        //mall_arg = IP6_MULTICAST_ALL;
+        HC_LOG_ERROR("option for IPv6 not available");
+        return true; 
+    } else {
+        HC_LOG_ERROR("wrong address family");
+        return false;
+    }
+
+    rc = setsockopt(m_sock, level, mall_arg, &option, sizeof(option));
+
+    if (rc == -1) {
+        HC_LOG_ERROR("failed to set multicast_all(on/off)! Error: " << strerror(errno) << " errno: " << errno);
+        return false;
+    } else {
+        return true;
+    }
+}
+
+bool mc_socket::set_reuse_port(bool enable) const
+{
+    HC_LOG_TRACE("");
+
+    if (!is_udp_valid()) {
+        HC_LOG_ERROR("udp_socket invalid");
+        return false;
+    }
+
+    int rc;
+    int option = enable;
 
     rc = setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
 
@@ -232,12 +270,7 @@ bool mc_socket::set_loop_back(bool enable) const
     int level;
 
     //u_char loop;
-    int loop;
-    if (enable == true) {
-        loop = 1;
-    } else {
-        loop = 0;
-    }
+    int loop = enable;
 
     if (m_addrFamily == AF_INET) {
         level = IPPROTO_IP;
@@ -253,7 +286,7 @@ bool mc_socket::set_loop_back(bool enable) const
     rc = setsockopt(m_sock, level, loopArg, &loop, sizeof(loop));
 
     if (rc == -1) {
-        HC_LOG_ERROR("failed to setLoopBack(on/off)! Error: " << strerror(errno) << " errno: " << errno);
+        HC_LOG_ERROR("failed to set_loop_back(on/off)! Error: " << strerror(errno) << " errno: " << errno);
         return false;
     } else {
         return true;
@@ -945,9 +978,10 @@ void mc_socket::test_all()
 }
 #endif /* TESTER */
 
-void mc_socket::close_socket() const{
+void mc_socket::close_socket() const
+{
     HC_LOG_TRACE("");
-    
+
     if (is_udp_valid() && m_own_socket) {
         close(m_sock);
     }
@@ -956,6 +990,6 @@ void mc_socket::close_socket() const{
 mc_socket::~mc_socket()
 {
     HC_LOG_TRACE("");
-    
+
     close_socket();
 }
