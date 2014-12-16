@@ -23,7 +23,7 @@ If you use Mcproxy in a scientific context, please use the following [citation](
 
 Requirements
 ============
-*  A g++ version equal or higher 4.8 is required.
+*  A g++ version equal or higher **4.8** is required.
 
 *  To generate a makefile, qmake must be installed. This can be done with the
 following command:
