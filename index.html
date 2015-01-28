@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Mcproxy :  Multicast Proxy for IGMP/MLD">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Mcproxy</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/mcproxy/mcproxy">View on GitHub</a>
+
+          <h1 id="project_title">Mcproxy</h1>
+          <h2 id="project_tagline"> Multicast Proxy for IGMP/MLD</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/mcproxy/mcproxy/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/mcproxy/mcproxy/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        
+
+<h1>
+<a id="introduction" class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction</h1>
+
+<p>Mcproxy is an IGMP/MLD Proxy daemon for Linux.</p>
+
+<p>IGMP/MLD proxies offer the possibility option to combine local multicast
+networks with a larger multicast infrastructure. In contrast to multicast
+routers, proxies are lightweight and do not require the support of a multicast
+routing protocol such as PIM or DVMRP. A common use case is a local stub
+networks that interconnects with a remote multicast routing domain, e.g. via a
+tunnel. But it can also be used in PMIPv6 domain to enable multicast for
+sources
+(<a href="http://tools.ietf.org/html/draft-ietf-multimob-pmipv6-source">pmipv6-source-draft</a>)
+and listeners (<a href="http://tools.ietf.org/html/rfc6224">RFC 6224</a>). The Mcproxy
+meets the requirements of the IGMP/MLD proxying standard (<a href="http://tools.ietf.org/html/rfc4605">RFC
+        4605</a>) and has additional
+functionalities.  The multicast proxy can be instantiated multiple times, is
+dynamically configurable at runtime, supports multiple upstreams and
+peering-interfaces for a non hierarchical interconnection of multicast proxies.</p>
+
+<p>If you use Mcproxy in a scientific context, please use the following <a href="http://inet.cpt.haw-hamburg.de/publications/sww-pmpps-14.html">citation</a>.</p>
+
+<h1>
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Requirements</h1>
+
+<ul>
+<li><p>A g++ version equal or higher <strong>4.8</strong> is required.</p></li>
+<li>
+<p>To generate a makefile, qmake must be installed. This can be done with the
+following command:</p>
+
+<p>newer systems: </p>
+
+<pre><code>  apt-get install qt5-qmake
+  apt-get install qt5-default
+</code></pre>
+
+<p>older systems: </p>
+
+<pre><code>  apt-get install qt4-qmake
+</code></pre>
+</li>
+<li><p>To use the IPv6 functionality the kernel has to be configured and compiled
+with the experimental kernel feature <em>IPv6: multicast routing</em>.  For more
+details go to chapter <a href="#startup">Startup</a>.</p></li>
+<li><p>To use more then one proxy instance for IPv4 and IPv6 the kernel has to  be
+configured and compiled with the experimental kernel feature <em>IP: multicast
+policy routing</em> and <em>IPv6: multicast policy routing</em>.  For more details go to
+chapter <a href="#startup">Startup</a>.</p></li>
+<li>
+<p>To build the documentation, doxygen must be installed. This can be done with
+the following command:</p>
+
+<pre><code>apt-get install doxygen
+</code></pre>
+</li>
+<li><p>The Mcproxy has to be started with root privileges.</p></li>
+<li><p>A Linux kernel version greater than version 2.6.32 is required.</p></li>
+</ul>
+
+<h1>
+<a id="compilation" class="anchor" href="#compilation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compilation</h1>
+
+<p>Build Mcproxy in release mode:</p>
+
+<pre><code>cd mcproxy/
+qmake 
+make
+</code></pre>
+
+<p>Build Mcproxy in debug mode:</p>
+
+<pre><code>cd mcproxy/
+qmake CONFIG+=debug
+make
+</code></pre>
+
+<h1>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h1>
+
+<p>To copy Mcproxy to the system directory, run (optional):</p>
+
+<pre><code>make install
+</code></pre>
+
+<h1>
+<a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Documentation</h1>
+
+<p>Mcproxy includes a HTML documentation. The documentation will be located in the
+docs/ directory after the execution of:</p>
+
+<pre><code>make doc
+</code></pre>
+
+<h1>
+<a id="startup" class="anchor" href="#startup" aria-hidden="true"><span class="octicon octicon-link"></span></a>Startup</h1>
+
+<p>At first you should check the available kernel features of your system. Type
+the following command:</p>
+
+<pre><code>sudo mcproxy -c
+</code></pre>
+
+<p>If a kernel feature you need is missing you have to reconfigure and recompile
+your linux kernel. In the debug folder is a <a href="debug/README.md#kernel">README</a> file
+which could help you with this problem.</p>
+
+<p>To run the Mcproxy you need to create a valid configuration file.  There is an
+example in the project folder (<a href="mcproxy/mcproxy.conf">mcproxy.conf</a>).</p>
+
+<ul>
+<li>
+<p>To run the Mcproxy in the background type the following command:</p>
+
+<pre><code>sudo nohup mcproxy -f &lt;path/to/config_file&gt; &amp;
+</code></pre>
+</li>
+<li>
+<p>To run the mcprocy with all available status and debug messages:</p>
+
+<pre><code>sudo mcproxy -dsvv -f &lt;path/to/config_file&gt;
+</code></pre>
+</li>
+</ul>
+
+<p>For more information see <code>mcproxy -h</code> or visit our project page.</p>
+
+<h1>
+<a id="contact" class="anchor" href="#contact" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contact</h1>
+
+<p>Project page: <a href="http://mcproxy.realmv6.org/">http://mcproxy.realmv6.org/</a></p>
+
+<p>Mailing list: <a href="mailto:multicast-proxy@googlegroups.com">multicast-proxy@googlegroups.com</a></p>
+
+<h1>
+<a id="acknowledgement" class="anchor" href="#acknowledgement" aria-hidden="true"><span class="octicon octicon-link"></span></a>Acknowledgement</h1>
+
+<p>Álvaro Fernández Rojas, 
+Florian Ecard,
+Hai Shalom,
+Zhi Chen</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Mcproxy maintained by <a href="https://github.com/mcproxy">mcproxy</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
