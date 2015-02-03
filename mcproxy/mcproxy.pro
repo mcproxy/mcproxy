@@ -18,6 +18,22 @@ tester {
     LIBS += -L/usr/lib -lboost_regex
 }
 
+unit_tests {
+    CONFIG-=mcproxy  #removes default mode
+    message("target unit_tests")
+    CONFIG+=debug
+    TARGET = unit_tests 
+    DEFINES += UNIT_TESTS 
+    
+    HEADERS += testing/ut_bootstrap.hpp \
+           testing/ut_minimal.hpp \
+           testing/ut_suite.hpp \
+           #test files
+           testing/test_addr_storage.hpp \
+           testing/test_interface.hpp \
+           testing/test_membership_aggregation.hpp
+}
+
 mcproxy { #default mode
     message("target mcproxy")
     TARGET = mcproxy
@@ -32,7 +48,8 @@ CONFIG(release, debug|release) { #default mode
     message("release mode")
 }
 
-CONFIG -= qt
+DEPENDPATH += . #include header files as dependency
+CONFIG -= qt #no qt dependencies
 QMAKE_CXXFLAGS += -std=c++11
 
 QMAKE_CXXFLAGS_DEBUG -= -g 
@@ -123,7 +140,7 @@ HEADERS += include/hamcast_logging.h \
            include/parser/token.hpp \
            include/parser/configuration.hpp \
            include/parser/parser.hpp \
-           include/parser/interface.hpp
+           include/parser/interface.hpp \
 
 LIBS += -L/usr/lib -lpthread 
 

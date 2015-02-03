@@ -28,7 +28,7 @@ D(Sg,Sf):    is an interface with a DOWNSTREAM Position
 U(Sg,Sf):    is an interface with an UPSTREAM Position
 Dm(Sg):      is a DOWNSTREAM interface with merged list Sg and Sf              
 Dmall(Sg):   represents all merged DOWNSTREAM interfaces Dm(Sg) 
-Um(Dmall)    is an UPSTREAM interface with with merged Dmall(Sg) and Sf
+Um(Dmall)    is an UPSTREAM interface with merged Dmall(Sg) and Sf
 R(Sg):       is the remainder of a merge operation
 
 #Operations
@@ -36,7 +36,7 @@ R(Sg):       is the remainder of a merge operation
 *: intersection ({s1,s2} * {s2,s3} = {s2})
 -: without      ({s1,s2} - {s2,s3} = {s1})
 
-#Merge group memberships SgA with SgB = Sg
+#Merge group memberships Sg_A with Sg_B = Sg_Result
 #A        merge with B         = Result              Calculation 
 IN{s1,s2} merge with IN{s1,s3} = IN{s1,s2,s3}        IN{A + B}
 IN{s1,s2} merge with EX{s1,s3} = EX{s3}              EX{B - A}
@@ -47,7 +47,7 @@ EX{s1,s2} merge with EX{s1,s3} = EX{s1}              EX{A * B}
 Join all: EX({})
 Leave all: IN({})
 
-#Merge SgA with SfB 
+#Merge Sg_A with Sf_B = Sg_Result, R
 #A        merge with B         = Result, Remainder           Calculation
 IN{s1,s2} merge with WL{s1,s3} = IN{s1}, R(IN{s2})           IN{A * B}, R(IN{A - Result})
 IN{s1,s2} merge with BL{s1,s3} = IN{s2}, R(IN{s1})           IN{A - B}, R(IN{A - Result})

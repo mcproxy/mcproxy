@@ -17,6 +17,7 @@
 mcproxy/Makefile
 mcproxy/mcproxy
 mcproxy/tester
+mcproxy/unit_tests
 debug/tester/tester
 docs/html
 

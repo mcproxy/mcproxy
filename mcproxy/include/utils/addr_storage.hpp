@@ -244,14 +244,6 @@ public:
     bool is_valid() const;
 
     void set_invalid();
-
-    //-----------------------------------------------------------
-
-    /**
-     * @brief simple test output
-     */
-    static void test_addr_storage_a();
-    static void test_addr_storage_b();
 };
 
 #endif // ADDR_STORAGE_HPP

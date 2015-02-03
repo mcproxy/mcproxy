@@ -63,6 +63,11 @@ bool source_state::operator==(const source_state& ss) const{
     return m_source_list == ss.m_source_list && m_mc_filter == ss.m_mc_filter;
 }
 
+bool source_state::operator!=(const source_state& ss) const{
+    HC_LOG_TRACE("");
+    return !(*this == ss);
+}
+
 std::string source_state::to_string_mc() const
 {
     std::ostringstream s;
@@ -139,34 +144,32 @@ source_state& simple_membership_aggregation::merge_group_memberships(source_stat
     return merge_to_mc_group;
 }
 
-const source_state& simple_membership_aggregation::convert_wildcard_filter(const source_state& rb_filter) const
+source_state& simple_membership_aggregation::convert_wildcard_filter(source_state& rb_filter) const
 {
     HC_LOG_TRACE("");
-
-    thread_local static source_state empty_list;
-
 
     //if contains wildcard address
     if (rb_filter.m_source_list.find(addr_storage(get_addr_family(m_group_mem_protocol))) != std::end(rb_filter.m_source_list)) {
         if (rb_filter.m_rb_filter == FT_WHITELIST) { //WL{*} ==> BL{}
-            empty_list.m_rb_filter = FT_BLACKLIST;
+            rb_filter.m_rb_filter = FT_BLACKLIST;
+            rb_filter.m_source_list.clear();
         } else if (rb_filter.m_rb_filter == FT_BLACKLIST) { //BL{*} ==> WL{}
-            empty_list.m_rb_filter = FT_WHITELIST;
+            rb_filter.m_rb_filter = FT_WHITELIST;
+            rb_filter.m_source_list.clear();
         } else {
             HC_LOG_ERROR("unknown rb filter mode in parameter merge_from_rb_filter");
-            return rb_filter;
         }
-        return empty_list;
-    } else {
-        return rb_filter;
     }
+    
+    return rb_filter;
 }
 
 
 source_state& simple_membership_aggregation::merge_memberships_filter(source_state& merge_to_mc_group, const source_state& merge_from_rb_filter) const
 {
     HC_LOG_TRACE("");
-    const source_state& from = convert_wildcard_filter(merge_from_rb_filter);
+    source_state from = merge_from_rb_filter;
+    convert_wildcard_filter(from);
 
     if (merge_to_mc_group.m_mc_filter == INCLUDE_MODE) {
         if (from.m_rb_filter == FT_WHITELIST) {
@@ -198,7 +201,8 @@ source_state& simple_membership_aggregation::merge_memberships_filter(source_sta
 source_state& simple_membership_aggregation::merge_memberships_filter_reminder(source_state& merge_to_mc_group, const source_state& result, const source_state& merge_from_rb_filter) const
 {
     HC_LOG_TRACE("");
-    const source_state& from = convert_wildcard_filter(merge_from_rb_filter);
+    source_state from = merge_from_rb_filter;
+    convert_wildcard_filter(from);
 
     if (merge_to_mc_group.m_mc_filter == INCLUDE_MODE) {
         if (from.m_rb_filter == FT_WHITELIST || from.m_rb_filter == FT_BLACKLIST) {
@@ -411,110 +415,3 @@ std::string simple_membership_aggregation::to_string() const
     return s.str();
 }
 
-#ifdef DEBUG_MODE
-//void simple_membership_aggregation::print(const state_list& sl)
-//{
-    ////std::cout << "-- print state_list --" << std::endl;
-    ////for (auto & e : sl) {
-        ////std::cout << "source state(first): " << e.first.to_string_mc() << std::endl;
-        ////std::cout << "interface name(second): " << e.second->to_string_interface();
-        ////std::cout << "interface rule binding(second): " << e.second->to_string_rule_binding();
-    ////}
-
-//}
-
-void simple_membership_aggregation::test_merge_functions()
-{
-    using namespace std;
-    using ss = source_state;
-    using sl = source_list<source>;
-
-    const addr_storage s0("0.0.0.0");
-    const addr_storage s1("1.1.1.1");
-    const addr_storage s2("2.2.2.2");
-    const addr_storage s3("3.3.3.3");
-    const ss in_a(INCLUDE_MODE, sl { s1, s2 });
-    const ss ex_a(EXCLUDE_MODE, sl { s1, s2 });
-    const ss in_b(INCLUDE_MODE, sl { s1, s3 });
-    const ss ex_b(EXCLUDE_MODE, sl { s1, s3 });
-
-    const ss wl_b(FT_WHITELIST, sl { s1, s3 });
-    const ss bl_b(FT_BLACKLIST, sl { s1, s3 });
-    const ss wl_wc(FT_WHITELIST, sl { s0 });
-    const ss bl_wc(FT_BLACKLIST, sl { s0 });
-
-    simple_membership_aggregation s_mem_agg(IGMPv3);
-
-    cout << "##-- testing function merge_group_memberships() --##" << endl;
-
-    auto check_merge_group_memberships = [&](const ss & to, const ss & from, const ss & result) {
-        ss to_tmp = to;
-        s_mem_agg.merge_group_memberships(to_tmp, from);
-        cout << to.to_string_mc() << " merge with " << from.to_string_mc() << " = " << to_tmp.to_string_mc();
-        if(to_tmp == result){
-            cout << " ==> OK!";
-        }else{
-            cout << " ==> FAILED!";
-        }
-        cout << endl;
-    };
-
-    //IN{s1,s2} merge with IN{s1,s3} = IN{s1,s2,s3}
-    check_merge_group_memberships(in_a, in_b, ss(INCLUDE_MODE, sl{s1, s2, s3}));
-
-    //IN{s1,s2} merge with EX{s1,s3} = EX{s3}
-    check_merge_group_memberships(in_a, ex_b, ss(EXCLUDE_MODE, sl{s3}));
-    
-    //EX{s1,s2} merge with IN{s1,s3} = EX{s2}
-    check_merge_group_memberships(ex_a, in_b, ss(EXCLUDE_MODE, sl{s2}));
-
-    //EX{s1,s2} merge with EX{s1,s3} = EX{s1}
-    check_merge_group_memberships(ex_a, ex_b, ss(EXCLUDE_MODE, sl{s1}));
-
-
-    cout << "##-- testing function merge_memberships_filter() --##" << endl;
-
-    auto check_merge_memberships_filter = [&](const ss & to, const ss & from, const ss & expected_result, const ss& expected_reminder) {
-        ss to_result_tmp = to;
-        s_mem_agg.merge_memberships_filter(to_result_tmp, from);
-        cout << to.to_string_mc() << " merge with " << from.to_string_rb() << " = " << to_result_tmp.to_string_mc();
-        if(to_result_tmp == expected_result){
-            cout << " ==> OK!";
-        }else{
-            cout << " ==> FAILED!";
-        }
-        cout << endl;
-
-        ss to_reminder_tmp = to;
-        s_mem_agg.merge_memberships_filter_reminder(to_reminder_tmp, to_result_tmp, from);
-        cout << "\tR = " << to_reminder_tmp.to_string_mc();
-        if(to_reminder_tmp == expected_reminder){
-            cout << " ==> OK!";
-        }else{
-            cout << " ==> FAILED!";
-        }
-        cout << endl;
-
-    };
-    
-    //IN{s1,s2} merge with WL{s1,s3} = IN{s1} R(IN{s2})
-    check_merge_memberships_filter(in_a, wl_b, ss(INCLUDE_MODE, sl{s1}), ss(INCLUDE_MODE, sl{s2}));
-    //IN{s1,s2} merge with BL{s1,s3} = IN{s2} R(IN{s1})
-    check_merge_memberships_filter(in_a, bl_b, ss(INCLUDE_MODE, sl{s2}), ss(INCLUDE_MODE, sl{s1}));
-    //EX{s1,s2} merge with WL{s1,s3} = IN{s3} R(EX{s1,s2,s3})
-    check_merge_memberships_filter(ex_a, wl_b, ss(INCLUDE_MODE, sl{s3}), ss(EXCLUDE_MODE, sl{s1,s2,s3}));
-    //EX{s1,s2} merge with BL{s1,s3} = EX{s1,s2,s3} R(IN{s3})
-    check_merge_memberships_filter(ex_a, bl_b, ss(EXCLUDE_MODE, sl{s1,s2,s3}), ss(INCLUDE_MODE, sl{s3}));
-
-
-    //IN{s1,s2} merge with WL{*} = IN{s1,s2} R(IN{})
-    check_merge_memberships_filter(in_a, wl_wc, ss(INCLUDE_MODE, sl{s1,s2}), ss(INCLUDE_MODE, sl{}));
-    //IN{s1,s2} merge with BL{*} = IN{} R(IN{s1,s2})
-    check_merge_memberships_filter(in_a, bl_wc, ss(INCLUDE_MODE, sl{}), ss(INCLUDE_MODE, sl{s1,s2}));
-    //EX{s1,s2} merge with WL{*} = EX{s1,s2} R(IN{})
-    check_merge_memberships_filter(ex_a, wl_wc, ss(EXCLUDE_MODE, sl{s1,s2}), ss(INCLUDE_MODE, sl{}));
-    //EX{s1,s2} merge with BL{*} = IN{} R(EX{s1,s2}) 
-    check_merge_memberships_filter(ex_a, bl_wc, ss(INCLUDE_MODE, sl{}), ss(EXCLUDE_MODE, sl{s1,s2}));
-}
-
-#endif /* DEBUG_MODE */

@@ -135,7 +135,7 @@ enum rb_interface_direction {
 };
 
 enum rb_filter_type {
-    //this values should be different form mc_filter
+    //this values musst be different form mc_filter!!!
     FT_BLACKLIST=100, FT_WHITELIST=101, FT_UNDEFINED=102
 };
 

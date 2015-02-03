@@ -1,5 +1,3 @@
-<!--vim: set textwidth=80 formatoptions+=t wrapmargin=5 -->
-
 Introduction
 ============
 Mcproxy is an IGMP/MLD Proxy daemon for Linux.
@@ -64,12 +62,17 @@ Build Mcproxy in release mode:
     qmake 
     make
 
-Build Mcproxy in debug mode:
+Further building modes for troubleshooting and developers:
 
-    cd mcproxy/
     qmake CONFIG+=debug
-    make
+    qmake CONFIG+=unit_tests
+    qmake CONFIG+=tester [CONFIG+=debug]
 
+* __debug__: In debug mode Mcproxy provides logging output from trace level
+to error level. 
+* __unit_tests__: This mode provides a self test binary. 
+* __tester__: Tester is an high configurable multicast test tool, with 
+advanced features like handover simulations and generation of measurement series.
 
 Installation
 ============
@@ -94,7 +97,7 @@ the following command:
     sudo mcproxy -c
    
 If a kernel feature you need is missing you have to reconfigure and recompile
-your linux kernel. In the debug folder is a [README](debug/README.md#kernel) file
+your Linux kernel. In the debug folder is a [README](debug/README.md#kernel) file
 which could help you with this problem.
 
 To run the Mcproxy you need to create a valid configuration file.  There is an
@@ -104,7 +107,7 @@ example in the project folder ([mcproxy.conf](mcproxy/mcproxy.conf)).
 
         sudo nohup mcproxy -f <path/to/config_file> &
 
-*  To run the mcprocy with all available status and debug messages:
+*  To run the Mcproxy with all available status and debug messages:
 
         sudo mcproxy -dsvv -f <path/to/config_file>
 

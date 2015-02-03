@@ -30,6 +30,8 @@ struct source;
 struct interface_infos;
 class simple_routing_data;
 
+class test_status;
+
 struct source_state {
     source_state();
     source_state(rb_filter_type rb_filter, source_list<source> slist);
@@ -45,6 +47,7 @@ struct source_state {
     std::pair<mc_filter, const source_list<source>&> get_mc_source_list() const;
 
     bool operator==(const source_state& ss) const;
+    bool operator!=(const source_state& ss) const;
 
     std::string to_string_mc() const;
     std::string to_string_rb() const;
@@ -62,7 +65,7 @@ private:
 
     std::list<std::pair<unsigned int, std::list<source_state>>> m_data;
 
-    const source_state& convert_wildcard_filter(const source_state& rb_filter) const;
+    source_state& convert_wildcard_filter(source_state& rb_filter) const;
 
     source_state& merge_group_memberships(source_state& merge_to_mc_group, const source_state& merge_from_mc_group) const;
     source_state& merge_memberships_filter(source_state& merge_to_mc_group, const source_state& merge_from_rb_filter) const;
@@ -75,6 +78,8 @@ private:
 
 
     simple_membership_aggregation(group_mem_protocol group_mem_protocol);
+
+    friend test_status test_membership_aggregation_a();
 public:
     simple_membership_aggregation(rb_rule_matching_type upstream_in_rule_matching_type, const addr_storage& gaddr, const std::shared_ptr<const simple_routing_data>& routing_data, group_mem_protocol group_mem_protocol, const std::shared_ptr<const interface_infos>& interface_infos);
 
