@@ -86,9 +86,6 @@ public:
     std::pair<mc_filter, const source_list<source>&> get_group_memberships(unsigned int upstream_if_index);
 
     std::string to_string() const;
-
-    //static void print(const state_list& sl);
-    static void test_merge_functions();
 };
 
 

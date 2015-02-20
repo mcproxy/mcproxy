@@ -30,8 +30,9 @@ unit_tests {
            testing/ut_suite.hpp \
            #test files
            testing/test_addr_storage.hpp \
-           testing/test_interface.hpp \
-           testing/test_membership_aggregation.hpp
+           testing/test_membership_aggregation.hpp \
+           testing/test_parser.hpp \
+           testing/test_source_list.hpp
 }
 
 mcproxy { #default mode

@@ -37,8 +37,6 @@
 class configuration
 {
 private:
-    const bool m_in_debug_testing_mode;
-
     bool m_reset_reverse_path_filter;
     group_mem_protocol m_gmp;
     std::shared_ptr<global_table_set> m_global_table_set;
@@ -56,8 +54,11 @@ private:
 
     std::map<std::string, std::shared_ptr<interfaces>> m_interfaces_map;
 
+    configuration();
+
+    friend struct test_parser;
 public:
-    configuration(const std::string& path, bool reset_reverse_path_filter, bool in_debug_testing_mode = false);
+    configuration(const std::string& path, bool reset_reverse_path_filter);
 
     const std::shared_ptr<const interfaces> get_interfaces_for_pinstance(const std::string& instance_name) const;
     group_mem_protocol get_group_mem_protocol() const;

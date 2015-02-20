@@ -29,59 +29,6 @@
 #include <vector>
 #include <set>
 
-#ifdef DEBUG_MODE
-void membership_db::test_arithmetic()
-{
-    using namespace std;
-    source_list<int> a;
-    source_list<int> b;
-    cout << "##-- membership_db test --##" << endl;
-    const source_list<int> sl_a {0, 1, 2, 55};
-    cout << "a: " << sl_a << endl;
-
-    const source_list<int> sl_b {1, 2, 3, 55};
-    cout << "b: " << sl_b << endl;
-
-    cout << "doing: a += b" << endl;
-    a = sl_a;
-    b = sl_b;
-    a += b;
-    cout << "a: " << a << endl;
-    cout << "b: " << b << endl;
-
-    cout << "doing:  a + b" << endl;
-    cout << "a + b: " << sl_a + sl_b << endl;
-    cout << "b + a: " << sl_b + sl_a << endl;
-
-    cout << "doing: a *= b" << endl;
-    a = sl_a;
-    b = sl_b;
-    a *= b;
-    cout << "a: " << a << endl;
-    cout << "b: " << b << endl;
-
-    cout << "doing:  a * b" << endl;
-    cout << "a * b: " << sl_a * sl_b << endl;
-    cout << "b * a: " << sl_b * sl_a << endl;
-
-    cout << "doing: a -= b" << endl;
-    a = sl_a;
-    b = sl_b;
-    a -= b;
-    cout << "a: " << a << endl;
-    cout << "b: " << b << endl;
-
-    cout << "doing:  a - b" << endl;
-    cout << "a - b: " << sl_a - sl_b << endl;
-    cout << "b - a: " << sl_b - sl_a << endl;
-
-    cout << "random suff" << endl;
-    cout << "source_list<int>{1, 5, 2} - source_list<int>{2} - source_list<int>{5, 2}" << endl;
-    cout << source_list<int> {1, 5, 2} - source_list<int> {2} - source_list<int> {5, 2}  << endl;
-
-}
-#endif /* DEBUG_MODE */
-
 gaddr_info::gaddr_info(group_mem_protocol compatibility_mode_variable)
     : filter_mode(INCLUDE_MODE)
     , shared_filter_timer(nullptr)
@@ -93,7 +40,6 @@ gaddr_info::gaddr_info(group_mem_protocol compatibility_mode_variable)
 {
     HC_LOG_TRACE("");
 }
-
 
 bool gaddr_info::is_in_backward_compatibility_mode() const{
     return !is_newest_version(compatibility_mode_variable);

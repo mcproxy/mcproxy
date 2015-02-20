@@ -24,17 +24,23 @@
 
 #ifdef UNIT_TESTS
 
+#include "include/hamcast_logging.h"
+
 #include "testing/ut_suite.hpp"
 #include "testing/test_addr_storage.hpp"
 #include "testing/test_membership_aggregation.hpp"
-#include "testing/test_interface.hpp"
+#include "testing/test_parser.hpp"
+#include "testing/test_source_list.hpp"
 
 void ut_bootstrap(int, char**){
+    hc_set_default_log_fun(HC_LOG_TRACE_LVL);
+
     ut_suite test_suite;
     
     test_suite.add_test_fun(test_address_storage());
-    test_suite.add_test_fun(test_interface());
     test_suite.add_test_fun(test_membership_aggregation());
+    test_suite.add_test_fun(test_parser_functions());
+    test_suite.add_test_fun(test_source_list());
 
     test_suite.run_test_suite();
 }

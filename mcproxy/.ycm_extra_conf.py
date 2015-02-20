@@ -35,6 +35,7 @@ import ycm_core
 # compilation database set (by default, one is not set).
 # CHANGE THIS LIST OF FLAGS. YES, THIS IS THE DROID YOU HAVE BEEN LOOKING FOR.
 flags = [
+'-DUNIT_TESTS',
 '-DDEBUG_MODE',
 '-Wall',
 '-Wextra',

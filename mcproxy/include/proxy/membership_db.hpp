@@ -85,8 +85,6 @@ struct membership_db {
     bool is_querier;
     gaddr_map group_info; //subscribed multicast group with their source lists
 
-    static void test_arithmetic();
-
     std::string to_string() const;
 
     friend std::ostream& operator<<(std::ostream& stream, const membership_db& mdb);

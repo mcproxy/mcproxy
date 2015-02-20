@@ -20,25 +20,7 @@
  */
 
 #include "include/hamcast_logging.h"
-//#include "include/utils/if_prop.hpp"
-//#include "include/utils/mc_socket.hpp"
-//#include "include/utils/mroute_socket.hpp"
-//#include "include/utils/addr_storage.hpp"
 #include "include/proxy/proxy.hpp"
-//#include "include/proxy/timing.hpp"
-//#include "include/proxy/check_if.hpp"
-//#include "include/utils/if_prop.hpp"
-//#include "include/proxy/membership_db.hpp"
-//#include "include/proxy/querier.hpp"
-//#include "include/proxy/timers_values.hpp"
-//#include "include/proxy/proxy_instance.hpp"
-//#include "include/proxy/simple_routing_management.hpp"
-//#include "include/proxy/simple_routing_data.hpp"
-//#include "include/proxy/simple_membership_aggregation.hpp"
-//#include "include/proxy/igmp_sender.hpp"
-//#include "include/parser/configuration.hpp"
-#include "include/tester/tester.hpp"
-
 
 #include "testing/ut_bootstrap.hpp"
 
@@ -46,7 +28,6 @@
 #include <unistd.h>
 
 void test_log();
-void test_test();
 
 int main(int arg_count, char* args[])
 {
@@ -83,24 +64,4 @@ void test_log()
     HC_LOG_FATAL("HC_LOG_FATAL");
 }
 
-void test_test()
-{
-    hc_set_default_log_fun(HC_LOG_TRACE_LVL);
-    //mc_socket::test_all();
-    //addr_storage::test_addr_storage_a();
-    //addr_storage::test_addr_storage_b();
-    //membership_db::test_arithmetic();
-    //timers_values::test_timers_values();
-    //timers_values::test_timers_values_copy();
-    //timing::test_timing();
-    //worker::test_worker();
-    //proxy_instance::test_querier("lo");
-    //simple_routing_data::test_simple_routing_data();
-    //igmp_sender::test_igmp_sender();
-    //mroute_socket::quick_test();
-    //configuration::test_configuration();
-    //configuration::test_source_allowed();
-    //simple_membership_aggregation::test_merge_functions();
-    //if_prop::test_if_prop();
-}
 #endif /* DEBUG_MODE */

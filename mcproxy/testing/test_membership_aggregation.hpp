@@ -37,6 +37,7 @@ test_status test_membership_aggregation_a();
 
 std::list<std::tuple<ut_test_fun, ut_effort>> test_membership_aggregation()
 {
+    HC_LOG_TRACE("");
     return std::list<std::tuple<ut_test_fun, ut_effort>> {
         std::make_tuple(test_membership_aggregation_a, 1)
     };
@@ -44,6 +45,7 @@ std::list<std::tuple<ut_test_fun, ut_effort>> test_membership_aggregation()
 
 test_status test_membership_aggregation_a()
 {
+    HC_LOG_TRACE("");
     UT_INITIALISATION;
 
     using ss = source_state;

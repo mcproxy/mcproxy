@@ -36,7 +36,7 @@ single_addr::single_addr(const addr_storage& addr)
 bool single_addr::is_addr_contained(const addr_storage& addr) const
 {
     HC_LOG_TRACE("");
-    return *m_addr_set.cbegin() == addr || addr_storage(addr.get_addr_family()) == *m_addr_set.cbegin()  ;
+    return *m_addr_set.cbegin() == addr || addr_storage(addr.get_addr_family()) == *m_addr_set.cbegin() || addr == addr_storage(m_addr_set.cbegin()->get_addr_family());
 }
 
 const std::set<addr_storage>& single_addr::get_addr_set() const
@@ -59,14 +59,18 @@ addr_range::addr_range(const addr_storage& from, const addr_storage& to)
     addr_storage tmp_addr = from;
     while (tmp_addr <= to) {
         m_addr_set.insert(tmp_addr);
-        tmp_addr++;
+        ++tmp_addr;
     }
 }
 
 bool addr_range::is_addr_contained(const addr_storage& addr) const
 {
     HC_LOG_TRACE("");
-    return m_addr_set.find(addr) != m_addr_set.end();
+    if (addr_storage(addr.get_addr_family()) == addr) {
+        return true;
+    } else {
+        return m_addr_set.find(addr) != m_addr_set.end();
+    }
 }
 
 const std::set<addr_storage>& addr_range::get_addr_set() const
@@ -79,7 +83,12 @@ std::string addr_range::to_string() const
 {
     HC_LOG_TRACE("");
     std::ostringstream s;
-    s << *m_addr_set.cbegin() << " - " << *(--m_addr_set.cend());
+    if (m_addr_set.size() != 0) {
+        s << *m_addr_set.cbegin() << " - " << *(--m_addr_set.cend());
+    } else {
+        HC_LOG_ERROR("size of addr_range is 0");
+        s << "??";
+    }
     return s.str();
 }
 //-----------------------------------------------------

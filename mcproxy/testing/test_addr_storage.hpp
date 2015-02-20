@@ -24,6 +24,8 @@
 
 #ifdef UNIT_TESTS
 
+#include "include/hamcast_logging.h"
+
 //#include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -38,6 +40,7 @@ test_status test_addr_storage_b();
 
 std::list<std::tuple<ut_test_fun, ut_effort>> test_address_storage()
 {
+    HC_LOG_TRACE("");
     return std::list<std::tuple<ut_test_fun, ut_effort>> {
         std::make_tuple(test_addr_storage_a, 1)
         , std::make_tuple(test_addr_storage_b, 1)
@@ -46,6 +49,7 @@ std::list<std::tuple<ut_test_fun, ut_effort>> test_address_storage()
 
 test_status test_addr_storage_a()
 {
+    HC_LOG_TRACE("");
     UT_INITIALISATION;
 
     const std::string addr4 = "251.0.0.224";
@@ -81,8 +85,8 @@ test_status test_addr_storage_a()
     UT_CHECK(addr6.compare(s6_1.to_string()) == 0);
 
     //equivalent addresses
-    s4_tmp = "Hallo ich bin bob";
-    s6_tmp = "ich: auch";
+    s4_tmp = "Test ERROR 1!!";
+    s6_tmp = "An other Test ERROR";
 
     UT_CHECK(s4_tmp != s6_tmp);
     UT_CHECK(s6_1 == s6_1);
@@ -139,6 +143,7 @@ test_status test_addr_storage_a()
 
 test_status test_addr_storage_b()
 {
+    HC_LOG_TRACE("");
     UT_INITIALISATION;
 
     const std::string s4("1.2.3.4");
@@ -147,6 +152,15 @@ test_status test_addr_storage_b()
     const addr_storage a6(s6);
     const std::string sport = "123";
     const int iport = 123;
+
+    UT_CHECK(!(a4 == a6));
+    UT_CHECK((a4 != a6));
+    UT_CHECK(!(a6 == a4));
+    UT_CHECK((a6 != a4));
+    UT_CHECK((a4 == a4));
+    UT_CHECK(!(a4 != a4));
+    UT_CHECK((a6 == a6));
+    UT_CHECK(!(a6 != a6));
 
     UT_CHECK(a4.to_string().compare(s4) == 0);
     UT_CHECK(a6.to_string().compare(s6) == 0);

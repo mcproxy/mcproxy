@@ -27,9 +27,8 @@
 #include <algorithm>
 #include <fstream>
 
-configuration::configuration(const std::string& path, bool reset_reverse_path_filter, bool in_debug_testing_mode)
-    : m_in_debug_testing_mode(in_debug_testing_mode)
-    , m_reset_reverse_path_filter(reset_reverse_path_filter)
+configuration::configuration(const std::string& path, bool reset_reverse_path_filter)
+    : m_reset_reverse_path_filter(reset_reverse_path_filter)
     , m_gmp(IGMPv3) //default setting
     , m_global_table_set(std::make_shared<global_table_set>())
 {
@@ -37,10 +36,13 @@ configuration::configuration(const std::string& path, bool reset_reverse_path_fi
     m_cmds = separate_commands(delete_comments(load_file(path)));
     run_parser();
 
-    if (!m_in_debug_testing_mode) {
-        initalize_interfaces();
-    }
+    initalize_interfaces();
 }
+
+configuration::configuration() 
+    : m_gmp(IGMPv3) //default setting
+    , m_global_table_set(std::make_shared<global_table_set>())
+{}
 
 // trim from start
 inline std::string& ltrim(std::string& s)
@@ -158,7 +160,7 @@ void configuration::run_parser()
             auto t = p.parse_table(m_global_table_set, m_gmp);
             std::string table_name = t->get_name();
             if (!m_global_table_set->insert(std::move(t))) {
-                HC_LOG_ERROR("faild to parse configfile table " << table_name << " already exists");
+                HC_LOG_ERROR("failed to parse configfile table " << table_name << " already exists");
                 throw "failed to parse configfile";
             }
             break;
@@ -215,7 +217,7 @@ void configuration::test_configuration()
     using namespace std;
     cout << "start programm" << endl;
 
-    configuration conf("../references/parser/test_configs/test3.conf", false, true);
+    configuration conf("../references/parser/test_configs/test3.conf", false);
     cout << conf.to_string() << endl;
 
     auto& inst_def_set = conf.get_inst_def_set();
@@ -278,7 +280,7 @@ void configuration::test_source_allowed()
     using namespace std;
     cout << "start programm" << endl;
 
-    configuration conf("../references/parser/test_configs/test3.conf", false, true);
+    configuration conf("../references/parser/test_configs/test3.conf", false);
     cout << conf.to_string() << endl;
 
 
@@ -287,9 +289,9 @@ void configuration::test_source_allowed()
         auto& inst_name = e->get_instance_name();
         auto test_fun = [&inst_name](bool result, bool expected) {
             cout << inst_name << " ";
-            if (result){
+            if (result) {
                 cout << "allowed ==> ";
-            }else{
+            } else {
                 cout << "not allowed ==> ";
             }
 
@@ -303,50 +305,50 @@ void configuration::test_source_allowed()
         if (inst_name.compare("myProxy01") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, true);
-        } else if (inst_name.compare("myProxy02") == 0){
+        } else if (inst_name.compare("myProxy02") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, false);
-        } else if (inst_name.compare("myProxy03") == 0){
+        } else if (inst_name.compare("myProxy03") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, false);
-        } else if (inst_name.compare("myProxy04") == 0){
+        } else if (inst_name.compare("myProxy04") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, true);
-        } else if (inst_name.compare("myProxy05") == 0){
+        } else if (inst_name.compare("myProxy05") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, true);
-        } else if (inst_name.compare("myProxy06") == 0){
+        } else if (inst_name.compare("myProxy06") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, false);
-        } else if (inst_name.compare("myProxy07") == 0){
+        } else if (inst_name.compare("myProxy07") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, true);
-        } else if (inst_name.compare("myProxy08") == 0){
+        } else if (inst_name.compare("myProxy08") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, true);
-        } else if (inst_name.compare("myProxy09") == 0){
+        } else if (inst_name.compare("myProxy09") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, false);
-        } else if (inst_name.compare("myProxy10") == 0){
+        } else if (inst_name.compare("myProxy10") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, true);
-        } else if (inst_name.compare("myProxy11") == 0){
+        } else if (inst_name.compare("myProxy11") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, false);
-        } else if (inst_name.compare("myProxy12") == 0){
+        } else if (inst_name.compare("myProxy12") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, true);
-        } else if (inst_name.compare("myProxy13") == 0){
+        } else if (inst_name.compare("myProxy13") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, true);
-        } else if (inst_name.compare("myProxy14") == 0){
+        } else if (inst_name.compare("myProxy14") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, false);
-        } else if (inst_name.compare("myProxy15") == 0){
+        } else if (inst_name.compare("myProxy15") == 0) {
             bool result = interf.is_source_allowed(ID_IN, "a", addr_storage("239.99.99.99"), addr_storage("2.2.2.3"));
             test_fun(result, false);
-        }else{
-            cout << "ERROR!! Unkown instance name!!" << endl; 
+        } else {
+            cout << "ERROR!! Unkown instance name!!" << endl;
         }
 
     }
@@ -385,11 +387,17 @@ std::string configuration::to_string() const
     ostringstream s;
     s << "##-- proxy configuration --##" << endl;
     s << "protocol " << get_group_mem_protocol_name(m_gmp) << endl;
-    s << m_global_table_set->to_string() << endl;
+
+    if (m_global_table_set) {
+        s << m_global_table_set->to_string() << endl;
+    }
+
     s << m_inst_def_set.to_string() << endl;
     s << endl;
+
     for (auto & e : m_interfaces_map) {
         s << e.second->to_string() << endl;
     }
+
     return s.str();
 }
