@@ -65,10 +65,6 @@ public:
     const inst_def_set& get_inst_def_set() const;
 
     std::string to_string() const;
-
-    static void test_configuration();
-    static void test_myProxy(const std::shared_ptr<instance_definition>& id);
-    static void test_source_allowed();
 };
 
 #endif // CONFIGURATION_HPP

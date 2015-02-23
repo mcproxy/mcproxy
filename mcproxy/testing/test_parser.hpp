@@ -293,22 +293,21 @@ table allx { \n \
 }; \n \
 \n \
 table random_stuff { \n \
-   xxx(239.99.99.99| *) \n \
    yyy(239.1.1.1| 1.1.1.1) \n \
-   zzz(244.1.1.1 - 244.1.1.1| 2.2.2.2) \n \
+   zzz(244.1.1.1 - 244.2.1.1| 2.2.2.2) \n \
    ( * | 66.66.66.66) \n \
+   xxx(239.99.99.99| *) \n \
 }; \n \
 \n \
 pinstance pinst upstream * in rulematching mutex 12345; \n \
 \n \
-pinstance pinst upstream ifa out blacklist table allx; \n \
-pinstance pinst upstream ifa in whitelist table {(table random_stuff) (table allx)}; \n \
+pinstance pinst upstream ifa in blacklist table allx; \n \
+pinstance pinst upstream ifa out whitelist table {(table random_stuff) (table allx)}; \n \
 \n \
 pinstance pinst upstream ifb in blacklist table random_stuff; \n \
 pinstance pinst upstream ifb out whitelist table random_stuff; \n \
 \n \
-pinstance pinst downstream ifa in blacklist table allx; \n \
-pinstance pinst downstream ifa out blacklist table allx; \n \
+pinstance pinst downstream ifa in blacklist table {asdf(*| 5.5.5.5)}; \n \
         "
                                 };
 
@@ -385,21 +384,50 @@ pinstance pinst downstream ifa out blacklist table allx; \n \
         UT_CHECK(dif_1->get_if_name().compare("ifa") == 0);
         UT_CHECK(dif_2->get_if_name().compare("ifc") == 0);
 
-
-
         UT_CHECK(uif_1->get_filter_type(ID_IN) == FT_BLACKLIST);
-        UT_CHECK(uif_1->get_filter_type(ID_IN) == FT_BLACKLIST);
+        UT_CHECK(uif_1->get_saddr_set(ID_IN, "", addr_storage("0.0.0.0")) == addr_set {addr_storage("0.0.0.0")});
+        UT_CHECK(!uif_1->is_source_allowed(ID_IN, "ifa", addr_storage("239.1.1.1"), addr_storage("1.1.1.1")));
+        UT_CHECK(!uif_1->is_source_allowed(ID_IN, "", addr_storage("239.1.1.1"), addr_storage("1.1.1.1")));
+        UT_CHECK(!uif_1->is_source_allowed(ID_IN, "", addr_storage("239.1.1.1"), addr_storage("0.0.0.0")));
+
+        UT_CHECK(uif_1->get_filter_type(ID_OUT) == FT_WHITELIST);
+        UT_CHECK(uif_1->get_saddr_set(ID_OUT, "", addr_storage("0.0.0.0")) == addr_set {addr_storage("0.0.0.0")});
+        UT_CHECK(uif_1->get_saddr_set(ID_OUT, "asdf", addr_storage("0.0.0.0")) == addr_set {addr_storage("0.0.0.0")});
+        UT_CHECK(uif_1->get_saddr_set(ID_OUT, "asdf", addr_storage("224.0.0.0")) == addr_set {addr_storage("0.0.0.0")});
+        UT_CHECK(uif_1->is_source_allowed(ID_OUT, "asdf", addr_storage("224.0.0.0"), addr_storage("1.1.1.1")));
+        UT_CHECK(uif_1->is_source_allowed(ID_OUT, "asdf", addr_storage("224.0.0.0"), addr_storage("0.0.0.0")));
+
         UT_CHECK(uif_2->get_filter_type(ID_IN) == FT_BLACKLIST);
+        UT_CHECK(uif_2->get_saddr_set(ID_IN, "", addr_storage("239.99.99.99")) == addr_set {addr_storage("0.0.0.0")});
+        UT_CHECK(uif_2->get_saddr_set(ID_IN, "xxx", addr_storage("239.99.99.99")) == addr_set {addr_storage("0.0.0.0")});
+        UT_CHECK(uif_2->get_saddr_set(ID_IN, "zzz", addr_storage("239.99.99.99")) == addr_set {addr_storage("66.66.66.66")});
+        UT_CHECK(uif_2->get_saddr_set(ID_IN, "yyy", addr_storage("239.1.1.1")) == (addr_set {addr_storage("1.1.1.1"), addr_storage("66.66.66.66")}));
+        UT_CHECK(uif_2->get_saddr_set(ID_IN, "zzz", addr_storage("0.0.0.0")) == (addr_set {addr_storage("2.2.2.2"), addr_storage("66.66.66.66")}));
+        UT_CHECK(uif_2->get_saddr_set(ID_IN, "zzz", addr_storage("244.2.0.55")) == (addr_set {addr_storage("2.2.2.2"), addr_storage("66.66.66.66")}));
+        UT_CHECK(!uif_2->is_source_allowed(ID_IN, "asdf", addr_storage("224.0.0.0"), addr_storage("66.66.66.66")));
+        UT_CHECK(!uif_2->is_source_allowed(ID_IN, "xxx", addr_storage("239.1.1.1"), addr_storage("66.66.66.66")));
+        UT_CHECK(!uif_2->is_source_allowed(ID_IN, "yyy", addr_storage("239.1.1.1"), addr_storage("1.1.1.1")));
+        UT_CHECK(uif_2->is_source_allowed(ID_IN, "asdf", addr_storage("239.1.1.1"), addr_storage("1.1.1.1")));
+        UT_CHECK(!uif_2->is_source_allowed(ID_IN, "xxx", addr_storage("239.99.99.99"), addr_storage("1.1.1.1")));
+        UT_CHECK(!uif_2->is_source_allowed(ID_IN, "xxx", addr_storage("239.99.99.99"), addr_storage("0.0.0.0")));
+        UT_CHECK(!uif_2->is_source_allowed(ID_IN, "zzz", addr_storage("244.1.3.3"), addr_storage("2.2.2.2")));
+        UT_CHECK(uif_2->is_source_allowed(ID_IN, "zzz", addr_storage("244.1.3.3"), addr_storage("2.2.2.1")));
+       
+        UT_CHECK(uif_2->get_filter_type(ID_OUT) == FT_WHITELIST);
+        UT_CHECK(uif_2->get_saddr_set(ID_OUT, "yyy", addr_storage("239.1.1.1")) == (addr_set {addr_storage("1.1.1.1"), addr_storage("66.66.66.66")}));
+        UT_CHECK(uif_2->is_source_allowed(ID_OUT, "asdf", addr_storage("224.0.0.0"), addr_storage("66.66.66.66")));
+        UT_CHECK(uif_2->is_source_allowed(ID_OUT, "xxx", addr_storage("239.1.1.1"), addr_storage("66.66.66.66")));
+        UT_CHECK(uif_2->is_source_allowed(ID_OUT, "yyy", addr_storage("239.1.1.1"), addr_storage("1.1.1.1")));
+        UT_CHECK(!uif_2->is_source_allowed(ID_OUT, "asdf", addr_storage("239.1.1.1"), addr_storage("1.1.1.1")));
+        UT_CHECK(uif_2->is_source_allowed(ID_OUT, "xxx", addr_storage("239.99.99.99"), addr_storage("1.1.1.1")));
+        UT_CHECK(uif_2->is_source_allowed(ID_OUT, "xxx", addr_storage("239.99.99.99"), addr_storage("0.0.0.0")));
+        UT_CHECK(uif_2->is_source_allowed(ID_OUT, "zzz", addr_storage("244.1.3.3"), addr_storage("2.2.2.2")));
+        UT_CHECK(!uif_2->is_source_allowed(ID_OUT, "zzz", addr_storage("244.1.3.3"), addr_storage("2.2.2.1")));
 
-        UT_CHECK(dif_1->get_filter_type(ID_OUT) == FT_BLACKLIST);
-        UT_CHECK(uif_2->get_filter_type(ID_OUT) == FT_BLACKLIST);
-        UT_CHECK(dif_1->get_filter_type(ID_OUT) == FT_BLACKLIST);
+        UT_CHECK(dif_1->is_source_allowed(ID_IN, "asdf", addr_storage("239.99.99.99"), addr_storage("2.2.2.2")));
+        UT_CHECK(!dif_1->is_source_allowed(ID_IN, "asdf", addr_storage("239.99.99.99"), addr_storage("5.5.5.5")));
+        UT_CHECK(!dif_1->is_source_allowed(ID_IN, "", addr_storage("239.99.99.1"), addr_storage("5.5.5.5")));
 
-        //auto upstreams = inst_def.
-        //auto downstreams = inst_def.get_downstreams();
-
-
-        //UT_CHECK(c.);
         UT_SUMMARY;
     }
 

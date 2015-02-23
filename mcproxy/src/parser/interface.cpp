@@ -149,13 +149,15 @@ const std::set<addr_storage>& table::get_addr_set(const std::string& if_name, co
     for (auto & e : m_rule_box_list) {
         auto& tmp_set = e->get_addr_set(if_name, gaddr);
 
-        result_set.insert(tmp_set.begin(), tmp_set.end());
-
         //a wildcard is everything we need, further sources are unimportant
         //delete all other addresses ????????????????ß
         if (*tmp_set.begin() == addr_storage(gaddr.get_addr_family())) {
+            result_set.clear();
+            result_set.insert(addr_storage(gaddr.get_addr_family()));
             return result_set;
         }
+
+        result_set.insert(tmp_set.begin(), tmp_set.end());
     }
     return result_set;
 }
