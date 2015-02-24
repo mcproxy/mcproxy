@@ -103,7 +103,7 @@ struct test_parser {
         UT_SUMMARY;
     }
 
-    test_status test_rule_adddr() {
+    test_status test_rule_addr() {
         HC_LOG_TRACE("");
         UT_INITIALISATION;
 
@@ -139,6 +139,7 @@ struct test_parser {
 
         rule_addr ra1("", get_single_addr(m1), get_single_addr(s0));
         UT_CHECK(ra1.get_addr_set("", m1) == addr_set {s0});
+        UT_CHECK(ra1.get_addr_set("*", m1) == addr_set {s0});
         UT_CHECK(ra1.get_addr_set("eth0", m1) == addr_set {s0});
         UT_CHECK(ra1.get_addr_set("eth0", m2) == addr_set {});
 
@@ -146,18 +147,25 @@ struct test_parser {
         UT_CHECK(ra2.get_addr_set("", m1) == get_addr_set(s0, s1));
         UT_CHECK(ra2.get_addr_set("", m3) == addr_set {});
         UT_CHECK(ra2.get_addr_set("eth1", m3) == addr_set {});
+        UT_CHECK(ra2.get_addr_set("*", m3) == addr_set {});
+        UT_CHECK(ra2.get_addr_set("*", m2) == get_addr_set(s0, s1));
+        UT_CHECK(ra2.get_addr_set("xxx", m2) == get_addr_set(s0, s1));
 
         rule_addr ra3("eth0", get_addr_range(m0, m2), get_addr_range(s0, s1));
-        UT_CHECK(ra3.get_addr_set("", m1) == get_addr_set(s0, s1));
         UT_CHECK(ra3.get_addr_set("eth0", m1) == get_addr_set(s0, s1));
         UT_CHECK(ra3.get_addr_set("eth0", m3) == addr_set {});
         UT_CHECK(ra3.get_addr_set("asdf", m1) == addr_set {});
+        UT_CHECK(ra3.get_addr_set("*", m1) == get_addr_set(s0, s1));
+        UT_CHECK(ra3.get_addr_set("", m2) == addr_set {});
+        UT_CHECK(ra3.get_addr_set("", m3) == addr_set {});
 
         rule_addr ra4("eth0", get_single_addr(x), get_single_addr(x));
-        UT_CHECK(ra4.get_addr_set("", m1) == addr_set {x});
         UT_CHECK(ra4.get_addr_set("eth0", m1) == addr_set {x});
-        UT_CHECK(ra4.get_addr_set("", x) == addr_set {x});
         UT_CHECK(ra4.get_addr_set("eth1", m1) == addr_set {});
+        UT_CHECK(ra4.get_addr_set("", m1) == addr_set {});
+        UT_CHECK(ra4.get_addr_set("", x) == addr_set {});
+        UT_CHECK(ra4.get_addr_set("*", m1) == addr_set {x});
+        UT_CHECK(ra4.get_addr_set("*", x) == addr_set {x});
 
         UT_SUMMARY;
     }
@@ -174,12 +182,14 @@ struct test_parser {
         const addr_storage m2_1("224.99.99.50");
         const addr_storage m2_2("224.99.99.100");
         const addr_storage m3("233.0.0.1");
+        const addr_storage m4("244.44.44.44");
 
         const addr_storage s1_0("1.1.1.1");
         const addr_storage s1_1("1.1.1.50");
         const addr_storage s1_2("1.1.1.100");
         const addr_storage s2("2.2.2.2");
         const addr_storage s3("3.3.3.3");
+        const addr_storage s4("4.4.4.4");
 
 
         using addr_set = std::set<addr_storage>;
@@ -204,14 +214,22 @@ struct test_parser {
         rule_box_list.push_back(rule("eth0", single(m1_1), single(s1_1)));
         rule_box_list.push_back(rule("eth1", range(m2_0, m2_2), single(s2)));
         rule_box_list.push_back(rule("eth0", single(m3), single(s3)));
-
+        rule_box_list.push_back(rule("", single(m4), single(s4)));
         table t("table_a", std::move(rule_box_list));
+
+//table table_a{
+//  eth0(239.99.99.1 - 239.99.99.100 | 1.1.1.1 - 1.1.1.100)
+//  eth0(239.99.99.50 | 1.1.1.50)
+//  eth1(224.99.99.1 - 244.99.99.100 | 2.2.2.2.)
+//  eth0(233.0.0.1| 3.3.3.3)
+//  (244.44.44.44 | 4.4.4.4)
+//};
 
         UT_CHECK(t.get_name().compare("table_a") == 0);
 
-        UT_CHECK(t.get_addr_set("", m1_1) == range(s1_0, s1_2)->get_addr_set());
-        UT_CHECK(t.get_addr_set("", m2_1) == single(s2)->get_addr_set());
-        UT_CHECK(t.get_addr_set("", m3) == single(s3)->get_addr_set());
+        UT_CHECK(t.get_addr_set("", m1_1) == addr_set {});
+        UT_CHECK(t.get_addr_set("", m2_1) == addr_set {});
+        UT_CHECK(t.get_addr_set("", m3) == addr_set {});
 
         UT_CHECK(t.get_addr_set("eth0", m1_1) == range(s1_0, s1_2)->get_addr_set());
         UT_CHECK(t.get_addr_set("xxx", m1_1) == addr_set {});
@@ -221,15 +239,23 @@ struct test_parser {
         UT_CHECK(t.get_addr_set("eth0", m3) == single(s3)->get_addr_set());
         UT_CHECK(t.get_addr_set("xxx", m3) == addr_set {});
 
+        UT_CHECK(t.get_addr_set("asdf", m4) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("xxx", m4) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("", m4) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("*", m4) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("*", m3) == single(s3)->get_addr_set());
 
         addr_set result;
         auto tmp_r = range(s1_0, s1_2)->get_addr_set();
         result.insert(tmp_r.begin(), tmp_r.end());
         result.insert(s3);
+        result.insert(s4);
         UT_CHECK(t.get_addr_set("eth0", x) == result);
 
         result.insert(s2);
-        UT_CHECK(t.get_addr_set("", x) == result);
+        UT_CHECK(t.get_addr_set("*", x) == result);
+        UT_CHECK(t.get_addr_set("", m4) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("", x) == single(s4)->get_addr_set());
 
         UT_SUMMARY;
     }
@@ -398,7 +424,7 @@ pinstance pinst downstream ifa in blacklist table {asdf(*| 5.5.5.5)}; \n \
         UT_CHECK(uif_1->is_source_allowed(ID_OUT, "asdf", addr_storage("224.0.0.0"), addr_storage("0.0.0.0")));
 
         UT_CHECK(uif_2->get_filter_type(ID_IN) == FT_BLACKLIST);
-        UT_CHECK(uif_2->get_saddr_set(ID_IN, "", addr_storage("239.99.99.99")) == addr_set {addr_storage("0.0.0.0")});
+        UT_CHECK(uif_2->get_saddr_set(ID_IN, "", addr_storage("239.99.99.99")) == addr_set {addr_storage("66.66.66.66")});
         UT_CHECK(uif_2->get_saddr_set(ID_IN, "xxx", addr_storage("239.99.99.99")) == addr_set {addr_storage("0.0.0.0")});
         UT_CHECK(uif_2->get_saddr_set(ID_IN, "zzz", addr_storage("239.99.99.99")) == addr_set {addr_storage("66.66.66.66")});
         UT_CHECK(uif_2->get_saddr_set(ID_IN, "yyy", addr_storage("239.1.1.1")) == (addr_set {addr_storage("1.1.1.1"), addr_storage("66.66.66.66")}));
@@ -412,7 +438,7 @@ pinstance pinst downstream ifa in blacklist table {asdf(*| 5.5.5.5)}; \n \
         UT_CHECK(!uif_2->is_source_allowed(ID_IN, "xxx", addr_storage("239.99.99.99"), addr_storage("0.0.0.0")));
         UT_CHECK(!uif_2->is_source_allowed(ID_IN, "zzz", addr_storage("244.1.3.3"), addr_storage("2.2.2.2")));
         UT_CHECK(uif_2->is_source_allowed(ID_IN, "zzz", addr_storage("244.1.3.3"), addr_storage("2.2.2.1")));
-       
+
         UT_CHECK(uif_2->get_filter_type(ID_OUT) == FT_WHITELIST);
         UT_CHECK(uif_2->get_saddr_set(ID_OUT, "yyy", addr_storage("239.1.1.1")) == (addr_set {addr_storage("1.1.1.1"), addr_storage("66.66.66.66")}));
         UT_CHECK(uif_2->is_source_allowed(ID_OUT, "asdf", addr_storage("224.0.0.0"), addr_storage("66.66.66.66")));
@@ -426,7 +452,8 @@ pinstance pinst downstream ifa in blacklist table {asdf(*| 5.5.5.5)}; \n \
 
         UT_CHECK(dif_1->is_source_allowed(ID_IN, "asdf", addr_storage("239.99.99.99"), addr_storage("2.2.2.2")));
         UT_CHECK(!dif_1->is_source_allowed(ID_IN, "asdf", addr_storage("239.99.99.99"), addr_storage("5.5.5.5")));
-        UT_CHECK(!dif_1->is_source_allowed(ID_IN, "", addr_storage("239.99.99.1"), addr_storage("5.5.5.5")));
+        UT_CHECK(dif_1->is_source_allowed(ID_IN, "", addr_storage("239.99.99.1"), addr_storage("5.5.5.5")));
+        UT_CHECK(!dif_1->is_source_allowed(ID_IN, "*", addr_storage("239.99.99.1"), addr_storage("5.5.5.5")));
 
         UT_SUMMARY;
     }
@@ -449,7 +476,7 @@ std::list<std::tuple<ut_test_fun, ut_effort>> test_parser_functions()
             return p.test_addr_range();
         }, 1),
         std::make_tuple([&p]() {
-            return p.test_rule_adddr();
+            return p.test_rule_addr();
         }, 1),
         std::make_tuple([&p]() {
             return p.test_table();
@@ -463,7 +490,6 @@ std::list<std::tuple<ut_test_fun, ut_effort>> test_parser_functions()
         std::make_tuple([&p]() {
             return p.test_configuration();
         }, 1)
-
     };
 }
 

@@ -1,0 +1,73 @@
+file Interface.hpp Summary 
+==========================
+
+Overview
+========
+abstruct addr_box
+    get_addr_set()
+    is_addr_contained(addr)
+
+class single_addr: addr_box #1.1.1.1
+class addr_range: addr_box #1.1.1.1 - 2.2.2.2
+
+
+abstruct rule_box 
+    get_addr_set(if_name, gaddr)
+    
+class rule_addr: rule_box #eth0(gaddr|saddr), eth0(gaddr - gaddr|saddr - saddr)
+
+class table: rule_box #table tname{eth0(gaddr|saddr)}
+    get_name()
+
+
+class rule_binding #pinstance 1 upstream eth0 out whitelist table 1;
+
+
+class interface #eth0 in, eth0 out
+    get_saddr_set(if_direction, if_name, gaddr)
+    is_source_allowed(if_direction, if_name, gaddr, saddr)
+
+class instance_definition # pinstance pname: eth0 ==> eth1 eth2;
+
+class inst_def_set #pinstance a, b, c
+
+
+get_saddr_set(if_name, gaddr)
+=============================
+gaddr could be a specific ip address like 239.99.99.99 or 0::1
+    or a wildcard which includes any address (represented as 0.0.0.0 or ::)
+
+if_name could be a specific interface name like eth0 or or a wildcard *
+    which includes ervery possible interfance name, an empty string means no no interface(represented as an empty string) 
+    (its a very bad idee to name an interface "*")
+
+eth0 out whitelist table {
+    aaa(239.99.99.99 | 1.1.1.1)
+    aaa(239.0.0.0 | 2.2.2.2)
+    zzz(* | 3.3.3.3)
+    (239.99.99.99 | 4.4.4.4)
+    (239.0.0.0.0 | 5.5.5.5)
+    yyy(* | *)
+}; 
+
+get_saddr_set(aaa, 239.99.99.99) 
+    ==> 1.1.1.1, 4.4.4.4
+get_saddr_set(aaa, *) 
+    ==> 1.1.1.1, 2.2.2.2, 4.4.4.4, 5.5.5.5
+get_saddr_set(zzz, *) 
+    ==> 3.3.3.3, 4.4.4.4, 5.5.5.5
+get_saddr_set(yyy, 239.99.99.99)
+    ==> 4.4.4.4, 5.5.5.5, 0.0.0.0 #or *
+
+get_saddr_set(*, 239.99.99.99)
+    ==> 1.1.1.1, 4.4.4.4
+get_saddr_set("", 239.99.99.99)
+    ==> 4.4.4.4
+get_saddr_set("", *) 
+    ==> 4.4.4.4, 5.5.5.5
+get_saddr_set(*, *)
+    ==> 1.1.1.1, 2.2.2.2, 3.3.3.3, 4.4.4.4, 5.5.5.5, 0.0.0.0 # or *
+
+
+is_source_allowed(if_name, gaddr, saddr)
+...

@@ -103,7 +103,7 @@ rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_box> group
 const std::set<addr_storage>& rule_addr::get_addr_set(const std::string& if_name, const addr_storage& gaddr) const
 {
     HC_LOG_TRACE("");
-    if (if_name.empty() || m_if_name.empty() || m_if_name.compare(if_name) == 0) {
+    if (if_name.compare("*") == 0 || m_if_name.empty() || m_if_name.compare(if_name) == 0) {
         if (m_group->is_addr_contained(gaddr)) {
             return m_source->get_addr_set();
         }
@@ -150,7 +150,6 @@ const std::set<addr_storage>& table::get_addr_set(const std::string& if_name, co
         auto& tmp_set = e->get_addr_set(if_name, gaddr);
 
         //a wildcard is everything we need, further sources are unimportant
-        //delete all other addresses ????????????????ß
         if (*tmp_set.begin() == addr_storage(gaddr.get_addr_family())) {
             result_set.clear();
             result_set.insert(addr_storage(gaddr.get_addr_family()));
