@@ -24,8 +24,8 @@ class rule_binding #pinstance 1 upstream eth0 out whitelist table 1;
 
 
 class interface #eth0 in, eth0 out
-    get_saddr_set(if_direction, if_name, gaddr)
-    is_source_allowed(if_direction, if_name, gaddr, saddr)
+    get_saddr_set(if_direction, if_name, gaddr, explicit_if_name)
+    is_source_allowed(if_direction, if_name, gaddr, saddr, explicit_if_name)
 
 class instance_definition # pinstance pname: eth0 ==> eth1 eth2;
 
@@ -50,24 +50,42 @@ eth0 out whitelist table {
     yyy(* | *)
 }; 
 
-get_saddr_set(aaa, 239.99.99.99) 
+get_saddr_set(aaa, 239.99.99.99, false) 
     ==> 1.1.1.1, 4.4.4.4
-get_saddr_set(aaa, *) 
+get_saddr_set(aaa, *, false) 
     ==> 1.1.1.1, 2.2.2.2, 4.4.4.4, 5.5.5.5
-get_saddr_set(zzz, *) 
+get_saddr_set(zzz, *, false) 
     ==> 3.3.3.3, 4.4.4.4, 5.5.5.5
-get_saddr_set(yyy, 239.99.99.99)
+get_saddr_set(yyy, 239.99.99.99, false)
     ==> 4.4.4.4, 5.5.5.5, 0.0.0.0 #or *
 
-get_saddr_set(*, 239.99.99.99)
+get_saddr_set(aaa, 239.99.99.99, true) 
+    ==> 1.1.1.1
+get_saddr_set(aaa, *, true) 
+    ==> 1.1.1.1, 2.2.2.2 
+get_saddr_set(zzz, *, true) 
+    ==> 3.3.3.3 
+get_saddr_set(yyy, 239.99.99.99, true)
+    ==> 0.0.0.0 #or *
+
+
+get_saddr_set(*, 239.99.99.99, false)
     ==> 1.1.1.1, 4.4.4.4
-get_saddr_set("", 239.99.99.99)
+get_saddr_set("", 239.99.99.99, false)
     ==> 4.4.4.4
-get_saddr_set("", *) 
+get_saddr_set("", *, false) 
     ==> 4.4.4.4, 5.5.5.5
-get_saddr_set(*, *)
+get_saddr_set(*, *, false)
     ==> 1.1.1.1, 2.2.2.2, 3.3.3.3, 4.4.4.4, 5.5.5.5, 0.0.0.0 # or *
 
+get_saddr_set(*, 239.99.99.99, true)
+    ==>  {}
+get_saddr_set("", 239.99.99.99, true)
+    ==> 4.4.4.4
+get_saddr_set("", *, true) 
+    ==> 4.4.4.4, 5.5.5.5
+get_saddr_set(*, *, true)
+    ==> {}
 
 is_source_allowed(if_name, gaddr, saddr)
 ...

@@ -138,35 +138,56 @@ struct test_parser {
         //test match sources
 
         rule_addr ra1("", get_single_addr(m1), get_single_addr(s0));
-        UT_CHECK(ra1.get_addr_set("", m1) == addr_set {s0});
-        UT_CHECK(ra1.get_addr_set("*", m1) == addr_set {s0});
-        UT_CHECK(ra1.get_addr_set("eth0", m1) == addr_set {s0});
-        UT_CHECK(ra1.get_addr_set("eth0", m2) == addr_set {});
+        UT_CHECK(ra1.get_addr_set("", m1, false) == addr_set {s0});
+        UT_CHECK(ra1.get_addr_set("*", m1, false) == addr_set {s0});
+        UT_CHECK(ra1.get_addr_set("eth0", m1, false) == addr_set {s0});
+        UT_CHECK(ra1.get_addr_set("eth0", m2, false) == addr_set {});
+        UT_CHECK(ra1.get_addr_set("", m1, true) == addr_set {s0});
+        UT_CHECK(ra1.get_addr_set("*", m1, true) == addr_set {});
+        UT_CHECK(ra1.get_addr_set("eth0", m1, true) == addr_set {});
+        UT_CHECK(ra1.get_addr_set("eth0", m2, true) == addr_set {});
 
         rule_addr ra2("", get_addr_range(m0, m2), get_addr_range(s0, s1));
-        UT_CHECK(ra2.get_addr_set("", m1) == get_addr_set(s0, s1));
-        UT_CHECK(ra2.get_addr_set("", m3) == addr_set {});
-        UT_CHECK(ra2.get_addr_set("eth1", m3) == addr_set {});
-        UT_CHECK(ra2.get_addr_set("*", m3) == addr_set {});
-        UT_CHECK(ra2.get_addr_set("*", m2) == get_addr_set(s0, s1));
-        UT_CHECK(ra2.get_addr_set("xxx", m2) == get_addr_set(s0, s1));
+        UT_CHECK(ra2.get_addr_set("", m1, false) == get_addr_set(s0, s1));
+        UT_CHECK(ra2.get_addr_set("", m3, false) == addr_set {});
+        UT_CHECK(ra2.get_addr_set("eth1", m3, false) == addr_set {});
+        UT_CHECK(ra2.get_addr_set("*", m3, false) == addr_set {});
+        UT_CHECK(ra2.get_addr_set("*", m2, false) == get_addr_set(s0, s1));
+        UT_CHECK(ra2.get_addr_set("xxx", m2, false) == get_addr_set(s0, s1));
+        UT_CHECK(ra2.get_addr_set("", m1, true) == get_addr_set(s0, s1));
+        UT_CHECK(ra2.get_addr_set("", m3, true) == addr_set {});
+        UT_CHECK(ra2.get_addr_set("eth1", m3, true) == addr_set {});
+        UT_CHECK(ra2.get_addr_set("*", m3, true) == addr_set {});
+        UT_CHECK(ra2.get_addr_set("*", m2, true) == addr_set {});
+        UT_CHECK(ra2.get_addr_set("xxx", m2, true) == addr_set {});
 
         rule_addr ra3("eth0", get_addr_range(m0, m2), get_addr_range(s0, s1));
-        UT_CHECK(ra3.get_addr_set("eth0", m1) == get_addr_set(s0, s1));
-        UT_CHECK(ra3.get_addr_set("eth0", m3) == addr_set {});
-        UT_CHECK(ra3.get_addr_set("asdf", m1) == addr_set {});
-        UT_CHECK(ra3.get_addr_set("*", m1) == get_addr_set(s0, s1));
-        UT_CHECK(ra3.get_addr_set("", m2) == addr_set {});
-        UT_CHECK(ra3.get_addr_set("", m3) == addr_set {});
+        UT_CHECK(ra3.get_addr_set("eth0", m1, false) == get_addr_set(s0, s1));
+        UT_CHECK(ra3.get_addr_set("eth0", m3, false) == addr_set {});
+        UT_CHECK(ra3.get_addr_set("asdf", m1, false) == addr_set {});
+        UT_CHECK(ra3.get_addr_set("*", m1, false) == get_addr_set(s0, s1));
+        UT_CHECK(ra3.get_addr_set("", m2, false) == addr_set {});
+        UT_CHECK(ra3.get_addr_set("", m3, false) == addr_set {});
+        UT_CHECK(ra3.get_addr_set("eth0", m1, true) == get_addr_set(s0, s1));
+        UT_CHECK(ra3.get_addr_set("eth0", m3, true) == addr_set {});
+        UT_CHECK(ra3.get_addr_set("asdf", m1, true) == addr_set {});
+        UT_CHECK(ra3.get_addr_set("*", m1, true) == addr_set {});
+        UT_CHECK(ra3.get_addr_set("", m2, true) == addr_set {});
+        UT_CHECK(ra3.get_addr_set("", m3, true) == addr_set {});
 
         rule_addr ra4("eth0", get_single_addr(x), get_single_addr(x));
-        UT_CHECK(ra4.get_addr_set("eth0", m1) == addr_set {x});
-        UT_CHECK(ra4.get_addr_set("eth1", m1) == addr_set {});
-        UT_CHECK(ra4.get_addr_set("", m1) == addr_set {});
-        UT_CHECK(ra4.get_addr_set("", x) == addr_set {});
-        UT_CHECK(ra4.get_addr_set("*", m1) == addr_set {x});
-        UT_CHECK(ra4.get_addr_set("*", x) == addr_set {x});
-
+        UT_CHECK(ra4.get_addr_set("eth0", m1, false) == addr_set {x});
+        UT_CHECK(ra4.get_addr_set("eth1", m1, false) == addr_set {});
+        UT_CHECK(ra4.get_addr_set("", m1, false) == addr_set {});
+        UT_CHECK(ra4.get_addr_set("", x, false) == addr_set {});
+        UT_CHECK(ra4.get_addr_set("*", m1, false) == addr_set {x});
+        UT_CHECK(ra4.get_addr_set("*", x, false) == addr_set {x});
+        UT_CHECK(ra4.get_addr_set("eth0", m1, true) == addr_set {x});
+        UT_CHECK(ra4.get_addr_set("eth1", m1, true) == addr_set {});
+        UT_CHECK(ra4.get_addr_set("", m1, true) == addr_set {});
+        UT_CHECK(ra4.get_addr_set("", x, true) == addr_set {});
+        UT_CHECK(ra4.get_addr_set("*", m1, true) == addr_set {});
+        UT_CHECK(ra4.get_addr_set("*", x, true) == addr_set {});
         UT_SUMMARY;
     }
 
@@ -227,35 +248,43 @@ struct test_parser {
 
         UT_CHECK(t.get_name().compare("table_a") == 0);
 
-        UT_CHECK(t.get_addr_set("", m1_1) == addr_set {});
-        UT_CHECK(t.get_addr_set("", m2_1) == addr_set {});
-        UT_CHECK(t.get_addr_set("", m3) == addr_set {});
+        UT_CHECK(t.get_addr_set("", m1_1, false) == addr_set {});
+        UT_CHECK(t.get_addr_set("", m2_1, false) == addr_set {});
+        UT_CHECK(t.get_addr_set("", m3, false) == addr_set {});
 
-        UT_CHECK(t.get_addr_set("eth0", m1_1) == range(s1_0, s1_2)->get_addr_set());
-        UT_CHECK(t.get_addr_set("xxx", m1_1) == addr_set {});
+        UT_CHECK(t.get_addr_set("eth0", m1_1, false) == range(s1_0, s1_2)->get_addr_set());
+        UT_CHECK(t.get_addr_set("xxx", m1_1, false) == addr_set {});
 
-        UT_CHECK(t.get_addr_set("xxx", m2_1) == addr_set {});
+        UT_CHECK(t.get_addr_set("xxx", m2_1, false) == addr_set {});
 
-        UT_CHECK(t.get_addr_set("eth0", m3) == single(s3)->get_addr_set());
-        UT_CHECK(t.get_addr_set("xxx", m3) == addr_set {});
+        UT_CHECK(t.get_addr_set("eth0", m3, false) == single(s3)->get_addr_set());
+        UT_CHECK(t.get_addr_set("xxx", m3, false) == addr_set {});
+        UT_CHECK(t.get_addr_set("eth0", m3, true) == single(s3)->get_addr_set());
+        UT_CHECK(t.get_addr_set("xxx", m3, true) == addr_set {});
 
-        UT_CHECK(t.get_addr_set("asdf", m4) == single(s4)->get_addr_set());
-        UT_CHECK(t.get_addr_set("xxx", m4) == single(s4)->get_addr_set());
-        UT_CHECK(t.get_addr_set("", m4) == single(s4)->get_addr_set());
-        UT_CHECK(t.get_addr_set("*", m4) == single(s4)->get_addr_set());
-        UT_CHECK(t.get_addr_set("*", m3) == single(s3)->get_addr_set());
+        UT_CHECK(t.get_addr_set("asdf", m4, false) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("xxx", m4, false) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("", m4, false) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("*", m4, false) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("*", m3, false) == single(s3)->get_addr_set());
+
+        UT_CHECK(t.get_addr_set("asdf", m4, true) == addr_set {});
+        UT_CHECK(t.get_addr_set("xxx", m4, true) == addr_set {});
+        UT_CHECK(t.get_addr_set("", m4, true) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("*", m4, true) == addr_set {});
+        UT_CHECK(t.get_addr_set("*", m3, true) == addr_set {});
 
         addr_set result;
         auto tmp_r = range(s1_0, s1_2)->get_addr_set();
         result.insert(tmp_r.begin(), tmp_r.end());
         result.insert(s3);
         result.insert(s4);
-        UT_CHECK(t.get_addr_set("eth0", x) == result);
+        UT_CHECK(t.get_addr_set("eth0", x, false) == result);
 
         result.insert(s2);
-        UT_CHECK(t.get_addr_set("*", x) == result);
-        UT_CHECK(t.get_addr_set("", m4) == single(s4)->get_addr_set());
-        UT_CHECK(t.get_addr_set("", x) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("*", x, false) == result);
+        UT_CHECK(t.get_addr_set("", m4, false) == single(s4)->get_addr_set());
+        UT_CHECK(t.get_addr_set("", x, false) == single(s4)->get_addr_set());
 
         UT_SUMMARY;
     }
@@ -449,6 +478,17 @@ pinstance pinst downstream ifa in blacklist table {asdf(*| 5.5.5.5)}; \n \
         UT_CHECK(uif_2->is_source_allowed(ID_OUT, "xxx", addr_storage("239.99.99.99"), addr_storage("0.0.0.0")));
         UT_CHECK(uif_2->is_source_allowed(ID_OUT, "zzz", addr_storage("244.1.3.3"), addr_storage("2.2.2.2")));
         UT_CHECK(!uif_2->is_source_allowed(ID_OUT, "zzz", addr_storage("244.1.3.3"), addr_storage("2.2.2.1")));
+
+        UT_CHECK(!uif_2->is_source_allowed(ID_OUT, "asdf", addr_storage("224.0.0.0"), addr_storage("66.66.66.66"), true));
+        UT_CHECK(uif_2->is_source_allowed(ID_OUT, "", addr_storage("224.0.0.0"), addr_storage("66.66.66.66"), true));
+        UT_CHECK(!uif_2->is_source_allowed(ID_OUT, "xxx", addr_storage("239.1.1.1"), addr_storage("66.66.66.66"), true));
+        UT_CHECK(uif_2->is_source_allowed(ID_OUT, "yyy", addr_storage("239.1.1.1"), addr_storage("1.1.1.1"), true));
+        UT_CHECK(!uif_2->is_source_allowed(ID_OUT, "asdf", addr_storage("239.1.1.1"), addr_storage("1.1.1.1"), true));
+        UT_CHECK(uif_2->is_source_allowed(ID_OUT, "xxx", addr_storage("239.99.99.99"), addr_storage("1.1.1.1"), true));
+        UT_CHECK(uif_2->is_source_allowed(ID_OUT, "xxx", addr_storage("239.99.99.99"), addr_storage("0.0.0.0"), true));
+        UT_CHECK(uif_2->is_source_allowed(ID_OUT, "zzz", addr_storage("244.1.3.3"), addr_storage("2.2.2.2"), true));
+        UT_CHECK(!uif_2->is_source_allowed(ID_OUT, "zzz", addr_storage("244.1.3.3"), addr_storage("2.2.2.1"), true));
+
 
         UT_CHECK(dif_1->is_source_allowed(ID_IN, "asdf", addr_storage("239.99.99.99"), addr_storage("2.2.2.2")));
         UT_CHECK(!dif_1->is_source_allowed(ID_IN, "asdf", addr_storage("239.99.99.99"), addr_storage("5.5.5.5")));

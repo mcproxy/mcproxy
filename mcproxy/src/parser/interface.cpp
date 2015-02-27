@@ -100,10 +100,11 @@ rule_addr::rule_addr(const std::string& if_name, std::unique_ptr<addr_box> group
     HC_LOG_TRACE("");
 }
 
-const std::set<addr_storage>& rule_addr::get_addr_set(const std::string& if_name, const addr_storage& gaddr) const
+const std::set<addr_storage>& rule_addr::get_addr_set(const std::string& if_name, const addr_storage& gaddr, bool explicit_if_name) const
 {
     HC_LOG_TRACE("");
-    if (if_name.compare("*") == 0 || m_if_name.empty() || m_if_name.compare(if_name) == 0) {
+    if ((!explicit_if_name && (if_name.compare("*") == 0 || m_if_name.empty())) || m_if_name.compare(if_name) == 0) {
+        //if (if_name.compare("*") == 0 || m_if_name.empty() || m_if_name.compare(if_name) == 0) {
         if (m_group->is_addr_contained(gaddr)) {
             return m_source->get_addr_set();
         }
@@ -140,14 +141,14 @@ const std::string& table::get_name() const
     return m_name;
 }
 
-const std::set<addr_storage>& table::get_addr_set(const std::string& if_name, const addr_storage& gaddr) const
+const std::set<addr_storage>& table::get_addr_set(const std::string& if_name, const addr_storage& gaddr, bool explicit_if_name) const
 {
     HC_LOG_TRACE("");
     thread_local static std::set<addr_storage> result_set;
     result_set.clear();
     //the result could be cached ???????????????
     for (auto & e : m_rule_box_list) {
-        auto& tmp_set = e->get_addr_set(if_name, gaddr);
+        auto& tmp_set = e->get_addr_set(if_name, gaddr, explicit_if_name);
 
         //a wildcard is everything we need, further sources are unimportant
         if (*tmp_set.begin() == addr_storage(gaddr.get_addr_family())) {
@@ -224,10 +225,10 @@ rule_table::rule_table(std::unique_ptr<table> t)
     HC_LOG_TRACE("");
 }
 
-const std::set<addr_storage>& rule_table::get_addr_set(const std::string& if_name, const addr_storage& gaddr) const
+const std::set<addr_storage>& rule_table::get_addr_set(const std::string& if_name, const addr_storage& gaddr, bool explicit_if_name) const
 {
     HC_LOG_TRACE("");
-    return m_table->get_addr_set(if_name, gaddr);
+    return m_table->get_addr_set(if_name, gaddr, explicit_if_name);
 }
 
 std::string rule_table::to_string() const
@@ -243,7 +244,7 @@ rule_table_ref::rule_table_ref(const std::string& table_name, const std::shared_
     HC_LOG_TRACE("");
 }
 
-const std::set<addr_storage>& rule_table_ref::get_addr_set(const std::string& if_name, const addr_storage& gaddr) const
+const std::set<addr_storage>& rule_table_ref::get_addr_set(const std::string& if_name, const addr_storage& gaddr, bool explicit_if_name) const
 {
     HC_LOG_TRACE("");
     static const std::set<addr_storage> empty_set;
@@ -251,7 +252,7 @@ const std::set<addr_storage>& rule_table_ref::get_addr_set(const std::string& if
     if (t == nullptr) {
         return empty_set;
     } else {
-        return t->get_addr_set(if_name, gaddr);
+        return t->get_addr_set(if_name, gaddr, explicit_if_name);
     }
 }
 
@@ -487,28 +488,28 @@ rb_filter_type interface::get_filter_type(const std::unique_ptr<rule_binding>& f
     }
 }
 
-const std::set<addr_storage>& interface::get_saddr_set(rb_interface_direction direction, const std::string& if_name, const addr_storage& gaddr) const
+const std::set<addr_storage>& interface::get_saddr_set(rb_interface_direction direction, const std::string& if_name, const addr_storage& gaddr, bool explicit_if_name) const
 {
 
     HC_LOG_TRACE("");
     if (direction == ID_IN) {
-        return get_saddr_set(if_name, gaddr, m_input_filter);
+        return get_saddr_set(if_name, gaddr, m_input_filter, explicit_if_name);
     } else if (direction == ID_OUT) {
-        return get_saddr_set(if_name, gaddr, m_output_filter);
+        return get_saddr_set(if_name, gaddr, m_output_filter, explicit_if_name);
     } else {
         HC_LOG_ERROR("unkown interface direction");
-        return get_saddr_set(if_name, gaddr, nullptr);
+        return get_saddr_set(if_name, gaddr, nullptr, explicit_if_name);
     }
 }
 
-const std::set<addr_storage>& interface::get_saddr_set(const std::string& input_if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const
+const std::set<addr_storage>& interface::get_saddr_set(const std::string& input_if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter, bool explicit_if_name) const
 {
     HC_LOG_TRACE("");
     static const std::set<addr_storage> empty_set;
 
     if (filter.get() != nullptr) {
         if (filter->get_rule_binding_type() == RBT_FILTER) {
-            return filter->get_table().get_addr_set(input_if_name, gaddr);
+            return filter->get_table().get_addr_set(input_if_name, gaddr, explicit_if_name);
         } else {
             HC_LOG_ERROR("rule_binding type is not an interface filter");
             return empty_set;
@@ -518,24 +519,24 @@ const std::set<addr_storage>& interface::get_saddr_set(const std::string& input_
     }
 }
 
-bool interface::is_source_allowed(rb_interface_direction direction, const std::string& input_if_name, const addr_storage& gaddr, const addr_storage& saddr) const
+bool interface::is_source_allowed(rb_interface_direction direction, const std::string& input_if_name, const addr_storage& gaddr, const addr_storage& saddr, bool explicit_if_name) const
 {
     HC_LOG_TRACE("");
     if (direction == ID_IN) {
-        return is_source_allowed(input_if_name, gaddr, saddr, m_input_filter);
+        return is_source_allowed(input_if_name, gaddr, saddr, m_input_filter, explicit_if_name);
     } else if (direction == ID_OUT) {
-        return is_source_allowed(input_if_name, gaddr, saddr, m_output_filter);
+        return is_source_allowed(input_if_name, gaddr, saddr, m_output_filter, explicit_if_name);
     } else {
         HC_LOG_ERROR("unkown interface direction");
-        return is_source_allowed(input_if_name, gaddr, saddr, nullptr);
+        return is_source_allowed(input_if_name, gaddr, saddr, nullptr, explicit_if_name);
     }
 }
 
-bool interface::is_source_allowed(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr, const std::unique_ptr<rule_binding>& filter) const
+bool interface::is_source_allowed(const std::string& if_name, const addr_storage& gaddr, const addr_storage& saddr, const std::unique_ptr<rule_binding>& filter, bool explicit_if_name) const
 {
     HC_LOG_TRACE("");
     if (filter != nullptr) {
-        auto& saddr_set = get_saddr_set(if_name, gaddr, filter);
+        auto& saddr_set = get_saddr_set(if_name, gaddr, filter, explicit_if_name);
 
         // check for wildcard address
         if (saddr_set.find(addr_storage(gaddr.get_addr_family())) != std::end(saddr_set)) {

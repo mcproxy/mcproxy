@@ -19,13 +19,10 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#ifndef  TEST_MEMBERSHIP_AGGREGATION_HPP 
+#ifndef  TEST_MEMBERSHIP_AGGREGATION_HPP
 #define  TEST_MEMBERSHIP_AGGREGATION_HPP
 
 #ifdef UNIT_TESTS
-
-//#include <netinet/in.h>
-#include <arpa/inet.h>
 
 #include "testing/ut_bootstrap.hpp"
 #include "testing/ut_suite.hpp"
@@ -33,153 +30,192 @@
 #include "include/proxy/message_format.hpp"
 
 
-test_status test_membership_aggregation_a();
+struct test_membership_aggregation {
 
-std::list<std::tuple<ut_test_fun, ut_effort>> test_membership_aggregation()
+    test_status test_merge_reminder_disjoint_fun() {
+        HC_LOG_TRACE("");
+        UT_INITIALISATION;
+
+        using mss = mem_source_state;
+        using fss = filter_source_state;
+        using sl = source_list<source>;
+
+        const addr_storage s0("0.0.0.0");
+        const addr_storage s1("1.1.1.1");
+        const addr_storage s2("2.2.2.2");
+        const addr_storage s3("3.3.3.3");
+        const mss in_a(INCLUDE_MODE, sl {
+            s1, s2
+        });
+        const mss ex_a(EXCLUDE_MODE, sl {
+            s1, s2
+        });
+        const mss in_b(INCLUDE_MODE, sl {
+            s1, s3
+        });
+        const mss ex_b(EXCLUDE_MODE, sl {
+            s1, s3
+        });
+
+        const fss wl_b(FT_WHITELIST, sl {
+            s1, s3
+        });
+        const fss bl_b(FT_BLACKLIST, sl {
+            s1, s3
+        });
+        const fss wl_wc(FT_WHITELIST, sl {
+            s0
+        });
+        const fss bl_wc(FT_BLACKLIST, sl {
+            s0
+        });
+
+        simple_membership_aggregation s_mem_agg(IGMPv3);
+
+        auto check_merge_convert_wildcard_filter = [&](const fss & convert, const fss & result) {
+            fss to_tmp = convert;
+            s_mem_agg.convert_wildcard_filter(to_tmp);
+
+            if (to_tmp == result) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        UT_CHECK(check_merge_convert_wildcard_filter(wl_b, wl_b));
+        UT_CHECK(check_merge_convert_wildcard_filter(bl_b, bl_b));
+        UT_CHECK(check_merge_convert_wildcard_filter(wl_wc, fss(FT_BLACKLIST, sl {})));
+
+        UT_CHECK(check_merge_convert_wildcard_filter(bl_wc, fss(FT_WHITELIST, sl {})));
+        UT_CHECK(check_merge_convert_wildcard_filter(fss(FT_WHITELIST, sl {s1, s2, s0, s3}), fss(FT_BLACKLIST, sl {})));
+        UT_CHECK(check_merge_convert_wildcard_filter(fss(FT_BLACKLIST, sl {s1, s2, s0, s3}), fss(FT_WHITELIST, sl {})));
+
+
+        auto check_merge_group_memberships = [&](const mss & to, const mss & from, const mss & result) {
+            mss to_tmp = to;
+            s_mem_agg.merge_group_memberships(to_tmp, from);
+
+            if (to_tmp == result) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        //IN{s1,s2} merge with IN{s1,s3} = IN{s1,s2,s3}
+        UT_CHECK(check_merge_group_memberships(in_a, in_b, mss(INCLUDE_MODE, sl {s1, s2, s3})));
+
+        //IN{s1,s2} merge with EX{s1,s3} = EX{s3}
+        UT_CHECK(check_merge_group_memberships(in_a, ex_b, mss(EXCLUDE_MODE, sl {s3})));
+
+        //EX{s1,s2} merge with IN{s1,s3} = EX{s2}
+        UT_CHECK(check_merge_group_memberships(ex_a, in_b, mss(EXCLUDE_MODE, sl {s2})));
+
+        //EX{s1,s2} merge with EX{s1,s3} = EX{s1}
+        UT_CHECK(check_merge_group_memberships(ex_a, ex_b, mss(EXCLUDE_MODE, sl {s1})));
+
+        auto check_merge_memberships_filter = [&](const mss & to, const fss & from, const mss & expected_result) {
+            mss to_result_tmp = to;
+            s_mem_agg.merge_memberships_filter(to_result_tmp, from);
+
+            if (to_result_tmp == expected_result) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        //IN{s1,s2} merge with WL{s1,s3} = IN{s1} R(IN{s2})
+        UT_CHECK(check_merge_memberships_filter(in_a, wl_b, mss(INCLUDE_MODE, sl {s1})));
+        //IN{s1,s2} merge with BL{s1,s3} = IN{s2} R(IN{s1})
+        UT_CHECK(check_merge_memberships_filter(in_a, bl_b, mss(INCLUDE_MODE, sl {s2})));
+        //EX{s1,s2} merge with WL{s1,s3} = IN{s3} R(EX{s1,s2,s3})
+        UT_CHECK(check_merge_memberships_filter(ex_a, wl_b, mss(INCLUDE_MODE, sl {s3})));
+        //EX{s1,s2} merge with BL{s1,s3} = EX{s1,s2,s3} R(IN{s3})
+        UT_CHECK(check_merge_memberships_filter(ex_a, bl_b, mss(EXCLUDE_MODE, sl {s1, s2, s3})));
+
+
+        //IN{s1,s2} merge with WL{*} = IN{s1,s2} R(IN{})
+        UT_CHECK(check_merge_memberships_filter(in_a, wl_wc, mss(INCLUDE_MODE, sl {s1, s2})));
+        //IN{s1,s2} merge with BL{*} = IN{} R(IN{s1,s2})
+        UT_CHECK(check_merge_memberships_filter(in_a, bl_wc, mss(INCLUDE_MODE, sl {})));
+        //EX{s1,s2} merge with WL{*} = EX{s1,s2} R(IN{})
+        UT_CHECK(check_merge_memberships_filter(ex_a, wl_wc, mss(EXCLUDE_MODE, sl {s1, s2})));
+        //EX{s1,s2} merge with BL{*} = IN{} R(EX{s1,s2})
+        UT_CHECK(check_merge_memberships_filter(ex_a, bl_wc, mss(INCLUDE_MODE, sl {})));
+
+
+        auto check_merge_memberships_filter_reminder = [&](const mss & to, const fss & from, const mss & expected_result, const mss & expected_reminder) {
+            mss to_result_tmp = to;
+            s_mem_agg.merge_memberships_filter(to_result_tmp, from);
+
+            if (to_result_tmp != expected_result) {
+                return false;
+            }
+
+            mss to_reminder_tmp = to;
+            s_mem_agg.merge_memberships_filter_reminder(to_reminder_tmp, to_result_tmp, from);
+
+            if (to_reminder_tmp == expected_reminder) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        //IN{s1,s2} merge with WL{s1,s3} = IN{s1} R(IN{s2})
+        UT_CHECK(check_merge_memberships_filter_reminder(in_a, wl_b, mss(INCLUDE_MODE, sl {s1}), mss(INCLUDE_MODE, sl {s2})));
+        //IN{s1,s2} merge with BL{s1,s3} = IN{s2} R(IN{s1})
+        UT_CHECK(check_merge_memberships_filter_reminder(in_a, bl_b, mss(INCLUDE_MODE, sl {s2}), mss(INCLUDE_MODE, sl {s1})));
+        //EX{s1,s2} merge with WL{s1,s3} = IN{s3} R(EX{s1,s2,s3})
+        UT_CHECK(check_merge_memberships_filter_reminder(ex_a, wl_b, mss(INCLUDE_MODE, sl {s3}), mss(EXCLUDE_MODE, sl {s1, s2, s3})));
+        //EX{s1,s2} merge with BL{s1,s3} = EX{s1,s2,s3} R(IN{s3})
+        UT_CHECK(check_merge_memberships_filter_reminder(ex_a, bl_b, mss(EXCLUDE_MODE, sl {s1, s2, s3}), mss(INCLUDE_MODE, sl {s3})));
+
+
+        //IN{s1,s2} merge with WL{*} = IN{s1,s2} R(IN{})
+        UT_CHECK(check_merge_memberships_filter_reminder(in_a, wl_wc, mss(INCLUDE_MODE, sl {s1, s2}), mss(INCLUDE_MODE, sl {})));
+        //IN{s1,s2} merge with BL{*} = IN{} R(IN{s1,s2})
+        UT_CHECK(check_merge_memberships_filter_reminder(in_a, bl_wc, mss(INCLUDE_MODE, sl {}), mss(INCLUDE_MODE, sl {s1, s2})));
+        //EX{s1,s2} merge with WL{*} = EX{s1,s2} R(IN{})
+        UT_CHECK(check_merge_memberships_filter_reminder(ex_a, wl_wc, mss(EXCLUDE_MODE, sl {s1, s2}), mss(INCLUDE_MODE, sl {})));
+        //EX{s1,s2} merge with BL{*} = IN{} R(EX{s1,s2})
+        UT_CHECK(check_merge_memberships_filter_reminder(ex_a, bl_wc, mss(INCLUDE_MODE, sl {}), mss(EXCLUDE_MODE, sl {s1, s2})));
+
+
+        auto check_disjoin_group_memberships = [&](const mss & to, const mss & from, const mss & expected_result) {
+            mss to_result_tmp = to;
+            s_mem_agg.disjoin_group_memberships(to_result_tmp, from);
+
+            if (to_result_tmp == expected_result) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        UT_CHECK(check_disjoin_group_memberships(in_a, in_b, mss(INCLUDE_MODE, sl {s2})));
+        UT_CHECK(check_disjoin_group_memberships(in_a, ex_b, mss(INCLUDE_MODE, sl {s1})));
+        UT_CHECK(check_disjoin_group_memberships(ex_a, in_b, mss(EXCLUDE_MODE, sl {s1,s2,s3})));
+        UT_CHECK(check_disjoin_group_memberships(ex_a, ex_b, mss(INCLUDE_MODE, sl {s2})));
+
+        UT_SUMMARY;
+    }
+};
+
+std::list<std::tuple<ut_test_fun, ut_effort>> test_membership_aggregation_functions()
 {
     HC_LOG_TRACE("");
+    test_membership_aggregation p;
+
     return std::list<std::tuple<ut_test_fun, ut_effort>> {
-        std::make_tuple(test_membership_aggregation_a, 1)
+        std::make_tuple([&p]() {
+            return p.test_merge_reminder_disjoint_fun();
+        }, 1)
     };
 }
 
-test_status test_membership_aggregation_a()
-{
-    HC_LOG_TRACE("");
-    UT_INITIALISATION;
-
-    using ss = source_state;
-    using sl = source_list<source>;
-
-    const addr_storage s0("0.0.0.0");
-    const addr_storage s1("1.1.1.1");
-    const addr_storage s2("2.2.2.2");
-    const addr_storage s3("3.3.3.3");
-    const ss in_a(INCLUDE_MODE, sl{ s1, s2 });
-    const ss ex_a(EXCLUDE_MODE, sl{ s1, s2 });
-    const ss in_b(INCLUDE_MODE, sl{ s1, s3 });
-    const ss ex_b(EXCLUDE_MODE, sl{ s1, s3 });
-
-    const ss wl_b(FT_WHITELIST, sl{ s1, s3 });
-    const ss bl_b(FT_BLACKLIST, sl{ s1, s3 });
-    const ss wl_wc(FT_WHITELIST, sl{ s0 });
-    const ss bl_wc(FT_BLACKLIST, sl{ s0 });
-
-    simple_membership_aggregation s_mem_agg(IGMPv3);
-
-    auto check_merge_convert_wildcard_filter = [&](const ss& convert, const ss& result){
-        ss to_tmp = convert; 
-        s_mem_agg.convert_wildcard_filter(to_tmp);
-        
-        if(to_tmp == result){
-            return true;
-        }else{
-            return false;
-        }
-    };
-
-    UT_CHECK(check_merge_convert_wildcard_filter(wl_b, wl_b));
-    UT_CHECK(check_merge_convert_wildcard_filter(bl_b, bl_b));
-    UT_CHECK(check_merge_convert_wildcard_filter(wl_wc, ss(FT_BLACKLIST,sl{})));
-    
-    UT_CHECK(check_merge_convert_wildcard_filter(bl_wc, ss(FT_WHITELIST,sl{})));
-    UT_CHECK(check_merge_convert_wildcard_filter(ss(FT_WHITELIST, sl{s1,s2,s0,s3}), ss(FT_BLACKLIST,sl{})));
-    UT_CHECK(check_merge_convert_wildcard_filter(ss(FT_BLACKLIST, sl{s1,s2,s0,s3}), ss(FT_WHITELIST,sl{})));
-
-
-    auto check_merge_group_memberships = [&](const ss & to, const ss & from, const ss & result) {
-        ss to_tmp = to;
-        s_mem_agg.merge_group_memberships(to_tmp, from);
-
-        if(to_tmp == result){
-            return true;
-        }else{
-            return false;
-        }
-    };
-
-    //IN{s1,s2} merge with IN{s1,s3} = IN{s1,s2,s3}
-    UT_CHECK(check_merge_group_memberships(in_a, in_b, ss(INCLUDE_MODE, sl{s1, s2, s3})));
-
-    //IN{s1,s2} merge with EX{s1,s3} = EX{s3}
-    UT_CHECK(check_merge_group_memberships(in_a, ex_b, ss(EXCLUDE_MODE, sl{s3})));
-    
-    //EX{s1,s2} merge with IN{s1,s3} = EX{s2}
-    UT_CHECK(check_merge_group_memberships(ex_a, in_b, ss(EXCLUDE_MODE, sl{s2})));
-
-    //EX{s1,s2} merge with EX{s1,s3} = EX{s1}
-    UT_CHECK(check_merge_group_memberships(ex_a, ex_b, ss(EXCLUDE_MODE, sl{s1})));
-
-    auto check_merge_memberships_filter = [&](const ss & to, const ss & from, const ss & expected_result) {
-        ss to_result_tmp = to;
-        s_mem_agg.merge_memberships_filter(to_result_tmp, from);
-
-        if(to_result_tmp == expected_result){
-            return true;
-        }else{
-            return false;
-        }
-    };
-
-    //IN{s1,s2} merge with WL{s1,s3} = IN{s1} R(IN{s2})
-    UT_CHECK(check_merge_memberships_filter(in_a, wl_b, ss(INCLUDE_MODE, sl{s1})));
-    //IN{s1,s2} merge with BL{s1,s3} = IN{s2} R(IN{s1})
-    UT_CHECK(check_merge_memberships_filter(in_a, bl_b, ss(INCLUDE_MODE, sl{s2})));
-    //EX{s1,s2} merge with WL{s1,s3} = IN{s3} R(EX{s1,s2,s3})
-    UT_CHECK(check_merge_memberships_filter(ex_a, wl_b, ss(INCLUDE_MODE, sl{s3})));
-    //EX{s1,s2} merge with BL{s1,s3} = EX{s1,s2,s3} R(IN{s3})
-    UT_CHECK(check_merge_memberships_filter(ex_a, bl_b, ss(EXCLUDE_MODE, sl{s1,s2,s3})));
-
-
-    //IN{s1,s2} merge with WL{*} = IN{s1,s2} R(IN{})
-    UT_CHECK(check_merge_memberships_filter(in_a, wl_wc, ss(INCLUDE_MODE, sl{s1,s2})));
-    //IN{s1,s2} merge with BL{*} = IN{} R(IN{s1,s2})
-    UT_CHECK(check_merge_memberships_filter(in_a, bl_wc, ss(INCLUDE_MODE, sl{})));
-    //EX{s1,s2} merge with WL{*} = EX{s1,s2} R(IN{})
-    UT_CHECK(check_merge_memberships_filter(ex_a, wl_wc, ss(EXCLUDE_MODE, sl{s1,s2})));
-    //EX{s1,s2} merge with BL{*} = IN{} R(EX{s1,s2}) 
-    UT_CHECK(check_merge_memberships_filter(ex_a, bl_wc, ss(INCLUDE_MODE, sl{})));
-
-
-    auto check_merge_memberships_filter_reminder = [&](const ss & to, const ss & from, const ss & expected_result, const ss& expected_reminder) {
-        ss to_result_tmp = to;
-        s_mem_agg.merge_memberships_filter(to_result_tmp, from);
-
-        if(to_result_tmp != expected_result){
-            return false;
-        }
-
-        ss to_reminder_tmp = to;
-        s_mem_agg.merge_memberships_filter_reminder(to_reminder_tmp, to_result_tmp, from);
-
-        if(to_reminder_tmp == expected_reminder){
-            return true;
-        }else{
-            return false;
-        }
-    };
-
-    //IN{s1,s2} merge with WL{s1,s3} = IN{s1} R(IN{s2})
-    UT_CHECK(check_merge_memberships_filter_reminder(in_a, wl_b, ss(INCLUDE_MODE, sl{s1}), ss(INCLUDE_MODE, sl{s2})));
-    //IN{s1,s2} merge with BL{s1,s3} = IN{s2} R(IN{s1})
-    UT_CHECK(check_merge_memberships_filter_reminder(in_a, bl_b, ss(INCLUDE_MODE, sl{s2}), ss(INCLUDE_MODE, sl{s1})));
-    //EX{s1,s2} merge with WL{s1,s3} = IN{s3} R(EX{s1,s2,s3})
-    UT_CHECK(check_merge_memberships_filter_reminder(ex_a, wl_b, ss(INCLUDE_MODE, sl{s3}), ss(EXCLUDE_MODE, sl{s1,s2,s3})));
-    //EX{s1,s2} merge with BL{s1,s3} = EX{s1,s2,s3} R(IN{s3})
-    UT_CHECK(check_merge_memberships_filter_reminder(ex_a, bl_b, ss(EXCLUDE_MODE, sl{s1,s2,s3}), ss(INCLUDE_MODE, sl{s3})));
-
-
-    //IN{s1,s2} merge with WL{*} = IN{s1,s2} R(IN{})
-    UT_CHECK(check_merge_memberships_filter_reminder(in_a, wl_wc, ss(INCLUDE_MODE, sl{s1,s2}), ss(INCLUDE_MODE, sl{})));
-    //IN{s1,s2} merge with BL{*} = IN{} R(IN{s1,s2})
-    UT_CHECK(check_merge_memberships_filter_reminder(in_a, bl_wc, ss(INCLUDE_MODE, sl{}), ss(INCLUDE_MODE, sl{s1,s2})));
-    //EX{s1,s2} merge with WL{*} = EX{s1,s2} R(IN{})
-    UT_CHECK(check_merge_memberships_filter_reminder(ex_a, wl_wc, ss(EXCLUDE_MODE, sl{s1,s2}), ss(INCLUDE_MODE, sl{})));
-    //EX{s1,s2} merge with BL{*} = IN{} R(EX{s1,s2}) 
-    UT_CHECK(check_merge_memberships_filter_reminder(ex_a, bl_wc, ss(INCLUDE_MODE, sl{}), ss(EXCLUDE_MODE, sl{s1,s2})));
-
-    UT_SUMMARY;
-}
 
 #endif //UNIT_TESTS
 

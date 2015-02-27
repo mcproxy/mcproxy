@@ -38,7 +38,7 @@ void ut_bootstrap(int, char**){
     ut_suite test_suite;
     
     test_suite.add_test_fun(test_address_storage());
-    test_suite.add_test_fun(test_membership_aggregation());
+    test_suite.add_test_fun(test_membership_aggregation_functions());
     test_suite.add_test_fun(test_parser_functions());
     test_suite.add_test_fun(test_source_list());
 

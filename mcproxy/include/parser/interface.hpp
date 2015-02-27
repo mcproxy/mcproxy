@@ -37,11 +37,11 @@ struct addr_box {
 };
 
 struct rule_box {
-    virtual const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr) const = 0;
+    virtual const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr, bool explicit_if_name) const = 0;
     virtual std::string to_string() const = 0;
 };
 
-class single_addr : public addr_box 
+class single_addr : public addr_box
 {
     std::set<addr_storage> m_addr_set;
 public:
@@ -51,7 +51,7 @@ public:
     std::string to_string() const override;
 };
 
-class addr_range : public addr_box 
+class addr_range : public addr_box
 {
     std::set<addr_storage> m_addr_set;
 public:
@@ -70,7 +70,7 @@ class rule_addr : public rule_box
     std::unique_ptr<addr_box> m_source;
 public:
     rule_addr(const std::string& if_name, std::unique_ptr<addr_box> group, std::unique_ptr<addr_box> source);
-    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr) const override;
+    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr, bool explicit_if_name) const override;
     std::string to_string() const override;
 };
 
@@ -82,7 +82,7 @@ public:
     table(const std::string& name);
     table(const std::string& name, std::list<std::unique_ptr<rule_box>>&& rule_box_list);
     const std::string& get_name() const;
-    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr) const override;
+    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr, bool explicit_if_name) const override;
     std::string to_string() const override;
     friend bool operator<(const table& t1, const table& t2);
 };
@@ -98,7 +98,7 @@ class rule_table : public rule_box
     std::unique_ptr<table> m_table;
 public:
     rule_table(std::unique_ptr<table> t);
-    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr) const override;
+    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr, bool explicit_if_name) const override;
     std::string to_string() const override;
 };
 
@@ -118,7 +118,7 @@ class rule_table_ref : public rule_box
     const std::shared_ptr<const global_table_set> m_global_table_set;
 public:
     rule_table_ref(const std::string& table_name, const std::shared_ptr<const global_table_set>& global_table_set);
-    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr) const override;
+    const std::set<addr_storage>& get_addr_set(const std::string& if_name, const addr_storage& gaddr, bool explicit_if_name) const override;
     std::string to_string() const override;
 };
 
@@ -136,7 +136,7 @@ enum rb_interface_direction {
 
 enum rb_filter_type {
     //this values musst be different form mc_filter!!!
-    FT_BLACKLIST=100, FT_WHITELIST=101, FT_UNDEFINED=102
+    FT_BLACKLIST = 100, FT_WHITELIST = 101, FT_UNDEFINED = 102
 };
 
 std::string get_rb_filter_type_name(rb_filter_type ft);
@@ -192,18 +192,18 @@ class interface
     std::unique_ptr<rule_binding> m_output_filter;
     std::unique_ptr<rule_binding> m_input_filter;
     rb_filter_type get_filter_type(const std::unique_ptr<rule_binding>& filter) const;
-    const std::set<addr_storage>& get_saddr_set(const std::string& if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter) const;
-    bool is_source_allowed(const std::string& input_if_name, const addr_storage& gaddr, const addr_storage& saddr, const std::unique_ptr<rule_binding>& filter) const;
+    const std::set<addr_storage>& get_saddr_set(const std::string& if_name, const addr_storage& gaddr, const std::unique_ptr<rule_binding>& filter, bool explicit_if_name) const;
+    bool is_source_allowed(const std::string& input_if_name, const addr_storage& gaddr, const addr_storage& saddr, const std::unique_ptr<rule_binding>& filter, bool excplicit_if_name) const;
 
 public:
     interface(const std::string& if_name);
     std::string get_if_name() const;
-    
+
     rb_filter_type get_filter_type(rb_interface_direction direction) const;
-     
-    const std::set<addr_storage>& get_saddr_set(rb_interface_direction direction, const std::string& if_name, const addr_storage& gaddr) const;
-    
-    bool is_source_allowed(rb_interface_direction direction, const std::string& input_if_name, const addr_storage& gaddr, const addr_storage& saddr) const;
+
+    const std::set<addr_storage>& get_saddr_set(rb_interface_direction direction, const std::string& if_name, const addr_storage& gaddr, bool explicit_if_name = false) const;
+
+    bool is_source_allowed(rb_interface_direction direction, const std::string& input_if_name, const addr_storage& gaddr, const addr_storage& saddr, bool excplecit_if_name = false) const;
 
 
     std::string to_string_rule_binding() const;
@@ -218,7 +218,7 @@ class instance_definition
 {
     std::string m_instance_name;
     int m_table_number;
-    bool m_user_selected_table_number; 
+    bool m_user_selected_table_number;
     std::list<std::shared_ptr<interface>> m_upstreams;
     std::list<std::shared_ptr<interface>> m_downstreams;
 
@@ -232,7 +232,7 @@ public:
     const std::list<std::shared_ptr<interface>>& get_downstreams() const;
     const std::list<std::shared_ptr<rule_binding>>& get_global_settings() const;
     int get_table_number() const;
-    bool get_user_selected_table_number() const; 
+    bool get_user_selected_table_number() const;
     friend bool operator<(const instance_definition& i1, const instance_definition& i2);
     friend class parser;
     std::string to_string_instance() const;
