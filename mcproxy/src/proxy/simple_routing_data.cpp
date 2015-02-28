@@ -168,8 +168,7 @@ const std::map<addr_storage, unsigned int>& simple_routing_data::get_interface_m
     if(it != std::end(m_data)){
         return it->second.m_if_map; 
     }else{
-        static std::map<addr_storage, unsigned int> result;
-        result.clear();
+        const static std::map<addr_storage, unsigned int> result;
         return result; 
     }
 }

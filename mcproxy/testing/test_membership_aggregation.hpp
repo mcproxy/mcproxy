@@ -202,6 +202,18 @@ struct test_membership_aggregation {
 
         UT_SUMMARY;
     }
+
+
+    test_status test_mem_aggregation() {
+        HC_LOG_TRACE("");
+        UT_INITIALISATION;
+
+
+
+
+
+        UT_SUMMARY;
+    }
 };
 
 std::list<std::tuple<ut_test_fun, ut_effort>> test_membership_aggregation_functions()

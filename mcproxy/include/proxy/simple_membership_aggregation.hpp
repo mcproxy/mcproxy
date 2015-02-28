@@ -29,6 +29,7 @@
 struct source;
 struct interface_infos;
 class simple_routing_data;
+class querier;
 
 class test_status;
 
@@ -75,6 +76,8 @@ private:
     std::map<unsigned int, mem_source_state> m_data;
     
     source_list<source> get_source_list(const std::set<addr_storage>& addr_set);
+    filter_source_state get_source_filter(rb_interface_direction if_direction, const std::string & input_if_name, const std::shared_ptr<interface>& iface, const addr_storage& gaddr, bool explicit_if_name); 
+    mem_source_state get_mem_source_state(const std::unique_ptr<querier>& querier, const addr_storage & gaddr);
 
     filter_source_state& convert_wildcard_filter(filter_source_state& rb_filter) const;
 
