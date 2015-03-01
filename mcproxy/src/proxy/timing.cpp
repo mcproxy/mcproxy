@@ -27,12 +27,20 @@
 #include <iostream>
 #include <unistd.h>
 
-timing::timing():
-    m_running(false), m_thread(nullptr)
+timing::timing()
+    : m_running(false)
+    , m_thread(nullptr)
 {
     HC_LOG_TRACE("");
     start();
 }
+
+timing::timing(bool /*test_mode*/)
+    : m_running(false)
+    , m_thread(nullptr)
+{
+    HC_LOG_TRACE("");
+} 
 
 timing::~timing()
 {

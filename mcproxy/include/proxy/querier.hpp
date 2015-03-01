@@ -47,6 +47,7 @@ using callback_querier_state_change = std::function<void(unsigned int, const add
 class querier
 {
 private:
+    const bool m_in_debug_testing_mode;
     const worker* const m_msg_worker;
     const unsigned int m_if_index;
     membership_db m_db;
@@ -93,6 +94,10 @@ private:
     //call the callback function querier_state_change
     void state_change_notification(const addr_storage& gaddr);
 
+    //constructor for testing
+    querier(group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<timing>& timing, callback_querier_state_change cb_state_change);
+
+    friend struct test_membership_aggregation;
 public:
     virtual ~querier();
 
@@ -106,6 +111,7 @@ public:
      * @param cb_state_change Callback function to publish querier state change informations.
      */
     querier(const worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv, callback_querier_state_change cb_state_change);
+
 
     /**
      * @brief All received group records of the interface maintained by this querier musst be submitted to this function. 

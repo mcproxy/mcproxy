@@ -366,10 +366,7 @@ pinstance pinst downstream ifa in blacklist table {asdf(*| 5.5.5.5)}; \n \
         "
                                 };
 
-        configuration c;
-        c.m_cmds = c.separate_commands(c.delete_comments(std::move(test_conf)));
-        c.run_parser();
-        //std::cout << std::endl <<c.to_string() << std::endl;
+        configuration c(std::move(test_conf));
         UT_CHECK(c.get_group_mem_protocol() == IGMPv3);
 
         auto inst_def_set = c.get_inst_def_set();

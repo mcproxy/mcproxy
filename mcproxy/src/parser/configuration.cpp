@@ -39,10 +39,19 @@ configuration::configuration(const std::string& path, bool reset_reverse_path_fi
     initalize_interfaces();
 }
 
-configuration::configuration() 
+configuration::configuration(std::string&& test_configuration)
     : m_gmp(IGMPv3) //default setting
     , m_global_table_set(std::make_shared<global_table_set>())
-{}
+{
+    HC_LOG_TRACE("");
+    m_cmds = separate_commands(delete_comments(std::move(test_configuration)));
+    run_parser();
+
+}
+
+configuration::configuration()
+{
+}
 
 // trim from start
 inline std::string& ltrim(std::string& s)

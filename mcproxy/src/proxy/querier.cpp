@@ -36,7 +36,8 @@
 #include <sstream>
 
 querier::querier(const worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv, callback_querier_state_change cb_state_change)
-    : m_msg_worker(msg_worker)
+    : m_in_debug_testing_mode(false)
+    , m_msg_worker(msg_worker)
     , m_if_index(if_index)
     , m_db(querier_version_mode)
     , m_timers_values(tv)
@@ -57,6 +58,20 @@ querier::querier(const worker* msg_worker, group_mem_protocol querier_version_mo
         throw "failed to initialise query startup";
     }
 }
+
+querier::querier(group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<timing>& timing, callback_querier_state_change cb_state_change)
+    : m_in_debug_testing_mode(true)
+    , m_msg_worker(nullptr)
+    , m_if_index(if_index)
+    , m_db(querier_version_mode)
+    , m_timers_values(timers_values())
+    , m_cb_state_change(cb_state_change)
+    , m_sender(nullptr)
+    , m_timing(timing)
+{
+    HC_LOG_TRACE("");
+}
+
 
 //unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist
 
@@ -147,8 +162,8 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
     if (db_info_it->second.is_in_backward_compatibility_mode()) {
         if (gr->get_record_type() == CHANGE_TO_EXCLUDE_MODE) {
             gr->get_slist() = {};
-        } else if (gr->get_record_type() == BLOCK_OLD_SOURCES){
-            return;     
+        } else if (gr->get_record_type() == BLOCK_OLD_SOURCES) {
+            return;
         }
     }
 
@@ -781,7 +796,9 @@ void querier::state_change_notification(const addr_storage& gaddr)
 querier::~querier()
 {
     HC_LOG_TRACE("");
-    router_groups_function(false);
+    if (!m_in_debug_testing_mode) {
+        router_groups_function(false);
+    }
 }
 
 timers_values& querier::get_timers_values()

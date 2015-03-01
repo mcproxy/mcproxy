@@ -56,7 +56,7 @@ class timing
 {
 private:
     timing_db m_db;
-
+    
     bool m_running;
     std::unique_ptr<std::thread> m_thread;
     void worker_thread();
@@ -73,6 +73,9 @@ private:
     timing& operator=(const timing&) = delete;
     timing& operator=(const timing&&) = delete;
 
+    //constructor for testing
+    timing(bool in_debug_testing_mode);  
+    friend struct test_membership_aggregation; 
 public:
     timing();
 
@@ -82,13 +85,13 @@ public:
      * @param proxy_instance* pointer to the owner of the reminder
      * @param pr_msg message of the reminder
      */
-    void add_time(std::chrono::milliseconds delay, const worker* msg_worker, const std::shared_ptr<proxy_msg>& pr_msg);
+    virtual void add_time(std::chrono::milliseconds delay, const worker* msg_worker, const std::shared_ptr<proxy_msg>& pr_msg);
 
     /**
      * @brief Delete all reminder from a specific proxy instance.
      * @param proxy_instance* pointer to the specific proxy instance
      */
-    void stop_all_time(const worker* msg_worker);
+    virtual void stop_all_time(const worker* msg_worker);
 
     virtual ~timing();
     

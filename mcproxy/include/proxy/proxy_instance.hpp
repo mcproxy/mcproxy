@@ -76,8 +76,7 @@ struct interface_infos {
     interface_infos(const std::string& instance_name);
     std::set<upstream_infos> m_upstreams;
 
-    //if_indexes of the downstreams, querie
-    //std::map<unsigned int, std::unique_ptr<querier>> m_querier;
+    //if_indexes of the downstreams, querier
     std::map<unsigned int, downstream_infos> m_downstreams;
 
     std::shared_ptr<rule_binding> m_upstream_input_rule;

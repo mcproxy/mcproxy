@@ -55,12 +55,17 @@ private:
     std::map<std::string, std::shared_ptr<interfaces>> m_interfaces_map;
 
     configuration();
+    configuration(std::string&& test_configuration);
 
+    friend struct test_membership_aggregation; 
     friend struct test_parser;
 public:
     configuration(const std::string& path, bool reset_reverse_path_filter);
 
+
     const std::shared_ptr<const interfaces> get_interfaces_for_pinstance(const std::string& instance_name) const;
+
+
     group_mem_protocol get_group_mem_protocol() const;
     const inst_def_set& get_inst_def_set() const;
 

@@ -39,19 +39,17 @@ unsigned long simple_routing_data::get_current_packet_count(const addr_storage& 
 
     if (is_IPv4(m_group_mem_protocol)) {
         struct sioc_sg_req tmp_stat;
-        if (m_mrt_sock->get_mroute_stats(saddr, gaddr, &tmp_stat, nullptr)) {
+        if (m_mrt_sock != nullptr && m_mrt_sock->get_mroute_stats(saddr, gaddr, &tmp_stat, nullptr)) {
             return tmp_stat.pktcnt;
         } else {
-            //return true really??????????????????
-            return true;
+            return 0;
         }
     } else if (is_IPv6(m_group_mem_protocol)) {
         struct sioc_sg_req6 tmp_stat;
-        if (m_mrt_sock->get_mroute_stats(saddr, gaddr, nullptr, &tmp_stat)) {
+        if (m_mrt_sock != nullptr && m_mrt_sock->get_mroute_stats(saddr, gaddr, nullptr, &tmp_stat)) {
             return tmp_stat.pktcnt;
         } else {
-            //return true really??????????????????
-            return true;
+            return 0;
         }
     } else {
         HC_LOG_ERROR("unknown IP version");
