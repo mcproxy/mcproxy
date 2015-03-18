@@ -215,6 +215,7 @@ const table* global_table_set::get_table(const std::string& table_name) const
     if (it != std::end(m_table_set)) {
         return it->get();
     } else {
+        HC_LOG_ERROR("Table " <<  table_name << " not found.");
         return nullptr;
     }
 }
@@ -272,6 +273,11 @@ std::string get_rb_filter_type_name(rb_filter_type ft)
         {FT_UNDEFINED, "UNDEFINED"}
     };
     return name_map[ft];
+}
+
+rule_binding::~rule_binding()
+{
+    HC_LOG_TRACE("");
 }
 
 rule_binding::rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table)
@@ -450,6 +456,11 @@ interface::interface(const std::string& if_name)
     : m_if_name(if_name)
     , m_output_filter(nullptr)
     , m_input_filter(nullptr)
+{
+    HC_LOG_TRACE("");
+}
+
+interface::~interface()
 {
     HC_LOG_TRACE("");
 }

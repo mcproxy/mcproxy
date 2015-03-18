@@ -59,7 +59,7 @@ private:
 
 public:
     interfaces(int addr_family, bool reset_reverse_path_filter);
-    ~interfaces();
+    virtual ~interfaces();
 
     bool refresh_network_interfaces();
 

@@ -51,6 +51,12 @@ configuration::configuration(std::string&& test_configuration)
 
 configuration::configuration()
 {
+    HC_LOG_TRACE("");
+}
+
+configuration::~configuration()
+{
+    HC_LOG_TRACE("");
 }
 
 // trim from start

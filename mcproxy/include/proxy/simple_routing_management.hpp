@@ -79,6 +79,7 @@ private:
     void process_membership_aggregation(rb_rule_matching_type rule_matching_type, const addr_storage& gaddr);
 
 public:
+    virtual ~simple_routing_management();
     simple_routing_management(const worker* msg_worker, group_mem_protocol group_mem_protocol, const std::shared_ptr<const mroute_socket>& mrt_sock, const std::shared_ptr<const sender>& sender, const std::shared_ptr<const routing>& routing, const std::shared_ptr<timing>& timing, const std::shared_ptr<const interface_infos>& interface_infos, const std::shared_ptr<const interfaces> interfaces);
 
     void event_new_source(const std::shared_ptr<proxy_msg>& msg) override;

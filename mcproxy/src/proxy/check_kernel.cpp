@@ -30,6 +30,12 @@
 #include <unistd.h>
 #include <netinet/in.h>
 
+
+check_kernel::~check_kernel()
+{
+    HC_LOG_TRACE("");
+}
+
 void check_kernel::check_kernel_features()
 {
     using namespace std;

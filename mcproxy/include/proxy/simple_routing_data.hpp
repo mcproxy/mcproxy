@@ -60,6 +60,7 @@ private:
     unsigned long get_current_packet_count(const addr_storage& gaddr, const addr_storage& saddr);
 
 public:
+    virtual ~simple_routing_data();
     simple_routing_data(group_mem_protocol group_mem_protocol, const std::shared_ptr<const mroute_socket>& mrt_sock);
 
     void set_source(unsigned int if_index, const addr_storage& gaddr, const source& saddr);

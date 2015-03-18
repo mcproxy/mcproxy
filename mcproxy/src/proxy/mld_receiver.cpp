@@ -49,6 +49,11 @@ mld_receiver::mld_receiver(proxy_instance* pr_i, const std::shared_ptr<const mro
     start();
 }
 
+mld_receiver::~mld_receiver()
+{
+    HC_LOG_TRACE("");
+}
+
 int mld_receiver::get_iov_min_size()
 {
     HC_LOG_TRACE("");

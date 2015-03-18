@@ -32,6 +32,11 @@ check_if::check_if()
     HC_LOG_TRACE("");
 }
 
+check_if::~check_if()
+{
+    HC_LOG_TRACE("");
+}
+
 std::vector<int> check_if::init(std::vector<int>& check_lst, int addr_family)
 {
     HC_LOG_TRACE("");

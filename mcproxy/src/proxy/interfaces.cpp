@@ -50,7 +50,6 @@ interfaces::interfaces(int addr_family, bool reset_reverse_path_filter)
 interfaces::~interfaces()
 {
     HC_LOG_TRACE("");
-
 }
 
 bool interfaces::add_interface(const std::string& if_name)

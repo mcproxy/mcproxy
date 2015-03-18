@@ -203,23 +203,32 @@ struct test_membership_aggregation {
         UT_CHECK(check_disjoin_group_memberships(in_a, in_b, mss(INCLUDE_MODE, sl {s2})));
         UT_CHECK(check_disjoin_group_memberships(in_a, ex_b, mss(INCLUDE_MODE, sl {s1})));
         UT_CHECK(check_disjoin_group_memberships(ex_a, in_b, mss(EXCLUDE_MODE, sl {s1, s2, s3})));
-        UT_CHECK(check_disjoin_group_memberships(ex_a, ex_b, mss(INCLUDE_MODE, sl {s2})));
+        UT_CHECK(check_disjoin_group_memberships(ex_a, ex_b, mss(INCLUDE_MODE, sl {s3})));
 
         UT_SUMMARY;
     }
 
-    simple_membership_aggregation get_simple_membership_aggregation_mockup(std::string&& test_conf, std::shared_ptr<group_record_msg> grecord_for_qd4, std::shared_ptr<group_record_msg> grecord_for_qd5, const addr_storage& gaddr, group_mem_protocol gmp, std::list <std::pair<unsigned int, addr_storage>> routing_data) {
+    simple_membership_aggregation get_simple_membership_aggregation_mockup(std::string&& test_conf, std::shared_ptr<group_record_msg> grecord_for_qd4, std::shared_ptr<group_record_msg> grecord_for_qd5, std::shared_ptr<group_record_msg> grecord_for_qd6, const addr_storage& gaddr, group_mem_protocol gmp, std::list <std::pair<unsigned int, addr_storage>> routing_data) {
+        HC_LOG_TRACE("");
+        UT_INITIALISATION;
+
         std::string test_conf_basic = {" \
 protocol IGMPv3; \n \
-pinstance pinst: u1 u2 u3 ==> d4 d5; \n \
-#interface index: 1  2  3 ==>  4  5 \n \
+pinstance pinst: u1 u2 u3 ==> d4 d5 d6; \n \
+#interface index: 1  2  3 ==>  4  5  6  \n \
 #interface prio:  1  2  3 ==> ...   \n \
 "
                                       };
         test_conf_basic += test_conf;
+        std::string tmp_config = test_conf_basic;
+        std::unique_ptr<configuration> c;
+        try {
+            c = std::unique_ptr<configuration>(new configuration(std::move(test_conf_basic)));
+        } catch (const char* e) {
+            UT_FAIL("Incorrect configuration(see logfile for detailed info): " << std::endl << tmp_config);
+        }
 
-        configuration c(std::move(test_conf_basic));
-        auto inst_def_set = c.get_inst_def_set();
+        auto inst_def_set = c->get_inst_def_set();
         auto pinstance = *(inst_def_set.begin());
 
         auto upstreams = pinstance->get_upstreams();
@@ -256,6 +265,9 @@ pinstance pinst: u1 u2 u3 ==> d4 d5; \n \
         std::unique_ptr<querier> qd5(new querier(IGMPv3, 5, dtiming, [](unsigned int, const addr_storage&) {}));
         qd5->receive_record(grecord_for_qd5);
         ii->m_downstreams.insert(std::make_pair(5, downstream_infos(std::move(qd5), *(++downstreams.begin()))));
+        std::unique_ptr<querier> qd6(new querier(IGMPv3, 6, dtiming, [](unsigned int, const addr_storage&) {}));
+        qd6->receive_record(grecord_for_qd6);
+        ii->m_downstreams.insert(std::make_pair(6, downstream_infos(std::move(qd6), *(++(++downstreams.begin())))));
 
         if (global_settings.size() >= 1) {
             auto gs_it1 = global_settings.begin();
@@ -295,7 +307,7 @@ pinstance pinst: u1 u2 u3 ==> d4 d5; \n \
 
         std::string test_conf = {" \
 #protocol IGMPv3; DO NOT USE!!! \n \
-#pinstance pinst: u1 u2 u3 ==> d4 d5; DO NOT USE!!! \n \
+#pinstance pinst: u1 u2 u3 ==> d4 d5 d6; DO NOT USE!!! \n \
 \n \
 pinstance pinst upstream * in rulematching mutex 10; \n \
 pinstance pinst upstream * out rulematching first; \n \
@@ -318,12 +330,13 @@ pinstance pinst downstream d5 out whitelist table {(*|*)}; \n \
                                 };
 
         source_list<source> slist_d4 {addr_storage("1.1.1.1")};
-        mcast_addr_record_type mode_d4 = MODE_IS_INCLUDE;
-        auto grecord_for_qd4 = std::make_shared<group_record_msg>(4, mode_d4, gaddr, std::move(slist_d4), gmp);
+        auto grecord_for_qd4 = std::make_shared<group_record_msg>(4, MODE_IS_INCLUDE, gaddr, std::move(slist_d4), gmp);
 
         source_list<source> slist_d5 {addr_storage("2.2.2.2")};
-        mcast_addr_record_type mode_d5 = MODE_IS_EXCLUDE;
-        auto grecord_for_qd5 = std::make_shared<group_record_msg>(5, mode_d5, gaddr, std::move(slist_d5), gmp);
+        auto grecord_for_qd5 = std::make_shared<group_record_msg>(5, MODE_IS_EXCLUDE, gaddr, std::move(slist_d5), gmp);
+
+        source_list<source> slist_d6 {addr_storage("3.3.3.3")};
+        auto grecord_for_qd6 = std::make_shared<group_record_msg>(6, MODE_IS_EXCLUDE, gaddr, std::move(slist_d6), gmp);
 
         std::list < std::pair<unsigned int, addr_storage>> routing_data {
             std::make_pair<unsigned int, addr_storage>(1, addr_storage("3.3.3.3")),
@@ -331,15 +344,15 @@ pinstance pinst downstream d5 out whitelist table {(*|*)}; \n \
             std::make_pair<unsigned int, addr_storage>(2, addr_storage("5.5.5.5"))
         };
 
-        auto sma = get_simple_membership_aggregation_mockup(std::move(test_conf), grecord_for_qd4, grecord_for_qd5, gaddr, gmp, routing_data);
+        auto sma = get_simple_membership_aggregation_mockup(std::move(test_conf), grecord_for_qd4, grecord_for_qd5, grecord_for_qd6, gaddr, gmp, routing_data);
 
-        UT_CHECK(sma.m_routing_data->get_available_sources(gaddr) == (source_list<source>{addr_storage("3.3.3.3"), addr_storage("4.4.4.4"), addr_storage("5.5.5.5")}));
+        UT_CHECK(sma.m_routing_data->get_available_sources(gaddr) == (source_list<source> {addr_storage("3.3.3.3"), addr_storage("4.4.4.4"), addr_storage("5.5.5.5")}));
 
         UT_CHECK(sma.m_group_mem_protocol == IGMPv3);
 
         auto& if_infos = sma.m_ii;
         UT_CHECK(if_infos->m_upstreams.size() == 3);
-        UT_CHECK(if_infos->m_downstreams.size() == 2);
+        UT_CHECK(if_infos->m_downstreams.size() == 3);
 
         UT_CHECK(if_infos->m_upstream_input_rule->get_rule_binding_type() == RBT_RULE_MATCHING);
         UT_CHECK(if_infos->m_upstream_input_rule->get_interface_direction() == ID_IN);
@@ -372,9 +385,11 @@ pinstance pinst downstream d5 out whitelist table {(*|*)}; \n \
 
         auto& d4 = *(if_infos->m_downstreams.begin());
         auto& d5 = *(++if_infos->m_downstreams.begin());
+        auto& d6 = *(++(++if_infos->m_downstreams.begin()));
 
         UT_CHECK(d4.second.m_interface->get_if_name().compare("d4") == 0);
         UT_CHECK(d5.second.m_interface->get_if_name().compare("d5") == 0);
+        UT_CHECK(d6.second.m_interface->get_if_name().compare("d6") == 0);
 
         UT_CHECK(d4.second.m_interface->get_filter_type(ID_IN) == FT_WHITELIST);
         UT_CHECK(d4.second.m_interface->get_filter_type(ID_OUT) == FT_BLACKLIST);
@@ -382,52 +397,223 @@ pinstance pinst downstream d5 out whitelist table {(*|*)}; \n \
         UT_CHECK(d5.second.m_interface->get_filter_type(ID_IN) == FT_BLACKLIST);
         UT_CHECK(d5.second.m_interface->get_filter_type(ID_OUT) == FT_WHITELIST);
 
+        UT_CHECK(d6.second.m_interface->get_filter_type(ID_IN) == FT_BLACKLIST);
+        UT_CHECK(d6.second.m_interface->get_filter_type(ID_OUT) == FT_BLACKLIST);
+
         UT_CHECK(d4.second.m_querier->get_group_membership_infos(gaddr).first == INCLUDE_MODE);
         UT_CHECK(d4.second.m_querier->get_group_membership_infos(gaddr).second == source_list<source> {addr_storage("1.1.1.1")});
 
         UT_CHECK(d5.second.m_querier->get_group_membership_infos(gaddr).first == EXCLUDE_MODE);
         UT_CHECK(d5.second.m_querier->get_group_membership_infos(gaddr).second == source_list<source> {addr_storage("2.2.2.2")});
 
+        UT_CHECK(d6.second.m_querier->get_group_membership_infos(gaddr).first == EXCLUDE_MODE);
+        UT_CHECK(d6.second.m_querier->get_group_membership_infos(gaddr).second == source_list<source> {addr_storage("3.3.3.3")});
+
         UT_SUMMARY;
     }
 
 
-    test_status test_first_mutex_aggregation() {
+    test_status test_simple_membership_aggregation_first_whitelist() {
         HC_LOG_TRACE("");
         UT_INITIALISATION;
 
         addr_storage gaddr("239.99.99.99");
         group_mem_protocol gmp = IGMPv3;
 
+        using slist = source_list<source>;
+        using addr = addr_storage;
+
         std::string test_conf = {" \
 #protocol IGMPv3; DO NOT USE!!! \n \
-#pinstance pinst: u1 u2 u3 ==> d4 d5; DO NOT USE!!! \n \
-\n \
-\n \
-#table random_stuff { \n \
-#   yyy(239.1.1.1| 1.1.1.1) \n \
-#}; \n \
-\n \
+#pinstance pinst: u1 u2 u3 ==> d4 d5 d6; DO NOT USE!!! \n \
+#interface index: 1  2  3 ==>  4  5  6 \n \
+#interface prio:  1  2  3 ==> ...      \n \
+ \n \
+table tu1 { \n \
+    (239.99.99.99 | 4.4.4.4) #(a) \n \
+    (239.99.99.99 | 16.16.16.16) #(b) \n \
+}; \n \
+ \n \
+table tu2 { \n \
+    u2 (239.99.99.99 | 5.5.5.5) #(a) \n \
+    (239.99.99.99 | 14.14.14.14) #(b) \n \
+    (239.99.99.99 | 15.15.15.15) #(b) \n \
+}; \n \
+ \n \
+table tu3 { \n \
+#   (239.99.99.99 | 6.6.6.6) #a) block 6.6.6.6 \n \
+    (239.99.99.99 | 17.17.17.17) #(b) \n \
+    (239.99.99.99 | 24.24.24.24) #(c) \n \
+}; \n \
+ \n \
+table td4 { \n \
+    u1 (239.99.99.99 | 4.4.4.4) #(a) \n \
+    (239.99.99.99 | 14.14.14.14) #(b) \n \
+    (239.99.99.99 | 24.24.24.24) #(c) \n \
+    (239.99.99.99 | 25.25.25.25) #(c) \n \
+}; \n \
+ \n \
+table td5 { \n \
+    u2 (239.99.99.99 | 5.5.5.5) #(a) \n \
+    (239.99.99.99 | 15.15.15.15) #(b) \n \
+}; \n \
+ \n \
+table td6 { \n \
+   u3 (239.99.99.99 | 6.6.6.6) #(a) \n \
+    (239.99.99.99 | 16.16.16.16) #(b) \n \
+    (239.99.99.99 | 17.17.17.17) #(b) \n \
+}; \n \
+ \n \
+ \n \
 pinstance pinst upstream * in rulematching first; \n \
-\n \
-#pinstance pinst upstream ifa in blacklist table allx; \n \
-#pinstance pinst upstream ifa out whitelist table {(table random_stuff) (table allx)}; \n \
-#pinstance pinst downstream ifa in blacklist table {asdf(*| 5.5.5.5)}; \n \
+ \n \
+pinstance pinst upstream u1 in whitelist table tu1; \n \
+pinstance pinst upstream u2 in whitelist table tu2; \n \
+pinstance pinst upstream u3 in whitelist table tu3; \n \
+ \n \
+pinstance pinst downstream d4 out whitelist table td4; \n \
+pinstance pinst downstream d5 out whitelist table td5; \n \
+pinstance pinst downstream d6 out whitelist table td6; \n \
+ \n \
+#Scenario: \n \
+#       (a)                    (b)                     (c) \n \
+#       +-----------------+    +-----------------+     +-----------------+ \n \
+#       | 1      2      3 |    | 1      2      3 |     | 1      2      3 | \n \
+#       | ^      ^      ^ |    | ^    ^ ^      ^ |     |              ^  | \n \
+#       | |      |      | |    | |   /  |      | |     |             / x | \n \
+#       | |      |      | |    | +--+---+----+ | |     |   ---------- /  | \n \
+#       | |      |      | |    |   /    |    | | |     |  / ----------   | \n \
+#       | 4      5      6 |    | 4      5      6 |     | 4      5      6 | \n \
+#       +-----------------+    +-----------------+     +-----------------+ \n \
+#Addr:    4      5      5       14     15    16/17     24/25 \n \
+#        in     in     in       in     in     in        in  \n \
         "
                                 };
 
-        source_list<source> slist_d4 {addr_storage("1.1.1.1")};
-        mcast_addr_record_type mode_d4 = MODE_IS_INCLUDE;
-        auto grecord_for_qd4 = std::make_shared<group_record_msg>(4, mode_d4, gaddr, std::move(slist_d4), gmp );
+        slist slist_d4 {addr("4.4.4.4"), addr("14.14.14.14"), addr("24.24.24.24"), addr("25.25.25.25")};
+        auto grecord_for_qd4 = std::make_shared<group_record_msg>(4, MODE_IS_INCLUDE, gaddr, std::move(slist_d4), gmp);
 
-        source_list<source> slist_d5 {addr_storage("2.2.2.2")};
-        mcast_addr_record_type mode_d5 = MODE_IS_EXCLUDE;
-        auto grecord_for_qd5 = std::make_shared<group_record_msg>(5, mode_d5, gaddr, std::move(slist_d5), gmp );
+        slist slist_d5 {addr("5.5.5.5"), addr("15.15.15.15")};
+        auto grecord_for_qd5 = std::make_shared<group_record_msg>(5, MODE_IS_INCLUDE, gaddr, std::move(slist_d5), gmp);
 
-        //auto sma = get_simple_membership_aggregation_mockup(std::move(test_conf), grecord_for_qd4, grecord_for_qd5, gaddr, gmp);
+        slist slist_d6 {addr("6.6.6.6"), addr("16.16.16.16"), addr("17.17.17.17")};
+        auto grecord_for_qd6 = std::make_shared<group_record_msg>(6, MODE_IS_INCLUDE, gaddr, std::move(slist_d6), gmp);
+
+        std::list < std::pair<unsigned int, addr_storage>> routing_data;
+
+        auto sma = get_simple_membership_aggregation_mockup(std::move(test_conf), grecord_for_qd4, grecord_for_qd5, grecord_for_qd6, gaddr, gmp, routing_data);
+
+        auto gmem_u1 = sma.get_group_memberships(1);
+        auto gmem_u2 = sma.get_group_memberships(2);
+        auto gmem_u3 = sma.get_group_memberships(3);
+  
+        UT_CHECK(gmem_u1.first == INCLUDE_MODE); 
+        UT_CHECK(gmem_u1.second == (slist{addr("4.4.4.4"), addr("16.16.16.16")})); 
+
+        UT_CHECK(gmem_u2.first == INCLUDE_MODE); 
+        UT_CHECK(gmem_u2.second == (slist{addr("5.5.5.5"), addr("14.14.14.14"), addr("15.15.15.15")})); 
+
+        UT_CHECK(gmem_u3.first == INCLUDE_MODE); 
+        UT_CHECK(gmem_u3.second == (slist{addr("17.17.17.17"), addr("24.24.24.24")})); 
+
         UT_SUMMARY;
     }
 
+    test_status test_simple_membership_aggregation_first_blacklist() {
+        HC_LOG_TRACE("");
+        UT_INITIALISATION;
+
+        addr_storage gaddr("239.99.99.99");
+        group_mem_protocol gmp = IGMPv3;
+
+        using slist = source_list<source>;
+        using addr = addr_storage;
+
+        std::string test_conf = {" \
+#protocol IGMPv3; DO NOT USE!!! \n \
+#pinstance pinst: u1 u2 u3 ==> d4 d5 d6; DO NOT USE!!! \n \
+#interface index: 1  2  3 ==>  4  5  6 \n \
+#interface prio:  1  2  3 ==> ...      \n \
+ \n \
+table tu1 { \n \
+    (239.99.99.70 - 239.99.99.110 | 5.5.5.5)  #(b) \n \
+    (239.99.99.99 | 6.6.6.6) #(b) \n \
+    (239.99.99.99 | 7.7.7.7) #(c) \n \
+    (239.99.99.99 | 8.8.8.8) #(d) \n \
+    (239.99.99.99 | 9.9.9.9) #(d) \n \
+    (239.99.99.99 | 10.10.10.10) #(d) \n \
+}; \n \
+ \n \
+table tu2 { \n \
+    (239.99.99.99 | 6.6.6.6) #(b) \n \
+#    (239.99.99.99 | 7.7.7.7) #(c) allready blocked in (a) \n \
+    (239.99.99.99 | 9.9.9.9) #(d) \n \
+}; \n \
+ \n \
+table tu3 { \n \
+#    (239.99.99.99 | 9.9.9.9) #(d) allready blocked in (a) \n \
+}; \n \
+ \n \
+ \n \
+table td4 { \n \
+    u2 ( * | * ) #(a) \n \
+}; \n \
+ \n \
+table td5 { \n \
+    (239.99.99.99 | 10.10.10.10) #(d) \n \
+     \n \
+}; \n \
+ \n \
+table td6 { \n \
+    u3 ( 239.99.99.0/24 | * ) #(a) \n \
+}; \n \
+ \n \
+pinstance pinst upstream * in rulematching first; \n \
+ \n \
+pinstance pinst upstream u1 in blacklist table tu1; \n \
+pinstance pinst upstream u2 in blacklist table tu2; \n \
+pinstance pinst upstream u3 in blacklist table tu3; \n \
+ \n \
+pinstance pinst downstream d4 out blacklist table td4; \n \
+pinstance pinst downstream d5 out blacklist table td5; \n \
+pinstance pinst downstream d6 out blacklist table td6; \n \
+        "
+                                };
+
+        slist slist_d4 {addr("4.4.4.4"), addr("7.7.7.7")};
+        auto grecord_for_qd4 = std::make_shared<group_record_msg>(4, MODE_IS_EXCLUDE, gaddr, std::move(slist_d4), gmp);
+
+        slist slist_d5 {addr("5.5.5.5"), addr("7.7.7.7"), addr("8.8.8.8"), addr("10.10.10.10")};
+        auto grecord_for_qd5 = std::make_shared<group_record_msg>(5, MODE_IS_INCLUDE, gaddr, std::move(slist_d5), gmp);
+
+        slist slist_d6 {addr("6.6.6.6"), addr("9.9.9.9")};
+        auto grecord_for_qd6 = std::make_shared<group_record_msg>(6, MODE_IS_EXCLUDE, gaddr, std::move(slist_d6), gmp);
+
+        std::list < std::pair<unsigned int, addr_storage>> routing_data;
+
+        std::cout << std::endl << "##########Start################"  << std::endl;
+        auto sma = get_simple_membership_aggregation_mockup(std::move(test_conf), grecord_for_qd4, grecord_for_qd5, grecord_for_qd6, gaddr, gmp, routing_data);
+
+        auto gmem_u1 = sma.get_group_memberships(1);
+        auto gmem_u2 = sma.get_group_memberships(2);
+        auto gmem_u3 = sma.get_group_memberships(3);
+  
+        UT_CHECK(gmem_u1.first == EXCLUDE_MODE); 
+        UT_CHECK(gmem_u1.second == (slist{addr("4.4.4.4"), addr("5.5.5.5"), addr("6.6.6.6"), addr("7.7.7.7"), addr("8.8.8.8"), addr("9.9.9.9"), addr("10.10.10.10")})); 
+        std::cout << "gmem_u1: " << gmem_u1.second << std::endl;
+        
+
+        UT_CHECK(gmem_u2.first == INCLUDE_MODE); 
+        UT_CHECK(gmem_u2.second == (slist{addr("5.5.5.5"), addr("8.8.8.8")})); 
+        std::cout << "gmem_u2: " << gmem_u2.second << std::endl;
+
+
+        UT_CHECK(gmem_u3.first == INCLUDE_MODE); 
+        UT_CHECK(gmem_u3.second == (slist{addr("7.7.7.7")})); 
+        std::cout << "gmem_u3:" << gmem_u3.second << std::endl;
+
+        UT_SUMMARY;
+    }
 
 
 };
@@ -443,10 +629,13 @@ std::list<std::tuple<ut_test_fun, ut_effort>> test_membership_aggregation_functi
         }, 1),
         std::make_tuple([&p]() {
             return p.test_simple_membership_aggregation_mockup();
+        }, 1),
+        std::make_tuple([&p]() {
+            return p.test_simple_membership_aggregation_first_whitelist();
+        }, 1),
+        std::make_tuple([&p]() {
+            return p.test_simple_membership_aggregation_first_blacklist();
         }, 1)
-        //std::make_tuple([&p]() {
-        //return p.test_first_mutex_aggregation();
-        //}, 1)
     };
 }
 

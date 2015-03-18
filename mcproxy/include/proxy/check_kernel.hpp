@@ -41,6 +41,8 @@ private:
     void check_routing_tables(mroute_socket& ms, std::string version);
     void check_kernel_limits(mroute_socket& ms, std::string version);
 public:
+    virtual ~check_kernel();
+
     /**
      * @brief Check the currently available kernel features.
      */

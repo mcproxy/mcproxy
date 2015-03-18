@@ -50,6 +50,11 @@ simple_routing_management::simple_routing_management(const worker* msg_worker, g
     HC_LOG_TRACE("");
 }
 
+simple_routing_management::~simple_routing_management()
+{
+    HC_LOG_TRACE("");
+}
+
 std::chrono::seconds simple_routing_management::get_source_life_time()
 {
     HC_LOG_TRACE("");

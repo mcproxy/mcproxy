@@ -74,4 +74,4 @@ EX{s1,s2} merge with BL{s2-s4,s6} = EX{s1-s4,s6}, R(IN{s3,s4,s6})     EX{A + B},
 IN{s1,s2} without IN{s1,s3} = IN{s2}              IN{A - B}
 IN{s1,s2} without EX{s1,s3} = IN{s1}              IN{A * B}
 EX{s1,s2} without IN{s1,s3} = EX{s1,s2,s3}        EX{A + B}
-EX{s1,s2} without EX{s1,s3} = IN{s2}              In{A - B}
+EX{s1,s2} without EX{s1,s3} = IN{s3}              In{B - A}

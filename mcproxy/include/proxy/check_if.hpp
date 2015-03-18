@@ -48,6 +48,7 @@ private:
     std::vector<int> m_swap_to_down;
 
 public:
+    virtual ~check_if();
 
     /**
      * @brief Create a check_if instance.

@@ -166,6 +166,7 @@ private:
     std::string to_string_rule_matching() const;
 
 public:
+    virtual ~rule_binding();
     rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_filter_type filter_type, std::unique_ptr<table> filter_table);
     rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, const std::chrono::milliseconds& timeout);
 
@@ -196,6 +197,7 @@ class interface
     bool is_source_allowed(const std::string& input_if_name, const addr_storage& gaddr, const addr_storage& saddr, const std::unique_ptr<rule_binding>& filter, bool excplicit_if_name) const;
 
 public:
+    virtual ~interface();
     interface(const std::string& if_name);
     std::string get_if_name() const;
 

@@ -46,6 +46,7 @@ private:
     void analyse_packet(struct msghdr* msg, int info_size) override;
 
 public:
+    virtual ~mld_receiver();
     mld_receiver(proxy_instance* pr_i, std::shared_ptr<const mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode);
 };
 

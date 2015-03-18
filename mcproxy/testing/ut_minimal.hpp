@@ -90,36 +90,37 @@ public:
     }
 };
 
-#define UT_CHECK(expression) (expression) \
-    ? ut_test_status__.inrement_test_counter() \
-    : report_error(ut_test_status__, "CHECK FAILED", #expression, __FILE__, __LINE__, false);
+#define REPORT_ERROR(ts, fun, msg, file, line, stop_testing)                                                       \
+    {                                                                                                              \
+        ts.inrement_error_counter();                                                                               \
+        ts.inrement_test_counter();                                                                                \
+                                                                                                                   \
+        char vt100_clearline[] = { 27, '[' , '2', 'K', '\0'};                                                      \
+        std::cout << vt100_clearline << "\r" << fun << " " << file << "(" << line << "): " << msg << std::endl;    \
+                                                                                                                   \
+        if (stop_testing) {                                                                                        \
+            throw unit_test_error(ts);                                                                             \
+        }                                                                                                          \
+    } 
 
-#define UT_REQUIRE(expression) (expression) \
-    ? ut_test_status__.inrement_test_counter() \
-    : report_error(ut_test_status__, "REQUIRE FAILED", #expression, __FILE__, __LINE__, true);
+
+#define UT_CHECK(expression) if (expression) { \
+    ut_test_status__.inrement_test_counter();  \
+    } else REPORT_ERROR(ut_test_status__, "CHECK FAILED", #expression, __FILE__, __LINE__, false)
+
+#define UT_REQUIRE(expression) if (expression) { \
+    ut_test_status__.inrement_test_counter();    \
+    } else REPORT_ERROR(ut_test_status__, "CHECK FAILED", #expression, __FILE__, __LINE__, true)
 
 #define UT_ERROR(message) \
-    report_error(ut_test_status__, "ERROR", #message, __FILE__, __LINE__, false);
+    REPORT_ERROR(ut_test_status__, "ERROR", message, __FILE__, __LINE__, false)
 
 #define UT_FAIL(message) \
-    report_error(ut_test_status__, "FAILED", #message, __FILE__, __LINE__, true);
+    REPORT_ERROR(ut_test_status__, "FAILED", message, __FILE__, __LINE__, true)
 
 
 #define UT_INITIALISATION test_status ut_test_status__(std::string(__FUNCTION__));
 #define UT_SUMMARY return ut_test_status__ ;
-
-inline void report_error(test_status& ts, std::string&& fun, std::string&& msg, std::string&& file, int line, bool stop_testing)
-{
-    ts.inrement_error_counter();
-    ts.inrement_test_counter();
-
-    char vt100_clearline[] = { 27, '[' , '2', 'K', '\0'};
-    std::cout << vt100_clearline << "\r" << fun << " " << file << "(" << line << "): " << msg << std::endl;
-
-    if (stop_testing) {
-        throw unit_test_error(ts);
-    }
-}
 
 #endif //UNIT_TESTS
 

@@ -34,6 +34,10 @@ parser::parser(unsigned int current_line, const std::string& cmd)
     get_next_token();
 }
 
+parser::~parser(){
+    HC_LOG_TRACE("");
+}
+
 parser_type parser::get_parser_type()
 {
     if (m_current_token.get_type() == TT_PROTOCOL) {

@@ -97,7 +97,10 @@ private:
     simple_membership_aggregation(group_mem_protocol group_mem_protocol);
 
     friend struct test_membership_aggregation;
+
 public:
+    virtual ~simple_membership_aggregation();
+
     simple_membership_aggregation(rb_rule_matching_type upstream_in_rule_matching_type, const addr_storage& gaddr, const std::shared_ptr<const simple_routing_data>& routing_data, group_mem_protocol group_mem_protocol, const std::shared_ptr<const interface_infos>& interface_infos);
 
     std::pair<mc_filter, const source_list<source>&> get_group_memberships(unsigned int upstream_if_index) const;

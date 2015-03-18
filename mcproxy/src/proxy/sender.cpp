@@ -161,5 +161,4 @@ bool sender::send_mc_addr_and_src_specific_query(unsigned int, const timers_valu
 sender::~sender()
 {
     HC_LOG_TRACE("");
-
 }

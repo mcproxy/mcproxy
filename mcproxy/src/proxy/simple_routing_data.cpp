@@ -33,6 +33,11 @@ simple_routing_data::simple_routing_data(group_mem_protocol group_mem_protocol, 
     HC_LOG_TRACE("");
 }
 
+simple_routing_data::~simple_routing_data()
+{
+    HC_LOG_TRACE("");
+}
+
 unsigned long simple_routing_data::get_current_packet_count(const addr_storage& gaddr, const addr_storage& saddr)
 {
     HC_LOG_TRACE("");
@@ -132,10 +137,10 @@ const source_list<source>& simple_routing_data::get_available_sources(const addr
 
     auto gaddr_it = m_data.find(gaddr);
     if (gaddr_it != std::end(m_data)) {
-        return gaddr_it->second.m_source_list;       
-    }else{
+        return gaddr_it->second.m_source_list;
+    } else {
         static source_list<source> result;
-        result.clear(); 
+        result.clear();
         return result;;
     }
 }
@@ -163,11 +168,11 @@ const std::map<addr_storage, unsigned int>& simple_routing_data::get_interface_m
 {
     HC_LOG_TRACE("");
     auto it = m_data.find(gaddr);
-    if(it != std::end(m_data)){
-        return it->second.m_if_map; 
-    }else{
+    if (it != std::end(m_data)) {
+        return it->second.m_if_map;
+    } else {
         const static std::map<addr_storage, unsigned int> result;
-        return result; 
+        return result;
     }
 }
 

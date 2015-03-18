@@ -52,6 +52,7 @@ private:
     void analyse_packet(struct msghdr* msg, int info_size) override;
 
 public:
+    virtual ~igmp_receiver();
     /**
      * @brief Create an igmp_receiver.
      */

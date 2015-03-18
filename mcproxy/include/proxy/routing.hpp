@@ -56,9 +56,9 @@ private:
     mutable std::set<unsigned int> m_added_ifs; 
 
 public:
+    virtual ~routing();
     routing(int addr_family, std::shared_ptr<const mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces, int table_number);
 
-    virtual ~routing();
     /**
       * @brief Add a virtual interface to the linux kernel table.
       * @return Return true on success.

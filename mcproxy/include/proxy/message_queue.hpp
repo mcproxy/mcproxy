@@ -51,6 +51,8 @@ private:
     std::condition_variable cond_empty;
 
 public:
+    virtual ~message_queue();
+
     /**
       * @brief Create a message_queue with a maximum size.
       * @param size size of the message_queue.
@@ -87,6 +89,13 @@ public:
      */
     T dequeue(void);
 };
+
+
+template<typename T, typename Compare>
+message_queue<T, Compare>::~message_queue()
+{
+    HC_LOG_TRACE("");
+}
 
 template<typename T, typename Compare>
 message_queue<T, Compare>::message_queue(int size, Compare compare)

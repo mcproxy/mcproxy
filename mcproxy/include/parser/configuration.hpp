@@ -60,6 +60,7 @@ private:
     friend struct test_membership_aggregation; 
     friend struct test_parser;
 public:
+    virtual ~configuration();
     configuration(const std::string& path, bool reset_reverse_path_filter);
 
 

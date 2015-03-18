@@ -33,44 +33,44 @@
 
 #ifdef DEBUG_MODE
 extern "C" {
-void print_buf(const unsigned char * buf, unsigned int size)
-{
+    void print_buf(const unsigned char * buf, unsigned int size)
+    {
 
-    for (unsigned int i = 0; i < size; i += 16) {
-        for (unsigned int j = i; j < 16 + i && j < size; j++) {
+        for (unsigned int i = 0; i < size; i += 16) {
+            for (unsigned int j = i; j < 16 + i && j < size; j++) {
 
-            if (j % 8 == 0 && j % 16 != 0 && j != 0) {
-                printf(" ");
+                if (j % 8 == 0 && j % 16 != 0 && j != 0) {
+                    printf(" ");
+                }
+
+                if (buf[j] == 0) {
+                    printf("00 ");
+                } else if (buf[j] < 16 && buf[j] > 0) {
+                    printf("0%X ", buf[j]);
+                } else {
+                    printf("%X ", buf[j]);
+                }
             }
 
-            if (buf[j] == 0) {
-                printf("00 ");
-            } else if (buf[j] < 16 && buf[j] > 0) {
-                printf("0%X ", buf[j]);
-            } else {
-                printf("%X ", buf[j]);
+            printf("   ");
+
+            for (unsigned int j = i; j < 16 + i && j < size; j++) {
+
+                if (j % 8 == 0 && j % 16 != 0 && j != 0) {
+                    printf(" ");
+                }
+
+                if (buf[j] == 0) {
+                    printf(".");
+                } else {
+                    printf("%c", buf[j]);
+                }
             }
+
+            printf("\n");
         }
-
-        printf("   ");
-
-        for (unsigned int j = i; j < 16 + i && j < size; j++) {
-
-            if (j % 8 == 0 && j % 16 != 0 && j != 0) {
-                printf(" ");
-            }
-
-            if (buf[j] == 0) {
-                printf(".");
-            } else {
-                printf("%c", buf[j]);
-            }
-        }
-
         printf("\n");
     }
-    printf("\n");
-}
 }
 #endif /* DEBUG_MODE */
 
@@ -79,6 +79,11 @@ igmp_receiver::igmp_receiver(proxy_instance* pr_i, const std::shared_ptr<const m
     HC_LOG_TRACE("");
 
     start();
+}
+
+igmp_receiver::~igmp_receiver()
+{
+    HC_LOG_TRACE("");
 }
 
 int igmp_receiver::get_iov_min_size()
@@ -167,7 +172,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 HC_LOG_DEBUG("\tleave group received");
                 m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, CHANGE_TO_INCLUDE_MODE, gaddr, source_list<source>(), IGMPv2));
             } else {
-                HC_LOG_ERROR("unkown igmp type: " << igmp_hdr->igmp_type); 
+                HC_LOG_ERROR("unkown igmp type: " << igmp_hdr->igmp_type);
             }
         } else if (igmp_hdr->igmp_type == IGMP_V3_MEMBERSHIP_REPORT) {
             HC_LOG_DEBUG("IGMP_V3_MEMBERSHIP_REPORT received");
