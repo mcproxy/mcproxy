@@ -2,7 +2,7 @@
 
 Mcproxy and Mininet
 ===================
-Here you can find examples of how to use Mcproxy within [Mininet](mininet.org).
+Here you can find examples of how to use Mcproxy within [Mininet](http://mininet.org/).
 
 #### Requirements
 You have to install Mininet, which can usually be done with the following command:
