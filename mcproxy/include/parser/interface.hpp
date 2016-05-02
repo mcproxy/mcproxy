@@ -22,13 +22,22 @@
 
 #ifndef INTERFACE_HPP
 #define INTERFACE_HPP
+
+
 #include <list>
 #include <set>
 #include <string>
 #include <memory>
 #include <chrono>
+#include <sstream>
+
+#include "include/hamcast_logging.h"
+
+#include "include/proxy/def.hpp"
+#include "include/proxy/interfaces.hpp"
 
 #include "include/utils/addr_storage.hpp"
+
 
 struct addr_match {
     bool is_wildcard(const addr_storage& addr, int addr_family) const;

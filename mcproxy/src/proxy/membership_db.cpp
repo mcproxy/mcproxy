@@ -21,13 +21,7 @@
  */
 
 #include "include/proxy/membership_db.hpp"
-#include "include/hamcast_logging.h"
 
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <set>
 
 #ifdef DEBUG_MODE
 void membership_db::test_arithmetic()

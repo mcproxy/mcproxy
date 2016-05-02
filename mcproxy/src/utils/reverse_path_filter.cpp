@@ -21,9 +21,7 @@
  */
 
 #include "include/utils/reverse_path_filter.hpp"
-#include "include/hamcast_logging.h"
 
-#include <fstream>
 
 reverse_path_filter::reverse_path_filter()
     : m_used_earlier(false)

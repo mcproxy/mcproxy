@@ -25,6 +25,12 @@
 #include <map>
 #include <string>
 #include <stdexcept>
+#include <utility>
+#include <fstream>
+#include <iostream>
+
+#include <boost/regex.hpp>
+
 
 class config_map
 {

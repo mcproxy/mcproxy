@@ -29,7 +29,6 @@
 #ifndef TIME_HPP
 #define TIME_HPP
 
-#include "include/proxy/message_format.hpp"
 
 #include <list>
 #include <thread>
@@ -39,6 +38,15 @@
 #include <chrono>
 #include <tuple>
 #include <map>
+#include <iostream>
+
+#include <unistd.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/proxy/message_format.hpp"
+#include "include/proxy/worker.hpp"
+
 
 #define TIMING_IDLE_POLLING_INTERVAL 1 //sec
 

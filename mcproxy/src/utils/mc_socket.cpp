@@ -20,22 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/utils/mc_socket.hpp"
 
-#include <netpacket/packet.h>
-#include <cstring> //memset
-#include <iostream>
-#include <memory> //unique_ptr
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <numeric>
-#include <unistd.h>
 
 std::string ipAddrResolver(std::string ipAddr)
 {

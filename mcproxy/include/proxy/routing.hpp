@@ -29,12 +29,26 @@
 #ifndef ROUTING_HPP
 #define ROUTING_HPP
 
-//#include "include/utils/mroute_socket.hpp"
-#include "include/utils/if_prop.hpp"
 
 #include <set>
 #include <list>
+#include <iostream>
 #include <memory>
+
+#include <net/if.h>
+#include <netinet/in.h>
+
+#include <linux/mroute.h>
+#include <linux/mroute6.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/proxy/interfaces.hpp"
+
+#include "include/utils/if_prop.hpp"
+#include "include/utils/addr_storage.hpp"
+#include "include/utils/mroute_socket.hpp"
+
 
 class interfaces;
 class mroute_socket;

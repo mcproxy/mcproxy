@@ -20,12 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
-#include "include/hamcast_logging.h"
 #include "include/proxy/check_if.hpp"
-#include <net/if.h>
-#include <unistd.h>
-#include <iostream>
+
 
 check_if::check_if()
 {

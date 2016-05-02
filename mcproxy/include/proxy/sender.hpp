@@ -29,11 +29,19 @@
 #ifndef SENDER_HPP
 #define SENDER_HPP
 
+
+#include <iostream>
+#include <memory>
+
+#include "include/hamcast_logging.h"
+
 #include "include/utils/mroute_socket.hpp"
+
 #include "include/proxy/def.hpp"
 #include "include/proxy/interfaces.hpp"
+#include "include/proxy/message_format.hpp" //source
+#include "include/proxy/timers_values.hpp"
 
-#include "memory"
 
 class timers_values;
 struct source;

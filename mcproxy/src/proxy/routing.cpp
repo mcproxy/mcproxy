@@ -20,17 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
-#include "include/hamcast_logging.h"
 #include "include/proxy/routing.hpp"
-#include "include/proxy/interfaces.hpp"
-#include "include/utils/addr_storage.hpp"
-#include "include/utils/mroute_socket.hpp"
 
-#include <net/if.h>
-#include <linux/mroute.h>
-#include <linux/mroute6.h>
-#include <iostream>
 
 routing::routing(int addr_family, std::shared_ptr<const mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces, int table_number)
     : m_table_number(table_number)

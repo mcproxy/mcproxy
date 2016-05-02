@@ -20,30 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
-#include "include/hamcast_logging.h"
 #include "include/proxy/proxy_instance.hpp"
 
-#include "include/proxy/receiver.hpp"
-#include "include/proxy/igmp_receiver.hpp"
-#include "include/proxy/mld_receiver.hpp"
-#include "include/proxy/sender.hpp"
-#include "include/proxy/igmp_sender.hpp"
-#include "include/proxy/mld_sender.hpp"
-#include "include/proxy/routing.hpp"
-#include "include/proxy/querier.hpp"
-#include "include/proxy/interfaces.hpp"
-#include "include/proxy/timing.hpp"
-#include "include/proxy/routing_management.hpp"
-#include "include/proxy/simple_mc_proxy_routing.hpp"
-
-#include <sstream>
-#include <iostream>
-#include <random>
-#include <algorithm>
-
-#include <unistd.h>
-#include <net/if.h>
 
 proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, const std::string& instance_name, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode)
 : m_group_mem_protocol(group_mem_protocol)

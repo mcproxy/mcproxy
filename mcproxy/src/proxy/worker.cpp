@@ -20,11 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
-#include "include/hamcast_logging.h"
 #include "include/proxy/worker.hpp"
 
-#include "unistd.h"
 
 worker::worker()
     : worker(WORKER_MESSAGE_QUEUE_DEFAULT_SIZE)

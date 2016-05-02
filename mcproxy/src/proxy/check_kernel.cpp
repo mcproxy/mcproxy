@@ -20,15 +20,8 @@
 * Website: http://mcproxy.realmv6.org/
 */
 
-
-#include "include/hamcast_logging.h"
 #include "include/proxy/check_kernel.hpp"
-#include "include/utils/mroute_socket.hpp"
-#include "include/utils/addr_storage.hpp"
 
-#include <iostream>
-#include <unistd.h>
-#include <netinet/in.h>
 
 void check_kernel::check_kernel_features()
 {

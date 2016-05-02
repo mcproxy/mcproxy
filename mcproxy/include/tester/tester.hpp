@@ -23,14 +23,29 @@
 #ifndef TESTER_HPP
 #define TESTER_HPP
 
-#include "include/tester/config_map.hpp"
-#include "include/utils/addr_storage.hpp"
-#include "include/proxy/def.hpp"
-#include "include/utils/mc_socket.hpp"
-
+#include <csignal>
+#include <cstring>
 #include <memory>
 #include <list>
 #include <chrono>
+#include <thread>
+#include <vector>
+#include <limits>
+#include <fstream>
+#include <iostream>
+
+#include <unistd.h> //for getopt
+#include <sys/time.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/proxy/def.hpp"
+#include "include/proxy/interfaces.hpp"
+#include "include/utils/addr_storage.hpp"
+#include "include/utils/mc_socket.hpp"
+
+#include "include/tester/config_map.hpp"
+
 
 #define TESTER_DEFAULT_CONIG_PATH "tester.ini"
 

@@ -23,11 +23,13 @@
 #ifndef ROUTING_MANAGEMENT_HPP
 #define ROUTING_MANAGEMENT_HPP
 
-#include "include/proxy/def.hpp"
 
 #include <memory>
 #include <string>
 #include <sstream>
+
+#include "include/proxy/def.hpp"
+
 
 struct proxy_msg;
 struct source;

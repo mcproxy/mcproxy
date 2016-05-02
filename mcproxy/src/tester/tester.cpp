@@ -21,22 +21,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/tester/tester.hpp"
-#include "include/utils/mc_socket.hpp"
-#include "include/proxy/interfaces.hpp"
 
-#include <cstring>
-#include <thread>
-#include <csignal>
-#include <vector>
-#include <limits>
-#include <thread>
-#include <fstream>
-#include <iostream>
-
-#include <unistd.h> //for getopt
-#include<sys/time.h>
 
 bool tester::m_running = true;
 volatile int busy_waiting;
