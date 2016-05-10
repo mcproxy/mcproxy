@@ -88,7 +88,7 @@ bool mroute_socket::set_kernel_table(int table) const
         }
 #else
         HC_LOG_ERROR("multiple ipv4 multicast routing table not supported: MRT_TABLE not defined");
-        return false
+        return false;
 #endif
     } else if (m_addrFamily == AF_INET6) {
 #ifdef MRT6_TABLE
@@ -98,7 +98,7 @@ bool mroute_socket::set_kernel_table(int table) const
         }
 #else
         HC_LOG_ERROR("multiple ipv6 multicast routing table not supported: MRT6_TABLE not defined");
-        return false
+        return false;
 #endif
     } else {
         HC_LOG_ERROR("wrong address family");
