@@ -43,17 +43,17 @@ bool routing::add_vif(int if_index, int vif) const
     char cstr[IF_NAMESIZE];
     const struct ifaddrs* item = nullptr;
 
-    std::string if_name(if_indextoname(if_index, cstr)); //fehler!!!!!! könnte abastürzten ???????????????????????ßß<F8><F8><F8>
+    std::string _if_name(if_indextoname(if_index, cstr)); //fehler!!!!!! könnte abastürzten ???????????????????????ßß<F8><F8><F8>
 
     //useless ????????????????????????????????????????????????????????????????????
     if (m_addr_family == AF_INET) {
-        if ((item = m_if_prop.get_ip4_if(if_name)) == nullptr) {
-            HC_LOG_ERROR("interface not found: " << if_name);
+        if ((item = m_if_prop.get_ip4_if(_if_name)) == nullptr) {
+            HC_LOG_ERROR("interface not found: " << _if_name);
             return false;
         }
     } else if (m_addr_family == AF_INET6) {
-        if ((item = m_if_prop.get_ip6_if(if_name)->front()) == nullptr) {
-            HC_LOG_ERROR("interface not found: " << if_name);
+        if ((item = m_if_prop.get_ip6_if(_if_name)->front()) == nullptr) {
+            HC_LOG_ERROR("interface not found: " << _if_name);
             return false;
         }
     } else {
@@ -86,7 +86,7 @@ bool routing::add_vif(int if_index, int vif) const
         }
     }
 
-    HC_LOG_DEBUG("added interface: " << if_name << " to vif_table with vif number:" << vif);
+    HC_LOG_DEBUG("added interface: " << _if_name << " to vif_table with vif number:" << vif);
     return true;
 }
 

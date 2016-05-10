@@ -41,13 +41,13 @@ std::vector<int> check_if::init(std::vector<int>& check_lst, int addr_family)
 
     for (std::vector<int>::iterator i = m_check_lst.begin(); i != m_check_lst.end(); i++) {
         char cstr[IF_NAMESIZE];
-        std::string if_name(if_indextoname(*i, cstr)); //fehler wenn null?????????????????????
+        std::string _if_name(if_indextoname(*i, cstr)); //fehler wenn null?????????????????????
 
         const struct ifaddrs* prop;
         if (m_addr_family == AF_INET) {
-            prop = m_current_prop->get_ip4_if(if_name);
+            prop = m_current_prop->get_ip4_if(_if_name);
         } else if (m_addr_family == AF_INET6) {
-            const std::list<const struct ifaddrs*>* ipv6_if_list = m_current_prop->get_ip6_if(if_name);
+            const std::list<const struct ifaddrs*>* ipv6_if_list = m_current_prop->get_ip6_if(_if_name);
             prop = *(ipv6_if_list->begin());
         } else {
             HC_LOG_ERROR("wrong address family: " << addr_family);
@@ -84,17 +84,17 @@ bool check_if::check()
 
     for (std::vector<int>::iterator i = m_check_lst.begin(); i != m_check_lst.end(); i++) {
         char cstr[IF_NAMESIZE];
-        std::string if_name(if_indextoname(*i, cstr)); //fehler wenn null??????????????????
+        std::string _if_name(if_indextoname(*i, cstr)); //fehler wenn null??????????????????
 
-        const struct ifaddrs* prop_new = m_current_prop->get_ip4_if(if_name);
-        const struct ifaddrs* prop_old = if_property_old->get_ip4_if(if_name);
+        const struct ifaddrs* prop_new = m_current_prop->get_ip4_if(_if_name);
+        const struct ifaddrs* prop_old = if_property_old->get_ip4_if(_if_name);
 
         if (m_addr_family == AF_INET) {
-            prop_new = m_current_prop->get_ip4_if(if_name);
-            prop_old = if_property_old->get_ip4_if(if_name);
+            prop_new = m_current_prop->get_ip4_if(_if_name);
+            prop_old = if_property_old->get_ip4_if(_if_name);
         } else if (m_addr_family == AF_INET6) {
-            const std::list<const struct ifaddrs*>* ipv6_if_list_new = m_current_prop->get_ip6_if(if_name);
-            const std::list<const struct ifaddrs*>* ipv6_if_list_old = if_property_old->get_ip6_if(if_name);
+            const std::list<const struct ifaddrs*>* ipv6_if_list_new = m_current_prop->get_ip6_if(_if_name);
+            const std::list<const struct ifaddrs*>* ipv6_if_list_old = if_property_old->get_ip6_if(_if_name);
 
             prop_new = *(ipv6_if_list_new->begin());
             prop_old = *(ipv6_if_list_old->begin());

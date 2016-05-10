@@ -951,16 +951,16 @@ void mc_socket::test_all()
     addr_storage saddr_v4a("141.22.0.2");
     addr_storage saddr_v6("FE80:5E26::1");
     addr_storage saddr_v6a("FE80:5E26::2");
-    std::string if_name("dummy0");
+    std::string _if_name("dummy0");
 
     //int port = 9845;
 
-    //mc_socket::test_mc_group_functions("AF_INET", "Hallo", if_name, gaddr_v4.to_string(), port);
-    //mc_socket::test_mc_group_functions("AF_INET6", "Hallo", if_name, gaddr_v6.to_string(), port);
-    //mc_socket::test_mc_source_delta_based_api("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4.to_string());
-    //mc_socket::test_mc_source_delta_based_api("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6.to_string());
-    test_mc_source_advanced_api("AF_INET", if_name, gaddr_v4.to_string(), saddr_v4.to_string(), saddr_v4a.to_string());
-    //test_mc_source_advanced_api("AF_INET6", if_name, gaddr_v6.to_string(), saddr_v6.to_string(), saddr_v6a.to_string());
+    //mc_socket::test_mc_group_functions("AF_INET", "Hallo", _if_name, gaddr_v4.to_string(), port);
+    //mc_socket::test_mc_group_functions("AF_INET6", "Hallo", _if_name, gaddr_v6.to_string(), port);
+    //mc_socket::test_mc_source_delta_based_api("AF_INET", _if_name, gaddr_v4.to_string(), saddr_v4.to_string());
+    //mc_socket::test_mc_source_delta_based_api("AF_INET6", _if_name, gaddr_v6.to_string(), saddr_v6.to_string());
+    test_mc_source_advanced_api("AF_INET", _if_name, gaddr_v4.to_string(), saddr_v4.to_string(), saddr_v4a.to_string());
+    //test_mc_source_advanced_api("AF_INET6", _if_name, gaddr_v6.to_string(), saddr_v6.to_string(), saddr_v6a.to_string());
 }
 #endif /* TESTER */
 
