@@ -25,6 +25,7 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <stdlib.h>
@@ -298,7 +299,7 @@ addr_storage& addr_storage::set_port(uint16_t port)
 
 addr_storage& addr_storage::set_port(const std::string& port)
 {
-    set_port(std::stoi(port.c_str()));
+    set_port(std::atoi(port.c_str()));
     return *this;
 }
 
