@@ -37,7 +37,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-bool proxy::m_running = false;
+volatile bool proxy::m_running = false;
 
 proxy::proxy(int arg_count, char* args[])
     : m_verbose_lvl(0)
