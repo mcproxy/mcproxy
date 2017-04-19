@@ -774,14 +774,14 @@ bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr
 
             rc = ioctl(m_sock, SIOCGETSGCNT, sgreq_v4);;
             if (rc == -1) {
-                HC_LOG_ERROR("failed to get multicast route stats! Error: " << strerror(errno) << " errno: " << errno);
+                HC_LOG_ERROR("failed to get multicast route stats for (" << source_addr.to_string() << "," << group_addr.to_string() <<")! Error: " << strerror(errno) << " errno: " << errno);
                 return false;
             } else {
                 return true;
             }
 
         } else {
-            HC_LOG_ERROR("failed to get multicast route stats! Error: claimed parameter sgreq_v4 is null");
+            HC_LOG_ERROR("failed to get multicast route stats for (" << source_addr.to_string() << "," << group_addr.to_string() <<")! Error: claimed parameter sgreq_v4 is null");
             return false;
         }
     } else if (m_addrFamily == AF_INET6) {
@@ -793,13 +793,13 @@ bool mroute_socket::get_mroute_stats(const addr_storage& source_addr, const addr
 
             rc = ioctl(m_sock, SIOCGETSGCNT_IN6, sgreq_v6);
             if (rc == -1) {
-                HC_LOG_ERROR("failed to get multicast route stats! Error: " << strerror(errno) << " errno: " << errno);
+                HC_LOG_ERROR("failed to get multicast route stats for (" << source_addr.to_string() << "," << group_addr.to_string() <<")! Error: " << strerror(errno) << " errno: " << errno);
                 return false;
             } else {
                 return true;
             }
         } else {
-            HC_LOG_ERROR("failed to get multicast route stats! Error: claimed parameter sgreq_v6 is null");
+            HC_LOG_ERROR("failed to get multicast route stats for (" << source_addr.to_string() << "," << group_addr.to_string() <<")! Error: claimed parameter sgreq_v6 is null");
             return false;
         }
     } else {

@@ -32,6 +32,7 @@
 #include <netinet/ip.h>
 
 #ifdef DEBUG_MODE
+#include <stdio.h>
 extern "C" {
 void print_buf(const unsigned char * buf, unsigned int size)
 {

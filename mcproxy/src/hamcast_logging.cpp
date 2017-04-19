@@ -102,7 +102,7 @@ public:
             break;
         }
         os.width(80);
-        os << std::left << fun;
+        os << std::left << fun << ": ";
         os.width(0);
         os << what;
         os << "\n";
