@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 # Project Definition
 project(mcproxy CXX)
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11 -DDEBUG_MODE")
 add_definitions(-Wall -Wextra -pedantic)
 include_directories(${CMAKE_SOURCE_DIR}/mcproxy)
 

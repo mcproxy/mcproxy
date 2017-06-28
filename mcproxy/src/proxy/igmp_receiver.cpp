@@ -128,6 +128,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
                 return;
             }
             HC_LOG_DEBUG("\tif_index: " << if_index);
+            HC_LOG_DEBUG("\treceived on interface:" << interfaces::get_if_name(if_index));
 
             if (!is_if_index_relevant(if_index)) {
                 HC_LOG_DEBUG("interface is not relevant");

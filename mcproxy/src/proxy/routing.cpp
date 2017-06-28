@@ -116,6 +116,8 @@ bool routing::add_route(int input_vif, const addr_storage& g_addr, const addr_st
         return false;
     }
 
+    HC_LOG_DEBUG("adding mroute: s=" << src_addr.to_string() << ",g=" << g_addr.to_string() << ",in_vif=" << m_interfaces->get_vif_name(input_vif) << ",out_vifs=(" << m_interfaces->get_vif_names(output_vif) << ")");
+
     if (!m_mrt_sock->add_mroute(input_vif, src_addr, g_addr, output_vif)) {
         return false;
     }

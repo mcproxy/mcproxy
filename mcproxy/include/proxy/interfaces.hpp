@@ -74,6 +74,29 @@ public:
     addr_storage get_saddr(const std::string& if_name) const;
 
     static std::string get_if_name(unsigned int if_index);
+    std::string get_vif_name(unsigned int if_index) const;
+
+    template <typename T>
+    std::string get_if_names(const T& container) const {
+        std::ostringstream str;
+        const char* sep = "";
+        for (auto e: container) {
+            str << sep << get_if_name(e);
+            sep = ",";
+        }
+        return str.str();
+    }
+
+    template <typename T>
+    std::string get_vif_names(const T& container) const {
+        std::ostringstream str;
+        const char* sep = "";
+        for (auto e: container) {
+            str << sep << get_vif_name(e);
+            sep = ",";
+        }
+        return str.str();
+    }
 
     static unsigned int get_if_index(const std::string& if_name);
     static unsigned int get_if_index(const char* if_name);

@@ -119,7 +119,7 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
     HC_LOG_TRACE("");
 
     if (msg->get_type() != proxy_msg::GROUP_RECORD_MSG) {
-        HC_LOG_ERROR("wrong proxy message, it musst be be a GROUP_RECORD_MS");
+        HC_LOG_ERROR("wrong proxy message, it must be be a GROUP_RECORD_MSG");
         return;
     }
 
@@ -798,6 +798,9 @@ void querier::suggest_to_forward_traffic(const addr_storage& gaddr, std::list<st
     if (m_db.is_querier == true) {
         auto db_info_it = m_db.group_info.find(gaddr);
         if (db_info_it != std::end(m_db.group_info)) {
+            if (rt_slist.empty()) {
+                HC_LOG_DEBUG("empty rt_slist\n");
+            }
             if (db_info_it->second.is_under_bakcward_compatibility_effects()) {
 
                 //accept all sources

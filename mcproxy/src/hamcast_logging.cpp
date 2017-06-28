@@ -58,6 +58,7 @@ public:
         oss << "thread" << m_id << ".log";
         std::string filename = oss.str();
         m_stream.open(filename.c_str(), std::fstream::out);
+        std::cout << "opened " << filename << " for logging\n";
     }
 
     inline void enable() {
@@ -173,6 +174,7 @@ extern "C" void hc_set_log_fun(hc_log_fun_t function_ptr)
 
 extern "C" void hc_log(int loglvl, const char* func_name, const char* msg)
 {
+    // std::cout << func_name << ": " << msg << "\n";
     if (m_log_fun) {
         m_log_fun(loglvl, func_name, msg);
     }

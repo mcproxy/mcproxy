@@ -121,7 +121,7 @@ struct proxy_msg {
     }
 
     virtual void operator() () {
-        HC_LOG_TRACE("Empty operator");
+        HC_LOG_TRACE("Empty operator (" << get_message_type_name(m_type) << ")");
     }
 
 protected:
@@ -330,7 +330,9 @@ struct group_record_msg : public proxy_msg {
         , m_record_type(record_type)
         , m_gaddr(gaddr)
         , m_slist(slist)
-        , m_grp_mem_proto(grp_mem_proto){}
+        , m_grp_mem_proto(grp_mem_proto){
+        HC_LOG_TRACE("");
+    }
 
     friend std::ostream& operator<<(std::ostream& stream, const group_record_msg& r) {
         return stream << r.to_string();
@@ -420,8 +422,8 @@ struct config_msg : public proxy_msg {
         , m_interface(interf)
         , m_tv(timers_values()) {
         if (instruction != DEL_DOWNSTREAM && instruction != ADD_UPSTREAM && instruction != DEL_UPSTREAM) {
-            HC_LOG_ERROR("config_msg is incomplet, missing parameter timer_values");
-            throw "config_msg is incomplet, missing parameter timer_values";
+            HC_LOG_ERROR("config_msg is incomplete, missing parameter timer_values");
+            throw "config_msg is incomplete, missing parameter timer_values";
         }
     }
 

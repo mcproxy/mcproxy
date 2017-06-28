@@ -53,6 +53,7 @@ int main(int arg_count, char* args[])
         std::cout << e << std::endl;
     }
 #else
+    // hc_set_default_log_fun(HC_LOG_TRACE_LVL);
     try {
         proxy p(arg_count, args);
     } catch (const char* e) {

@@ -150,7 +150,7 @@ unsigned int interfaces::get_if_index(const char* if_name)
 
 unsigned int interfaces::get_if_index(int virtual_if_index) const
 {
-    HC_LOG_TRACE("");
+    //HC_LOG_TRACE("");
     auto rc = m_vif_if.find(virtual_if_index);
     if (rc != end(m_vif_if)) {
         return rc->second;
@@ -194,14 +194,21 @@ addr_storage interfaces::get_saddr(const std::string& if_name) const
     }
 }
 
+std::string interfaces::get_vif_name(unsigned int vif_index) const
+{
+    return get_if_name(get_if_index(vif_index));
+}
+
 std::string interfaces::get_if_name(unsigned int if_index)
 {
-    HC_LOG_TRACE("");
+    //HC_LOG_TRACE("");
     char tmp[IF_NAMESIZE];
     const char* if_name = if_indextoname(if_index, tmp);
     if (if_name == nullptr) {
-        HC_LOG_WARN("cannot map if_index (#" << if_index << ") to if_name");
-        return std::string();
+        //HC_LOG_WARN("cannot map if_index (#" << if_index << ") to if_name");
+        std::ostringstream str;
+        str << "unknown_if_name(" << if_index << ")";
+        return str.str();
     } else {
         return std::string(if_name);
     }
@@ -210,7 +217,7 @@ std::string interfaces::get_if_name(unsigned int if_index)
 
 unsigned int interfaces::get_if_index(const addr_storage& saddr) const
 {
-    HC_LOG_TRACE("");
+    //HC_LOG_TRACE("");
 
     addr_storage recv_subnet;
     addr_storage src_subnet;
@@ -229,6 +236,7 @@ unsigned int interfaces::get_if_index(const addr_storage& saddr) const
                 }
             }
         }
+        HC_LOG_WARN("failed to map IPv4 addr to interface index:" << saddr);
     }else{
         HC_LOG_WARN("cannot map IPv6 addr to interface index:" << saddr);
     }
