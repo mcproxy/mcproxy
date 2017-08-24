@@ -157,16 +157,22 @@ u_int16_t mroute_socket::calc_checksum(const unsigned char* buf, int buf_size) c
 
     u_int16_t* b = (u_int16_t*)buf;
     int sum = 0;
+    int csum;
 
     for (int i = 0; i < buf_size / 2; i++) {
-        ADD_SIGNED_NUM_U16(sum, b[i]);
-        //sum +=b[i];
+        sum +=b[i];
     }
 
     if (buf_size % 2 == 1) {
-        //sum += buf[buf_size-1];
-        ADD_SIGNED_NUM_U16(sum, buf[buf_size - 1]);
+        sum += buf[buf_size-1];
     }
+
+    // fold checksum 
+    csum = sum & 0xFFFF;
+    sum = sum >> 16;
+    sum += csum;
+    // fold again in case of overflow.
+    sum += sum >> 16;
 
     return ~sum;
 }
