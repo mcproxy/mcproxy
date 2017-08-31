@@ -28,11 +28,17 @@
 #ifndef WORKER_HPP
 #define WORKER_HPP
 
-#include "include/proxy/message_queue.hpp"
-#include "include/proxy/message_format.hpp"
 
 #include <thread>
 #include <memory>
+
+#include <unistd.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/proxy/message_queue.hpp"
+#include "include/proxy/message_format.hpp"
+
 
 #define WORKER_MESSAGE_QUEUE_DEFAULT_SIZE 150
 

@@ -28,7 +28,20 @@
 #ifndef MLD_RECEIVER_HPP
 #define MLD_RECEIVER_HPP
 
-#include "include/proxy/receiver.hpp"
+
+#include <net/if.h>
+#include <netinet/ip6.h>
+#include <netinet/icmp6.h>
+
+#include <sys/socket.h>
+
+#include <linux/mroute6.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/proxy/proxy_instance.hpp"
+#include "include/utils/extended_mld_defines.hpp"
+
 
 /**
  * @brief Cache Miss message received form the Linux Kernel identified by this ip verion.

@@ -24,8 +24,11 @@
 #define EXTENDED_IGMP_DEFINES_HPP
 
 #include <stdint.h>
+
 #include <sys/types.h>
+
 #include <netinet/igmp.h>
+
 
 #ifndef IGMP_V3_MEMBERSHIP_REPORT
 #define IGMP_V3_MEMBERSHIP_REPORT 0x22

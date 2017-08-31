@@ -27,18 +27,23 @@
 #ifndef MESSAGE_FORMAT_HPP
 #define MESSAGE_FORMAT_HPP
 
-#include "include/hamcast_logging.h"
-#include "include/utils/addr_storage.hpp"
-#include "include/proxy/def.hpp"
-#include "include/proxy/interfaces.hpp"
-#include "include/proxy/timers_values.hpp"
-#include "include/parser/interface.hpp"
 
 #include <iostream>
 #include <string>
 #include <map>
 #include <memory>
 #include <chrono>
+
+#include "include/hamcast_logging.h"
+
+#include "include/utils/addr_storage.hpp"
+
+#include "include/proxy/def.hpp"
+#include "include/proxy/interfaces.hpp"
+#include "include/proxy/timers_values.hpp"
+
+#include "include/parser/interface.hpp"
+
 
 struct proxy_msg {
     enum message_type {

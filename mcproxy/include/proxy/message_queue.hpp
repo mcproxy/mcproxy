@@ -29,13 +29,18 @@
 
 #ifndef MESSAGE_QUEUE_HPP
 #define MESSAGE_QUEUE_HPP
-#include "include/hamcast_logging.h"
+
+
+#include <climits>
+
 #include <thread>
 #include <condition_variable>
 #include <mutex>
 #include <queue>
-#include <climits>
 #include <vector>
+
+#include "include/hamcast_logging.h"
+
 
 /**
  * @brief Fixed sized synchronised priority job queue.

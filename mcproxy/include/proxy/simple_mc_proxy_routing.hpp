@@ -23,13 +23,27 @@
 #ifndef SIMPLE_MC_PROXY_ROUTING_HPP
 #define SIMPLE_MC_PROXY_ROUTING_HPP
 
-#include "include/proxy/routing_management.hpp"
-#include "include/proxy/simple_routing_data.hpp"
-#include "include/parser/interface.hpp"
 
 #include <list>
 #include <memory>
 #include <chrono>
+#include <algorithm>
+
+#include "include/hamcast_logging.h"
+
+#include "include/utils/addr_storage.hpp"
+
+#include "include/parser/interface.hpp"
+
+#include "include/proxy/interfaces.hpp"
+#include "include/proxy/proxy_instance.hpp"
+#include "include/proxy/querier.hpp"
+#include "include/proxy/routing.hpp"
+#include "include/proxy/routing_management.hpp"
+#include "include/proxy/sender.hpp"
+#include "include/proxy/simple_routing_data.hpp"
+#include "include/proxy/timing.hpp"
+
 
 struct timer_msg;
 struct source;

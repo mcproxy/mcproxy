@@ -23,16 +23,23 @@
 #ifndef MEMBERSHIP_DB_HPP
 #define MEMBERSHIP_DB_HPP
 
+
+#include <chrono>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <set>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "include/hamcast_logging.h"
+
 #include "include/utils/addr_storage.hpp"
+
 #include "include/proxy/def.hpp"
-#include "include/proxy/membership_db.hpp"
 #include "include/proxy/message_format.hpp"
 
-#include <iostream>
-#include <set>
-#include <map>
-#include <chrono>
-#include <memory>
 
 struct gaddr_info {
     gaddr_info(group_mem_protocol compatibility_mode_variable);
@@ -45,9 +52,9 @@ struct gaddr_info {
     std::shared_ptr<filter_timer_msg> shared_filter_timer;
 
     group_mem_protocol compatibility_mode_variable; //RFC3810 - 8.3.2. In the Presence of MLDv1 Multicast Address Listeners
-   
-    //if comp_node_var is the highest version and older_host_present_timer is a nullptr the compatibility mode is disabled 
-    //if comp_mode_var is the highest version and older_hostpresent_timer is not a nullptr, sources will not be blocked. 
+
+    //if comp_node_var is the highest version and older_host_present_timer is a nullptr the compatibility mode is disabled
+    //if comp_mode_var is the highest version and older_hostpresent_timer is not a nullptr, sources will not be blocked.
     //if comp_mode var is not the highest version the compability mode is activated
     std::shared_ptr<older_host_present_timer_msg> older_host_present_timer; 
 

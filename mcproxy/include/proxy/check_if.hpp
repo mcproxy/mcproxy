@@ -28,8 +28,17 @@
 #ifndef CHECK_IF_H
 #define CHECK_IF_H
 
+#include <iostream>
+#include <vector>
+
+#include <unistd.h>
+
+#include <net/if.h>
+
+#include "include/hamcast_logging.h"
+
 #include "include/utils/if_prop.hpp"
-#include "vector"
+
 
 /**
  * @brief Monitored the running state of the network interfaces.

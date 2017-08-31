@@ -20,10 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/parser/token.hpp"
 
-#include <map>
 
 std::string get_token_type_name(token_type tt)
 {

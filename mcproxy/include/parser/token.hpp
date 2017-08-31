@@ -23,8 +23,13 @@
 #ifndef TOKEN_HPP
 #define TOKEN_HPP
 
+
 #include <string>
 #include <vector>
+#include <map>
+
+#include "include/hamcast_logging.h"
+
 
 enum token_type {
     TT_PROTOCOL,

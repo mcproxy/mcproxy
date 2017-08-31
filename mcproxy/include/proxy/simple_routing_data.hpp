@@ -23,11 +23,20 @@
 #ifndef SIMPLE_ROUTING_DATA_HPP 
 #define SIMPLE_ROUTING_DATA_HPP
 
-#include "include/proxy/def.hpp"
+
 #include <map>
 #include <memory>
 #include <string>
 #include <set>
+
+#include "include/hamcast_logging.h"
+
+#include "include/utils/mroute_socket.hpp"
+
+#include "include/proxy/def.hpp"
+#include "include/proxy/interfaces.hpp"
+#include "include/proxy/message_format.hpp"
+
 
 class addr_storage;
 struct source;

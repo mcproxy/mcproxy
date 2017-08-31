@@ -31,10 +31,26 @@
 #ifndef PROXY_HPP
 #define PROXY_HPP
 
+
+#include <iostream>
+#include <sstream>
+#include <algorithm>
 #include <vector>
 #include <string>
 #include <memory>
 #include <map>
+
+#include <signal.h>
+#include <unistd.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/proxy/check_kernel.hpp"
+#include "include/proxy/timing.hpp"
+#include "include/proxy/proxy_instance.hpp"
+//#include "include/proxy/proxy_configuration.hpp"
+#include "include/parser/configuration.hpp"
+
 
 class configuration;
 class timing;

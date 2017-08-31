@@ -23,15 +23,22 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
-#include "include/parser/scanner.hpp"
-#include "include/proxy/def.hpp"
-#include "include/parser/token.hpp"
-#include "include/parser/interface.hpp"
 
+#include <algorithm>
+#include <stdexcept>
 #include <string>
 #include <list>
 #include <tuple>
 #include <memory>
+
+#include "include/hamcast_logging.h"
+
+#include "include/proxy/def.hpp"
+
+#include "include/parser/scanner.hpp"
+#include "include/parser/token.hpp"
+#include "include/parser/interface.hpp"
+
 
 enum parser_type {
     PT_PROTOCOL, PT_INSTANCE_DEFINITION, PT_TABLE, PT_INTERFACE_RULE_BINDING

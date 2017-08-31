@@ -29,6 +29,17 @@
 #define CHECK_KERNEL_H
 
 #include <string>
+#include <iostream>
+
+#include <unistd.h>
+
+#include <netinet/in.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/utils/mroute_socket.hpp"
+#include "include/utils/addr_storage.hpp"
+
 
 class mroute_socket;
 

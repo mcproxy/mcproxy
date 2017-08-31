@@ -23,8 +23,16 @@
 #ifndef SCANNER_HPP
 #define SCANNER_HPP
 
+
+#include <algorithm>
+#include <fstream>
 #include <string>
 #include <vector>
+
+#include "include/hamcast_logging.h"
+
+#include "include/parser/token.hpp"
+
 
 class token;
 

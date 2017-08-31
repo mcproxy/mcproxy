@@ -23,9 +23,19 @@
 #ifndef TIMERS_VALUES_HPP
 #define TIMERS_VALUES_HPP
 
+
 #include <cstdint>
+
 #include <string>
 #include <chrono>
+#include <iomanip>
+#include <sstream>
+#include <iostream>
+
+#include "include/hamcast_logging.h"
+
+#include "include/proxy/def.hpp"
+
 
 struct timers_values_tank {
     unsigned int robustness_variable = 2;

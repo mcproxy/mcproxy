@@ -20,15 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/utils/addr_storage.hpp"
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <cstring>
-#include <string>
-#include <stdlib.h>
-#include <iostream>
 
 void addr_storage::clean()
 {

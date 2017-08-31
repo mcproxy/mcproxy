@@ -20,11 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/proxy/simple_routing_data.hpp"
-#include "include/proxy/message_format.hpp"
-#include "include/utils/mroute_socket.hpp"
-#include "include/proxy/interfaces.hpp"
+
 
 simple_routing_data::simple_routing_data(group_mem_protocol group_mem_protocol, const std::shared_ptr<const mroute_socket>& mrt_sock)
     : m_group_mem_protocol(group_mem_protocol)

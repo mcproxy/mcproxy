@@ -23,12 +23,32 @@
 #ifndef MROUTE_SOCKET_HPP
 #define MROUTE_SOCKET_HPP
 
-#include "include/utils/mc_socket.hpp"
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <sstream>
+#include <list>
+
+#include <errno.h>
+#include <unistd.h>
+
+#include <sys/ioctl.h>
 #include <sys/types.h>
+#include <sys/socket.h>
+
+#include <arpa/inet.h>
+#include <netinet/icmp6.h>
+#include <netinet/in.h>
+#include <net/if.h>
+
 #include <linux/mroute.h>
 #include <linux/mroute6.h>
 
-#include <list>
+#include "include/hamcast_logging.h"
+
+#include "include/utils/mc_socket.hpp"
+#include "include/utils/extended_mld_defines.hpp"
+
 
 #define MROUTE_RATE_LIMIT_ENDLESS 0
 #define MROUTE_TTL_THRESHOLD 1

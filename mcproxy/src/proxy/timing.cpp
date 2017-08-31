@@ -20,12 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/proxy/timing.hpp"
-#include "include/proxy/worker.hpp"
 
-#include <iostream>
-#include <unistd.h>
 
 timing::timing():
     m_running(false), m_thread(nullptr)

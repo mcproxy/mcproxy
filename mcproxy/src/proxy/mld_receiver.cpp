@@ -20,19 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
-#include "include/hamcast_logging.h"
 #include "include/proxy/mld_receiver.hpp"
-#include "include/proxy/proxy_instance.hpp"
-#include "include/utils/extended_mld_defines.hpp"
 
-#include <linux/mroute6.h>
-#include <netinet/ip6.h>
-#include <netinet/icmp6.h>
-#include <sys/socket.h>
-
-//DEBUG
-#include <net/if.h>
 
 mld_receiver::mld_receiver(proxy_instance* pr_i, const std::shared_ptr<const mroute_socket> mrt_sock, const std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode)
     : receiver(pr_i, AF_INET6, mrt_sock, interfaces, in_debug_testing_mode)

@@ -28,7 +28,19 @@
 #ifndef MLD_SENDER_HPP
 #define MLD_SENDER_HPP
 
+
+#include <memory>
+
+#include <net/if.h>
+#include <netinet/icmp6.h>
+#include <netinet/ip6.h>
+
+#include "include/hamcast_logging.h"
+
 #include "include/proxy/sender.hpp"
+#include "include/proxy/message_format.hpp"
+#include "include/utils/extended_mld_defines.hpp"
+
 
 /**
  * @brief This fields will fill by the Linux kernel.
@@ -39,7 +51,7 @@
  * @brief Size of the router alert option.
  */
 #define MC_MASSAGES_IPV6_ROUTER_ALERT_OPT_SIZE 0  //RFC 2711
-    
+
 /**
  * @brief Hob-by-Hob Option Header padding size.
  */

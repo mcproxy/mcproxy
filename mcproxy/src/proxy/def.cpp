@@ -19,10 +19,9 @@
  * INET group, Hamburg University of Applied Sciences,
  * Website: http://mcproxy.realmv6.org/
  */
+
 #include "include/proxy/def.hpp"
 
-#include <chrono>
-#include <sstream>
 
 bool is_IPv4(group_mem_protocol gmp)
 {

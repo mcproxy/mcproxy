@@ -23,13 +23,28 @@
 #ifndef QUERIER_HPP
 #define QUERIER_HPP
 
-#include "include/proxy/membership_db.hpp"
-#include "include/proxy/timers_values.hpp"
 
 #include <functional>
 #include <string>
 #include <memory>
-#include <functional>
+#include <iostream>
+#include <sstream>
+
+#include <unistd.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/utils/addr_storage.hpp"
+
+#include "include/proxy/def.hpp"
+#include "include/proxy/igmp_sender.hpp"
+#include "include/proxy/interfaces.hpp"
+#include "include/proxy/membership_db.hpp"
+#include "include/proxy/mld_sender.hpp"
+#include "include/proxy/sender.hpp"
+#include "include/proxy/timers_values.hpp"
+#include "include/proxy/timing.hpp"
+
 
 class timing;
 class sender;

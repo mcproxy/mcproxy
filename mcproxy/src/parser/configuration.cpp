@@ -20,12 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/parser/configuration.hpp"
-#include "include/parser/parser.hpp"
 
-#include <algorithm>
-#include <fstream>
 
 configuration::configuration(const std::string& path, bool reset_reverse_path_filter)
     : m_reset_reverse_path_filter(reset_reverse_path_filter)

@@ -24,9 +24,12 @@
 #define EXTENDED_MLD_DEFINES_HPP
 
 #include <stdint.h>
+
 #include <sys/types.h>
+
 #include <netinet/ip6.h>
 #include <netinet/icmp6.h>
+
 
 #ifndef MLD_V2_LISTENER_REPORT
 #define MLD_V2_LISTENER_REPORT 143

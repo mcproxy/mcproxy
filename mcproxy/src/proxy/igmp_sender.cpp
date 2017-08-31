@@ -20,17 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
-#include "include/hamcast_logging.h"
 #include "include/proxy/igmp_sender.hpp"
-#include "include/proxy/message_format.hpp"
-#include "include/utils/extended_igmp_defines.hpp"
 
-#include <netinet/igmp.h>
-#include <netinet/ip.h>
-#include <net/if.h>
-
-#include <memory>
 
 igmp_sender::igmp_sender(const std::shared_ptr<const interfaces>& interfaces): sender(interfaces, IGMPv3)
 {

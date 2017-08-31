@@ -23,13 +23,15 @@
 #ifndef DEF_HPP
 #define DEF_HPP
 
-#include <netinet/in.h>
-
 #include <map>
 #include <set>
 #include <string>
 #include <iostream>
 #include <chrono>
+#include <sstream>
+
+#include <netinet/in.h>
+
 
 //------------------------------------------------------------------------
 enum mc_filter {INCLUDE_MODE = MCAST_INCLUDE, EXCLUDE_MODE = MCAST_EXCLUDE};

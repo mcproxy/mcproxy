@@ -20,19 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/proxy/simple_mc_proxy_routing.hpp"
-#include "include/proxy/interfaces.hpp"
-#include "include/utils/addr_storage.hpp"
-#include "include/proxy/proxy_instance.hpp"
-#include "include/proxy/querier.hpp"
-#include "include/proxy/routing.hpp"
-#include "include/proxy/interfaces.hpp"
-#include "include/proxy/sender.hpp"
-#include "include/proxy/timing.hpp"
 
-#include <algorithm>
-#include <memory>
 
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------

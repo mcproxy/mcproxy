@@ -26,7 +26,20 @@
 #include <string>
 #include <list>
 #include <map>
+#include <iostream>
+#include <cstring>
+#include <errno.h>
+
+#include <unistd.h>
+
 #include <ifaddrs.h>
+#include <net/if.h>
+#include <ifaddrs.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/utils/addr_storage.hpp"
+
 
 //typedef pair<struct ifaddrs*, list<struct ifaddrs*> > ipv4_6_pair;
 

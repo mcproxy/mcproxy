@@ -20,16 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/proxy/mld_sender.hpp"
-#include "include/proxy/message_format.hpp"
-#include "include/utils/extended_mld_defines.hpp"
 
-#include <net/if.h>
-#include <netinet/icmp6.h>
-#include <netinet/ip6.h>
-
-#include <memory>
 
 mld_sender::mld_sender(const std::shared_ptr<const interfaces>& interfaces): sender(interfaces, MLDv2)
 {

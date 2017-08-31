@@ -20,12 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/parser/interface.hpp"
-#include "include/proxy/def.hpp"
-#include "include/proxy/interfaces.hpp"
 
-#include <sstream>
 
 //-----------------------------------------------------
 bool addr_match::is_wildcard(const addr_storage& addr, int addr_family) const

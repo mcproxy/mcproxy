@@ -20,13 +20,9 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
-#include "include/hamcast_logging.h"
 #include "include/proxy/sender.hpp"
-#include "include/proxy/message_format.hpp" //source
-#include "include/proxy/timers_values.hpp"
 
-#include <iostream>
+
 sender::sender(const std::shared_ptr<const interfaces>& interfaces, group_mem_protocol gmp)
     : m_group_mem_protocol(gmp)
     , m_interfaces(interfaces)

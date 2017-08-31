@@ -20,16 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/utils/if_prop.hpp"
-#include "include/utils/addr_storage.hpp"
 
-#include <cstring>
-#include <errno.h>
-#include <net/if.h>
-#include <ifaddrs.h>
-#include <unistd.h>
-#include <iostream>
 
 if_prop::if_prop():
     m_if_addrs(0)
