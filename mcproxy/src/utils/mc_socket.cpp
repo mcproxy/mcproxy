@@ -28,6 +28,7 @@
 #include <iostream>
 #include <memory> //unique_ptr
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/socket.h>
@@ -36,6 +37,13 @@
 #include <net/if.h>
 #include <numeric>
 #include <unistd.h>
+#include <string>
+
+#ifdef __UCLIBC__
+#define IP_MULTICAST_ALL 49
+
+#include "sourcefilter.cpp"
+#endif /* __UCLIBC__ */
 
 std::string ipAddrResolver(std::string ipAddr)
 {

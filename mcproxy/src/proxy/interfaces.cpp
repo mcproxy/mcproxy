@@ -66,8 +66,22 @@ bool interfaces::add_interface(unsigned int if_index)
     HC_LOG_DEBUG("if_index: " << if_index << " (" << interfaces::get_if_name(if_index) << ")" << " free_vif: " << free_vif);
     if (free_vif > INTERFACES_UNKOWN_VIF_INDEX) {
         if (!is_interface(if_index, IFF_UP)) {
-            HC_LOG_WARN("failed to add interface: " << get_if_name(if_index) << "; interface is not up");
+            HC_LOG_WARN("interface is not up: " << get_if_name(if_index));
+            // TBD: should the interface-up check be optional with config?
+            // Issue: in my home router on openwrt, this failed to start
+            // because the upstream interface wasn't plugged in. However, it
+            // works ok if it starts plugged in, then gets unplugged, then
+            // plugged in later. It also works ok if we just disable this
+            // check, and plug it in later. So I think we need a mode to run
+            // without this check.
+            // I think it's best just gone, but maybe some use case
+            // justifies having this optional according to config input?
+            // If you ever debug your way to here wishing it had refused
+            // to run instead of issuing a warning, send me an email please.
+            // -Jake 2017-04-19
+            /*
             return false;
+            */
         }
 
         auto rc_if_vif = m_if_vif.insert(std::pair<int, int>(if_index, free_vif));
@@ -136,7 +150,7 @@ unsigned int interfaces::get_if_index(const char* if_name)
 
 unsigned int interfaces::get_if_index(int virtual_if_index) const
 {
-    HC_LOG_TRACE("");
+    //HC_LOG_TRACE("");
     auto rc = m_vif_if.find(virtual_if_index);
     if (rc != end(m_vif_if)) {
         return rc->second;
@@ -180,14 +194,21 @@ addr_storage interfaces::get_saddr(const std::string& if_name) const
     }
 }
 
+std::string interfaces::get_vif_name(unsigned int vif_index) const
+{
+    return get_if_name(get_if_index(vif_index));
+}
+
 std::string interfaces::get_if_name(unsigned int if_index)
 {
-    HC_LOG_TRACE("");
+    //HC_LOG_TRACE("");
     char tmp[IF_NAMESIZE];
     const char* if_name = if_indextoname(if_index, tmp);
     if (if_name == nullptr) {
-        HC_LOG_WARN("cannot map if_index (#" << if_index << ") to if_name");
-        return std::string();
+        //HC_LOG_WARN("cannot map if_index (#" << if_index << ") to if_name");
+        std::ostringstream str;
+        str << "unknown_if_name(" << if_index << ")";
+        return str.str();
     } else {
         return std::string(if_name);
     }
@@ -196,7 +217,7 @@ std::string interfaces::get_if_name(unsigned int if_index)
 
 unsigned int interfaces::get_if_index(const addr_storage& saddr) const
 {
-    HC_LOG_TRACE("");
+    //HC_LOG_TRACE("");
 
     addr_storage recv_subnet;
     addr_storage src_subnet;
@@ -215,6 +236,7 @@ unsigned int interfaces::get_if_index(const addr_storage& saddr) const
                 }
             }
         }
+        HC_LOG_WARN("failed to map IPv4 addr to interface index:" << saddr);
     }else{
         HC_LOG_WARN("cannot map IPv6 addr to interface index:" << saddr);
     }

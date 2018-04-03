@@ -34,7 +34,7 @@
 #define MROUTE_TTL_THRESHOLD 1
 #define MROUTE_DEFAULT_TTL 1
 
-#define ADD_SIGNED_NUM_U16(r,a) (r)+= (a); (r)+= ((r)>>16)
+#define ADD_SIGNED_NUM_U16(r,a) (r)+= (a); (r) = (((r)&0xffff) + ((r)>>16))
 
 /**
  * @brief Wrapper for a multicast socket with additional functions to manipulate Linux kernel tables.

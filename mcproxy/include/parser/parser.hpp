@@ -56,6 +56,8 @@ private:
 
     void parse_interface_rule_match_binding(std::string&& instance_name, rb_interface_type interface_type, std::string&& if_name, rb_interface_direction filter_direction, const inst_def_set& ids);
 
+    void parse_interface_name(std::string& if_name);
+
 public:
     parser(unsigned int current_line, const std::string& cmd);
     parser_type get_parser_type();

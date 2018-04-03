@@ -205,7 +205,7 @@ void proxy_instance::worker_thread()
             if (it != std::end(m_downstreams)) {
                 it->second.m_querier->receive_record(msg);
             } else {
-                HC_LOG_DEBUG("failed to find querier of interface: " << interfaces::get_if_name(std::static_pointer_cast<timer_msg>(msg)->get_if_index()));
+                HC_LOG_DEBUG("failed to find querier to receive record on interface: " << interfaces::get_if_name(r->get_if_index()));
             }
         }
         break;

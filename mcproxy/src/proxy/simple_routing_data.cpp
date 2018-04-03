@@ -60,10 +60,11 @@ unsigned long simple_routing_data::get_current_packet_count(const addr_storage& 
 void simple_routing_data::set_source(unsigned int if_index, const addr_storage& gaddr, const source& saddr)
 {
     HC_LOG_TRACE("");
+    HC_LOG_DEBUG("set_source idx " << if_index << " " << gaddr << " <- " << saddr);
     auto gaddr_it = m_data.find(gaddr);
     if (gaddr_it != std::end(m_data)) {
         auto list_result = gaddr_it->second.m_source_list.insert(saddr);
-        if (!list_result.second) { //failed to inert
+        if (!list_result.second) { //failed to insert
             saddr.retransmission_count = get_current_packet_count(gaddr, saddr.saddr);
             gaddr_it->second.m_source_list.erase(list_result.first);
             gaddr_it->second.m_source_list.insert(saddr);

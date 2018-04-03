@@ -421,6 +421,7 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
 
     const std::map<addr_storage, unsigned int>& input_if_index_map = m_data.get_interface_map(gaddr);
 
+    HC_LOG_DEBUG("interested interfaces for " << gaddr << " with " << slist.size() << " sources");
     //add upstream interfaces
     std::list<std::pair<source, std::list<unsigned int>>> rt_list;
     for (auto & s : slist) {
@@ -471,6 +472,7 @@ std::list<std::pair<source, std::list<unsigned int>>> simple_mc_proxy_routing::c
         if (output_if_index != input_if_it->second) {
             return check_interface(IT_DOWNSTREAM, ID_OUT, output_if_index, input_if_it->second, gaddr, saddr);
         } else {
+            HC_LOG_DEBUG("output_if_index " << output_if_index << " != " << input_if_it->second << " input_if_it->second for " << saddr);
             return false;
         }
     };
@@ -503,7 +505,12 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
     const std::map<addr_storage, unsigned int>& input_if_index_map = m_data.get_interface_map(gaddr);
     unsigned int input_if_index;
 
+    if (output_if_index.empty()) {
+        HC_LOG_DEBUG("empty output interface list (" << gaddr << ")");
+    }
+    HC_LOG_DEBUG("set_routes(" << gaddr << ", outlist len:" << output_if_index.size());
     for (auto & e : output_if_index) {
+        HC_LOG_DEBUG("    outlist(src=" << e.first << "):" << m_p->m_interfaces->get_if_names(e.second));
         if (e.second.empty()) {
 
             auto input_if_it = input_if_index_map.find(e.first.saddr);
@@ -540,6 +547,7 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
                 }
 
                 if (!use_this_interface) {
+                    HC_LOG_DEBUG("not using interface " << input_if_index << " (" << gaddr << ", " << e.first.saddr << ")");
                     continue;
                 }
 
