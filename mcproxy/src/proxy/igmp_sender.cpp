@@ -32,7 +32,9 @@
 
 #include <memory>
 
-igmp_sender::igmp_sender(const std::shared_ptr<const interfaces>& interfaces): sender(interfaces, IGMPv3)
+igmp_sender::igmp_sender(const std::shared_ptr<const interfaces>& interfaces, group_mem_protocol group_mem_protocol)
+: sender(interfaces, IGMPv3)
+,m_group_mem_protocol(group_mem_protocol)
 {
     HC_LOG_TRACE("");
 
@@ -71,12 +73,18 @@ bool igmp_sender::send_general_query(unsigned int if_index, const timers_values&
 {
     HC_LOG_TRACE("");
 
+    if (m_group_mem_protocol < IGMPv3)
+        return send_igmp_query(if_index, tv, addr_storage(AF_INET));
+
     return send_igmpv3_query(if_index, tv, addr_storage(AF_INET), false, source_list<source>());
 }
 
 bool igmp_sender::send_mc_addr_specific_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag) const
 {
     HC_LOG_TRACE("");
+
+    if (m_group_mem_protocol < IGMPv3)
+        return send_igmp_query(if_index, tv, gaddr);
 
     return send_igmpv3_query(if_index, tv, gaddr, s_flag, source_list<source>());
 }
@@ -109,11 +117,17 @@ bool igmp_sender::send_mc_addr_and_src_specific_query(unsigned int if_index, con
     }
 
     if (!slist_higher.empty()) {
-        send_igmpv3_query(if_index, tv, gaddr, true, slist_higher);
+	if (m_group_mem_protocol < IGMPv3)
+            send_igmp_query(if_index, tv, gaddr);
+        else
+            send_igmpv3_query(if_index, tv, gaddr, true, slist_higher);
     }
 
     if (!slist_lower.empty()) {
-        send_igmpv3_query(if_index, tv, gaddr, false, slist_lower);
+        if (m_group_mem_protocol < IGMPv3)
+            send_igmp_query(if_index, tv, addr_storage(AF_INET));
+        else
+            send_igmpv3_query(if_index, tv, gaddr, false, slist_lower);
     }
 
     return rc;
@@ -210,3 +224,69 @@ bool igmp_sender::send_igmpv3_query(unsigned int if_index, const timers_values& 
     return m_sock.send_packet(dst_addr, reinterpret_cast<unsigned char*>(ip_hdr), size);
 }
 
+bool igmp_sender::send_igmp_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr) const
+{
+    HC_LOG_TRACE("");
+
+    std::unique_ptr<unsigned char[]> packet;
+    unsigned int size;
+
+    size = sizeof(ip) + sizeof(router_alert_option) + sizeof(struct igmp);
+    packet.reset(new unsigned char[size]);
+
+    addr_storage dst_addr;
+
+    if (gaddr == addr_storage(AF_INET)) { //is general query
+        dst_addr = IPV4_ALL_HOST_ADDR;
+    } else {
+        dst_addr = gaddr;
+    }
+
+    //-------------------------------------------------------------------
+    //fill ip header
+    ip* ip_hdr = reinterpret_cast<ip*>(packet.get());
+
+    ip_hdr->ip_v = 4;
+    ip_hdr->ip_hl = (sizeof(ip) + sizeof(router_alert_option)) / 4;
+    ip_hdr->ip_tos = 0;
+    ip_hdr->ip_len = htons(size);
+    ip_hdr->ip_id = 0;
+    ip_hdr->ip_off = htons(0 | IP_DF); //dont fragment flag
+    ip_hdr->ip_ttl = 1;
+    ip_hdr->ip_p = IPPROTO_IGMP;
+    ip_hdr->ip_sum = 0;
+    ip_hdr->ip_src = m_interfaces->get_saddr(interfaces::get_if_name(if_index)).get_in_addr();
+    ip_hdr->ip_dst = dst_addr.get_in_addr();
+
+    //-------------------------------------------------------------------
+    //fill router_alert_option header
+    router_alert_option* ra_hdr = reinterpret_cast<router_alert_option*>(reinterpret_cast<unsigned char*>(ip_hdr) + sizeof(ip));
+    *ra_hdr = router_alert_option();
+
+    ip_hdr->ip_sum = m_sock.calc_checksum(reinterpret_cast<unsigned char*>(ip_hdr), sizeof(ip) + sizeof(router_alert_option));
+
+    //-------------------------------------------------------------------
+
+    struct igmp *query = reinterpret_cast<struct igmp*>(reinterpret_cast<unsigned char*>(ra_hdr) + sizeof(router_alert_option));
+
+    query->igmp_type = IGMP_MEMBERSHIP_QUERY;
+
+    if (m_group_mem_protocol == IGMPv2)
+    {
+      if (gaddr == addr_storage(AF_INET)) { //general query
+          query->igmp_code = tv.maxrespi_to_maxrespc_igmpv3(tv.get_query_response_interval());
+      } else {
+          query->igmp_code = tv.maxrespi_to_maxrespc_igmpv3(tv.get_last_listener_query_time());
+      }
+    }
+
+    query->igmp_group = gaddr.get_in_addr();
+    query->igmp_cksum = 0;
+    query->igmp_cksum = m_sock.calc_checksum(reinterpret_cast<unsigned char*>(query), (sizeof(struct igmp)));
+
+    if (!m_sock.choose_if(if_index)) {
+        return false;
+    }
+
+    return m_sock.send_packet(dst_addr, reinterpret_cast<unsigned char*>(ip_hdr), size);
+}
