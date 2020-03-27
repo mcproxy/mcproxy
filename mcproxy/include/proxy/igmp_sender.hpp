@@ -36,10 +36,12 @@
 class igmp_sender : public sender
 {
 private:
+    group_mem_protocol m_group_mem_protocol;
     bool send_igmpv3_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr, bool s_flag, const source_list<source>& slist) const;
+    bool send_igmp_query(unsigned int if_index, const timers_values& tv, const addr_storage& gaddr) const;
 
 public:
-    igmp_sender(const std::shared_ptr<const interfaces>& interfaces);
+    igmp_sender(const std::shared_ptr<const interfaces>& interfaces,  group_mem_protocol  group_mem_protocol);
 
     bool send_record(unsigned int if_index, mc_filter filter_mode, const addr_storage& gaddr, const source_list<source>& slist) const override;
 
