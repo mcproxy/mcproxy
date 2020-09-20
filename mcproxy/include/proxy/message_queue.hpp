@@ -101,7 +101,7 @@ bool message_queue<T, Compare>::is_empty() const
 {
     HC_LOG_TRACE("");
 
-    std::lock_guard<std::mutex> lock(m_global_lock);
+    std::lock_guard<std::mutex> lock(this->m_global_lock);
 
     return m_q.empty();
 }
@@ -111,7 +111,7 @@ unsigned int message_queue<T, Compare>::size() const
 {
     HC_LOG_TRACE("");
 
-    std::lock_guard<std::mutex> lock(m_global_lock);
+    std::lock_guard<std::mutex> lock(this->m_global_lock);
 
     return m_q.size();
 }
@@ -130,7 +130,7 @@ bool message_queue<T, Compare>::enqueue_loseable(const T& t)
     HC_LOG_TRACE("");
 
     {
-        std::unique_lock<std::mutex> lock(m_global_lock);
+        std::unique_lock<std::mutex> lock(this->m_global_lock);
         if (m_q.size() < m_size) {
             m_q.push(t);
         } else {
@@ -148,7 +148,7 @@ void message_queue<T, Compare>::enqueue(const T& t)
     HC_LOG_TRACE("");
 
     {
-        std::unique_lock<std::mutex> lock(m_global_lock);
+        std::unique_lock<std::mutex> lock(this->m_global_lock);
         m_q.push(t);
     }
     cond_empty.notify_one();
@@ -162,7 +162,7 @@ T message_queue<T, Compare>::dequeue(void)
 
     T t;
     {
-        std::unique_lock<std::mutex> lock(m_global_lock);
+        std::unique_lock<std::mutex> lock(this->m_global_lock);
         cond_empty.wait(lock, [&]() {
             return m_q.size() != 0;
         });
