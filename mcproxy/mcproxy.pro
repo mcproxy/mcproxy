@@ -15,7 +15,7 @@ tester {
     HEADERS += include/tester/config_map.hpp \
            include/tester/tester.hpp
 
-    LIBS += -L/usr/lib -lboost_regex
+    LIBS += -lboost_regex
 }
 
 mcproxy { #default mode
@@ -123,7 +123,7 @@ HEADERS += include/hamcast_logging.h \
            include/parser/parser.hpp \
            include/parser/interface.hpp
 
-LIBS += -L/usr/lib -lpthread 
+LIBS += -lpthread 
 
 QMAKE_CLEAN += thread* 
   
