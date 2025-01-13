@@ -32,6 +32,7 @@ following command:
 
         apt-get install qt5-qmake
         apt-get install qt5-default
+        # If on ubuntu 22 or newer qt5-default is likely qtbase5-dev now
 
   older systems: 
 
