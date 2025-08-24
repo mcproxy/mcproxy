@@ -1,4 +1,4 @@
-<!--vim: set textwidth=80 formatoptions+=t wrapmargin=5 -->
+<--vim: set textwidth=80 formatoptions+=t wrapmargin=5 -->
 
 Introduction
 ============
@@ -21,21 +21,23 @@ peering-interfaces for a non hierarchical interconnection of multicast proxies.
 
 If you use Mcproxy in a scientific context, please use the following [citation](http://inet.cpt.haw-hamburg.de/publications/sww-pmpps-14.html).
 
+Project Status
+==============
+
 Requirements
 ============
 *  A g++ version equal or higher **4.8** is required.
 
-*  To generate a makefile, qmake must be installed. This can be done with the
+*  To generate a Makefile, qmake must be installed. This can be done with the
 following command:
   
-  newer systems: 
+  newer systems (Ubuntu 24.04):
 
-        apt-get install qt5-qmake
-        apt-get install qt5-default
+        apt install qt5-qmake qtbase5-dev
 
   older systems: 
 
-        apt-get install qt4-qmake
+        apt install qt5-qmake qt5-default
 
 *  To use the IPv6 functionality the kernel has to be configured and compiled
 with the experimental kernel feature _IPv6: multicast routing_.  For more
