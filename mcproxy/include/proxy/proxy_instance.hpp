@@ -30,14 +30,39 @@
 #ifndef PROXY_INSTANCE_HPP
 #define PROXY_INSTANCE_HPP
 
-#include "include/proxy/worker.hpp"
-#include "include/proxy/def.hpp"
-#include "include/proxy/querier.hpp"
-#include "include/parser/interface.hpp"
 
 #include <memory>
 #include <set>
 #include <functional>
+#include <sstream>
+#include <iostream>
+#include <random>
+#include <algorithm>
+
+#include <unistd.h>
+
+#include <net/if.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/parser/interface.hpp"
+
+#include "include/proxy/worker.hpp"
+#include "include/proxy/def.hpp"
+#include "include/proxy/querier.hpp"
+#include "include/proxy/receiver.hpp"
+#include "include/proxy/igmp_receiver.hpp"
+#include "include/proxy/mld_receiver.hpp"
+#include "include/proxy/sender.hpp"
+#include "include/proxy/igmp_sender.hpp"
+#include "include/proxy/mld_sender.hpp"
+#include "include/proxy/routing.hpp"
+#include "include/proxy/querier.hpp"
+#include "include/proxy/interfaces.hpp"
+#include "include/proxy/timing.hpp"
+#include "include/proxy/routing_management.hpp"
+#include "include/proxy/simple_mc_proxy_routing.hpp"
+
 
 class timing;
 class receiver;

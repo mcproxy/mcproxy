@@ -20,17 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
-#include "include/hamcast_logging.h"
 #include "include/proxy/routing.hpp"
-#include "include/proxy/interfaces.hpp"
-#include "include/utils/addr_storage.hpp"
-#include "include/utils/mroute_socket.hpp"
 
-#include <net/if.h>
-#include <linux/mroute.h>
-#include <linux/mroute6.h>
-#include <iostream>
 
 routing::routing(int addr_family, std::shared_ptr<const mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces, int table_number)
     : m_table_number(table_number)
@@ -52,17 +43,17 @@ bool routing::add_vif(int if_index, int vif) const
     char cstr[IF_NAMESIZE];
     const struct ifaddrs* item = nullptr;
 
-    std::string if_name(if_indextoname(if_index, cstr)); //fehler!!!!!! könnte abastürzten ???????????????????????ßß<F8><F8><F8>
+    std::string _if_name(if_indextoname(if_index, cstr)); //fehler!!!!!! könnte abastürzten ???????????????????????ßß<F8><F8><F8>
 
     //useless ????????????????????????????????????????????????????????????????????
     if (m_addr_family == AF_INET) {
-        if ((item = m_if_prop.get_ip4_if(if_name)) == nullptr) {
-            HC_LOG_ERROR("interface not found: " << if_name);
+        if ((item = m_if_prop.get_ip4_if(_if_name)) == nullptr) {
+            HC_LOG_ERROR("interface not found: " << _if_name);
             return false;
         }
     } else if (m_addr_family == AF_INET6) {
-        if ((item = m_if_prop.get_ip6_if(if_name)->front()) == nullptr) {
-            HC_LOG_ERROR("interface not found: " << if_name);
+        if ((item = m_if_prop.get_ip6_if(_if_name)->front()) == nullptr) {
+            HC_LOG_ERROR("interface not found: " << _if_name);
             return false;
         }
     } else {
@@ -95,7 +86,7 @@ bool routing::add_vif(int if_index, int vif) const
         }
     }
 
-    HC_LOG_DEBUG("added interface: " << if_name << " to vif_table with vif number:" << vif);
+    HC_LOG_DEBUG("added interface: " << _if_name << " to vif_table with vif number:" << vif);
     return true;
 }
 

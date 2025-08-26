@@ -18,13 +18,8 @@
  * written by Dominik Charousset <dominik.charousset@haw-hamburg.de>
  */
 
-#include <utility>
-#include <fstream>
-#include <iostream>
-
-#include <boost/regex.hpp>
-
 #include "include/tester/config_map.hpp"
+
 
 using namespace std;
 

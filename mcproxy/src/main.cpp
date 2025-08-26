@@ -19,27 +19,30 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
+#include <iostream>
+#include <unistd.h>
+
 #include "include/hamcast_logging.h"
+
+#include "include/utils/addr_storage.hpp"
 #include "include/utils/if_prop.hpp"
 #include "include/utils/mc_socket.hpp"
 #include "include/utils/mroute_socket.hpp"
-#include "include/utils/addr_storage.hpp"
-#include "include/proxy/proxy.hpp"
-#include "include/proxy/timing.hpp"
+
 #include "include/proxy/check_if.hpp"
-#include "include/utils/if_prop.hpp"
+#include "include/proxy/igmp_sender.hpp"
 #include "include/proxy/membership_db.hpp"
-#include "include/proxy/querier.hpp"
-#include "include/proxy/timers_values.hpp"
+#include "include/proxy/proxy.hpp"
 #include "include/proxy/proxy_instance.hpp"
+#include "include/proxy/querier.hpp"
 #include "include/proxy/simple_mc_proxy_routing.hpp"
 #include "include/proxy/simple_routing_data.hpp"
-#include "include/proxy/igmp_sender.hpp"
+#include "include/proxy/timers_values.hpp"
+#include "include/proxy/timing.hpp"
+
 #include "include/parser/configuration.hpp"
 #include "include/tester/tester.hpp"
 
-#include <iostream>
-#include <unistd.h>
 
 void test_log();
 void test_test();

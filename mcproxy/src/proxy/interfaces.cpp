@@ -18,15 +18,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-
-#include "include/hamcast_logging.h"
 #include "include/proxy/interfaces.hpp"
-#include "include/utils/addr_storage.hpp"
-#include <linux/mroute.h>
-#include <linux/mroute6.h>
 
-#include <net/if.h>
-#include <vector>
 
 interfaces::interfaces(int addr_family, bool reset_reverse_path_filter)
     : m_addr_family(addr_family)

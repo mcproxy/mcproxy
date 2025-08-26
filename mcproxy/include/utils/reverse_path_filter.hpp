@@ -26,6 +26,10 @@
 #include <string>
 #include <set>
 #include <sstream>
+#include <fstream>
+
+#include "include/hamcast_logging.h"
+
 
 #define REVERSE_PATH_FILTER_PATH "/proc/sys/net/ipv4/conf/"
 #define REVERSE_PATH_FILTER_THE_ALL_INTERFACE "all"

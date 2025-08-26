@@ -28,7 +28,20 @@
 #ifndef IGMP_RECEIVER_HPP
 #define IGMP_RECEIVER_HPP
 
+#include <net/if.h>
+#include <netinet/igmp.h>
+#include <netinet/ip.h>
+
+#include <linux/mroute.h>
+
+#include "include/hamcast_logging.h"
+
 #include "include/proxy/receiver.hpp"
+#include "include/proxy/proxy_instance.hpp"
+#include "include/proxy/message_format.hpp"
+
+#include "include/utils/extended_igmp_defines.hpp"
+
 
 /**
  * @brief Size of the router alert option.

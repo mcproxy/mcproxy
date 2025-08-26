@@ -31,17 +31,23 @@
 #ifndef RECEIVER_HPP
 #define RECEIVER_HPP
 
-#include "include/utils/mroute_socket.hpp"
-#include "include/utils/addr_storage.hpp"
-#include "include/proxy/interfaces.hpp"
-#include "include/proxy/message_format.hpp"
-#include "include/proxy/def.hpp"
 
 #include <set>
 #include <thread>
 #include <mutex>
 #include <memory>
 #include <sstream>
+
+#include <unistd.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/utils/mroute_socket.hpp"
+#include "include/utils/addr_storage.hpp"
+#include "include/proxy/interfaces.hpp"
+#include "include/proxy/message_format.hpp"
+#include "include/proxy/def.hpp"
+
 
 class proxy_instance;
 

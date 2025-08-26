@@ -23,14 +23,22 @@
 #ifndef CONFIGURATION_HPP
 #define CONFIGURATION_HPP
 
-#include "include/parser/token.hpp"
-#include "include/parser/interface.hpp"
-#include "include/proxy/def.hpp"
-#include "include/proxy/interfaces.hpp"
 
 #include <string>
 #include <vector>
 #include <memory>
+#include <algorithm>
+#include <fstream>
+
+#include "include/hamcast_logging.h"
+
+#include "include/parser/parser.hpp"
+#include "include/parser/token.hpp"
+#include "include/parser/interface.hpp"
+
+#include "include/proxy/def.hpp"
+#include "include/proxy/interfaces.hpp"
+
 
 #define CONFIGURATION_DEFAULT_CONIG_PATH "mcproxy.conf"
 

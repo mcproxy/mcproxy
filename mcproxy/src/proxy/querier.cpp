@@ -20,20 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/proxy/querier.hpp"
-#include "include/utils/addr_storage.hpp"
-#include "include/proxy/timing.hpp"
-#include "include/proxy/interfaces.hpp"
-#include "include/proxy/def.hpp"
 
-#include "include/proxy/sender.hpp"
-#include "include/proxy/igmp_sender.hpp"
-#include "include/proxy/mld_sender.hpp"
-
-#include <unistd.h>
-#include <iostream>
-#include <sstream>
 
 querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv, callback_querier_state_change cb_state_change)
     : m_msg_worker(msg_worker)

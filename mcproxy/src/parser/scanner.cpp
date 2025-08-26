@@ -20,12 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/parser/scanner.hpp"
-#include "include/parser/token.hpp"
 
-#include <algorithm>
-#include <fstream>
 
 scanner::scanner(unsigned int current_line, const std::string& cmd)
     : m_current_line(current_line)

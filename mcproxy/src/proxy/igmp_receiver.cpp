@@ -20,16 +20,8 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/proxy/igmp_receiver.hpp"
-#include "include/proxy/proxy_instance.hpp"
-#include "include/proxy/message_format.hpp"
-#include "include/utils/extended_igmp_defines.hpp"
 
-#include <net/if.h>
-#include <linux/mroute.h>
-#include <netinet/igmp.h>
-#include <netinet/ip.h>
 
 #ifdef DEBUG_MODE
 extern "C" {

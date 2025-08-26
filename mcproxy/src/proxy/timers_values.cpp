@@ -21,12 +21,7 @@
  */
 
 #include "include/proxy/timers_values.hpp"
-#include "include/hamcast_logging.h"
-#include "include/proxy/membership_db.hpp"
 
-#include <iomanip>
-#include <sstream>
-#include <iostream>
 
 template<typename T>
 std::string to_hex_string(T n)

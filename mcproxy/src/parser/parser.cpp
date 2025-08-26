@@ -18,13 +18,9 @@
  * Website: http://mcproxy.realmv6.org/
  */
 
-#include "include/hamcast_logging.h"
 #include "include/parser/parser.hpp"
 
-#include <algorithm>
 
-#include <stdexcept>
-	
 parser::parser(unsigned int current_line, const std::string& cmd)
     : m_scanner(current_line, cmd)
     , m_current_line(current_line)

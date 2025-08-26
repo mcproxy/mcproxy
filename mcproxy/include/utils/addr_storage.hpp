@@ -23,10 +23,17 @@
 #ifndef ADDR_STORAGE_HPP
 #define ADDR_STORAGE_HPP
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-
+#include <cstring>
 #include <string>
+#include <stdlib.h>
+#include <iostream>
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
+#include "include/hamcast_logging.h"
+
 
 /**
  * @brief Wrapper for IPv4 and IPv6 addresses.

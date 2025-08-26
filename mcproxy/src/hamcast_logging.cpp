@@ -19,16 +19,8 @@
  * updated by Sebastian Woelke
  */
 
-#include <fstream>
-#include <thread>
-#include <mutex>
-#include <cstdint>
-#include <chrono>
-#include <atomic>
-//#include <boost/thread.hpp>
-//#include <boost/date_time.hpp>
-
 #include "include/hamcast_logging.h"
+
 
 #ifdef DEBUG_MODE
 

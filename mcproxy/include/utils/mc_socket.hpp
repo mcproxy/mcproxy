@@ -23,10 +23,29 @@
 #ifndef MCSOCKET_H_
 #define MCSOCKET_H_
 
-#include "include/utils/addr_storage.hpp"
 #include <list>
-#include <time.h>
 #include <string>
+#include <cstring> //memset
+#include <iostream>
+#include <memory> //unique_ptr
+#include <numeric>
+
+#include <errno.h>
+#include <time.h>
+#include <unistd.h>
+
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <netpacket/packet.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/utils/addr_storage.hpp"
+
 
 ///@author Sebastian Woelke
 ///@brief socket for multicast applications

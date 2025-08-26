@@ -28,6 +28,17 @@
 #ifndef IGMP_SENDER_HPP
 #define IGMP_SENDER_HPP
 
+#include <memory>
+
+#include <netinet/igmp.h>
+#include <netinet/ip.h>
+#include <net/if.h>
+
+#include "include/hamcast_logging.h"
+
+#include "include/utils/extended_igmp_defines.hpp"
+
+#include "include/proxy/message_format.hpp"
 #include "include/proxy/sender.hpp"
 
 /**
