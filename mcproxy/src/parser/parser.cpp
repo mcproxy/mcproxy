@@ -22,6 +22,7 @@
 #include "include/parser/parser.hpp"
 
 #include <algorithm>
+#include <cstdlib>
 
 #include <stdexcept>
 	
@@ -126,7 +127,7 @@ void parser::parse_instance_definition(inst_def_set& ids)
                 get_next_token();
                 if (m_current_token.get_type() == TT_STRING) {
                     try {
-                        table_number = std::stoi(m_current_token.get_string());
+                        table_number = std::atoi(m_current_token.get_string().c_str());
                         user_selected_table_number = true;
                     } catch (std::logic_error e) {
                         HC_LOG_ERROR("failed to parse line " << m_current_line << " table number: " << table_number << " is not a number");
@@ -147,18 +148,19 @@ void parser::parse_instance_definition(inst_def_set& ids)
             }
 
             if (m_current_token.get_type() == TT_DOUBLE_DOT) {
+                std::string if_name;
                 get_next_token();
                 while (m_current_token.get_type() == TT_STRING) {
-                    upstreams.push_back(std::make_shared<interface>(m_current_token.get_string()));
-                    get_next_token();
+                    parse_interface_name(if_name);
+                    upstreams.push_back(std::make_shared<interface>(if_name));
                 }
 
                 if (m_current_token.get_type() == TT_ARROW) {
 
                     get_next_token();
                     while (m_current_token.get_type() == TT_STRING) {
-                        downstreams.push_back(std::make_shared<interface>(m_current_token.get_string()));
-                        get_next_token();
+                        parse_interface_name(if_name);
+                        downstreams.push_back(std::make_shared<interface>(if_name));
                     }
 
                     if (downstreams.size() > 0 && m_current_token.get_type() == TT_NIL) {
@@ -234,14 +236,40 @@ std::unique_ptr<table> parser::parse_table(const std::shared_ptr<const global_ta
     throw "failed to parse config file";
 }
 
+void parser::parse_interface_name(std::string& if_name)
+{
+    // examples of OpenWRT interface names which failed to parse when just using TT_STRING:
+    //   eth0.2
+    //   br-lan
+    if (m_current_token.get_type() != TT_STRING) {
+        HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " starting interface name");
+        throw "failed to parse config file";
+    }
+
+    token_type prior_token(TT_NIL);
+    if_name.clear();
+    while ((m_current_token.get_type() == TT_STRING && prior_token != TT_STRING) ||
+            m_current_token.get_type() == TT_DOT ||
+            m_current_token.get_type() == TT_RANGE) {
+        prior_token = m_current_token.get_type();
+        if (m_current_token.get_type() == TT_STRING) {
+            if_name += m_current_token.get_string();
+        } else if (m_current_token.get_type() == TT_DOT) {
+            if_name += '.';
+        } else if (m_current_token.get_type() == TT_RANGE) {
+            if_name += '-';
+        }
+        get_next_token();
+    }
+}
+
 std::unique_ptr<rule_box> parser::parse_rule(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp)
 {
     HC_LOG_TRACE("");
     std::string if_name;
     if (m_current_token.get_type() == TT_STRING || m_current_token.get_type() == TT_LEFT_BRACKET) {
         if (m_current_token.get_type() == TT_STRING) {
-            if_name = m_current_token.get_string();
-            get_next_token();
+            parse_interface_name(if_name);
         }
 
         if (m_current_token.get_type() == TT_LEFT_BRACKET) {
@@ -299,7 +327,7 @@ std::unique_ptr<addr_match> parser::parse_rule_part(group_mem_protocol gmp)
             get_next_token();
             if (m_current_token.get_type() == TT_STRING) {
                 try {
-                    unsigned int prefix = std::stoi(m_current_token.get_string());
+                    unsigned int prefix = std::atoi(m_current_token.get_string().c_str());
                     if (prefix > 128) {
                         throw;
                     }
@@ -414,7 +442,7 @@ void parser::parse_interface_rule_binding(const std::shared_ptr<const global_tab
 
         get_next_token();
         if (m_current_token.get_type() == TT_STRING) {
-            if_name = m_current_token.get_string();
+            parse_interface_name(if_name);
         } else if (m_current_token.get_type() == TT_STAR) {
             if_name = "*";
         } else {
@@ -561,7 +589,7 @@ void parser::parse_interface_rule_match_binding(
             get_next_token();
             if (m_current_token.get_type() == TT_STRING) {
                 try {
-                    int tmp_timeout = std::stoi(m_current_token.get_string());
+                    int tmp_timeout = std::atoi(m_current_token.get_string().c_str());
                     timeout = std::chrono::milliseconds(tmp_timeout);
                 } catch (...) {
                     error_notification();

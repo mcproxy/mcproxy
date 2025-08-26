@@ -46,7 +46,7 @@ class proxy_instance;
 class proxy
 {
 private:
-    static bool m_running;
+    static volatile bool m_running;
     int m_verbose_lvl;
     bool m_print_proxy_status;
     bool m_reset_rp_filter;

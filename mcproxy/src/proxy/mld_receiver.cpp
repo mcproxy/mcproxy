@@ -93,9 +93,11 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
             if ((if_index = m_interfaces->get_if_index(mldctl->im6_mif)) == 0) {
                 return;
             }
+            HC_LOG_DEBUG("\tif_index: " << if_index);
             HC_LOG_DEBUG("\treceived on interface:" << interfaces::get_if_name(if_index));
 
             if (!is_if_index_relevant(if_index)) {
+                HC_LOG_DEBUG("interface is not relevant");
                 return;
             }
 

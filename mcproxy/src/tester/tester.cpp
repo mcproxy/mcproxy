@@ -27,6 +27,7 @@
 #include "include/proxy/interfaces.hpp"
 
 #include <cstring>
+#include <cstdlib>
 #include <thread>
 #include <csignal>
 #include <vector>
@@ -356,7 +357,7 @@ std::chrono::milliseconds tester::get_send_interval(const std::string& to_do)
         interval = 1000; //milliseconds
     } else {
         try {
-            interval = std::stoi(str_interval);
+            interval = std::atoi(str_interval.c_str());
         } catch (std::logic_error e) {
             std::cout << "failed to parse interval" << std::endl;
             exit(0);
@@ -375,7 +376,7 @@ std::chrono::milliseconds tester::get_lifetime(const std::string& to_do)
         lifetime = 0; //endless
     } else {
         try {
-            lifetime = std::stoi(str_lifetime);
+            lifetime = std::atoi(str_lifetime.c_str());
         } catch (std::logic_error e) {
             std::cout << "failed to parse lifetime" << std::endl;
             exit(0);
@@ -393,7 +394,7 @@ int tester::get_int(const std::string& to_do, std::string&& compare, int default
         return default_return;
     } else {
         try {
-            return std::stoi(result);
+            return std::atoi(result.c_str());
         } catch (std::logic_error e) {
             std::cout << "failed to parse " << compare << std::endl;
             exit(0);
